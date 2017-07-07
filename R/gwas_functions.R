@@ -15,7 +15,7 @@ add_Phenotypic_Data_To_Gwas_Object <- function(csv.file.name,r.image.name,new.r.
 #NB. side effect : working dit. is changed
 
 #gwas.obj=GWAS.obj;csv.file.name=csv.file.name;add.var.means=F;make.pheno.image=F;pheno.image.name=""
-  setwd(data.path)
+  #setwd(data.path)
   load(r.image.name)
   gwas.obj <- AddPhenoData(gwas.obj=gwas.obj,csv.file.name=csv.file.name,add.var.means=F,make.pheno.image=F,pheno.image.name="",
                            which.columns.as.factor=which.columns.as.factor)
