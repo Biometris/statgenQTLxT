@@ -3,12 +3,12 @@
 #' Returns the estimates and standard errors for the covariates in the input matrix X. Optionally an
 #' additional covariate x can be estimated.
 #'
-#' No missing values are allowed in any of X,Y and x. \cr
+#' No missing values are allowed in any of X,Y and x.\cr
 #' It is assumed that X,Y and x have already been rotated by Uk, where Uk is such that
 #' the kinship matrix K equals \eqn{K = Uk * Dk * t(Uk)} (in R: \code{w <- eigen(K); Dk <- diag(w$values);
-#' Uk <- w$vectors}). \cr
+#' Uk <- w$vectors}).\cr
 #' Next, the original X, Y and x are right multiplied by Uk, e.g. \code{Y <- Y * Uk}. See Zhou
-#' and Stephens 2014, supplement. \cr
+#' and Stephens 2014, supplement.\cr
 #' It is the rotated versions that are the input of this function.
 #'
 #' @export
@@ -18,37 +18,45 @@
 #' @param Y is a p x n matrix of observed phenotypes, on p traits or environments for n genotypes.
 #' See details.
 #' @param x is an additional covariate, an optional numeric vector of length n. See details.
-#' @param VInvArray an n x n x p dimensional array obtained as an output from the function
-#' \code{\link{make.VInvArray}}. It contains for each genotype i the p x p matrix \eqn{v_i ^ -1} (in
+#' @param VInvArray an n x p x p dimensional array obtained as an output from the function
+#' \code{\link{make.VInvArray}}. It contains for each genotype i the p x p matrix \eqn{v_l ^ -1} (in
 #' the notation of Zhou and Stephens)
 #' @param returnAllEffects If \code{FALSE} only the p effect estimates for the additional covariate
 #' are returned, (the first p * c are actually computed, but not returned). If \code{TRUE},
 #' also the effect estimates and standard errors for the other covariates (i.e. those in X) are returned.
 #' If no x is provided, \code{returnAllEffects} is automatically set to \code{TRUE}.
 #'
+#' @references Zhou, X. and Stephens, M. (2014). Efficient mutivariate linear mixed model algorithms for
+#' genome-wide association studies.
 
 ## to do: example
+## comment on missing values
+## to do : partial update...
 
 estimateEffects <- function(X, x = NULL, Y, VInvArray, returnAllEffects = TRUE) {
-
-  ## stopifnot(...)
-  ## check missing values
-  ## comment on missing values
-  ## to do : partial update...
+  stopifnot(ncol(X) == ncol(Y))
+  stopifnot(ncol(X) == dim(VInvArray)[1])
+  stopifnot(nrow(Y) == dim(VInvArray)[2])
+  stopifnot(nrow(Y) == dim(VInvArray)[3])
+  stopifnot(is.null(x) && length(x) != ncol(X))
+  if (anyNA(X)) stop("No missing values allowed in X")
+  if (anyNA(x)) stop("No missing values allowed in x")
+  if (anyNA(Y)) stop("No missing values allowed in Y")
 
   nc <- nrow(X)
+  n <- ncol(X)
   p <- nrow(Y)
 
-  if (length(x) == 0) {
+  if (is.null(x)) {
     returnAllEffects <- TRUE
     ncTot <- nc
   } else {
     ncTot <- nc + 1
   }
 
-  if (length(x) > 0) {X <- rbind(X , t(matrix(as.numeric(x))))}
-  ## the last p coefficients should be the marker-effects,
-  ## the first p*nc should correspond to the other coefficients
+  if (!is.null(x)) {X <- rbind(X , t(matrix(as.numeric(x))))}
+  ## the last p coefficients should be the marker-effects
+  ## the first p * nc should correspond to the other coefficients
 
   if (p == 1 && ncTot == 1) {
     Vbeta <- matrix(sum(sapply(1:n, function(m) {
@@ -87,7 +95,5 @@ estimateEffects <- function(X, x = NULL, Y, VInvArray, returnAllEffects = TRUE) 
       wald <- as.numeric(t(matrix(effectsEstimates)) %*% MSub %*% matrix(effectsEstimates))
     }
   }
-
   return(list(effects.estimates = effectsEstimates, effects.sd = effectsSd, wald = wald))
 }
-#

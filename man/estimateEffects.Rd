@@ -15,8 +15,8 @@ of genotypes. c Has to be at least one (typically an intercept). See details.}
 \item{Y}{is a p x n matrix of observed phenotypes, on p traits or environments for n genotypes.
 See details.}
 
-\item{VInvArray}{an n x n x p dimensional array obtained as an output from the function
-\code{\link{make.VInvArray}}. It contains for each genotype i the p x p matrix \eqn{v_i ^ -1} (in
+\item{VInvArray}{an n x p x p dimensional array obtained as an output from the function
+\code{\link{make.VInvArray}}. It contains for each genotype i the p x p matrix \eqn{v_l ^ -1} (in
 the notation of Zhou and Stephens)}
 
 \item{returnAllEffects}{If \code{FALSE} only the p effect estimates for the additional covariate
@@ -29,11 +29,15 @@ Returns the estimates and standard errors for the covariates in the input matrix
 additional covariate x can be estimated.
 }
 \details{
-No missing values are allowed in any of X,Y and x. \cr
+No missing values are allowed in any of X,Y and x.\cr
 It is assumed that X,Y and x have already been rotated by Uk, where Uk is such that
 the kinship matrix K equals \eqn{K = Uk * Dk * t(Uk)} (in R: \code{w <- eigen(K); Dk <- diag(w$values);
-Uk <- w$vectors}). \cr
+Uk <- w$vectors}).\cr
 Next, the original X, Y and x are right multiplied by Uk, e.g. \code{Y <- Y * Uk}. See Zhou
-and Stephens 2014, supplement. \cr
+and Stephens 2014, supplement.\cr
 It is the rotated versions that are the input of this function.
+}
+\references{
+Zhou, X. and Stephens, M. (2014). Efficient mutivariate linear mixed model algorithms for
+genome-wide association studies.
 }

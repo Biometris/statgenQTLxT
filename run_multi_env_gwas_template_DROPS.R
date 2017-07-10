@@ -636,12 +636,10 @@ for (pheno.file in pheno.files) {
       }
     }
 
+    #est0 <- estimate.effects(X=Xt,Y=Yt,Dk=Dk,V.inv.array=V.inv.array,return.all.effects=T)
+    est0 <- estimateEffects(X = Xt, Y = Yt, VInvArray = V.inv.array, returnAllEffects = TRUE)
 
-    est0 <- estimate.effects(X=Xt,Y=Yt,Dk=Dk,V.inv.array=V.inv.array,return.all.effects=T)
-
-    system.time({
     fitted.mean0 <- matrix(est0$effects.estimates,ncol=length(est0$effects.estimates)/p) %*% Xt
-    })
 
     SS0 <- LL.quad.form.diag(Y=Yt-fitted.mean0,V.inv.array=V.inv.array)
 
