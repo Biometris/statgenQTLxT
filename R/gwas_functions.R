@@ -1,12 +1,9 @@
 add_Phenotypic_Data_To_Gwas_Object <- function(csv.file.name,r.image.name,new.r.image.name,data.path=setwd(),which.columns.as.factor=integer(0)) {
 # OBJECTIVE :
-#' @param
-#' @param
 # INPUT :
 #' @param csv.file.name : name of the csv file containing the data (first column-name: genotype). Contains no row-names
 #' @param r.image.name,new.r.image.name :
 #' @param data.path : the path where the function will look for the above files
-#' @param
 #' @param which.columns.as.factor : column-numbers of the variables that are to be imported as factor
 # OUTPUT :
 # *

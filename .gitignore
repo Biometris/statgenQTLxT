@@ -2,5 +2,3 @@
 .Rhistory
 .RData
 .Ruserdata
-run_multi_env_gwas_template_DROPS.R
-varcomp_analysis_generic.R

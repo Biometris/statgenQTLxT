@@ -1,3 +1,5 @@
+GWAS_Figure.R <-function() {
+
 ######################################################################################
 ########    DRAWING THE FIGURE OF QTLS AS IN Millet et al. 2016        ##############
 ######################################################################################
@@ -10,23 +12,23 @@ setwd("/home/millet/Documents/PhD-1A/GWAS/Z_FigureGWAS_multiTrait")
 library(ggplot2)
 library(ReporteRs) # R package to format the outputs using Word or Powerpoint
 #
-######                      ###### 
-###### Dataframe formatting ###### 
-######                      ###### 
+######                      ######
+###### Dataframe formatting ######
+######                      ######
 
 ### Dataframe format should be output of the "listQTL" function
 # or should at least contain SNP name, snp position, allelic effect, chromosome, trait and/or environment
-# MANDATORY : 
-### column containing chromosome should be named "Chromosome" 
+# MANDATORY :
+### column containing chromosome should be named "Chromosome"
 ### column containing trait should be named "Trait" (either phenotypic trait or environment)
-### column containing SNP effect should be named "effect" 
+### column containing SNP effect should be named "effect"
 ### column containing SNP position should be named "Marker_Position"
 # Example 1 : different phenotypic trait
 listeSNP <- read.table("ListeQTL_LOD45_DROPS_Response.csv",sep=",",he=TRUE)
 # Example 2: different environment
 listeSNP <- read.table("Fixed_modelMEML_33+15QTL_GY_perenvt_effB73.csv",sep=",",he=TRUE)
 # center and reduce the allelic effect (because of the different units)
-listeSNP$eff <- sapply(1:nrow(listeSNP), function(x) 
+listeSNP$eff <- sapply(1:nrow(listeSNP), function(x)
   (listeSNP$effect[x]-mean(listeSNP$effect[listeSNP$Trait==listeSNP$Trait[x]],na.rm=T))/sd(listeSNP$effect[listeSNP$Trait==listeSNP$Trait[x]],na.rm=T) )
 listeSNP$eff <- listeSNP$effect
 
@@ -56,12 +58,12 @@ dat$coul <- ifelse(dat$eff>0,"pos","neg")
 dat <- droplevels(dat)
 
 
-######        ###### 
-######  Plot  ###### 
-######        ###### 
+######        ######
+######  Plot  ######
+######        ######
 
 ### Loading the bin position to add vertical lines to the figure
-### WARNINGS : particular case of the maize genome ! 
+### WARNINGS : particular case of the maize genome !
 ### other species do not have bins
 dat.vline<-read.table("/home/millet/Documents/PhD-1A/GWAS/A_50K+600K_GyGnbGsAnth/PosBinRefGenV2.csv",sep=",",he=T)
 names(dat.vline)[1] <- "Chromosome"
@@ -83,7 +85,7 @@ qtlplot <-                                                   # R object containi
              y      = reorder(Trait,-tri),                   # y data sorted as 'tri' ('reorder' function)
              size   = factor(abs(eff)),                      # points size proportionnal to allelic effect (absolute value)
              colour = factor(coul) ) ) +                     # points color depends on the effect direction
-         my_theme_empty_GWAS +                               # use the 'handmade' ggplot theme 
+         my_theme_empty_GWAS +                               # use the 'handmade' ggplot theme
          ylab(y.labels) + xlab("Chromosomes")  +             # labelling the plot axis
          geom_vline(aes(xintercept = position),              # add vertical lines at the bin position
                    data = dat.vline,                         # the bin positions are contained in the 'dat.vline' dataframe
@@ -94,24 +96,25 @@ qtlplot <-                                                   # R object containi
                     scales = "free",                         # do not resize the x axise (otherwise every chromosome has the same size)
                     space = "free",                          # do not add extra space between facet
                    switch="both") +                          # place the chromosome labels at the bottom
-        scale_colour_manual("coul",                          # manually ascribe a color to the allelic direction (column 'coul')...  
+        scale_colour_manual("coul",                          # manually ascribe a color to the allelic direction (column 'coul')...
                             labels = c("neg", "pos"),        # ... which could be either "neg" or "pos" ...
-                            values = c("darkblue","green4")) # ... and that has a corresponding color 
-  
-  
-######                                      ###### 
-######  Saving the figure using in .pptx    ###### 
-######                                      ###### 
+                            values = c("darkblue","green4")) # ... and that has a corresponding color
 
-### Loading an empty powerpoint template 
+
+######                                      ######
+######  Saving the figure using in .pptx    ######
+######                                      ######
+
+### Loading an empty powerpoint template
 # this one is a .pptx file, containing one empty slide
 # for more information check http://davidgohel.github.io/ReporteRs/
-mydoc = pptx(template = 'templatevide_ReporteRs.pptx')  
+mydoc = pptx(template = 'templatevide_ReporteRs.pptx')
 mydoc = addSlide( mydoc, "Titre et contenu" )     # adding a new slide (necessary despite the first empty slide)
 mydoc = addPlot( doc = mydoc,                     # adding a plot the the document
-                 fun = print,                     # "print" the graph on the slide 
+                 fun = print,                     # "print" the graph on the slide
                  x = qtlplot,                     # x = R object containing the plot
                  offx = 1, offy = 1,              # position of the plot on the slide
                  width = 10, height = 8 )         # plot size
 mydoc = addDate(mydoc)                            # adding date on the slide
 writeDoc( doc=mydoc, file="GraphQTL.pptx")        # writing the .pptx file
+}
