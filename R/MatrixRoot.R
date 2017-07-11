@@ -1,10 +1,25 @@
-# Taken from : http://realizationsinbiostatistics.blogspot.com/2008/08/matrix-square-roots-in-r_18.html
-MatrixRoot <- function(x) { # assumes that x is symmetric
-  x.eig <- eigen(as.matrix(x),symmetric=TRUE)
-  if (length(x.eig$values) > 1) {
-    x.sqrt <- x.eig$vectors %*% diag(sqrt(x.eig$values)) %*% solve(x.eig$vectors)
+#' Compute Square root of a symmetric, positive definite matrix
+#'
+#' Given an symmetric, positive definite matrix X a matrix Y is computed such that \eqn{Y^2 = X}.
+#' Computation is don using eigendecomposition of X.
+#'
+#' @param X A symmetric, positive definite matrix
+#'
+#' @return A matrix Y such that \eqn{Y^2 = X}.
+#'
+#' @examples Z <- matrix(c(2, -1, 0, -1, 2, -1, 0, -1, 2), nrow = 3)
+#' matrixRoot(Z)
+
+matrixRoot <- function(X) {
+  X <- as.matrix(X)
+  stopifnot(isSymmetric(X))
+  stopifnot(is.positive.definite(X))
+
+  XEig <- eigen(X, symmetric = TRUE)
+  if (length(XEig$values) > 1) {
+    XSqrt <- XEig$vectors %*% diag(sqrt(XEig$values)) %*% solve(XEig$vectors)
   } else {
-    x.sqrt <- x.eig$vectors %*% matrix(sqrt(x.eig$values)) %*% solve(x.eig$vectors)
+    XSqrt <- XEig$vectors %*% matrix(sqrt(XEig$values)) %*% solve(XEig$vectors)
   }
-  return(x.sqrt)
+  return(XSqrt)
 }

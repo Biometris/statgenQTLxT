@@ -554,10 +554,12 @@ for (pheno.file in pheno.files) {
     }
   }
 
-  V.inv.array <- make.V.inv.array(Vg=Vg,Ve=Ve,Dk=Dk)
+  #V.inv.array <- make.V.inv.array(Vg=Vg,Ve=Ve,Dk=Dk)
+  V.inv.array <- makeVInvArray(Vg = Vg, Ve = Ve, Dk = Dk)
 
   if (snp.covariates[1]!='') {
-    V.inv.array.red <- make.V.inv.array(Vg=Vg.red,Ve=Ve.red,Dk=Dk)
+    #V.inv.array.red <- make.V.inv.array(Vg=Vg.red,Ve=Ve.red,Dk=Dk)
+    V.inv.array.red <- makeVInvArray(Vg = Vg.red, Ve = Ve.red, Dk = Dk)
   }
 
   ##########################################################################################################
@@ -611,11 +613,13 @@ for (pheno.file in pheno.files) {
 
     if (snp.covariates[1]!='') {
 
-      est0.red <- estimate.effects(X=Xt.red,Y=Yt,Dk=Dk,V.inv.array=V.inv.array.red,return.all.effects=T)
+      #est0.red <- estimate.effects(X=Xt.red,Y=Yt,Dk=Dk,V.inv.array=V.inv.array.red,return.all.effects=T)
+      est0.red <- estimateEffects(X= Xt.red, Y = Yt, VInvArray = V.inv.array.red, returnAllEffects = TRUE)
 
       fitted.mean0.red <- matrix(est0.red$effects.estimates,ncol=length(est0.red$effects.estimates)/p) %*% Xt.red
 
-      SS0.red <- LL.quad.form.diag(Y=Yt-fitted.mean0.red,V.inv.array=V.inv.array.red)
+      #SS0.red <- LL.quad.form.diag(Y=Yt-fitted.mean0.red,V.inv.array=V.inv.array.red)
+      SS0.red <- LLQuadFormDiag(Y = Yt - fitted.mean0.red, VInvArray = V.inv.array.red)
 
       for (mrk in snp.covariates.numbers) {
 

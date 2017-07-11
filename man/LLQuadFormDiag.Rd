@@ -14,7 +14,7 @@ See details.}
 of genotypes. c has to be at least one (typically an intercept). See details.}
 
 \item{VInvArray}{an n x p x p dimensional array obtained as an output from the function
-\code{\link{makeVInvArray}}. It contains for each genotype i the p x p matrix \eqn{v_l ^ {-1}} (in
+\code{\link{makeVInvArray}}. It contains for each genotype l the p x p matrix \eqn{v_l ^ {-1}} (in
 the notation of Zhou and Stephens)}
 }
 \value{
