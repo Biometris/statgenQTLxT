@@ -641,7 +641,8 @@ for (pheno.file in pheno.files) {
 
     fitted.mean0 <- matrix(est0$effects.estimates,ncol=length(est0$effects.estimates)/p) %*% Xt
 
-    SS0 <- LL.quad.form.diag(Y=Yt-fitted.mean0,V.inv.array=V.inv.array)
+    #SS0 <- LL.quad.form.diag(Y=Yt-fitted.mean0,V.inv.array=V.inv.array)
+    SS0 <- LLQuadFormDiag(Y = Yt - fitted.mean0, VInvArray = V.inv.array)
 
     for (mrk in setdiff(1:nn,exluded.markers)) {
 

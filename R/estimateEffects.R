@@ -1,37 +1,40 @@
 #' Estimates for covariates.
 #'
-#' Returns the estimates and standard errors for the covariates in the input matrix X. Optionally an
+#' Compute the estimates and standard errors for the covariates in the input matrix X. Optionally an
 #' additional covariate x can be estimated.
 #'
-#' No missing values are allowed in any of X,Y and x.\cr
-#' It is assumed that X,Y and x have already been rotated by Uk, where Uk is such that
-#' the kinship matrix K equals \eqn{K = Uk * Dk * t(Uk)} (in R: \code{w <- eigen(K); Dk <- diag(w$values);
-#' Uk <- w$vectors}).\cr
-#' Next, the original X, Y and x are right multiplied by Uk, e.g. \code{Y <- Y * Uk}. See Zhou
+#' No missing values are allowed in X, Y and x.\cr
+#' It is assumed that X, Y and x have already been rotated by Uk, where Uk is such that
+#' the kinship matrix K equals \eqn{K = Uk * Dk * t(Uk)}.\cr
+#' The original X, Y and x are right multiplied by Uk, e.g. \code{Y <- Y * Uk}. See Zhou
 #' and Stephens 2014, supplement.\cr
-#' It is the rotated versions that are the input of this function.
+#' It is these rotated versions that are the input of this function.
 #'
 #' @export
 #'
 #' @param X is a c x n covariate matrix, c being the number of covariates and n being the number
-#' of genotypes. c Has to be at least one (typically an intercept). See details.
+#' of genotypes. c has to be at least one (typically an intercept). See details.
 #' @param Y is a p x n matrix of observed phenotypes, on p traits or environments for n genotypes.
 #' See details.
-#' @param x is an additional covariate, an optional numeric vector of length n. See details.
+#' @param x is an optional additional covariate, a numeric vector of length n. See details.
 #' @param VInvArray an n x p x p dimensional array obtained as an output from the function
-#' \code{\link{make.VInvArray}}. It contains for each genotype i the p x p matrix \eqn{v_l ^ -1} (in
+#' \code{\link{makeVInvArray}}. It contains for each genotype l the p x p matrix \eqn{v_l ^ {-1}} (in
 #' the notation of Zhou and Stephens)
 #' @param returnAllEffects If \code{FALSE} only the p effect estimates for the additional covariate
 #' are returned, (the first p * c are actually computed, but not returned). If \code{TRUE},
 #' also the effect estimates and standard errors for the other covariates (i.e. those in X) are returned.
 #' If no x is provided, \code{returnAllEffects} is automatically set to \code{TRUE}.
 #'
+#' @return A list containing the estimates, the standard errors of the estimates and if an value for
+#' x is input
+#'
 #' @references Zhou, X. and Stephens, M. (2014). Efficient mutivariate linear mixed model algorithms for
 #' genome-wide association studies.
 
 ## to do: example
 ## comment on missing values
-## to do : partial update...
+## partial update...
+## wald?
 
 estimateEffects <- function(X, x = NULL, Y, VInvArray, returnAllEffects = TRUE) {
   stopifnot(ncol(X) == ncol(Y))
@@ -54,16 +57,16 @@ estimateEffects <- function(X, x = NULL, Y, VInvArray, returnAllEffects = TRUE) 
     ncTot <- nc + 1
   }
 
-  if (!is.null(x)) {X <- rbind(X , t(matrix(as.numeric(x))))}
   ## the last p coefficients should be the marker-effects
   ## the first p * nc should correspond to the other coefficients
+  if (!is.null(x)) {X <- rbind(X , t(matrix(as.numeric(x))))}
 
   if (p == 1 && ncTot == 1) {
-    Vbeta <- matrix(sum(sapply(1:n, function(m) {
-      kronecker(matrix(X[, m]) %*% t(matrix(X[, m])), VInvArray[m, , ])})))
+    Vbeta <- matrix(sum(sapply(1:n, function(i) {
+      kronecker(matrix(X[, i]) %*% t(matrix(X[, i])), VInvArray[i, , ])})))
   } else {
-    Vbeta <- matrix(rowSums(sapply(1:n, function(m) {
-      kronecker((matrix(X[, m])) %*% t(matrix(X[, m])), VInvArray[m, , ])})),
+    Vbeta <- matrix(rowSums(sapply(1:n, function(i) {
+      kronecker(matrix(X[, i]) %*% t(matrix(X[, i])), VInvArray[i, , ])})),
       ncol = p * ncTot)
   }
 
@@ -74,9 +77,9 @@ estimateEffects <- function(X, x = NULL, Y, VInvArray, returnAllEffects = TRUE) 
   }
 
   if (p == 1 && ncTot == 1) {
-    v <- sum(sapply(1:n, function(m) {kronecker(matrix(X[, m]), VInvArray[m, , ] %*% matrix(Y[, m]))}))
+    v <- sum(sapply(1:n, function(i) {kronecker(matrix(X[, i]), VInvArray[i, , ] %*% matrix(Y[, i]))}))
   } else {
-    v <- rowSums(sapply(1:n, function(m) {kronecker(matrix(X[, m]), VInvArray[m, , ] %*% matrix(Y[, m]))}))
+    v <- rowSums(sapply(1:n, function(i) {kronecker(matrix(X[, i]), VInvArray[i, , ] %*% matrix(Y[, i]))}))
   }
 
   wald  <- NA
