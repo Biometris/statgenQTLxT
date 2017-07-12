@@ -625,7 +625,8 @@ for (pheno.file in pheno.files) {
 
         xt <- t(matrix(x)) %*% Uk
 
-        qwerty <- LRT.test(Y=Yt,X=Xt.red,x=xt,Dk=Dk,V.inv.array=V.inv.array.red,SS0=SS0.red)
+        #qwerty <- LRT.test(Y=Yt,X=Xt.red,x=xt,Dk=Dk,V.inv.array=V.inv.array.red,SS0=SS0.red)
+        qwerty <- LRTTest(X = Xt.red, x= xt, Y = Yt, VInvArray = V.inv.array.red, SS0 = SS0.red)
 
         results[mrk] <- qwerty$pvalue
 

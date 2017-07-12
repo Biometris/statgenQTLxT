@@ -23,7 +23,10 @@
 ## To do: example
 ## To do: explanation missing X
 
-LLQuadFormDiag <- function(Y, X = data.frame(), VInvArray) {
+LLQuadFormDiag <- function(Y,
+  X = data.frame(),
+  VInvArray) {
+
   stopifnot(nrow(Y) == dim(VInvArray)[2])
   stopifnot(nrow(Y) == dim(VInvArray)[3])
   if (anyNA(Y)) stop("No missing values allowed in Y")

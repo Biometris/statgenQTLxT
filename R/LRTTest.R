@@ -24,8 +24,14 @@
 #' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
 #' genome-wide association studies.
 
+## TO DO: example
 
-LRTTest <- function(X, x, Y, VInvArray, SS0 = NULL) {
+LRTTest <- function(X,
+  x,
+  Y,
+  VInvArray,
+  SS0 = NULL) {
+
   nc <- nrow(X)
   n <- ncol(X)
   p <- nrow(Y)

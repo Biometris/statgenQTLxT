@@ -11,11 +11,9 @@
 #' matrixRoot(Z)
 
 matrixRoot <- function(X) {
-  if (length(dim(X)) > 2L || !is.numeric(X))
-    stop("'X' must be a numeric matrix")
   if (!is.matrix(X)) X <- as.matrix(X)
-  stopifnot(isSymmetric(X))
-  stopifnot(is.positive.definite(X))
+#  stopifnot(isSymmetric(X))
+#  stopifnot(is.positive.definite(X))
 
   XEig <- eigen(X, symmetric = TRUE)
   if (length(XEig$values) > 1) {

@@ -36,7 +36,12 @@
 ## partial update...
 ## wald?
 
-estimateEffects <- function(X, x = NULL, Y, VInvArray, returnAllEffects = TRUE) {
+estimateEffects <- function(X,
+  x = NULL,
+  Y,
+  VInvArray,
+  returnAllEffects = TRUE) {
+
   stopifnot(ncol(X) == ncol(Y))
   stopifnot(ncol(X) == dim(VInvArray)[1])
   stopifnot(nrow(Y) == dim(VInvArray)[2])
