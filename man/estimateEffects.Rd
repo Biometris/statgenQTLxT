@@ -7,12 +7,12 @@
 estimateEffects(X, x = NULL, Y, VInvArray, returnAllEffects = TRUE)
 }
 \arguments{
-\item{X}{is a c x n covariate matrix, c being the number of covariates and n being the number
+\item{X}{a c x n covariate matrix, c being the number of covariates and n being the number
 of genotypes. c has to be at least one (typically an intercept). See details.}
 
-\item{x}{is an optional additional covariate, a numeric vector of length n. See details.}
+\item{x}{an optional additional covariate, a numeric vector of length n. See details.}
 
-\item{Y}{is a p x n matrix of observed phenotypes, on p traits or environments for n genotypes.
+\item{Y}{a p x n matrix of observed phenotypes, on p traits or environments for n genotypes.
 See details.}
 
 \item{VInvArray}{an n x p x p dimensional array obtained as an output from the function
@@ -41,6 +41,6 @@ and Stephens 2014, supplement.\cr
 It is these rotated versions that are the input of this function.
 }
 \references{
-Zhou, X. and Stephens, M. (2014). Efficient mutivariate linear mixed model algorithms for
+Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
 genome-wide association studies.
 }

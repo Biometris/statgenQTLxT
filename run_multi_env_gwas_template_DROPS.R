@@ -603,8 +603,6 @@ for (pheno.file in pheno.files) {
 
     results[exluded.markers] <- 1
 
-    results[exluded.markers] <- 1
-
     results.wald[exluded.markers] <- 1
 
     M[exluded.markers,] <- NA
@@ -654,7 +652,8 @@ for (pheno.file in pheno.files) {
 
       xt <- t(matrix(x)) %*% Uk
 
-      qwerty <- LRT.test(Y=Yt,X=Xt,x=xt,Dk=Dk,V.inv.array=V.inv.array,SS0=SS0)
+      #qwerty <- LRT.test(Y=Yt,X=Xt,x=xt,Dk=Dk,V.inv.array=V.inv.array,SS0=SS0)
+      qwerty <- LRTTest(X = Xt, x= xt, Y = Yt, VInvArray = V.inv.array, SS0 = SS0)
 
       if (round(mrk/500)==(mrk/500)) {cat('Progress: ',(mrk/nn)*100,' percent','\n')}
 

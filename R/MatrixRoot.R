@@ -7,11 +7,13 @@
 #'
 #' @return A matrix Y such that \eqn{Y^2 = X}.
 #'
-#' @examples Z <- matrix(c(2, -1, 0, -1, 2, -1, 0, -1, 2), nrow = 3)
+#' @examples Z <- matrix(c(2, -1, -1, 2), nrow = 2)
 #' matrixRoot(Z)
 
 matrixRoot <- function(X) {
-  X <- as.matrix(X)
+  if (length(dim(X)) > 2L || !is.numeric(X))
+    stop("'X' must be a numeric matrix")
+  if (!is.matrix(X)) X <- as.matrix(X)
   stopifnot(isSymmetric(X))
   stopifnot(is.positive.definite(X))
 

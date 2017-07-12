@@ -10,11 +10,11 @@ makeVArray(Vg, Ve, Dk)
 makeVInvArray(Vg, Ve, Dk)
 }
 \arguments{
-\item{Vg}{is a p x p symmetric matrix of genetic variance components}
+\item{Vg}{a p x p symmetric matrix of genetic variance components}
 
-\item{Ve}{is a p x p symmetric matrix of environmental variance components}
+\item{Ve}{a p x p symmetric matrix of environmental variance components}
 
-\item{Dk}{is a diagonal n x n matrix containing the eigenvalues obtained by the eigendecomposition
+\item{Dk}{a diagonal n x n matrix containing the eigenvalues obtained by the eigendecomposition
 of the kinship matrix K: \eqn{K = Uk * Dk * t(Uk)}}
 }
 \value{
@@ -27,6 +27,6 @@ As in Zhou and Stephens, supplement page 13, create the array of (inverted) vari
 transformed genotypes per individual as given by equation 4.
 }
 \references{
-Zhou, X. and Stephens, M. (2014). Efficient mutivariate linear mixed model algorithms for
+Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
 genome-wide association studies, supplement 13-14.
 }

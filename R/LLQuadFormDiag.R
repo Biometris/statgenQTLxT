@@ -12,12 +12,12 @@
 #'
 #' @inheritParams estimateEffects
 #'
-#' @param X is an optional c x n covariate matrix, c being the number of covariates and n being the number
+#' @param X an optional c x n covariate matrix, c being the number of covariates and n being the number
 #' of genotypes. c has to be at least one (typically an intercept). See details.
 #'
 #' @return a numeric value for the \eqn{t(y) * P * y} part of the log-likelihood function.
 #'
-#' @references Zhou, X. and Stephens, M. (2014). Efficient mutivariate linear mixed model algorithms for
+#' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
 #' genome-wide association studies.
 
 ## To do: example

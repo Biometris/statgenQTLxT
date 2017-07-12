@@ -12,11 +12,11 @@
 #'
 #' @export
 #'
-#' @param X is a c x n covariate matrix, c being the number of covariates and n being the number
+#' @param X a c x n covariate matrix, c being the number of covariates and n being the number
 #' of genotypes. c has to be at least one (typically an intercept). See details.
-#' @param Y is a p x n matrix of observed phenotypes, on p traits or environments for n genotypes.
+#' @param Y a p x n matrix of observed phenotypes, on p traits or environments for n genotypes.
 #' See details.
-#' @param x is an optional additional covariate, a numeric vector of length n. See details.
+#' @param x an optional additional covariate, a numeric vector of length n. See details.
 #' @param VInvArray an n x p x p dimensional array obtained as an output from the function
 #' \code{\link{makeVInvArray}}. It contains for each genotype l the p x p matrix \eqn{v_l ^ {-1}} (in
 #' the notation of Zhou and Stephens)
@@ -28,7 +28,7 @@
 #' @return A list containing the estimates, the standard errors of the estimates and if an value for
 #' x is input
 #'
-#' @references Zhou, X. and Stephens, M. (2014). Efficient mutivariate linear mixed model algorithms for
+#' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
 #' genome-wide association studies.
 
 ## to do: example
@@ -41,7 +41,7 @@ estimateEffects <- function(X, x = NULL, Y, VInvArray, returnAllEffects = TRUE) 
   stopifnot(ncol(X) == dim(VInvArray)[1])
   stopifnot(nrow(Y) == dim(VInvArray)[2])
   stopifnot(nrow(Y) == dim(VInvArray)[3])
-  stopifnot(is.null(x) && length(x) != ncol(X))
+  stopifnot(is.null(x) || length(x) == ncol(X))
   if (anyNA(X)) stop("No missing values allowed in X")
   if (anyNA(x)) stop("No missing values allowed in x")
   if (anyNA(Y)) stop("No missing values allowed in Y")

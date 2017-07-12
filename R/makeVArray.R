@@ -3,16 +3,16 @@
 #' As in Zhou and Stephens, supplement page 13, create the array of (inverted) variance matrices for the
 #' transformed genotypes per individual as given by equation 4.
 #'
-#' @param Vg is a p x p symmetric matrix of genetic variance components
-#' @param Ve is a p x p symmetric matrix of environmental variance components
-#' @param Dk is a diagonal n x n matrix containing the eigenvalues obtained by the eigendecomposition
+#' @param Vg a p x p symmetric matrix of genetic variance components
+#' @param Ve a p x p symmetric matrix of environmental variance components
+#' @param Dk a diagonal n x n matrix containing the eigenvalues obtained by the eigendecomposition
 #' of the kinship matrix K: \eqn{K = Uk * Dk * t(Uk)}
 #'
 #' @return An array of n p x p matrices \eqn{v_l} where \eqn{v_l = Dk_{l,l} * Vg + Ve \forall
 #' l = 1, ..., n}.\cr
 #' When using \code{makeVInvArray} the output matrices are inverted.
 #'
-#' @references Zhou, X. and Stephens, M. (2014). Efficient mutivariate linear mixed model algorithms for
+#' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
 #' genome-wide association studies, supplement 13-14.
 
 makeVArray <- function(Vg, Ve, Dk) {
