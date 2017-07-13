@@ -4,16 +4,16 @@
 \alias{LRTTest}
 \title{Test for marker effect.}
 \usage{
-LRTTest(Y, X, x, VInvArray, SS0 = NULL)
+LRTTest(X, x, Y, VInvArray, SS0 = NULL)
 }
 \arguments{
-\item{Y}{a p x n matrix of observed phenotypes, on p traits or environments for n genotypes.
-See details.}
-
 \item{X}{a c x n covariate matrix, c being the number of covariates and n being the number
 of genotypes. c has to be at least one (typically an intercept). See details.}
 
 \item{x}{an additional covariate, usually a single marker, a numeric vector of length n. See details.}
+
+\item{Y}{a p x n matrix of observed phenotypes, on p traits or environments for n genotypes.
+See details.}
 
 \item{VInvArray}{an n x p x p dimensional array obtained as an output from the function
 \code{\link{makeVInvArray}}. It contains for each genotype l the p x p matrix \eqn{v_l ^ {-1}} (in
@@ -23,7 +23,7 @@ the notation of Zhou and Stephens)}
 only and without an additional marker effect. If \code{NULL} then this value is calculated.}
 }
 \value{
-a list containing the test statistics \code{pvalue}, \code{FStat} and \code{df}. Furthermore
+A list containing the test statistics \code{pvalue}, \code{FStat} and \code{df}. Furthermore
 the Log-likelihood of the null model and the alternative model, \code{SS0} and \code{SS1}. Also the
 estimated effect, its standard error and results of the wald test for the additional covariate a returned.
 }

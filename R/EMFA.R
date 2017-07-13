@@ -67,12 +67,11 @@ EMFA <- function(Y,
   Uk <- w$vectors
   Dk <- diag(w$values)
   lambdaR <- as.matrix(Dk)
-  U <- w$vectors
 
   ## Set start values
   if (is.null(CmStart)) {
     if (mG == 0) {
-      Cm <- 2 * as.matrix(diag(p))
+      Cm <- diag(x = 2, nrow = p)
     } else {
       Cm <- Ginv((cor(Y) + diag(p)) / 4)
     }
@@ -81,8 +80,8 @@ EMFA <- function(Y,
   }
 
   if (is.null(DmStart)) {
-    if (mE==0) {
-      Dm <- 2 * as.matrix(diag(p))
+    if (mE == 0) {
+      Dm <- diag(x = 2, nrow = p)
     } else {
       Dm <- Ginv((cor(Y) + diag(p)) / 4)
     }
@@ -93,10 +92,9 @@ EMFA <- function(Y,
   ## the model is Cm^{-1} = P^{-1} + W W^t =
   ## Given a starting value for Cm, set starting values for P and W
   if (mG > 0) {
-    eigenC <- eigen(Ginv(Cm))
+    eigenC <- eigen(Ginv(Cm), symmetric = TRUE)
     UG <- as.matrix(eigenC$vectors[, 1:mG])
     psiG <- mean(eigenC$values[-(1:mG)])
-
     if (mG > 1) {
       rootLambdaG <- matrixRoot(diag(eigenC$values[1:mG] - psiG))
     } else {
@@ -109,7 +107,7 @@ EMFA <- function(Y,
     PG <- NULL
   }
   if (mE > 0) {
-    eigenD <- eigen(Ginv(Dm))
+    eigenD <- eigen(Ginv(Dm), symmetric = TRUE)
     UE <- as.matrix(eigenD$vectors[, 1:mE])
     psiE <- mean(eigenD$values[-(1:mE)])
     if (mE > 1) {
@@ -125,29 +123,26 @@ EMFA <- function(Y,
   }
 
   ############
-
   continue <- TRUE
   decreased <- FALSE
   iter <- 1
   ELogLikCm <- ELogLikDm <- ELogLik <- -Inf
-  mu <- matrix(rep(0, n*p), ncol = p)
+  mu <- matrix(rep(0, n * p), ncol = p)
 
   #############################################
   # EM
-
   while (continue & iter < maxIter) {
-    ## prevent that Cm, Dm become asymmetric because of numerical inaccuracies
-
+    ## Prevent that Cm, Dm become asymmetric because of numerical inaccuracies
     Cm <- as.matrix(Cm + t(Cm)) / 2
     Dm <- as.matrix(Dm + t(Dm)) / 2
 
-    DmSqrtInv <- matrixRoot(ginv(Dm))
-    w1 <- eigen(DmSqrtInv %*% Cm %*% DmSqrtInv)
+    DmSqrtInv <- matrixRoot(Ginv(Dm))
+    w1 <- eigen(DmSqrtInv %*% Cm %*% DmSqrtInv, symmetric = TRUE)
     Q1 <- w1$vectors
     lambda1 <- w1$values
 
-    CmSqrtInv <- matrixRoot(ginv(Cm))
-    w2 <- eigen(CmSqrtInv %*% Dm %*% CmSqrtInv)
+    CmSqrtInv <- matrixRoot(Ginv(Cm))
+    w2 <- eigen(CmSqrtInv %*% Dm %*% CmSqrtInv, symmetric = TRUE)
     Q2 <- w2$vectors
     lambda2 <- w2$values
 
@@ -158,16 +153,16 @@ EMFA <- function(Y,
     # Also S1 and S2 correspond to p. 6 of their preprint
 
     if (nc > 0) {
-      tUYminXb <- t(U) %*% (Y - X %*% B)
+      tUYminXb <- t(Uk) %*% (Y - X %*% B)
       S1 <- vecInvDiag(x = lambda1, y = diag(lambdaR)) * (tUYminXb %*% (matrixRoot(Dm) %*% Q1))
       S2 <- vecInvDiag(x = lambda2, y = 1 / diag(lambdaR)) * (tUYminXb %*% (MatrixRoot(Cm) %*% Q2))
     } else {
-      S1 <- vecInvDiag(x = lambda1, y = diag(lambdaR)) * (t(U) %*% Y %*% MatrixRoot(Dm) %*% Q1)
-      S2 <- vecInvDiag(x = lambda2, y = 1 / diag(lambdaR)) * (t(U) %*% Y %*% MatrixRoot(Cm) %*% Q2)
+      S1 <- vecInvDiag(x = lambda1, y = diag(lambdaR)) * (t(Uk) %*% Y %*% MatrixRoot(Dm) %*% Q1)
+      S2 <- vecInvDiag(x = lambda2, y = 1 / diag(lambdaR)) * (t(Uk) %*% Y %*% MatrixRoot(Cm) %*% Q2)
     }
 
-    trP1 <- trace.p.diag.inv(x = lambda1, y = diag(lambdaR))
-    trP2 <- trace.p.diag.inv(x = lambda2, y = 1 / diag(lambdaR))
+    trP1 <- tracePInvDiag(x = lambda1, y = diag(lambdaR))
+    trP2 <- tracePInvDiag(x = lambda2, y = 1 / diag(lambdaR))
     if (p > 1) {
       part1 <- DmSqrtInv %*% Q1 %*% (diag(trP1) %*% t(Q1) %*% DmSqrtInv)
       part2 <- CmSqrtInv %*% Q2 %*% (diag(trP2) %*% t(Q2) %*% CmSqrtInv)
@@ -179,8 +174,8 @@ EMFA <- function(Y,
     part4 <- DmSqrtInv %*% Q1 %*% t(S1) %*% lambdaR %*% t(DmSqrtInv %*% (Q1 %*% t(S1)))
 
     if (nc > 0) {
-      mu <- matrix(U %*% S1 %*% t(DmSqrtInv %*% Q1), ncol = p)
-      B  <- XtXinvXt %*% (Y - mu)
+      mu <- matrix(Uk %*% S1 %*% t(DmSqrtInv %*% Q1), ncol = p)
+      B <- XtXinvXt %*% (Y - mu)
     }
 
     ################
@@ -192,8 +187,8 @@ EMFA <- function(Y,
     #part1;part2;part3;part4
     ##############################
 
-    Omega1 <- as.matrix((1 / n) * part3 + (1 / n) * part1)
-    Omega2 <- as.matrix((1 / n) * part2 + (1 / n) * part4)
+    Omega1 <- as.matrix((part1 + part3) / n)
+    Omega2 <- as.matrix((part2 + part4) / n)
 
     ################  update C
 
@@ -203,34 +198,34 @@ EMFA <- function(Y,
       # when mG==0, W=0 and Cm=P
       if (p > 1) {
         if (CmHet) {
-          PGNew <- diag(pmin(maxDiag, 1 / diag(Omega2)))
+          PgNew <- diag(pmin(maxDiag, 1 / diag(Omega2)))
         } else {
           tau <- min(maxDiag, p / sum(diag(Omega2)))
-          PGNew <- tau * diag(p)
+          PgNew <- tau * diag(p)
         }
       } else {
-        PGNew <- matrix(1 / as.numeric(Omega2))
+        PgNew <- matrix(1 / as.numeric(Omega2))
       }
-      WGNew <- NULL
-      CMNew  <- PGNew
+      WgNew <- NULL
+      CmNew  <- PgNew
     } else {
       # When rank(Omega) = Q, A should be the Q x p matrix such that Omega = A^t A / Q
       A <- matrixRoot(Omega2)
       A <- A * sqrt(nrow(A))
 
       if (!CmHet) {
-        CMNewOutput <- update_FA_homogeneous_var(S = Omega2, m = mG)
-        CMNewOutput$P <- diag(p) / CMNewOutput$sigma2
+        CmNewOutput <- update_FA_homogeneous_var(S = Omega2, m = mG)
+        CmNewOutput$P <- diag(p) / CmNewOutput$sigma2
       } else {
-        CMNewOutput <- updateFA(Y=A,
+        CmNewOutput <- updateFA(Y=A,
           WStart= WG,
           PStart= PG,
           hetVar= CmHet,
           maxDiag= maxDiag)
       }
-      WGNew <- CMNewOutput$W
-      PGNew <- CMNewOutput$P
-      CMNew <- Ginv(Ginv(PGNew) + WGNew %*% t(WGNew))
+      WgNew <- CmNewOutput$W
+      PgNew <- CmNewOutput$P
+      CmNew <- Ginv(Ginv(PgNew) + WgNew %*% t(WgNew))
     }
 
     ################  update D
@@ -241,19 +236,19 @@ EMFA <- function(Y,
       # when mE==0, W=0 and Cm=P
       if (p > 1) {
         if (DmHet) {
-          PENew <- diag(pmin(maxDiag, 1 / diag(Omega1)))
+          PeNew <- diag(pmin(maxDiag, 1 / diag(Omega1)))
         } else {
           tau <- min(maxDiag, p / sum(diag(Omega1)))
-          PENew <- tau * diag(p)
+          PeNew <- diag(x = tau, nrow = p)
         }
       } else {
-        PENew <- matrix(1 / as.numeric(Omega1))
+        PeNew <- matrix(1 / as.numeric(Omega1))
       }
-      WENew <- NULL
-      DmNew  <- PENew
+      WeNew <- NULL
+      DmNew  <- PeNew
     } else {
       # When rank(Omega) = Q, A should be the Q x p matrix such that Omega = A^t A / Q
-      A <- MatrixRoot(Omega1)
+      A <- matrixRoot(Omega1)
       A <- A * sqrt(nrow(A))
       if (!DmHet) {
         DmNew.output <- update_FA_homogeneous_var(S = Omega1, m = mE)
@@ -265,31 +260,12 @@ EMFA <- function(Y,
           hetVar = DmHet,
           maxDiag = maxDiag)
       }
-      WENew <- DmNew.output$W
-      PENew <- DmNew.output$P
-      DmNew <- Ginv(Ginv(PENew) + WENew %*% t(WENew))
+      WeNew <- DmNew.output$W
+      PeNew <- DmNew.output$P
+      DmNew <- Ginv(Ginv(PeNew) + WeNew %*% t(WeNew))
     }
 
-    ####################
-
-    CmDiff <- sum(abs(CMNew - Cm))
-    DmDiff <- sum(abs(DmNew - Dm))
-
     #######################
-    # X is the c x n covariate matrix, c being the number of covariates and
-    #      n being the number of genotypes
-    #      c has to be at least one (typically an intercept)
-    # Y is the p x n matrix of observed phenotypes, on p traits or environments
-    #
-    # No missing values are allowed in any of X,Y and x
-    #
-    # It is assumed that X,Y have already been rotated by Uk, where Uk is such that
-    # the kinship matrix equals K = Uk %*% Dk %*% t(Uk)
-    # (R: w <- eigen(K); Dk <- diag(w$values); Uk <- w$vectors)
-    # Next, the original X, Y are post-multiplied by Uk, e.g. Y <- Y %*% Uk;
-
-    #######################
-
     ELogLikOldCm <- ELogLikCm
     ELogLikOldDm <- ELogLikDm
     ELogLikOld <- ELogLikOldCm + ELogLikOldDm
@@ -300,22 +276,24 @@ EMFA <- function(Y,
 
     if (stopIfDecreasing & iter > 50) {
       if (ELogLik < ELogLikOld - 0.1) {
-        continue  <- FALSE
+        continue <- FALSE
         decreased <- TRUE
       }
     }
     if (iter / 1000 == round(iter / 1000)) {
-      cat('Iteration ',iter,' : ',CmDiff,'  ',DmDiff,'    ',ELogLik,'    ',logLik,'\n')
+      CmDiff <- sum(abs(CmNew - Cm))
+      DmDiff <- sum(abs(DmNew - Dm))
+      cat('Iteration ', iter, ' : ', CmDiff, '  ', DmDiff, '    ', ELogLik,'\n')
     }
 
     #############
 
-    Cm <- CMNew
+    Cm <- CmNew
     Dm <- DmNew
-    WG <- WGNew
-    WE <- WENew
-    PG <- PGNew
-    PE <- PENew
+    WG <- WgNew
+    WE <- WeNew
+    PG <- PgNew
+    PE <- PeNew
     iter <- iter + 1
 
     if (abs(ELogLik - ELogLikOld) < tolerance) {continue <- FALSE}
@@ -345,7 +323,7 @@ EMFA <- function(Y,
   if (is.null(colnames(Y))) {colnames(Y) <- paste0('trait', 1:p)}
 
   if (prediction & nc == 0) {
-    mu <- matrix(U %*% S1 %*% t(DmSqrtInv %*% Q1), ncol=p)
+    mu <- matrix(Uk %*% S1 %*% t(DmSqrtInv %*% Q1), ncol=p)
   }
 
   pred.frame <- data.frame(trait = rep(colnames(Y), each = n),
