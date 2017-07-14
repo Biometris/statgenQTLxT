@@ -9,15 +9,17 @@ updateFA(Y, WStart = NULL, m = ifelse(is.null(WStart), 2, ncol(WStart)),
   maxIter = 100L, printProgress = FALSE)
 }
 \arguments{
-\item{Y}{a n x p matrix or dataframe}
+\item{Y}{a n x p matrix or dataframe.}
 
-\item{WStart}{a p x p matrix or dataframe containing start values for W}
+\item{WStart}{a p x p matrix or dataframe containing starting values for W.}
 
-\item{m}{a}
+\item{m}{an integer. The order of the model.}
 
-\item{PStart}{a p x p matrix or dataframe containing start values for P}
+\item{PStart}{a p x p matrix or dataframe containing starting values for P.}
 
-\item{maxDiag}{a numerical value for the maximum value of the diagonal of P}
+\item{hetVar}{if \code{TRUE} an extra diagonal part is added in the model for the precision matrix.}
+
+\item{maxDiag}{a numerical value for the maximum value of the diagonal of P.}
 
 \item{tolerance}{a numerical value. The iterating process stops if the sum of the difference for P
 and W between two steps gets lower than this value.}
@@ -30,5 +32,5 @@ and W between two steps gets lower than this value.}
 a list containing the new matrices W and P after the iteration process and the number of iterations.
 }
 \description{
-updateFA
+updateFa
 }

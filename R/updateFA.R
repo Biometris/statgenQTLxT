@@ -1,13 +1,13 @@
 #' updateFA
 #'
+#' updateFa
 #'
-#'
-#' @param Y a n x p matrix or dataframe
-#' @param WStart a p x p matrix or dataframe containing start values for W
-#' @param m a
-#' @param PStart a p x p matrix or dataframe containing start values for P
-#' @param hetVar
-#' @param maxDiag a numerical value for the maximum value of the diagonal of P
+#' @param Y a n x p matrix or dataframe.
+#' @param WStart a p x p matrix or dataframe containing starting values for W.
+#' @param m an integer. The order of the model.
+#' @param PStart a p x p matrix or dataframe containing starting values for P.
+#' @param hetVar if \code{TRUE} an extra diagonal part is added in the model for the precision matrix.
+#' @param maxDiag a numerical value for the maximum value of the diagonal of P.
 #' @param tolerance a numerical value. The iterating process stops if the sum of the difference for P
 #' and W between two steps gets lower than this value.
 #' @param maxIter a numerical value for the maximum number of iterations.
