@@ -57,6 +57,6 @@ LRTTest <- function(X,
     SS1 = SS1, SS0 = SS0,
     effects = est1$effects.estimates[-(1:(nc * p))],
     effects.se = est1$effects.sd[-(1:(nc * p))],
-    wald= est1$wald
+    wald = est1$wald
   ))
 }

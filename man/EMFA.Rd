@@ -19,14 +19,14 @@ No missing values are allowed.}
 of genotypes. c has to be at least one (typically an intercept). No missing values are allowed.
 If not provided a vector of 1s is used.}
 
-\item{CmHet}{if \code{TRUE} an extra diagonal part is added in the model for the
-precision matrix Cm.}
+\item{CmHet}{should an extra diagonal part is added in the model for the
+precision matrix Cm?}
 
-\item{DmHet}{if \code{TRUE} an extra diagonal part is added in the model for the
-precision matrix Dm.}
+\item{DmHet}{should an extra diagonal part is added in the model for the
+precision matrix Dm?}
 
-\item{tolerance}{a numerical value. The iterating process stops if the difference in log-likelihood
-between two iterations gets smaller than the tolerance.}
+\item{tolerance}{a numerical value. The iterating process stops if the difference in conditional
+log-likelihood between two consecutive iterations drops below tolerance.}
 
 \item{maxIter}{a numerical value for the maximum number of iterations.}
 
@@ -41,12 +41,12 @@ between two iterations gets smaller than the tolerance.}
 \item{maxDiag}{a numical value. The maximal value of the diagonal elements in the precision matrices
 Cm and Dm (ignoring the low-rank part W W^t)}
 
-\item{prediction}{if \code{TRUE} values for Y are predicted and returned.}
+\item{prediction}{should predicted values for Y be returned?}
 
-\item{stopIfDecreasing}{if \code{TRUE} the iterating process stops if after 50 iterations the
-log-likelihood decreases between two iterations.}
+\item{stopIfDecreasing}{should the iterating process stop if after 50 iterations the
+log-likelihood decreases between two consecutive iterations?}
 
-\item{computeLogLik}{if \code{TRUE} log-likelihood is returned.}
+\item{computeLogLik}{should the log-likelihood be returned?}
 }
 \value{
 A list containing results of the algoritm.

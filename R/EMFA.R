@@ -8,12 +8,12 @@
 #' @param X an n x c covariate matrix, c being the number of covariates and n being the number
 #' of genotypes. c has to be at least one (typically an intercept). No missing values are allowed.
 #' If not provided a vector of 1s is used.
-#' @param CmHet if \code{TRUE} an extra diagonal part is added in the model for the
-#' precision matrix Cm.
-#' @param DmHet if \code{TRUE} an extra diagonal part is added in the model for the
-#' precision matrix Dm.
-#' @param tolerance a numerical value. The iterating process stops if the difference in log-likelihood
-#' between two iterations gets smaller than the tolerance.
+#' @param CmHet should an extra diagonal part is added in the model for the
+#' precision matrix Cm?
+#' @param DmHet should an extra diagonal part is added in the model for the
+#' precision matrix Dm?
+#' @param tolerance a numerical value. The iterating process stops if the difference in conditional
+#' log-likelihood between two consecutive iterations drops below tolerance.
 #' @param maxIter a numerical value for the maximum number of iterations.
 #' @param CmStart a p x p matrix containing starting values for the precision matrix Cm.
 #' @param DmStart a p x p matrix containing starting values for the precision matrix Dm.
@@ -21,10 +21,10 @@
 #' @param mE an integer. The order of the environmental part of the model.
 #' @param maxDiag a numical value. The maximal value of the diagonal elements in the precision matrices
 #' Cm and Dm (ignoring the low-rank part W W^t)
-#' @param prediction if \code{TRUE} values for Y are predicted and returned.
-#' @param stopIfDecreasing if \code{TRUE} the iterating process stops if after 50 iterations the
-#' log-likelihood decreases between two iterations.
-#' @param computeLogLik if \code{TRUE} log-likelihood is returned.
+#' @param prediction should predicted values for Y be returned?
+#' @param stopIfDecreasing should the iterating process stop if after 50 iterations the
+#' log-likelihood decreases between two consecutive iterations?
+#' @param computeLogLik should the log-likelihood be returned?
 #'
 #' @return A list containing results of the algoritm.
 #'
@@ -32,6 +32,7 @@
 #' non-indenpent noise.
 
 ## TO DO: also check : missing data
+## TO DO: describe output. Everything needed?
 
 EMFA <- function(Y,
   K,
@@ -49,7 +50,7 @@ EMFA <- function(Y,
   stopIfDecreasing = FALSE,
   computeLogLik = FALSE) {
 
-  Y <- as.matrix(Y)
+  if (!is.matrix(Y)) Y <- as.matrix(Y)
   stopifnot(nrow(Y) == nrow(K))
   stopifnot(ncol(K) == nrow(K))
   nc <- ncol(X)
@@ -87,6 +88,7 @@ EMFA <- function(Y,
   } else {
     Cm <- CmStart
   }
+
   ## Set starting values for Dm
   if (is.null(DmStart)) {
     if (mE == 0) {
@@ -219,7 +221,6 @@ EMFA <- function(Y,
       A <- A * sqrt(nrow(A))
       if (!CmHet) {
         CmNewOutput <- updateFAHomVar(S = Omega2, m = mG)
-        CmNewOutput$P <- diag(x = 1 / CmNewOutput$sigma2, nrow = p)
       } else {
         CmNewOutput <- updateFA(Y = A,
           WStart= Wg,
@@ -254,7 +255,6 @@ EMFA <- function(Y,
       A <- A * sqrt(nrow(A))
       if (!DmHet) {
         DmNewOutput <- updateFAHomVar(S = Omega1, m = mE)
-        DmNewOutput$P <- diag(x = 1 / DmNewOutput$sigma2, nrow = p)
       } else {
         DmNewOutput <- updateFA(Y = A,
           WStart = We,

@@ -1,20 +1,20 @@
 #' updateFA
 #'
-#' updateFa
+#' updateFA
 #'
 #' @param Y a n x p matrix or dataframe.
 #' @param WStart a p x p matrix or dataframe containing starting values for W.
 #' @param m an integer. The order of the model.
 #' @param PStart a p x p matrix or dataframe containing starting values for P.
-#' @param hetVar if \code{TRUE} an extra diagonal part is added in the model for the precision matrix.
+#' @param hetVar should an extra diagonal part be added in the model for the precision matrix?
 #' @param maxDiag a numerical value for the maximum value of the diagonal of P.
 #' @param tolerance a numerical value. The iterating process stops if the sum of the difference for P
 #' and W between two steps gets lower than this value.
 #' @param maxIter a numerical value for the maximum number of iterations.
-#' @param printProgress if \code{TRUE} progress is printed during iterations.
+#' @param printProgress should progress be printed during iterations?
 #'
-#' @return a list containing the new matrices W and P after the iteration process and the number of iterations.
-#'
+#' @return a list containing the new matrices W and P after the iteration process and the number
+#' of iterations.
 
 ## TO DO: extension to Y- mu; now mu is assumed to be zero
 
@@ -80,7 +80,6 @@ updateFA <- function(Y,
       sigma <- MASS::ginv(diag(m) + B) # m x m
       M1 <- (P[1, 1]) * (sigma %*% t(W) %*% t(Y)) # m x n
     }
-
     A <- MASS::ginv(n * sigma + M1 %*% t(M1))  # m x m
     WNew <- t(Y) %*% t(M1) %*% A  # p x m
 
