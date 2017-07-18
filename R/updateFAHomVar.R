@@ -19,13 +19,11 @@ updateFAHomVar <- function(Y = NULL, S = NULL, m, maxDiag = 1e4) {
   if (!is.null(Y)) {
     if (!is.matrix(Y)) as.matrix(Y)
     if (anyNA(Y)) {stop('Y cannot contain missing values')}
-    p <- ncol(Y)
     n <- nrow(Y)
     Y <- Matrix::Matrix(scale(Y, scale = FALSE))
     S <- crossprod(Y) / n
-  } else {
-    p <- ncol(S)
   }
+  p <- ncol(S)
   a <- eigen(S, symmetric = TRUE)
 
   if (m >= p) {stop("m needs to be smaller than the number of variables")}
@@ -38,6 +36,3 @@ updateFAHomVar <- function(Y = NULL, S = NULL, m, maxDiag = 1e4) {
   }
   return(list(W = W, P = diag(x = 1 / sigma2, nrow = p)))
 }
-
-
-

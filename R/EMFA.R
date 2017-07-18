@@ -282,7 +282,7 @@ EMFA <- function(Y,
     if (iter / 1000 == round(iter / 1000)) {
       CmDiff <- sum(abs(CmNew - Cm))
       DmDiff <- sum(abs(DmNew - Dm))
-      cat('Iteration ', iter, ' : ', CmDiff, '  ', DmDiff, '    ', ELogLik,'\n')
+      cat("Iteration ", iter, " : ", CmDiff, "  ", DmDiff, "    ", ELogLik,"\n")
     }
 
     ## Update values for next iteration
@@ -313,8 +313,8 @@ EMFA <- function(Y,
   Cm <- (Cm + t(Cm)) / 2
   Dm <- (Dm + t(Dm)) / 2
 
-  if (is.null(rownames(Y))) {rownames(Y) <- paste0('genotype', 1:n)}
-  if (is.null(colnames(Y))) {colnames(Y) <- paste0('trait', 1:p)}
+  if (is.null(rownames(Y))) {rownames(Y) <- paste0("genotype", 1:n)}
+  if (is.null(colnames(Y))) {colnames(Y) <- paste0("trait", 1:p)}
 
   if (prediction & nc == 0) {
     mu <- matrix(Uk %*% S1 %*% t(DmSqrtInv %*% Q1), ncol = p)

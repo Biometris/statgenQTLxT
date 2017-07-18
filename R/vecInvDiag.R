@@ -13,4 +13,3 @@ vecInvDiag <- function(x, y) {
   z <- sapply(x, function(x_i) {1 / (1 + x_i * y)})
   return(z)
 }
-

@@ -4,12 +4,12 @@
 \alias{runGWAS}
 \title{run GWAS}
 \usage{
-runGWAS(markers, map, Y, K, X, subsetMarkers = FALSE, markerSubset = "",
-  snpCovariates = "", MAF = 0.05, fitVarComp = TRUE, covModel = 1,
-  vEDiag = TRUE, tolerance = 1e-06, maxIter = 2e+05, maxDiag = 10000,
-  mG = 1, mE = 1, CmHet = TRUE, DmHet = TRUE, stopIfDecreasing = TRUE,
-  computeLogLik = TRUE, Vg = NULL, Ve = NULL, reduceK = FALSE,
-  nPca = NULL)
+runGWAS(markers, map, Y, K, X = NULL, subsetMarkers = FALSE,
+  markerSubset = "", snpCovariates = "", MAF = 0.05, fitVarComp = TRUE,
+  covModel = 1, vEDiag = TRUE, tolerance = 1e-06, maxIter = 2e+05,
+  maxDiag = 10000, mG = 1, mE = 1, CmHet = TRUE, DmHet = TRUE,
+  stopIfDecreasing = TRUE, computeLogLik = TRUE, Vg = NULL, Ve = NULL,
+  reduceK = FALSE, nPca = NULL)
 }
 \arguments{
 \item{markers}{A dataframe with marker information. Row names should be chromosomes, column names
@@ -19,7 +19,7 @@ genotypes.}
 position, the position of the snp on the chromosome, snp.name, the name of the snp and
 cum.position, the cumulative position of the snp starting from the first chromosome.}
 
-\item{Y}{an n x p matrix or datafram of observed phenotypes, on p traits or environments for n
+\item{Y}{an n x p matrix or dataframe of observed phenotypes, on p traits or environments for n
 individuals. Missing values are allowed.}
 
 \item{K}{an n x n kinship matrix.}

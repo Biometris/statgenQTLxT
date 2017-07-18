@@ -5,7 +5,7 @@
 #' @param map A dataframe with four columns; chromosome, the number of the chromosome,
 #' position, the position of the snp on the chromosome, snp.name, the name of the snp and
 #' cum.position, the cumulative position of the snp starting from the first chromosome.
-#' @param Y an n x p matrix or datafram of observed phenotypes, on p traits or environments for n
+#' @param Y an n x p matrix or dataframe of observed phenotypes, on p traits or environments for n
 #' individuals. Missing values are allowed.
 #' @param K an n x n kinship matrix.
 #' @param X an n x c covariate matrix, c being the number of covariates and n being the number
@@ -75,10 +75,13 @@
 #' non-indenpent noise.
 #' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
 #' genome-wide association studies.
+#'
+#' @export
 
 
 # #snpCovariates.list <- list('AX-90548584')
 
+## TO DO: more error checking
 ## TO DO: MAX.DIAG SHOULD DEPEND ON THE SCALE OF THE DATA
 ## TO DO: the following option is still under construction; leave to zero
 ## LOD.thr <- 0 if larger than zero, it is assumed a GWAS was done previously with the same name
@@ -88,7 +91,7 @@ runGWAS <- function(markers,
   map,
   Y,
   K,
-  X,
+  X = NULL,
   subsetMarkers = FALSE,
   markerSubset = "",
   snpCovariates = "",
@@ -110,6 +113,20 @@ runGWAS <- function(markers,
   reduceK = FALSE,
   nPca = NULL) {
 
+  if (is.null(markers) || !is.data.frame(markers)) stop("markers should be a dataframe")
+  if (is.null(map) || !is.data.frame(map)) stop("map should be a dataframe")
+  if (is.null(Y) || !(is.matrix(Y) || is.data.frame(Y))) stop("Y should be a matrix or dataframe")
+  if (!is.matrix(Y)) Y <- as.matrix(Y)
+  if (is.null(K) || !is.matrix(K)) stop("K should be a matrix")
+  if (!is.matrix(K)) K <- as.matrix(K)
+  if (!is.null(X) && !(is.matrix(X))) stop("X should either be NULL or a matrix")
+  if (anyNA(X)) stop("No missing values allowed in X")
+  if(is.null(X)) X <- matrix(data = 1, nrow = nrow(Y), ncol = 1)
+  if (subsetMarkers && markerSubset == "") stop("If subsetting markers, markerSubset cannot be empty")
+  if(!snpCovariates == "" && !all(snpCovariates %in% rownames(markers)))
+    stop("All snpCovariates should be in markers")
+
+  ## Check Vg and Ve if variance components are not fitted.
   if (!fitVarComp) {
     if (is.null(Vg) || !is.matrix(Vg)) stop("Vg should be a matrix")
     if (is.null(Ve) || !is.matrix(Ve)) stop("Ve should be a matrix")
@@ -119,7 +136,6 @@ runGWAS <- function(markers,
     if (is.null(colnames(Ve)) || is.null(rownames(Ve)) ||
         any(colnames(Ve) != rownames(Ve)) || !all(colnames(Ve) %in% colnames(Y)))
       stop("Column names and rownames of Ve should be identical and included in column names of Y")
-
     Vg <- Vg[colnames(Y), colnames(Y)]
     Ve <- Ve[colnames(Y), colnames(Y)]
     colnames(Vg) <- rownames(Vg) <- NULL
@@ -134,64 +150,7 @@ runGWAS <- function(markers,
 
   if (covModel %in% c(2, 4)) {stopifnot(snpCovariates=='')}
 
-  if (!is.matrix(Y)) Y <- as.matrix(Y)
-
-  # Extra string attached to all output file-names; can also be ''
-  #suffix <- ''
-
-  # Results will be written to this folder (needs to exist!)
-  # should have an / at the end
-  #results.folder <- './example_data_DROPS/'
-
-  ##########################################################
-  # # Phenotypic data
-  #
-  # # Vector of phenotypic files to be analyzed (e.g. one per trait)
-  # #pheno.files <- c('grainnumber_multi_env_gwas_dec2015.csv','anthesis_multi_env_gwas_dec2015.csv')
-  # #
-  # # Each file needs to be a csv file (comma-separated; not with semi-colons !),
-  # # and needs to contain genotypic means for a number of environments or traits
-  # # The first column(s) (there may be more than 1) should contain genotype labels.
-  # # In case of multi-trait data, each file should contain the set of traits that should
-  # # be analyzed together.
-  # # In case of multi-environment data, each file should contain all environments for one trait.
-  # # The scripts are not really made for multi-trait/environment simultaneously, although...
-  # pheno.files <- './example_data_DROPS/anthesis_multi_env_gwas_dec2015.csv'
-  #
-  # # In the phenotypic files, do all columns start with the trait names ? (as in DROPS)
-  # read.trait.names.from.file <- TRUE
-  #
-  # # If read.trait.names.from.file==F :
-  # # Should correspond to pheno.files
-  # # Is only used to create the names of the output files
-  # # Can be a vector of '', e.g. c('','','') in case pheno.files has length 3
-  # # Only important in case you do a multi-environment GWAS for several traits separately,
-  # #  pheno.files containing the files for each trait
-  # trait.names <- ''
-  #
-  # # The first n.omit columns: these are all columns not containing phenotypic data,
-  # # in particular genotype labels
-  # n.omit <- 1
-  #
-  # # The column-name containing the genotype/accession/hybrid etc labels.
-  # #   Should be one of the first n.omit (see above) columns
-  # #   Should match with the names in GWAS.obj$plant.names , contained in r.image (see above)
-  # #   Always specify; cannot be omitted if n.omit == 1
-  # geno.ID <- 'Accession_ID'
-  #
-  # # select a subset of situations; to select all situations: 0
-  # # If not 0, trait.selection should be a vector of integers, referring to situations
-  # # in the order in which they occur in the file(s), e.g. to select the first 10, set trait.selection <- 1:10
-  # trait.selection <- 0
-  #
-  # # Standardize all phenotypic columns ?
-  # standardize <- F
-  #
-  # # Should imputation be performed ? Can only be F in case of balanced trials
-  # no.imputation <- TRUE
-  # for (pheno.file in pheno.files) {
-  #   #pheno.file = pheno.files[1]
-
+  ## Make sure that when subsetting markers snpCovariates are included in the subset
   if (subsetMarkers) {
     if (snpCovariates != "") {
       if (length(which(rownames(markers) %in% snpCovariates)) > 0) {
@@ -202,9 +161,10 @@ runGWAS <- function(markers,
     ##K <- IBS(markers)[rownames(Y), rownames(Y)]
     K <- K[rownames(Y), rownames(Y)]
     markers <- markers[markerSubset, ]
-    map <- markers[markerSubset, ]
+    map <- map[markerSubset, ]
   }
 
+  ## Add snpCovariates to X.
   if (snpCovariates[1] != "") {
     X <- cbind(X, t(as.matrix(markers[snpCovariates, rownames(X)])))
     if (ncol(X) == length(snpCovariates)) {
@@ -214,53 +174,8 @@ runGWAS <- function(markers,
     }
   }
 
-  #   if (covModel==4) {
-  #     standardize <- FALSE
-  #   }
-  #
-  #   pheno <- define_pheno_data(pheno.file=pheno.file,
-  #     standardize=standardize,
-  #     covariate.file=covariate.file,
-  #     snpCovariates=snpCovariates,
-  #     r.image=r.image,
-  #     n.impute=11,no.imputation=no.imputation,
-  #     trait.selection=trait.selection,
-  #     n.omit=n.omit,
-  #     geno.ID=geno.ID,
-  #     read.trait.name.from.file=read.trait.names.from.file,
-  #     trait.name=trait.names[which(pheno.files==pheno.file)]
-  #   )
-  #
-  #   Y <- pheno$Y
-  #
-  #   if (covModel==4) {
-  #     for (j in 1:ncol(Y)) {
-  #       Y[,j] <- Y[,j] - mean(Y[,j])
-  #     }
-  #   }
-  #
-  #   Y.unstandardized <- pheno$Y.unstandardized
-  #   K <- pheno$K
-  #   X <- pheno$X
-  #   # run lines in new_stuff.R  !
-  #   trait.name <- pheno$trait.name
-  #   #setwd(results.folder)
-  #
-  #   write.csv(Y.unstandardized,file=paste0(results.folder,trait.name,suffix,'_imputed_unstandardized.csv'),quote=F)
-  #
-  #   if (covModel==3) {
-  #     gwas.file <- paste0(results.folder,'gwas_',trait.name,'_',m.G,'_',m.E,suffix,'.RData')
-  #     gwas.csv  <- paste0(results.folder,'gwas_effects_',trait.name,'_',m.G,'_',m.E,suffix,'.csv')
-  #     gwas.csv.t<- paste0(results.folder,'gwas_TStat_',trait.name,'_',m.G,'_',m.E,suffix,'.csv')
-  #   } else {
-  #     gwas.file <- paste0(results.folder,'gwas_',trait.name,'_',suffix,'.RData')
-  #     gwas.csv  <- paste0(results.folder,'gwas_effects_',trait.name,'_',suffix,'.csv')
-  #     gwas.csv.t<- paste0(results.folder,'gwas_TStat_',trait.name,'_',suffix,'.csv')
-  #   }
-  ############################################################
-
   if (reduceK) {
-    K <- reduce_kinship(K, nPca)
+    K <- reduceKinship(K, nPca)
   }
 
   ## fit variance components
@@ -292,6 +207,7 @@ runGWAS <- function(markers,
       Ve <- vE.matrix
     } else if (covModel == 3) {
       ## FA models
+      ## Including snpCovariates.
       varcomp <- EMFA(Y = Y,
         K = K,
         X = X,
@@ -308,6 +224,7 @@ runGWAS <- function(markers,
       Ve <- solve(varcomp$Dm)
 
       if (snpCovariates[1] != "") {
+        ## Without snpCovariates.
         varcompRed <- EMFA(Y = Y,
           K = K,
           X = XRed,
@@ -337,7 +254,7 @@ runGWAS <- function(markers,
 
   ## Run GWAS
   p <- ncol(Y)
-  w <- eigen(K)
+  w <- eigen(K, symmetric = TRUE)
   Dk <- diag(w$values)
   Uk <- w$vectors
   Yt <- t(Y) %*% Uk
@@ -388,9 +305,9 @@ runGWAS <- function(markers,
     fittedMean0Red <- matrix(est0Red$effects.estimates,ncol = length(est0Red$effects.estimates) / p) %*% XtRed
     SS0Red <- LLQuadFormDiag(Y = Yt - fittedMean0Red, VInvArray = VInvArrayRed)
     for (mrk in snpCovariateNumbers) {
-      x <- as.numeric(t(matrix(as.numeric(markers[mrk, colnames(Yt)]))))
-      xt <- t(matrix(x)) %*% Uk
-      LRTRes <- LRTTest(X = XtRed, x= xt, Y = Yt, VInvArray = VInvArrayRed, SS0 = SS0Red)
+      x <- matrix(as.numeric(markers[mrk, colnames(Yt)]))
+      xt <- t(x) %*% Uk
+      LRTRes <- LRTTest(X = XtRed, x = xt, Y = Yt, VInvArray = VInvArrayRed, SS0 = SS0Red)
       results[mrk] <- LRTRes$pvalue
       resultsWald[mrk] <- pchisq(sum((LRTRes$effects / LRTRes$effects.se) ^ 2),
         df = p, lower.tail = FALSE)
@@ -403,24 +320,25 @@ runGWAS <- function(markers,
   fittedMean0 <- matrix(est0$effects.estimates, ncol = length(est0$effects.estimates) / p) %*% Xt
   SS0 <- LLQuadFormDiag(Y = Yt - fittedMean0, VInvArray = VInvArray)
   for (mrk in setdiff(1:nn, excludedMarkers)) {
-    x <- as.numeric(t(matrix(as.numeric(markers[mrk, colnames(Yt)]))))
-    xt <- t(matrix(x)) %*% Uk
+    x <- matrix(as.numeric(markers[mrk, colnames(Yt)]))
+    xt <- t(x) %*% Uk
     LRTRes <- LRTTest(X = Xt, x = xt, Y = Yt, VInvArray = VInvArray, SS0 = SS0)
     results[mrk] <- LRTRes$pvalue
     resultsWald[mrk] <- pchisq(sum((LRTRes$effects / LRTRes$effects.se) ^ 2),
       df = p, lower.tail = FALSE)
     M[mrk, ] <- LRTRes$effects
     TStat[mrk, ] <- LRTRes$effects / LRTRes$effects.se
-    if (round(mrk / 500) == (mrk / 500)) {cat('Progress: ',(mrk / nn) * 100,' percent','\n')}
+    if (round(mrk / 500) == mrk / 500) {cat("Progress: ", (mrk / nn) * 100, " percent\n")}
   }
 
-  MExtended  <- data.frame(map[, c(3, 1, 2)], LOD_F = -log10(results),
-    LOD_Wald = -log10(resultsWald), M)
-  #write.csv(M.extended,quote=F,row.names=F,file=gwas.csv)
+  MExtended  <- data.frame(map[c("snp.name", "chromosome", "position")], LOD_F = -log10(results),
+    LOD_Wald = -log10(resultsWald), M, row.names = rownames(M))
 
-  TStatExtended  <- data.frame(map[, c(3, 1, 2)], LOD_F = -log10(results),
-    LOD_Wald = -log10(resultsWald), TStat)
-  #write.csv(TStat.extended,quote=F,row.names=F,file=gwas.csv.t)
+  TStatExtended  <- data.frame(map[c("snp.name", "chromosome", "position")], LOD_F = -log10(results),
+    LOD_Wald = -log10(resultsWald), TStat, row.names = rownames(TStat))
   # }
-  return(list(Vg, Ve, M, TStat, results, resultsWald, MExtended, TStatExtended))
+  return(list(Vg = Vg, Ve = Ve, M = M, TStat = TStat, results = results, resultsWald = resultsWald,
+    MExtended = MExtended, TStatExtended = TStatExtended))
 }
+
+
