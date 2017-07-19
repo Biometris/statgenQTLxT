@@ -164,7 +164,7 @@ runGWAS <- function(markers,
     map <- map[markerSubset, ]
   }
 
-  ## Add snpCovariates to X.
+  ## Add snpCovariates to X
   if (snpCovariates[1] != "") {
     X <- cbind(X, t(as.matrix(markers[snpCovariates, rownames(X)])))
     if (ncol(X) == length(snpCovariates)) {
@@ -180,6 +180,8 @@ runGWAS <- function(markers,
 
   ## fit variance components
   if (fitVarComp) {
+    p <- ncol(Y)
+
     ## Unstructured (pairwise) models
     if (covModel == 2) {
       YLong <- reshape2::melt(data = data.frame(genotype = rownames(Y), Y),
@@ -253,7 +255,6 @@ runGWAS <- function(markers,
   }
 
   ## Run GWAS
-  p <- ncol(Y)
   w <- eigen(K, symmetric = TRUE)
   Dk <- diag(w$values)
   Uk <- w$vectors

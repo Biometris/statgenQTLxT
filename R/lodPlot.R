@@ -4,16 +4,16 @@
 #' Significant markers can be highlighted with red dots. If there are previously known
 #' marker effect also false positives and true negatives will be marked.
 #'
-#' @param xValue vector of cumulative marker positions
-#' @param yValues vector of LOD-scores
-#' @param map A dataframe with four columns; chromosome, the number of the chromosome,
+#' @param xValues a vector of cumulative marker positions.
+#' @param yValues a vector of LOD-scores.
+#' @param map a dataframe with four columns; chromosome, the number of the chromosome,
 #' position, the position of the snp on the chromosome, snp.name, the name of the snp and
 #' cum.position, the cumulative position of the snp starting from the first chromosome.
 #' @param fileName name of the outputfile that is created. If left empty the plot is written
 #' to the screen.
 #' @param jpegPlot should a jpeg file be produced? If \code{FALSE} a pdf file is produced.
-#' @param xLab x-axis label
-#' @param yLab y-axis label
+#' @param xLab x-axis label.
+#' @param yLab y-axis label.
 #' @param title title of the plot
 #' @param plotType lines ("l") or dots ("d" or "p")
 #' @param xSig vector of integers, indicating which components in the vectors xValues and
@@ -50,57 +50,69 @@ lodPlot <- function(xValues,
   yThr = 0,
   signPointsThickness = 0.6) {
 
-  if (!(plotType %in% c("l","d","p")) ) {plotType <- "l"}
-  if (plotType == "p") {plotType <- "d"}
 
+  if (!(plotType %in% c("l","d","p")) ) {plotType <- "l"}
+
+  ## Open file connection
   if (fileName != "") {
     if (jpegPlot) {jpeg(fileName, width = 720, height = 480, quality = 100)} else {pdf(fileName)}
   }
 
+  ## Extract central chromosome postions from map
   chromosomes <- as.numeric(levels(factor(map$chromosome)))
   xMarks <- aggregate(x = map$cum.position, by = list(map$chromosome),
     FUN = function(x) {min(x) + (max(x) - min(x)) / 2})[, 2]
+
+  ## Setup empty plot
   plot(x = xValues, y = yValues, xlab = xLab, ylab = yLab, type = "n", lwd = 0.4,
     main = title, xaxt = 'n')
   axis(side = 1, at = xMarks, labels = chromosomes)
 
+  ## If chromosome boundaries are known add lines/ points per chromosome
   if (sum(chrBoundaries) != 0) {
     for (chromosome in chromosomes) {
       if (plotType == "l") {
         lines(x = xValues[map$chromosome == chromosome],
           y = yValues[map$chromosome == chromosome],
-          type = "l", lwd = 0.4, col = colPalette[which(chromosomes == chromosome)])
+          lwd = 0.4, col = colPalette[which(chromosomes == chromosome)])
       } else {
         points(x = xValues[map$chromosome == chromosome],
-          y = yValues[map$chromosome == chromosome], pch=20, lwd=0.4,
+          y = yValues[map$chromosome == chromosome], pch = 20, lwd = 0.4,
           col = colPalette[which(chromosomes==chromosome)])
       }
     }
   } else {
+    ## If chromosome boundaries are unknown add lines/ point
     if (plotType == "l") {
       lines(x = xValues, y = yValues, xlab = xLab, ylab = yLab, lwd = 0.4, col = "royalblue")
     } else {
       points(x = xValues, y = yValues, xlab = xLab, ylab = yLab, pch = 20, lwd = 0.4, col = "royalblue")
     }
   }
+
+  ## Add red dots for significant markers
   if (sum(xSig) != 0 && sum(xEffects) == 0) {
     points(x = xValues[xSig], y = yValues[xSig],
       pch = 20, col = "red", lwd = signPointsThickness)
   } else if (sum(xSig) == 0 && sum(xEffects) != 0) {
+    ## Add blue dots for known effects
     points(x = xValues[xEffects], y = yValues[xEffects],
       pch = 20,col = "blue", lwd = signPointsThickness)
   } else if (sum(xSig) != 0 && sum(xEffects) != 0) {
-    falseNeg <- setdiff(xEffects, xSig)
+    ## Add orange/yellow/green dots for false positives/ true negatives and true positives
     falsePos <- setdiff(xSig, xEffects)
+    trueNeg <- setdiff(xEffects, xSig)
     truePos <- intersect(xSig, xEffects)
     points(x = xValues[falsePos], y = yValues[falsePos],
       pch = 20, col = "orange", lwd = signPointsThickness)
-    points(x = xValues[falseNeg], y = yValues[falseNeg],
+    points(x = xValues[trueNeg], y = yValues[trueNeg],
       pch = 20, col = "yellow", lwd = signPointsThickness)
     points(x = xValues[truePos], y = yValues[truePos],
       pch = 20, col = "green", lwd = signPointsThickness)
   }
+  ## Add a horizontal line for the threshold
   if (yThr != 0) abline(h = yThr, lty = 2, lwd = 0.5)
+  ## Close file connection
   if (fileName != "") dev.off()
 }
 

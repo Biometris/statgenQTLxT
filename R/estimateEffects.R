@@ -10,8 +10,6 @@
 #' and Stephens 2014, supplement.\cr
 #' It is these rotated versions that are the input of this function.
 #'
-#' @export
-#'
 #' @param X a c x n covariate matrix, c being the number of covariates and n being the number
 #' of genotypes. c has to be at least one (typically an intercept). See details.
 #' @param Y a p x n matrix of observed phenotypes, on p traits or environments for n genotypes.

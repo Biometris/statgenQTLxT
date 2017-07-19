@@ -13,6 +13,10 @@ See details.}
 \item{X}{an optional c x n covariate matrix, c being the number of covariates and n being the number
 of genotypes. c has to be at least one (typically an intercept). See details.}
 
+\item{VArray}{an n x p x p dimensional array obtained as an output from the function
+\code{\link{makeVArray}}. It contains for each genotype l the p x p matrix \eqn{v_l} (in
+the notation of Zhou and Stephens)}
+
 \item{VInvArray}{an n x p x p dimensional array obtained as an output from the function
 \code{\link{makeVInvArray}}. It contains for each genotype l the p x p matrix \eqn{v_l ^ {-1}} (in
 the notation of Zhou and Stephens)}

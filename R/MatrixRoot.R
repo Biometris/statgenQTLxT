@@ -1,13 +1,14 @@
 #' Compute Square root of a symmetric, positive definite matrix
 #'
 #' Given an symmetric, positive definite matrix X a matrix Y is computed such that \eqn{Y^2 = X}.
-#' Computation is don using eigendecomposition of X.
+#' Computation is done using eigendecomposition of X.
 #'
-#' @param X A symmetric, positive definite matrix
+#' @param X a symmetric, positive definite matrix
 #'
-#' @return A matrix Y such that \eqn{Y^2 = X}.
+#' @return a matrix Y such that \eqn{Y^2 = X}.
 #'
-#' @examples Z <- matrix(c(2, -1, -1, 2), nrow = 2)
+#' @examples
+#' Z <- matrix(c(2, -1, -1, 2), nrow = 2)
 #' matrixRoot(Z)
 
 matrixRoot <- function(X) {

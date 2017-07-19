@@ -8,13 +8,15 @@ lodPlot(xValues, yValues, map, fileName = "", jpegPlot = TRUE,
   xLab = "Chromosomes", yLab = expression(-log[10](p)), title = "",
   plotType = "l", xSig = integer(), xEffects = integer(),
   colPalette = rep(c("royalblue", "maroon"),
-  50)[1:length(levels(factor(map$chromosome)))], chrBoundaries = c(0),
+  50)[1:length(levels(factor(map$chromosome)))], chrBoundaries = 0,
   yThr = 0, signPointsThickness = 0.6)
 }
 \arguments{
-\item{yValues}{vector of LOD-scores}
+\item{xValues}{a vector of cumulative marker positions.}
 
-\item{map}{A dataframe with four columns; chromosome, the number of the chromosome,
+\item{yValues}{a vector of LOD-scores.}
+
+\item{map}{a dataframe with four columns; chromosome, the number of the chromosome,
 position, the position of the snp on the chromosome, snp.name, the name of the snp and
 cum.position, the cumulative position of the snp starting from the first chromosome.}
 
@@ -23,9 +25,9 @@ to the screen.}
 
 \item{jpegPlot}{should a jpeg file be produced? If \code{FALSE} a pdf file is produced.}
 
-\item{xLab}{x-axis label}
+\item{xLab}{x-axis label.}
 
-\item{yLab}{y-axis label}
+\item{yLab}{y-axis label.}
 
 \item{title}{title of the plot}
 
@@ -44,8 +46,6 @@ correspond to a real (known) effect.}
 \item{yThr}{LOD-threshold.}
 
 \item{signPointsThickness}{thickness of the points that are false/true positives/negatives.}
-
-\item{xValue}{vector of cumulative marker positions}
 }
 \value{
 a LOD-profile with LOD-scores per snip. Markers declared significant get a red dot,
