@@ -40,7 +40,7 @@ or a character indicating the data column on which the data should be sorted.}
 a plot.
 }
 \description{
-Draw a qtl plot
+Description to be added.
 }
 \references{
 Millet et al. (2016) Genome-wide analysis of yield in Europe: Allelic effects vary

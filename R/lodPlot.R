@@ -6,9 +6,9 @@
 #'
 #' @param xValues a vector of cumulative marker positions.
 #' @param yValues a vector of LOD-scores.
-#' @param map a dataframe with four columns; chromosome, the number of the chromosome,
-#' position, the position of the snp on the chromosome, snp.name, the name of the snp and
-#' cum.position, the cumulative position of the snp starting from the first chromosome.
+#' @param map a dataframe with at least the columns chromosome, the number of the chromosome
+#' and cum.position, the cumulative position of the snp the cumulative position of the snp
+#' starting from the first chromosome.
 #' @param fileName name of the outputfile that is created. If left empty the plot is written
 #' to the screen.
 #' @param jpegPlot should a jpeg file be produced? If \code{FALSE} a pdf file is produced.
@@ -31,7 +31,6 @@
 #'
 #' @export
 
-## TO DO: check input
 ## TO DO: example
 
 lodPlot <- function(xValues,
@@ -47,11 +46,34 @@ lodPlot <- function(xValues,
   xEffects = integer(),
   colPalette = rep(c("royalblue", "maroon"), 50)[1:length(levels(factor(map$chromosome)))],
   chrBoundaries = 0,
-  yThr = 0,
+  yThr = NULL,
   signPointsThickness = 0.6) {
 
+  ## Basic argument checks
+  if (is.null(xValues) || !is.numeric(xValues) || any(xValues != round(xValues)))
+    stop("xValues should be an integer vector")
+  if (is.null(yValues) || !is.numeric(yValues))
+    stop("yValues should be a numerical vector")
+  if (fileName != "" && (is.null(fileName) || length(fileName) > 1 || !is.character(fileName)))
+    stop("fileName cannot be empty")
+  if (fileName != "" && (is.null(jpegPlot) || length(jpegPlot) > 1 || !is.logical(jpegPlot)))
+    stop("jpegPlot should be a single logical")
+  if (is.null(xSig) || !is.numeric(xSig) || any(xSig != round(xSig)))
+    stop("xSig should be an integer vector")
+  if (is.null(xEffects) || !is.numeric(xEffects) || any(xEffects != round(xEffects)))
+    stop("xEffects should be an integer vector")
+  if (is.null(chrBoundaries) || !is.numeric(chrBoundaries) || any(chrBoundaries != round(chrBoundaries)))
+    stop("chrBoundaries should be an integer vector")
+  if (!is.null(yThr) && (length(yThr) > 1 || !is.numeric(yThr) || yThr != round(yThr)))
+    stop("yThr should be a single integer")
+  if (is.null(signPointsThickness) || length(signPointsThickness) > 1 || !is.numeric(signPointsThickness))
+    stop("signPointsThickness should be a single number")
 
-  if (!(plotType %in% c("l","d","p")) ) {plotType <- "l"}
+  ## Check correspondence xValues and yValues
+  if (length(xValues) != length(yValues))
+    stop("xValues and yValues should be of the same length")
+
+  if (!(plotType %in% c("l", "d", "p")) ) {plotType <- "l"}
 
   ## Open file connection
   if (fileName != "") {
@@ -82,7 +104,7 @@ lodPlot <- function(xValues,
       }
     }
   } else {
-    ## If chromosome boundaries are unknown add lines/ point
+    ## If chromosome boundaries are unknown add lines/ points
     if (plotType == "l") {
       lines(x = xValues, y = yValues, xlab = xLab, ylab = yLab, lwd = 0.4, col = "royalblue")
     } else {
@@ -111,7 +133,7 @@ lodPlot <- function(xValues,
       pch = 20, col = "green", lwd = signPointsThickness)
   }
   ## Add a horizontal line for the threshold
-  if (yThr != 0) abline(h = yThr, lty = 2, lwd = 0.5)
+  if (!is.null(yThr)) abline(h = yThr, lty = 2, lwd = 0.5)
   ## Close file connection
   if (fileName != "") dev.off()
 }

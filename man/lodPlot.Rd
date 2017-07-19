@@ -9,16 +9,16 @@ lodPlot(xValues, yValues, map, fileName = "", jpegPlot = TRUE,
   plotType = "l", xSig = integer(), xEffects = integer(),
   colPalette = rep(c("royalblue", "maroon"),
   50)[1:length(levels(factor(map$chromosome)))], chrBoundaries = 0,
-  yThr = 0, signPointsThickness = 0.6)
+  yThr = NULL, signPointsThickness = 0.6)
 }
 \arguments{
 \item{xValues}{a vector of cumulative marker positions.}
 
 \item{yValues}{a vector of LOD-scores.}
 
-\item{map}{a dataframe with four columns; chromosome, the number of the chromosome,
-position, the position of the snp on the chromosome, snp.name, the name of the snp and
-cum.position, the cumulative position of the snp starting from the first chromosome.}
+\item{map}{a dataframe with at least the columns chromosome, the number of the chromosome
+and cum.position, the cumulative position of the snp the cumulative position of the snp
+starting from the first chromosome.}
 
 \item{fileName}{name of the outputfile that is created. If left empty the plot is written
 to the screen.}

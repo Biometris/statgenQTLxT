@@ -175,7 +175,7 @@ runGWAS <- function(markers,
   }
 
   if (reduceK) {
-    K <- reduceKinship(K, nPca)
+    K <- reduceKinship(K = K, nPca = nPca)
   }
 
   ## fit variance components

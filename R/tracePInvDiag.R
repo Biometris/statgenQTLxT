@@ -7,6 +7,8 @@
 #'
 #' @return a matrix containing the column sums of \eqn{(I + x \otimes y)^{-1}}
 #'
+#' @export
+#'
 #' @examples tracePInvDiag(1:2, 1:3)
 
 tracePInvDiag <- function(x, y) {

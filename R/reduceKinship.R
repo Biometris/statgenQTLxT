@@ -1,7 +1,17 @@
-reduceKinship <- function(K, n) {
+#' Reduce the kinship matrix
+#'
+#' The kinship matrix is reduced using nPca eigenvectors of K.
+#'
+#' @inheritParams runGWAS
+#'
+#' @param nPca an integer, the number of eigenvectors used for reducing the kinship matrix.
+#'
+#' @return the reduce kinship matrix
+
+reduceKinship <- function(K, nPca) {
   w <- eigen(K, symmetric = TRUE)
-  U <- w$vectors[, 1:n]
-  S <- diag(w$values[1:n])
+  U <- w$vectors[, 1:nPca]
+  S <- diag(w$values[1:nPca])
   KRed <- U %*% S %*% t(U)
   return(KRed)
 }

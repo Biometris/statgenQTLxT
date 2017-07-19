@@ -1,6 +1,6 @@
 #' Draw a qtl plot
 #'
-#'
+#' Description to be added.
 #'
 #' @param data QTL data to be plotted
 #' @param chromosome a character indicating the data column containing the chromosome number.
@@ -64,8 +64,6 @@ qtlPlot <- function(data,
   if (is.null(sortData) || (is.logical(sortData) && sortData) ||
       (is.character(sortData) && length(sortData) > 1))
     stop("sortData should be either FALSE or a single character")
-  if (is.null(yLab) || length(yLab) > 1 || !is.character(yLab))
-    stop("yLab should be a single character")
   if (is.null(exportPptx) || length(exportPptx) > 1 || !is.logical(exportPptx))
     stop("exportPptx should be a single logical")
   if (exportPptx && (is.null(pptxName) || length(pptxName) > 1 || !is.character(pptxName)))

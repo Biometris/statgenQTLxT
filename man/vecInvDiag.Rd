@@ -19,4 +19,5 @@ Helper function for quickly computing \eqn{(I + x \otimes y)^{-1}}. Used in the 
 }
 \examples{
 vecInvDiag(1:2, 1:3)
+
 }
