@@ -85,7 +85,6 @@ updateFA <- function(Y,
 
     if (hetVar) {
       D1 <- colSums(Y ^ 2)
-      #D1 <- apply(Y,2,function(x){sum(x^2)})
       D2 <- diag(WNew %*% (n * sigma + M1 %*% t(M1)) %*% t(WNew))
       D3 <- diag(t(Y) %*% t(M1) %*% t(WNew))
       DTot <-  D1 + D2 - 2 * D3
@@ -93,7 +92,6 @@ updateFA <- function(Y,
     } else {
       dataNew <- t(Y) - WNew %*% M1 # p x n
       SNew    <- dataNew %*% t(dataNew) / n
-      #PNew <- diag(rep(1 / mean(diag(Snew)),ncol(Snew)))
       PNew <- diag(1 / mean(diag(SNew), nrow = ncol(SNew)))
     }
     diag(PNew)[diag(PNew) > maxDiag] <- maxDiag
@@ -103,7 +101,7 @@ updateFA <- function(Y,
     totalDiff <- PDiff + WDiff
 
     if (printProgress) {
-      cat('Iteration ',iter,' : ',PDiff,'  ',WDiff,'\n')
+      cat("Iteration ",iter," : ",PDiff,"  ",WDiff,"\n")
     }
 
     ## Set values for next iteration

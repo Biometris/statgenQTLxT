@@ -118,7 +118,6 @@ runGWAS <- function(markers,
   if (is.null(Y) || !(is.matrix(Y) || is.data.frame(Y))) stop("Y should be a matrix or dataframe")
   if (!is.matrix(Y)) Y <- as.matrix(Y)
   if (is.null(K) || !is.matrix(K)) stop("K should be a matrix")
-  if (!is.matrix(K)) K <- as.matrix(K)
   if (!is.null(X) && !(is.matrix(X))) stop("X should either be NULL or a matrix")
   if (anyNA(X)) stop("No missing values allowed in X")
   if(is.null(X)) X <- matrix(data = 1, nrow = nrow(Y), ncol = 1)
@@ -140,10 +139,10 @@ runGWAS <- function(markers,
     Ve <- Ve[colnames(Y), colnames(Y)]
     colnames(Vg) <- rownames(Vg) <- NULL
     colnames(Ve) <- rownames(Ve) <- NULL
+  } else {
+    if (is.null(covModel))
+      stop("If variance components are computed, covModel cannot be NULL")
   }
-
-  if (fitVarComp && (is.null(covModel)))
-    stop("If variance components are computed, covModel cannot be NULL")
 
   if (reduceK && is.null(nPca))
     stop("If the kinship matrix is to be reduced, nPca cannot be NULL")
@@ -180,8 +179,6 @@ runGWAS <- function(markers,
 
   ## fit variance components
   if (fitVarComp) {
-    p <- ncol(Y)
-
     ## Unstructured (pairwise) models
     if (covModel == 2) {
       YLong <- reshape2::melt(data = data.frame(genotype = rownames(Y), Y),
@@ -244,6 +241,7 @@ runGWAS <- function(markers,
       }
     } else if (covModel==4) {
       ## ??
+      p <- ncol(Y)
       geno <- rownames(Y)
       GBLUP <- sapply(Y, function(i) {
         outH2 <- heritability::marker_h2_means(data.vector = i, geno.vector = geno, K = K)
@@ -297,16 +295,18 @@ runGWAS <- function(markers,
   }
 
   ## Scan
+  p <- ncol(Y)
   M <- TStat <- matrix(nrow = nn, ncol = p, dimnames = list(rownames(markers), colnames(Y)))
   results <- resultsWald <- rep(NA, nn)
   results[excludedMarkers] <- resultsWald[excludedMarkers] <- 1
+  markers <- markers[ , rownames(Y)]
 
   if (snpCovariates[1]!='') {
     est0Red <- estimateEffects(X = XtRed, Y = Yt, VInvArray = VInvArrayRed, returnAllEffects = TRUE)
     fittedMean0Red <- matrix(est0Red$effects.estimates,ncol = length(est0Red$effects.estimates) / p) %*% XtRed
     SS0Red <- LLQuadFormDiag(Y = Yt - fittedMean0Red, VInvArray = VInvArrayRed)
     for (mrk in snpCovariateNumbers) {
-      x <- matrix(as.numeric(markers[mrk, colnames(Yt)]))
+      x <- matrix(as.numeric(markers[mrk, ]))
       xt <- t(x) %*% Uk
       LRTRes <- LRTTest(X = XtRed, x = xt, Y = Yt, VInvArray = VInvArrayRed, SS0 = SS0Red)
       results[mrk] <- LRTRes$pvalue
@@ -321,11 +321,11 @@ runGWAS <- function(markers,
   fittedMean0 <- matrix(est0$effects.estimates, ncol = length(est0$effects.estimates) / p) %*% Xt
   SS0 <- LLQuadFormDiag(Y = Yt - fittedMean0, VInvArray = VInvArray)
   for (mrk in setdiff(1:nn, excludedMarkers)) {
-    x <- matrix(as.numeric(markers[mrk, colnames(Yt)]))
+    x <- matrix(as.numeric(markers[mrk, ]))
     xt <- t(x) %*% Uk
     LRTRes <- LRTTest(X = Xt, x = xt, Y = Yt, VInvArray = VInvArray, SS0 = SS0)
     results[mrk] <- LRTRes$pvalue
-    resultsWald[mrk] <- pchisq(sum((LRTRes$effects / LRTRes$effects.se) ^ 2),
+    resultsWald[mrk] <- pchisq(q = sum((LRTRes$effects / LRTRes$effects.se) ^ 2),
       df = p, lower.tail = FALSE)
     M[mrk, ] <- LRTRes$effects
     TStat[mrk, ] <- LRTRes$effects / LRTRes$effects.se
@@ -341,5 +341,4 @@ runGWAS <- function(markers,
   return(list(Vg = Vg, Ve = Ve, M = M, TStat = TStat, results = results, resultsWald = resultsWald,
     MExtended = MExtended, TStatExtended = TStatExtended))
 }
-
 

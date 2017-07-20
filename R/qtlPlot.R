@@ -14,10 +14,12 @@
 #' @param normalize should the snpEffect be normalized?
 #' @param sortData should the data be sorted before plotting? Either false if no sorting should be done
 #' or a character indicating the data column on which the data should be sorted.
+#' @param binPositions an optional dataframe containing at leasts two columns, chromosome and position.
+#' Vertical lines are plotted at those positions.
 #' @param yLab y-axis label.
-#' @param exportPptx should the plot be exported to a .pptx file.
+#' @param exportPptx should the plot be exported to a .pptx file?
 #' @param pptxName name of the .pptx file to which the plot is exported. Ignored if exportPptx =
-#' \code{FALSE}
+#' \code{FALSE}.
 #'
 #' @return a plot.
 #'
@@ -26,6 +28,7 @@
 #'
 #' @export
 
+#dat.vline<-read.table("./example_data_drops/PosBinRefGenV2.csv",sep=",",he=T)
 
 ## TO DO: example
 ## # Example 1 : different phenotypic trait
@@ -44,6 +47,7 @@ qtlPlot <- function(data,
   map,
   normalize = FALSE,
   sortData = FALSE,
+  binPositions = NULL,
   yLab = "Traits",
   exportPptx = FALSE,
   pptxName = "") {
@@ -64,6 +68,8 @@ qtlPlot <- function(data,
   if (is.null(sortData) || (is.logical(sortData) && sortData) ||
       (is.character(sortData) && length(sortData) > 1))
     stop("sortData should be either FALSE or a single character")
+  if (!is.null(binPositions) && (!is.data.frame(binPositions)))
+    stop("binPositions should be either NULL or an dataframe")
   if (is.null(exportPptx) || length(exportPptx) > 1 || !is.logical(exportPptx))
     stop("exportPptx should be a single logical")
   if (exportPptx && (is.null(pptxName) || length(pptxName) > 1 || !is.character(pptxName)))
@@ -81,15 +87,26 @@ qtlPlot <- function(data,
   requiredColumnsMap <- c("chromosome", "position")
   requiredCheckMap <- requiredColumnsMap %in% colnames(map)
   if (!all(requiredCheckMap))
-    stop("data lacks the following columns: ",
+    stop("map lacks the following columns: ",
       paste0(requiredColumnsMap[!requiredCheckMap], collapse = ", "), ".\n\n")
+
+  ## Check that all necessary columns are in the bin file
+  if (!is.null(binPositions)) {
+  requiredColumnsBin <- c("chromosome", "position")
+  requiredCheckBin <- requiredColumnsBin %in% colnames(map)
+  if (!all(requiredCheckBin))
+    stop("binPositions lacks the following columns: ",
+      paste0(requiredColumnsBin[!requiredCheckBin], collapse = ", "), ".\n\n")
+  } else {
+    binPositions <- data.frame(position = integer())
+  }
 
   ## Center and reduce the allelic effect (because of the different units)
   if (normalize) {
     data$eff <- sapply(1:nrow(data), function(x)
       (data[x, snpEffect] - mean(data[data[trait] == as.character(data[x, trait]), snpEffect], na.rm=TRUE)) /
         sd(data[data[trait] == as.character(data[x, trait]), snpEffect], na.rm = TRUE) )
-  } else data$eff <- data[, snpEffect]
+  } else data$eff <- data[[snpEffect]]
 
   if (is.character(sortData)) {
     data$sort <- data[[sortData]]
@@ -113,18 +130,12 @@ qtlPlot <- function(data,
   data <- rbind(data, limits)
 
   ## Select and rename relevant columns for plotting
-  plotData <- dplyr::select(data, trait = get(trait), chromosome = get(chromosome),
-    snpEffect = get(snpEffect), snpPosition = get(snpPosition), sort, eff)
+  plotData <- dplyr::select(data, trait = trait, chromosome = chromosome,
+    snpEffect = snpEffect, snpPosition = snpPosition, sort, eff)
 
   ## Add a column with the allelic effect direction (for points color)
   plotData$color <- ifelse(plotData$eff > 0, "pos", "neg")
   plotData <- droplevels(plotData)
-
-  ### Loading the bin position to add vertical lines to the figure
-  ### WARNINGS : particular case of the maize genome !
-  ### other species do not have bins
-  # dat.vline<-read.table("/home/millet/Documents/PhD-1A/GWAS/A_50K+600K_GyGnbGsAnth/PosBinRefGenV2.csv",sep=",",he=T)
-  # names(dat.vline)[1] <- "Chromosome"
 
   ## Create theme for plot
   emptyThemeQtlPlot <-
@@ -145,8 +156,6 @@ qtlPlot <- function(data,
       strip.text = ggplot2::element_text(),
       strip.text.x = ggplot2::element_text(size = 14),
       strip.text.y = ggplot2::element_text(size = 0))
-
-
   ## Create the plot object
   qtlPlot <-
     ggplot2::ggplot(data = plotData,
@@ -161,10 +170,11 @@ qtlPlot <- function(data,
     emptyThemeQtlPlot +
     ggplot2::ylab(yLab) +
     ggplot2::xlab("Chromosomes")  +
-    # geom_vline(aes(xintercept = position),              # add vertical lines at the bin position
-    #   data = dat.vline,                         # the bin positions are contained in the 'dat.vline' dataframe
-    #   linetype=1,                               # type of line (1 = full)
-    #   color = "white")   +                      # color of line
+    # add vertical lines at the bin positions
+    ggplot2::geom_vline(ggplot2::aes(xintercept = position),
+       data = binPositions,
+       linetype = 1,
+       color = "white")   +
     ## Add the points with a slight transparency in case of overlap
     ggplot2:: geom_point(alpha = I(0.7)) +
     ## Split of the plot according to the chromosomes on the x axis
@@ -206,4 +216,5 @@ qtlPlot <- function(data,
     } else
     {message("Package ReporteRs needs to be installed to be able to export to .pptx")}
   }
+  return(qtlPlot)
 }
