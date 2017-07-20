@@ -31,7 +31,7 @@ LLQuadFormDiag <- function(Y,
   stopifnot(nrow(Y) == dim(VInvArray)[3])
   if (anyNA(Y)) stop("No missing values allowed in Y")
   if (!(is.data.frame(X) && nrow(X) == 0)) {
-    stopifnot(nrow(X) == dim(VInvArray)[1])
+    stopifnot(ncol(X) == dim(VInvArray)[1])
     if (anyNA(X)) stop("No missing values allowed in X")
   }
 
@@ -39,21 +39,21 @@ LLQuadFormDiag <- function(Y,
   n <- ncol(Y)
   p <- nrow(Y)
 
-  qScal <- sum(sapply(1:n, function(i) {t(matrix(Y[, i])) %*% VInvArray[i, , ] %*% matrix(Y[, i])}))
-
+  scalFunc <- function(i) {crossprod(Y[, i], VInvArray[i, , ]) %*% Y[, i]}
+  qVecFunc <- function(i) {kronecker(X[, i], VInvArray[i, , ] %*% Y[, i])}
+  qMatFunc <- function(i) {kronecker(tcrossprod(X[, i]), VInvArray[i, , ])}
+  qScal <- sum(sapply(1:n, scalFunc))
   if (nc > 0) {
-    qVec <- matrix(sum(sapply(1:n, function(i) {
-      kronecker(matrix(X[, i]), VInvArray[i, , ] %*% matrix(Y[, i]))})))
     if (p == 1 & nc == 1) {
-      QMatrix <- matrix(sum(sapply(1:n, function(i) {
-        kronecker(matrix(X[, i]) %*% t(matrix(X[, i])), VInvArray[i, , ])})))
+      qVec <- sum(sapply(1:n, qVecFunc))
+      QMatrix <- sum(sapply(1:n, qMatFunc))
     } else {
-      QMatrix <- matrix(rowSums(sapply(1:n, function(i){
-        kronecker(matrix(X[, i]) %*% t(matrix(X[, i])), VInvArray[i, , ])})), ncol = p * nc)
+      qVec  <- rowSums(sapply(1:n, qVecFunc))
+      QMatrix <- matrix(rowSums(sapply(1:n, qMatFunc)), ncol = p * nc)
     }
     quadFormPart <- qScal - as.numeric(t(qVec) %*% solve(QMatrix) %*% qVec)
   } else {
-    quadFormPart <-  qScal
+    quadFormPart <- qScal
   }
   return(quadFormPart)
 }

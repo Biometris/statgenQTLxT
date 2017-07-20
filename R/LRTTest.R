@@ -35,7 +35,6 @@ LRTTest <- function(X,
   nc <- nrow(X)
   n <- ncol(X)
   p <- nrow(Y)
-
   dfFull <- (n - (nc + 1)) * p
 
   ## Null model with the trait specific means only

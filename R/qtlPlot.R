@@ -16,6 +16,7 @@
 #' or a character indicating the data column on which the data should be sorted.
 #' @param binPositions an optional dataframe containing at leasts two columns, chromosome and position.
 #' Vertical lines are plotted at those positions.
+#' @param printVertGrid Should default vertical grid lines be plotted.
 #' @param yLab y-axis label.
 #' @param exportPptx should the plot be exported to a .pptx file?
 #' @param pptxName name of the .pptx file to which the plot is exported. Ignored if exportPptx =
@@ -28,14 +29,11 @@
 #'
 #' @export
 
-#dat.vline<-read.table("./example_data_drops/PosBinRefGenV2.csv",sep=",",he=T)
-
 ## TO DO: example
 ## # Example 1 : different phenotypic trait
 ##snpList <- read.table("./example_data_drops/ListeQTL_LOD45_DROPS_Response.csv",sep=",",header=TRUE)
 # Example 2: different environment
 ##snpList2 <- read.table("./example_data_drops/Fixed_modelMEML_33+15QTL_GY_perenvt_effB73.csv",sep=",",header=TRUE)
-## TO DO: bin positions
 ## TO DO: description + output
 ## Dataframe format should be output of the "listQTL" function
 
@@ -48,6 +46,7 @@ qtlPlot <- function(data,
   normalize = FALSE,
   sortData = FALSE,
   binPositions = NULL,
+  printVertGrid = TRUE,
   yLab = "Traits",
   exportPptx = FALSE,
   pptxName = "") {
@@ -118,7 +117,7 @@ qtlPlot <- function(data,
   ## This ensures plotting of all chromosomes
   limitsLow <- aggregate(map$position, by = list(map$chromosome), FUN = min)
   limitsHigh <- aggregate(map$position, by = list(map$chromosome), FUN = max)
-  ## empty dataframe with 2 lines per chromosomes and as many columns as the QTL dataframe
+  ## Empty dataframe with 2 lines per chromosomes and as many columns as the QTL dataframe
   limits <- data.frame(matrix(ncol = ncol(data), nrow = 2 * nrow(limitsLow)))
   names(limits) <- names(data)
   ## Trait and sort have to be filled. Value is not important
@@ -138,10 +137,11 @@ qtlPlot <- function(data,
   plotData <- droplevels(plotData)
 
   ## Create theme for plot
-  emptyThemeQtlPlot <-
+  qtlPlotTheme <-
     ggplot2::theme(plot.background = ggplot2::element_blank(),
-      panel.grid.major= ggplot2::element_line(color = "white"),
-      panel.grid.minor= ggplot2::element_blank(),
+      panel.grid.major.x = ggplot2::element_line(color = ifelse(printVertGrid, "white", "gray")),
+      panel.grid.major.y = ggplot2::element_line(color = "white"),
+      panel.grid.minor = ggplot2::element_blank(),
       plot.title = ggplot2::element_text(size = 20, face = "bold", vjust = 2) ,
       axis.ticks = ggplot2::element_blank(),
       panel.border = ggplot2::element_blank(),
@@ -167,7 +167,7 @@ qtlPlot <- function(data,
         # Point color depends on the effect direction
         color = factor(color)))  +
     ## use custom made theme
-    emptyThemeQtlPlot +
+    qtlPlotTheme +
     ggplot2::ylab(yLab) +
     ggplot2::xlab("Chromosomes")  +
     # add vertical lines at the bin positions
@@ -206,9 +206,9 @@ qtlPlot <- function(data,
         fun = print,
         x = qtlPlot,
         ## Plot position on the slide in inches
-        offx = 1, offy = 1,
+        offx = 2.6, offy = 0.9,
         ## Plot size in inches
-        width = 10, height = 8)
+        width = 8, height = 6.4)
       ## Add date to slide
       pptOut <- ReporteRs::addDate(doc = pptOut)
       ##Write .pptx
