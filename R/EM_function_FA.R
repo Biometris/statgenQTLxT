@@ -209,6 +209,7 @@ EM_function_FA <- function(Y,K,X=matrix(rep(1,nrow(K))),
 
     Cm.sqrt.inv <- MatrixRoot(Ginv(Cm)) # MatrixRoot(solve(Cm))
 
+
     #Cm.sqrt.inv <- try(MatrixRoot(ginv(Cm)), silent=TRUE)
     #if (class(Cm.sqrt.inv)=="try-error") {
     #  Cm.sqrt.inv <- MatrixRoot(solve(Cm))
@@ -256,6 +257,7 @@ EM_function_FA <- function(Y,K,X=matrix(rep(1,nrow(K))),
       S.2     <- vec.inv.diag(x=Lambda.2,y=1/diag(Lambda.R))  *  (t(U) %*% Y %*% MatrixRoot(Cm) %*% Q.2)
 
     }
+
 
     if (p > 1) {
 
@@ -407,7 +409,6 @@ EM_function_FA <- function(Y,K,X=matrix(rep(1,nrow(K))),
         #Dm.new.output$P <- diag(p) / Dm.new.output$sigma2
 
       }
-
       W.E.new         <- Dm.new.output$W
       P.E.new         <- Dm.new.output$P
 

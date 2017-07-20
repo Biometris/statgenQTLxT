@@ -1,12 +1,9 @@
 add_Phenotypic_Data_To_Gwas_Object <- function(csv.file.name,r.image.name,new.r.image.name,data.path=setwd(),which.columns.as.factor=integer(0)) {
 # OBJECTIVE :
-#' @param
-#' @param
 # INPUT :
 #' @param csv.file.name : name of the csv file containing the data (first column-name: genotype). Contains no row-names
 #' @param r.image.name,new.r.image.name :
 #' @param data.path : the path where the function will look for the above files
-#' @param
 #' @param which.columns.as.factor : column-numbers of the variables that are to be imported as factor
 # OUTPUT :
 # *
@@ -260,18 +257,8 @@ AddPhenoData2  <- function(gwas.obj,csv.file.name,add.var.means=FALSE,mean.cols=
 return(gwas.obj)
 }
 
-
-
-
 # function found on the internet: (author?)
 is.installed <- function(mypkg) {return(is.element(mypkg, installed.packages()[,1]))}
-
-# Taken from : http://realizationsinbiostatistics.blogspot.com/2008/08/matrix-square-roots-in-r_18.html
-MatrixRoot <- function(x) { # assumes that x is symmetric
-  x.eig <- eigen(x,symmetric=TRUE)
-  x.sqrt <- x.eig$vectors %*% diag(sqrt(x.eig$values)) %*% solve(x.eig$vectors)
-  return(x.sqrt)
-}
 
 # Taken from : http://realizationsinbiostatistics.blogspot.com/2008/08/matrix-square-roots-in-r_18.html
 denman.beavers <- function(mat,maxit=50) {
@@ -2157,114 +2144,6 @@ if (file.name!="") {dev.off()}
 
 } #   END OF THE FUNCTION
 
-
-
-MakeLodPlotWithChromosomeColors <- function(xvalues,yvalues,gwas.obj,
-                                           file.name="",jpeg.plot=T,
-                                           x.lab="Chromosomes",
-                                           y.lab=expression(-log[10](p)),
-                                           plot.title="",
-                                           plot.type="l",
-                                           x.sig=integer(0),
-                                           x.effects=integer(0),
-                                           col.palette = rep(c("royalblue","maroon"),50)[1:gwas.obj$nchr],
-                                           effects.size=numeric(0),
-                                           chr.boundaries=c(0),
-                                           y.thr=0,
-                                           sign.points.thickness=0.4) {
-
-# OBJECTIVE : Make a plot of the LOD-profile, on screen or in a file (pdf or jpeg)
-# Significant markers can be highlighted with red dots
-#
-# INPUT :
-#' @param file.name  : if "", the plot is made to the screen. Otherwise to that file (should be .jpeg or .pdf)
-#' @param jpeg.plot  : if TRUE, jpeg is produced, otherwise pdf
-#' @param xvalues    : vector of cumulative marker positions
-#' @param yvalues    : vector of LOD-scores
-#' @param x.lab      : x-axis label
-#' @param y.lab      : y-axis label
-#' @param plot.title : title of the plot
-#' @param plot.type  : lines ("l") or dots ("d" or "p")
-#' @param x.sig      : vector of integers, indicating which components in the vectors xvalues and yvalues are significant
-#' @param x.effects  : vector of integers, indicating which components in the vector xvalues correspond to a real (known) effect
-#' @param effects.size: vector of reals indicating the effect-sizes corresponding to x.effects
-#' @param chr.boundaries : vector of chromosome boundaries, i.e. x-values on the same scale as xvalues
-#' @param y.thr      : LOD-threshold
-#' @param sign.points.thickness : thickness of the points that are false/true positives/negatives
-#
-# OUTPUT : a plot
-# * markers declared significant get a red dot
-# * markers with a true effect get a blue dot
-# * if both the real effects and the "declared significant" are given, the markers that are in the
-#   intersection (i.e. true positives) get a pink dot
-
-#xvalues=GWAS.obj$map$cum.position;yvalues=-log10(ReplaceNaByOne(GWA.result$pvalue));plot.title=trait;gwas.obj=GWAS.obj;
-#                                col.palette = rep(c("royalblue","maroon"),50)[1:GWAS.obj$nchr];
-#                                x.sig=x.sig;chr.boundaries=cumsum(GWAS.obj$chr.lengths.bp)[-1];y.thr=LOD.thr.plot;
-#                                x.effects=x.effects;effects.size=effects.size;plot.type="d"
-#jpeg.plot=T ; x.lab="Chromosomes"; y.lab=expression(-log[10](p))
-#file.name=paste("plots/",trait,suffix,".jpeg",sep="");
-
-if (!(plot.type %in% c("l","d","p")) ) {plot.type <- "l"}
-if (plot.type=="p") {plot.type <- "d"}
-
-if (file.name!="") {
-  #if (jpeg.plot) {jpeg(file.name)} else {pdf(file.name)} # ,res=300,heigth=600,width=600,quality=100
-  if (jpeg.plot) {jpeg(file.name,width = 720, height = 480,quality = 100)} else {pdf(file.name)}
-}
-
-#@#
-xmarks <- aggregate(x=gwas.obj$map$cum.position, by=list(factor(gwas.obj$map$chromosome)), FUN=function(x){min(x) + (max(x)-min(x))/2})[,2]
-x.axis.lables <- gwas.obj$chromosomes
-plot(x=xvalues,y=yvalues,xlab=x.lab,ylab=y.lab,type="n",lwd=0.4,main=plot.title,xaxt='n') # ann=FALSE
-axis(1, at=xmarks, labels=x.axis.lables)
-
-if (sum(chr.boundaries)!=0) {
-  for (CHR in gwas.obj$chromosomes) {
-    if (plot.type=="l") {
-      lines(x=xvalues[gwas.obj$map$chromosome==CHR],y=yvalues[gwas.obj$map$chromosome==CHR],type="l",lwd=0.4,col=col.palette[which(gwas.obj$chromosomes==CHR)])
-    } else {
-      points(x=xvalues[gwas.obj$map$chromosome==CHR],y=yvalues[gwas.obj$map$chromosome==CHR],pch=20,lwd=0.4,col=col.palette[which(gwas.obj$chromosomes==CHR)])
-    }
-  }
-  #for (chr.b in chr.boundaries) {
-  #  lines(x=rep(chr.b,2),y=c(0,max(yvalues)),lwd=1)
-  #}
-} else {
-    if (plot.type=="l") {
-      lines(x=xvalues,y=yvalues,xlab=x.lab,ylab=y.lab,type="l",lwd=0.4,col="royalblue")
-    } else {
-      points(x=xvalues,y=yvalues,xlab=x.lab,ylab=y.lab,pch=20,lwd=0.4,col="royalblue")
-    }
-}
-
-class(x.sig) <- "integer"
-class(x.effects) <- "integer"
-
-if (sum(x.sig)!=0 | sum(x.effects)!=0) {
-  if (sum(x.sig)!=0 & sum(x.effects)==0) {
-    points(x=xvalues[x.sig],y=yvalues[x.sig],pch=20,col="red",lwd=sign.points.thickness)
-  }
-  if (sum(x.sig)==0 & sum(x.effects)!=0) {
-    points(x=xvalues[x.effects],y=yvalues[x.effects],pch=20,col="red",lwd=sign.points.thickness)
-  }
-  if (sum(x.sig)!=0 & sum(x.effects)!=0) {
-    false.neg <- setdiff(x.effects,x.sig)
-    false.pos <- setdiff(x.sig,x.effects)
-    true.pos  <- intersect(x.sig,x.effects)
-    points(x=xvalues[false.pos],y=yvalues[false.pos],pch=20,col="orange",lwd=sign.points.thickness)
-    points(x=xvalues[false.neg],y=yvalues[false.neg],pch=20,col="red",lwd=sign.points.thickness)
-    points(x=xvalues[true.pos],y=yvalues[true.pos],pch=20,col="black",lwd=sign.points.thickness)
-  }
-}
-if (y.thr!=0) {lines(x=c(min(xvalues),max(xvalues)),y=rep(y.thr,2),lty=2,lwd=0.5)}
-if (file.name!="") {dev.off()}
-
-} #   END OF THE FUNCTION
-#MakeLodPlotWithChromosomeColors(xvalues=GWAS.obj$map$cum.position,yvalues=-log10(GWA.result$pvalue),plot.title=trait,gwas.obj=GWAS.obj,col.palette = c("royalblue","maroon","royalblue","maroon","royalblue"),chr.boundaries=cumsum(GWAS.obj$chr.lengths.bp)[-1],x.effects=sim.obj$effect.locations,effects.size=sim.obj$effect.sizes,plot.type="d")
-
-
-
 ############# code found on CRAN
 getAttributeField <- function (x, field, attrsep = ";") {
      s = strsplit(x, split = attrsep, fixed = TRUE)
@@ -3091,11 +2970,6 @@ NormalQuantileTransform <- function(y) {
 return(qqnorm(y,plot.it=F)$x)
 }
 
-KinshipTransform <- function(Matrix) {
-  nn <- ncol(Matrix)
-  return((sum(diag(Matrix))-as.numeric(matrix(1,1,nn) %*% Matrix %*% matrix(1,nn,1))/nn)/(nn-1))
-}
-
 KinshipTransformUnscaled <- function(Matrix) {
   nn <- ncol(Matrix)
   return((sum(diag(Matrix))-as.numeric(matrix(1,1,nn) %*% Matrix %*% matrix(1,nn,1))/nn))
@@ -3142,112 +3016,6 @@ ExpandIntegers <- function(sequ) {
   result <- integer(0)
   for (i in 1:length(sequ)) {result <- c(result,1:sequ[i])}
 return(result)
-}
-
-TransformGwasObject <- function(gwas.obj,marker.selection=1:gwas.obj$N,modify.external=T) { # ,ind.selection=1:gwas.obj$n
-#browser()
-# OBJECTIVE :
-# *
-# *
-# INPUT :
-# * gwas.obj, GWAS.object with 'markers' field being a p x n matrix or data.frame (n=number of genotypes)
-# *  modify.external : if TRUE, re-create csv- and bin files of the genotypic data
-# *
-# OUTPUT :
-# *
-# *
-# *
-  if (nrow(gwas.obj$markers)>0) {  # arabidopsis data
-    new.gwas.obj <- list()
-    new.gwas.obj$description     <- gwas.obj$description
-    new.gwas.obj$markers         <- gwas.obj$markers[marker.selection,] # ind.selection
-    new.gwas.obj$pheno           <- gwas.obj$pheno
-    new.gwas.obj$map             <- gwas.obj$map[marker.selection,]
-    #new.gwas.obj$kinship         <- gwas.obj$kinship
-    new.gwas.obj$kinship         <- IBS(gwas.obj$markers)
-    new.gwas.obj$kinship.asreml  <- gwas.obj$kinship.asreml
-    new.gwas.obj$genes           <- gwas.obj$genes
-    new.gwas.obj$plant.names     <- gwas.obj$plant.names
-    new.gwas.obj$N               <- length(marker.selection)
-    new.gwas.obj$n               <- gwas.obj$n # length(ind.selection)
-    new.gwas.obj$nchr            <- length(unique(new.gwas.obj$map$chromosome))
-    new.gwas.obj$chromosomes     <- sort(unique(new.gwas.obj$map$chromosome))
-    #
-    new.chr.lengths     <- as.numeric(table(new.gwas.obj$map$chromosome))
-    if (new.gwas.obj$nchr > 1) {
-      chr.pos         <- c(0,cumsum(new.chr.lengths)[1:(new.gwas.obj$nchr-1)])
-      chr.lengths.bp  <- c(0,new.gwas.obj$map$position[cumsum(new.chr.lengths)[1:(new.gwas.obj$nchr-1)]])
-      #cumpositions    <- map$position + rep(cumsum(chr.lengths.bp),times=chr.lengths)
-    } else {
-      #cumpositions    <- map$position
-      #chr.pos         <- 0
-      chr.lengths.bp  <- 0#nrow(marker.object)
-    }
-    new.gwas.obj$chr.lengths.bp     <- chr.lengths.bp
-    #
-    if (modify.external) {
-      new.gwas.obj$external        <- gwas.obj$external
-      new.gwas.obj$external$csv.name <- paste("modified_",gwas.obj$external$csv.name,sep="")
-      new.gwas.obj$external$bin.name <- paste("modified_",gwas.obj$external$bin.name,sep="")
-      #
-      MakeCsv(markers=new.gwas.obj$markers,plant.names=new.gwas.obj$plant.names,file.name=new.gwas.obj$external$csv.name)
-      MakeBin(kinship=new.gwas.obj$kinship,plant.names=gwas.obj$plant.names,pheno=gwas.obj$pheno,
-              csv.file.name=new.gwas.obj$external$csv.name,bin.file.name=new.gwas.obj$external$bin.name)    # old argument : markers=new.gwas.obj$markers,
-      #MakeBin(markers=new.gwas.obj$markers,kinship.file=new.gwas.obj$external$kinship.name,csv.file.name=new.gwas.obj$external$csv.name,bin.file.name=new.gwas.obj$external$bin.name)
-      #
-    }
-    new.gwas.obj$pca             <- gwas.obj$pca
-
-    new.gwas.obj$markerInfo      <- gwas.obj$markerInfo
-    new.gwas.obj$real.effects    <- gwas.obj$real.effects
-    #new.gwas.obj$     <- gwas.obj$
-
-  } else { # WTCCC-data
-
-    new.gwas.obj <- list()
-    #new.gwas.obj$description     <- gwas.obj$description
-    new.gwas.obj$pheno           <- gwas.obj$pheno
-    new.gwas.obj$map             <- gwas.obj$map[marker.selection,]
-    new.gwas.obj$plant.names     <- gwas.obj$plant.names
-    new.gwas.obj$N               <- length(marker.selection)
-    new.gwas.obj$n               <- gwas.obj$n # length(ind.selection)
-    new.gwas.obj$nchr            <- length(unique(new.gwas.obj$map$chromosome))
-    new.gwas.obj$chromosomes     <- sort(unique(new.gwas.obj$map$chromosome))
-    #
-    new.chr.lengths     <- as.numeric(table(new.gwas.obj$map$chromosome))
-    if (new.gwas.obj$nchr > 1) {
-      chr.pos         <- c(0,cumsum(new.chr.lengths)[1:(new.gwas.obj$nchr-1)])
-      chr.lengths.bp  <- c(0,new.gwas.obj$map$position[cumsum(new.chr.lengths)[1:(new.gwas.obj$nchr-1)]])
-      #cumpositions    <- map$position + rep(cumsum(chr.lengths.bp),times=chr.lengths)
-    } else {
-      #cumpositions    <- map$position
-      #chr.pos         <- 0
-      chr.lengths.bp  <- 0#nrow(marker.object)
-    }
-    new.gwas.obj$chr.lengths.bp     <- chr.lengths.bp
-    #
-    new.gwas.obj$external        <- gwas.obj$external
-    new.plink.name                  <- paste("modified_",gwas.obj$external$plink.name,sep="")
-    new.gwas.obj$external$plink.name <- new.plink.name
-    #
-    #if (!all(file.exists(paste(new.plink.name,".bim",sep="")),file.exists(paste(new.plink.name,".bed",sep="")),file.exists(paste(new.plink.name,".fam",sep="")))) {
-      temp.snp.file <- "tempsnpfile.txt"
-      write.table(gwas.obj$map$snp.name[marker.selection],file=temp.snp.file,quote=F,col.names=F,row.names=F)
-      system(paste("plink --bfile",gwas.obj$external$plink.name,"--make-bed --extract",temp.snp.file,"--out",new.plink.name))
-    #}
-    system(paste("plink --bfile",new.plink.name,"--recodeA --out",new.plink.name))
-    new.gwas.obj$markers <- t(read.table(file=paste(new.plink.name,".raw",sep=""),header=T)[,-(1:6)])#t(read.table(file="modified_CD_and_wtc1.raw",header=T)[,-(1:6)])
-    new.gwas.obj$pca             <- gwas.obj$pca
-  }
-  if (length(gwas.obj$groups)>0) {
-    group.selection <- apply(gwas.obj$groups$position.matrix,1,FUN=function(x){sum(marker.selection %in% (x[1]):(x[2]))})
-    G.temp <- gwas.obj$groups$position.matrix[group.selection>0,]
-    G.temp[1,1] <- marker.selection[1]
-    G.temp[nrow(G.temp),2] <- marker.selection[length(marker.selection)]
-    G.temp <- G.temp - G.temp[1,1] + 1
-    new.gwas.obj <- AddGroupsToGwasObj(G.temp,new.gwas.obj)
-  }
-return(new.gwas.obj)
 }
 
 pos.exp <- function(x,exponent=1) {x.out <- x; x.out[x.out!=0] <- (x.out[x.out!=0])^exponent; x.out}
@@ -4145,10 +3913,6 @@ return(s1)
 #s2   <- DrawSubsamples(pheno.dataframe=temp.pheno,trn=tr.n,plant.names=GWAS.obj$plant.names,ns=NS,subsample.acc=TRUE)
 #asd <- JoinSubsamples(s1,s2)
 
-GetSNPsInRegion <- function(gwas.obj,snp.number,region.size=5000){
-  return(setdiff(which((abs(gwas.obj$map$position[snp.number] - gwas.obj$map$position) <= region.size) & (gwas.obj$map$chromosome==gwas.obj$map$chromosome[snp.number])),snp.number))
-}
-
 SelectMarkers <- function(pvalues,gwas.obj,window.size,min.p=0.1,max.number=length(pvalues)) {
 # OBJECTIVE : given a (physical) map and a vector of p-values, construct a vector of markers (more precisely, marker numbers) that are most significant, and that are not in LD.
 #   First, the most significant marker is selected, and a region around this marker is exlcuded.
@@ -4238,34 +4002,6 @@ QQplotPvalues <- function(pvalues) {
 		abline(0,1,col="dark grey")
 }
 #GWA.result$pvalue
-
-QQplotPvalues2 <- function(pvalues,main.title='QQ-plot',file.name="") {
-# makes a qq-plot of observed versus expected LOD-scores
-# The code was taken from Segura et al (2012) and adapted
-    pvalues <- na.omit(pvalues)
-		e       <- -log10(ppoints(length(pvalues)))
-		o       <- -log10(sort(pvalues))
-		maxp    <- ceiling(max(o))
-
-    if (file.name=="") {
-		plot(e,o,type='b',pch=20,cex=0.9,col=1,xlab=expression(Expected~~-log[10](p)),
-                                           ylab=expression(Observed~~-log[10](p)),
-                                           xlim=c(0,max(e)+1),ylim=c(0,maxp),
-                                           main=main.title)
-		                                       abline(0,1,col="blue")
-    } else {
-      #jpeg(file=file.name,quality=100)
-      png(file=file.name)
-  		plot(e,o,type='b',pch=20,cex=0.9,col=1,xlab=expression(Expected~~-log[10](p)),
-                                             ylab=expression(Observed~~-log[10](p)),
-                                             xlim=c(0,max(e)+1),ylim=c(0,maxp),
-                                             main=main.title)
-  		                                       abline(0,1,col="blue")
-      dev.off()
-    }
-}
-#GWA.result$pvalue
-
 
 # create_gwasObj_from_files
 genstatToGwasObj <- function(geno.file,map.file,pheno.file,kin.file,description="mydata") {
@@ -5061,9 +4797,6 @@ SimulatePhenoGivenGenoAlhpaDesign_with_column_effect <- function(gwas.obj,n.sim=
 return(list(pheno.frame=pheno.frame,pos.frame=pos.frame,chr.frame=chr.frame,effect.frame=effect.frame))
 }
 
-
-
-
 SimulatePhenoGivenGenoAlhpaDesign <- function(gwas.obj,n.sim=10,rel.effects=c(0.01,0.02,0.05,0.1),sigmaA2=150,sigmaE2=65,sigmaB2=200,different.names=T) {
 # new version: qtl-locations are drawn again for each simulation
 # simulation of a phenotype given real genotypic GWAS data.
@@ -5151,99 +4884,6 @@ SimulatePhenoGivenGenoAlhpaDesign <- function(gwas.obj,n.sim=10,rel.effects=c(0.
 
 return(list(pheno.frame=pheno.frame,pos.frame=pos.frame,chr.frame=chr.frame,effect.frame=effect.frame))
 }
-
-SimulatePhenoGivenGenoAlhpaDesign_with_column_effect <- function(gwas.obj,n.sim=10,rel.effects=c(0.01,0.02,0.05,0.1),
-                                                                 sigmaA2=150,sigmaE2=65,sigmaB2=200,sigmaC2=100,different.names=T) {
-# This is a variation on the function SimulatePhenoGivenGenoAlhpaDesign : here, we add an extra column effect
-#
-# new version: qtl-locations are drawn again for each simulation
-# simulation of a phenotype given real genotypic GWAS data.
-# An (already generated) alpha design is assumed
-# INPUT :
-# * gwas.obj : a GWAS.obj, whose markers field is a p x n.ind  matrix or data.frame of 0/1 marker-scores
-#   columns 2 and 3 of gwas.obj$pheno must be replicate and block
-# * n.sim : number of simulated data sets
-# * different.names : when TRUE, the simulated traits will have col-names sim1, sim2,...
-#                    otherwise they will all have col-name pheno
-# OUTPUT :
-# *
-# *
-# gwas.obj=GWAS.obj;n.sim=10;rel.effects=c(0.001,0.003);sigmaA2=0.1;sigmaE2=1;sigmaB2=1;sigmaC2=1;different.names=T
-  #for the time being, assume that length(rel.effects) is at most the number of chromosomes
-
-  n.qtl <- length(rel.effects)
-  n.rep <- unique(table(gwas.obj$pheno$genotype))# N.B. assumes equal numbers of replicates !!!                [1] #table(gwas.obj$genotype)
-  available.genotypes <- unique(gwas.obj$pheno$genotype)
-  n.available         <- length(available.genotypes)
-
-  mafs <- list()
-  candidates <- list()
-  for (j in gwas.obj$chromosomes) {  # N.B. GWAS.obj$chromosomes should be labeled 1,2,3...
-    mafs[[j]] <- apply(gwas.obj$markers[gwas.obj$map$chromosome==j,],1,mean)
-    candidates[[j]] <- ((1:gwas.obj$N)[gwas.obj$map$chromosome==j])[which(mafs[[j]] > .1 & mafs[[j]] < .9)]
-  }
-
-  pos.frame <- as.data.frame(matrix(0,n.qtl,n.sim))
-  names(pos.frame) <- paste("sim",as.character(1:n.sim),sep="")
-  chr.frame <- pos.frame
-  effect.frame <- pos.frame
-
-  #z <- c(rep(c(rep(1,n.rep),rep(0,n.rep*gwas.obj$n)),gwas.obj$n-1),rep(1,n.rep))
-  #Z.geno <- matrix(z,ncol=gwas.obj$n)
-  #Z.geno <- createZmatrixForFactor(factor(gwas.obj$pheno$genotype,levels=gwas.obj$plant.names))
-  Z.geno <- createZmatrixForFactor(factor(gwas.obj$pheno$genotype,levels=available.genotypes))
-
-  Z.block <- createZmatrixForIncompleteBlockDesign(rep.vector=gwas.obj$pheno[,2],block.vector=gwas.obj$pheno[,3])
-  block.factor  <- Z.block$nested.block.factor
-  Z.block <- Z.block$Zmatrix
-
-  Z.column <- createZmatrixForFactor(factor(gwas.obj$pheno$column,levels=levels(gwas.obj$pheno$column)))
-
-  pheno.frame        <- gwas.obj$pheno
-  pheno.frame <- data.frame(pheno.frame,nested.block.factor=block.factor)
-  pheno.frame <- cbind(pheno.frame,matrix(0,nrow(pheno.frame),n.sim))
-
-  if (different.names) {
-    names(pheno.frame)[-c(1:5)] <- paste("sim",as.character(1:n.sim),sep="")
-  } else {
-    names(pheno.frame)[-c(1:5)] <- rep("pheno",n.sim)
-  }
-
-  for (trait in 1:n.sim) {
-    chr.loc <- sort(sample(gwas.obj$chromosomes,size=n.qtl))
-    qtl.loc <- rep(0,n.qtl)
-    for (j in 1:n.qtl) {
-      #mafs.j <- mafs[[chr.loc[j]]]
-      candidates.j <- candidates[[chr.loc[j]]]
-      qtl.loc[j] <- sample(candidates.j,size=1)
-    }
-    qtl.freqs <- apply(gwas.obj$markers[qtl.loc,],1,mean)
-    effect.sizes <- sqrt(rel.effects * sigmaA2 * KinshipTransformUnscaled(gwas.obj$kinship[available.genotypes,available.genotypes]) / (qtl.freqs * (1 - qtl.freqs) * gwas.obj$n))
-    #effect.sizes <- sqrt(rel.effects * sigmaA2 * KinshipTransformUnscaled(gwas.obj$kinship) / (qtl.freqs * (1 - qtl.freqs) * gwas.obj$n))
-    effect.sizes <- effect.sizes * sample(c(-1,1),replace=T,size=n.qtl)
-
-    pos.frame[,trait] <- qtl.loc
-    chr.frame[,trait] <- chr.loc
-    effect.frame[,trait] <- effect.sizes
-
-    # na.omit(unique(gwas.obj$pheno$genotype)[match(gwas.obj$plant.names,unique(gwas.obj$pheno$genotype))])
-    g <- MatrixRoot(gwas.obj$kinship[available.genotypes,available.genotypes]) %*% matrix(rnorm(n.available,sd=sqrt(sigmaA2)))
-    g.repl <- as.numeric(Z.geno %*% g)
-    new.trait <- g.repl + rnorm(n.rep * n.available, sd=sqrt(sigmaE2)) +  as.numeric( matrix(effect.sizes,nrow=1) %*% as.matrix(gwas.obj$markers[qtl.loc,gwas.obj$pheno$genotype])) + as.numeric(Z.block %*% matrix(rnorm(ncol(Z.block),sd=sqrt(sigmaB2)))) + as.numeric(Z.column %*% matrix(rnorm(ncol(Z.column),sd=sqrt(sigmaC2))))
-    pheno.frame[,5+trait] <- new.trait
-
-    # old code
-    #g <- MatrixRoot(gwas.obj$kinship) %*% matrix(rnorm(gwas.obj$n,sd=sqrt(sigmaA2)))
-    #g.repl <- as.numeric(Z.geno %*% g)
-    #new.trait <- g.repl + rnorm(n.rep * gwas.obj$n, sd=sqrt(sigmaE2)) +  as.numeric( matrix(effect.sizes,nrow=1) %*% as.matrix(gwas.obj$markers[qtl.loc,gwas.obj$pheno$genotype]))+ as.numeric(Z.block %*% matrix(rnorm(ncol(Z.block),sd=sqrt(sigmaB2))))
-    #pheno.frame[,4+trait] <- new.trait
-    ##             #+  rep(as.numeric( matrix(effect.sizes,nrow=1) %*% as.matrix(gwas.obj$markers[qtl.loc,])),each=n.rep)
-
-  }
-
-return(list(pheno.frame=pheno.frame,pos.frame=pos.frame,chr.frame=chr.frame,effect.frame=effect.frame))
-}
-
 
 SimulatePhenoGivenTesterDesign <- function(gwas.obj,n.sim=10,rel.effects=c(0.01,0.02,0.05,0.1),sigmaA2=150,sigmaE2=65,sigmaB2=200) { # ,rep.variance=0
 # new version: qtl-locations are drawn again for each simulation
@@ -5367,15 +5007,6 @@ plotPhenoInAlphaDesign <- function(y,rep.vector,block.vector,x.rep,y.rep,x.block
 return(t(result))
 }
 
-WriteKinshipFile <- function(M,plant.names,file.name) {
-# OBJECTIVE :
-# write a kinship matrix to a file
-# INPUT :
-# plant.names : a vector of genotype names (as character)
-# M : the kinship matrix
-  cat(paste(plant.names,collapse=","),"\n",file=file.name)
-  write.table(M,file=file.name,append=T,quote=T,row.names=F,col.names=F,sep=",")
-}
 WriteKinshipFile <- function(M,plant.names,file.name) {
 # OBJECTIVE :
 # write a kinship matrix to a file
