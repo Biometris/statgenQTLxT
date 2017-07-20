@@ -10,7 +10,7 @@
 #' the chromosome.
 #' @param map a dataframe with at least the columns chromosome, the number of the chromosome
 #' and position, the position of the snp on the chromosome. These are used for calculating the
-#' fysical limits of the chromosome.
+#' physical limits of the chromosome.
 #' @param normalize should the snpEffect be normalized?
 #' @param sortData should the data be sorted before plotting? Either false if no sorting should be done
 #' or a character indicating the data column on which the data should be sorted.
@@ -89,7 +89,7 @@ qtlPlot <- function(data,
     data$eff <- sapply(1:nrow(data), function(x)
       (data[x, snpEffect] - mean(data[data[trait] == as.character(data[x, trait]), snpEffect], na.rm=TRUE)) /
         sd(data[data[trait] == as.character(data[x, trait]), snpEffect], na.rm = TRUE) )
-  } else data$eff <- data[snpEffect]
+  } else data$eff <- data[, snpEffect]
 
   if (is.character(sortData)) {
     data$sort <- data[[sortData]]
@@ -113,8 +113,8 @@ qtlPlot <- function(data,
   data <- rbind(data, limits)
 
   ## Select and rename relevant columns for plotting
-  plotData <- dplyr::select(data, trait = trait, chromosome = chromosome,
-    snpEffect = snpEffect, snpPosition = snpPosition, sort, eff)
+  plotData <- dplyr::select(data, trait = get(trait), chromosome = get(chromosome),
+    snpEffect = get(snpEffect), snpPosition = get(snpPosition), sort, eff)
 
   ## Add a column with the allelic effect direction (for points color)
   plotData$color <- ifelse(plotData$eff > 0, "pos", "neg")
@@ -202,7 +202,7 @@ qtlPlot <- function(data,
       ## Add date to slide
       pptOut <- ReporteRs::addDate(doc = pptOut)
       ##Write .pptx
-      ReporteRs::writeDoc(doc = pptOut, file = "pptxName")
+      ReporteRs::writeDoc(doc = pptOut, file = pptxName)
     } else
     {message("Package ReporteRs needs to be installed to be able to export to .pptx")}
   }
