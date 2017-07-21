@@ -1,6 +1,11 @@
 #' Draw a qtl plot
 #'
-#' Description to be added.
+#' Visualisation of the final set of QTLs selected after the multi-trait GWAS.
+#'
+#' Each horizontal line contains QTLs of one trait, phenotypic trait or environment.
+#' Option: Vertical white lines can indicate chromosome subdivision, genes of interest, known QTL, etc.
+#' Circle diameters are proportional to the absolute value of allelic effect.
+#' Colors indicate the direction of effect: green when the allele increases the trait value, and blue it decreases the value.
 #'
 #' @param data QTL data to be plotted
 #' @param chromosome a character indicating the data column containing the chromosome number.
@@ -25,7 +30,7 @@
 #' @return a plot.
 #'
 #' @references Millet et al. (2016) Genome-wide analysis of yield in Europe: Allelic effects vary
-#' with drought and heat scenarios
+#' with drought and heat scenarios. Plant Physiology, October 2016, Vol. 172, p. 749–764
 #'
 #' @export
 
