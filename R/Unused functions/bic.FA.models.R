@@ -15,19 +15,19 @@ bic.FA.models <- function(Y,K,X,
 
     cat('Model', m,'\n')
 
-    full.set <- EM_function_FA(Y=Y,K=K,X=X,
-                      max.iter.em=max.iter.em,
-                      tol.em=tol.em,
-                      m.G=fa.models$m.G[m],
-                      m.E=fa.models$m.E[m],
-                      max.diag=max.diag,
-                      Cm.het=fa.models$het.G[m],
-                      Dm.het=fa.models$het.E[m],
-                      compute.log.lik=TRUE,
-                      stopifdecreasing=stopifdecreasing)
+    full.set <- EMFA(Y=Y,K=K,X=X,
+                      maxIter=max.iter.em,
+                      tolerance=tol.em,
+                      mG=fa.models$m.G[m],
+                      mE=fa.models$m.E[m],
+                      maxDiag=max.diag,
+                      CmHet=fa.models$het.G[m],
+                      DmHet=fa.models$het.E[m],
+                      computeLogLik=TRUE,
+                      stopIfDecreasing=stopifdecreasing)
 
-    LL[m]        <- full.set$log.lik2
-    LL.E[m]      <- full.set$log.lik
+    LL[m]        <- full.set$logLik2
+    LL.E[m]      <- full.set$logLik
     n.iter[m]    <- full.set$n.iter
     conv[m]      <- full.set$converged
     decreased[m] <- full.set$decreased

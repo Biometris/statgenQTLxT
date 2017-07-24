@@ -16,4 +16,5 @@ Imports: Matrix,
     ggplot2,
     dplyr,
     MASS
-Suggests: ReporteRs
+Suggests: ReporteRs,
+    testthat

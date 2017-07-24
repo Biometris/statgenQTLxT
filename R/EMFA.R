@@ -269,8 +269,8 @@ EMFA <- function(Y,
 
     ## Compute log-likelihood and check stopping criteria
     ELogLikOld <- ELogLikCm + ELogLikDm
-    ELogLikCm <- n * determinant(Cm)[[1]][1] - n * sum(diag(Cm %*% Omega2))
-    ELogLikDm <- n * determinant(Dm)[[1]][1] - n * sum(diag(Dm %*% Omega1))
+    ELogLikCm <- n * (determinant(Cm)[[1]][1] - sum(diag(Cm %*% Omega2)))
+    ELogLikDm <- n * (determinant(Dm)[[1]][1] - sum(diag(Dm %*% Omega1)))
     ELogLik <- ELogLikCm + ELogLikDm
 
     if (stopIfDecreasing && iter > 50) {

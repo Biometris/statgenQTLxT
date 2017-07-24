@@ -2,22 +2,22 @@ add_Phenotypic_Data_To_Gwas_Object <- function(csv.file.name,r.image.name,new.r.
 # OBJECTIVE :
 # INPUT :
 #' @param csv.file.name : name of the csv file containing the data (first column-name: genotype). Contains no row-names
-#' @param r.image.name,new.r.image.name :
-#' @param data.path : the path where the function will look for the above files
-#' @param which.columns.as.factor : column-numbers of the variables that are to be imported as factor
-# OUTPUT :
-# *
-# *
-# *
-#NB. side effect : working dit. is changed
+  #' @param r.image.name,new.r.image.name :
+  #' @param data.path : the path where the function will look for the above files
+  #' @param which.columns.as.factor : column-numbers of the variables that are to be imported as factor
+  # OUTPUT :
+  # *
+  # *
+  # *
+  #NB. side effect : working dit. is changed
 
-#gwas.obj=GWAS.obj;csv.file.name=csv.file.name;add.var.means=F;make.pheno.image=F;pheno.image.name=""
+  #gwas.obj=GWAS.obj;csv.file.name=csv.file.name;add.var.means=F;make.pheno.image=F;pheno.image.name=""
   #setwd(data.path)
   load(r.image.name)
   gwas.obj <- AddPhenoData(gwas.obj=gwas.obj,csv.file.name=csv.file.name,add.var.means=F,make.pheno.image=F,pheno.image.name="",
-                           which.columns.as.factor=which.columns.as.factor)
+    which.columns.as.factor=which.columns.as.factor)
   for (k in which.columns.as.factor) {
-      if ("NA" %in% levels(gwas.obj$pheno[,k])) {
+    if ("NA" %in% levels(gwas.obj$pheno[,k])) {
       gwas.obj$pheno[which(is.na(gwas.obj$pheno[,k])),k] <- "NA"
       is.na(gwas.obj$pheno[,k])[gwas.obj$pheno[,k]=="NA"] <- TRUE
       suppressWarnings(gwas.obj$pheno[,k] <- factor(gwas.obj$pheno[,k],exclude="NA"))
@@ -27,23 +27,23 @@ add_Phenotypic_Data_To_Gwas_Object <- function(csv.file.name,r.image.name,new.r.
 }
 
 GetSNPsInRegion <- function(gwas.obj,snp.number,region.size=5000){
-# OBJECTIVE : GIVE THE SNP-NUMBERS of the snps that are within region.size base-pairs (on either side) of the target snp with number 'snp.number'
-# both snp.number and the output refer to row-numbers in gwas.obj$markers; not to base pair positions
+  # OBJECTIVE : GIVE THE SNP-NUMBERS of the snps that are within region.size base-pairs (on either side) of the target snp with number 'snp.number'
+  # both snp.number and the output refer to row-numbers in gwas.obj$markers; not to base pair positions
   crit1 <- (abs(gwas.obj$map$position[snp.number] - gwas.obj$map$position) <= region.size)
   crit2 <- (gwas.obj$map$chromosome==gwas.obj$map$chromosome[snp.number])
   return(sort(setdiff(which(crit1 & crit2),snp.number)))
 }
 
 GetSNPsInRegionWithSufficientLD <- function(gwas.obj,snp.number,region.size=5000,min.r2=0.5,snps.as.columns=F){
-# OBJECTIVE : GIVE THE SNP-NUMBERS of the snps that are within region.size base-pairs (on either side) of the target snp with number 'snp.number'
-# both snp.number and the output refer to row-numbers in gwas.obj$markers; not to base pair positions
-#
-# Refinement (compared to GetSNPsInRegion) : only those snps that are in sufficient LD with the target snp (snp.number) are returned
-# (where LD is measured in terms of r^2)
-#
-# snps.as.columns : put to TRUE when in GWAS.obj$markers the markers are in the columns ('n x p format')
-#
-# gwas.obj=GWAS.obj;snp.number=10000;region.size=50000;min.r2=0.3 ; snps.as.columns=T
+  # OBJECTIVE : GIVE THE SNP-NUMBERS of the snps that are within region.size base-pairs (on either side) of the target snp with number 'snp.number'
+  # both snp.number and the output refer to row-numbers in gwas.obj$markers; not to base pair positions
+  #
+  # Refinement (compared to GetSNPsInRegion) : only those snps that are in sufficient LD with the target snp (snp.number) are returned
+  # (where LD is measured in terms of r^2)
+  #
+  # snps.as.columns : put to TRUE when in GWAS.obj$markers the markers are in the columns ('n x p format')
+  #
+  # gwas.obj=GWAS.obj;snp.number=10000;region.size=50000;min.r2=0.3 ; snps.as.columns=T
   crit1 <- (abs(gwas.obj$map$position[snp.number] - gwas.obj$map$position) <= region.size)
   crit2 <- (gwas.obj$map$chromosome==gwas.obj$map$chromosome[snp.number])
   candidate.snps <- sort(setdiff(which(crit1 & crit2),snp.number))
@@ -67,14 +67,14 @@ MakeSubsampleFrame <- function(phenotype.name,subsample.vector,population.vector
   data.sub                 <- data.frame(genotype.vector,phenotype.vector)
   names(data.sub)          <- c("genotype",phenotype.name)
   data.sub[not.sampled,2]  <- NA
-return(data.sub)
+  return(data.sub)
 }
 
 PrepareScanGls <- function(gwas.obj,tr.n,cov.cols=integer(0),data.path=getwd(),suffix="") {
-#browser()
+  #browser()
   if (sum(cov.cols)!=0) {
     reml.formula        <- as.formula(paste(paste(names(gwas.obj$pheno)[tr.n],"~"),
-                                      paste(names(gwas.obj$pheno)[cov.cols],collapse="+")))
+      paste(names(gwas.obj$pheno)[cov.cols],collapse="+")))
   } else {
     reml.formula        <- as.formula(paste(names(gwas.obj$pheno)[tr.n],"~ 1"))
   }
@@ -85,19 +85,19 @@ PrepareScanGls <- function(gwas.obj,tr.n,cov.cols=integer(0),data.path=getwd(),s
   varcomp.values      <- data.frame(var.comp.values=summary(reml.obj)$varcomp$component)
   varcomp.file        <- paste(data.path,"output/",trait,".","varcomp",".csv",sep="")
   MakeVarcompFile(var.comp.values=varcomp.values,file.name=varcomp.file)
-return(list(varcomp.values=varcomp.values,varcomp.file=varcomp.file,reml.obj=reml.obj,reml.formula=reml.formula))
+  return(list(varcomp.values=varcomp.values,varcomp.file=varcomp.file,reml.obj=reml.obj,reml.formula=reml.formula))
 }
 # temp.obj        <- PrepareScanGls(gwas.obj=GWAS.obj,tr.n=tr.n,cov.cols=cov.cols,data.path=data.path,suffix=suffix)
 
 MakePlinkFiles <- function(gwas.obj,file.name="gwas",make.bed=T) {    # data.path=getwd(),plink.path=data.path # plink.path : path of the plink executable/binary # data.path  : path where the files are to be created
-# file.name  : file-name (without tped,bim etc extension)
-# N.B. the plink executable/binary should be in the current working directory
-# OUTPUT : ...
-# N.B. standard ped/map files can be obtained from tped/tfam using plink : plink --tfile oldname --recode newname       # or  :--out newname ??
-# , where old/new name are without .tped etc extension
-#
-# from tfam/tped to bim/bed/fam :
-# plink --tfile LFN349acc_001 --make-bed --out LFN349acc_001
+  # file.name  : file-name (without tped,bim etc extension)
+  # N.B. the plink executable/binary should be in the current working directory
+  # OUTPUT : ...
+  # N.B. standard ped/map files can be obtained from tped/tfam using plink : plink --tfile oldname --recode newname       # or  :--out newname ??
+  # , where old/new name are without .tped etc extension
+  #
+  # from tfam/tped to bim/bed/fam :
+  # plink --tfile LFN349acc_001 --make-bed --out LFN349acc_001
 
   # TO DO : WINDOWS/LINUX
   #stopifnot(file.exists("plink.exe"))
@@ -142,12 +142,12 @@ MakePlinkFiles <- function(gwas.obj,file.name="gwas",make.bed=T) {    # data.pat
 # MakeTfamFile <- function(gwas.obj,trait.nrs  = 2,accessions.as.families=F,file.names= names(gwas.obj$pheno)[trait.nrs]) {
 MakeTfamFile <- function(gwas.obj,trait.nr  = 2,accessions.as.families=T,file.name=gwas.obj$description,file.type=0,delimiter=" ") {
 
-# N.B. only works for arabidopsis data; NOT for WTCCC data
-# TO DO : adapt to out-breeders
+  # N.B. only works for arabidopsis data; NOT for WTCCC data
+  # TO DO : adapt to out-breeders
 
-# file.name : file-name, without tped extension
-# file.type : 0 = 6 column tped format;
-#             1 = 3 column txt ("alternate phenotype") format
+  # file.name : file-name, without tped extension
+  # file.type : 0 = 6 column tped format;
+  #             1 = 3 column txt ("alternate phenotype") format
   #pn  <- length(plant_names)
   n.ind <- nrow(gwas.obj$pheno)
   if (accessions.as.families) {
@@ -164,7 +164,7 @@ MakeTfamFile <- function(gwas.obj,trait.nr  = 2,accessions.as.families=T,file.na
   if (file.type==0) {
     #write.table(data.frame(fam.vector,1:n.ind,rep(0,n.ind),rep(0,n.ind),rep(1,n.ind),trait.values), file = paste(file.name,".tfam",sep=""), quote = FALSE, sep = " ",row.names = FALSE,col.names = FALSE)
     write.table(data.frame(fam.vector,row.names(gwas.obj$pheno),rep(0,n.ind),rep(0,n.ind),rep(1,n.ind),trait.values),
-                file = paste(file.name,".tfam",sep=""), quote = FALSE, sep = delimiter,row.names = FALSE,col.names = FALSE)
+      file = paste(file.name,".tfam",sep=""), quote = FALSE, sep = delimiter,row.names = FALSE,col.names = FALSE)
   } else {
     #write.table(data.frame(fam.vector,1:n.ind,trait.values), file = paste(file.name,".txt",sep=""), quote = FALSE, sep = " ",row.names = FALSE,col.names = FALSE)
     write.table(data.frame(fam.vector,row.names(gwas.obj$pheno),trait.values), file = paste(file.name,".txt",sep=""), quote = FALSE, sep = delimiter,row.names = FALSE,col.names = FALSE)
@@ -175,11 +175,11 @@ MakeTfamFile <- function(gwas.obj,trait.nr  = 2,accessions.as.families=T,file.na
 #MakeTfamFile(GWAS.obj,trait.nr  = 3:5,file.name=trait,file.type=1,delimiter="\t")
 
 AddPhenoData2  <- function(gwas.obj,csv.file.name,add.var.means=FALSE,mean.cols=0,make.pheno.image=F,pheno.image.name="pheno.RData",add.normal.transform=F) {
-# assumes that the working directory is correct, and that the functions script is loaded
-# input  : the "gwas-object" gwas.obj and the phenotypic csv-file csv.file.name
-# output : the same gwas.obj, the element gwas.obj$pheno containing the data from the csv file
-#           if make.pheno.image=TRUE, also an R-image containing the phenotypic data is created
-#           (for consistency with earlier version this data-frame is then called data1)
+  # assumes that the working directory is correct, and that the functions script is loaded
+  # input  : the "gwas-object" gwas.obj and the phenotypic csv-file csv.file.name
+  # output : the same gwas.obj, the element gwas.obj$pheno containing the data from the csv file
+  #           if make.pheno.image=TRUE, also an R-image containing the phenotypic data is created
+  #           (for consistency with earlier version this data-frame is then called data1)
 
   if (!add.var.means) {mean.cols<-0}
   if (sum(mean.cols)==0) {add.var.means<-FALSE}
@@ -225,7 +225,7 @@ AddPhenoData2  <- function(gwas.obj,csv.file.name,add.var.means=FALSE,mean.cols=
 
   for (i in 2:length(rep.vec2)) {
     plant.names2[sum(rep.vec2[1:(i-1)])+ 1:(rep.vec2[i])] <-
-    paste(plant.names2[sum(rep.vec2[1:(i-1)])+ 1:(rep.vec2[i])], letters[1:(rep.vec2[i])],sep="")
+      paste(plant.names2[sum(rep.vec2[1:(i-1)])+ 1:(rep.vec2[i])], letters[1:(rep.vec2[i])],sep="")
   }
 
   data3   <- data2[match(plant.names2,row.names(data2)),]
@@ -254,7 +254,7 @@ AddPhenoData2  <- function(gwas.obj,csv.file.name,add.var.means=FALSE,mean.cols=
   #save(gwas.obj,file=new.gwas.image)
   #assign(gwas.obj$pheno, value=data1, envir = .GlobalEnv)
 
-return(gwas.obj)
+  return(gwas.obj)
 }
 
 # function found on the internet: (author?)
@@ -290,64 +290,64 @@ GINV    <- function(M) {
 }
 
 GRM     <- function(X) {
-# X = n x p matrix of marker scores
+  # X = n x p matrix of marker scores
   X <- as.matrix(X)
   N <- ncol(X)
   require(pls)
   Y <- stdize(X)
   K <- Y %*% t(Y) / N
   K <- K / KinshipTransform(K)
-return(K)
+  return(K)
 }
 
 
 IBS     <- function(X,normalization=nrow(X)) {
-                X       <- as.matrix(X)
-                Y       <- X
-                Y[X==0] <- 1
-                Y[X==1] <- 0
-return((t(X) %*% X + t(Y) %*% Y)/normalization)
+  X       <- as.matrix(X)
+  Y       <- X
+  Y[X==0] <- 1
+  Y[X==1] <- 0
+  return((t(X) %*% X + t(Y) %*% Y)/normalization)
 }
 
 IBS3     <- function(X,normalization=4*nrow(X)) {
-                X       <- as.matrix(X)
-                X       <- replace(X, list=1:2, values=2:1)
-                Y       <- X
-                Y[X%in% 1:2] <- 0
-                Y[X==0] <- 2
-                #Y       <- replace(X, list=0:2, values=c(2,0,0))
-                #Z       <- replace(X, list=0:2, values=c(0,2,0))
-                #X       <- replace(X, list=0:2, values=c(0,0,2))
-                Z       <- X
-                Z[X%in% c(0,2)] <- 0
-                Z[X==1] <- 2
-                X[X==1] <- 0
-                return((t(X) %*% X + t(Y) %*% Y + t(Z) %*% Z)/normalization)
+  X       <- as.matrix(X)
+  X       <- replace(X, list=1:2, values=2:1)
+  Y       <- X
+  Y[X%in% 1:2] <- 0
+  Y[X==0] <- 2
+  #Y       <- replace(X, list=0:2, values=c(2,0,0))
+  #Z       <- replace(X, list=0:2, values=c(0,2,0))
+  #X       <- replace(X, list=0:2, values=c(0,0,2))
+  Z       <- X
+  Z[X%in% c(0,2)] <- 0
+  Z[X==1] <- 2
+  X[X==1] <- 0
+  return((t(X) %*% X + t(Y) %*% Y + t(Z) %*% Z)/normalization)
 }
 # IBS(GWAS_obj$markers[1:10,])[1:16,1:10]- IBS3(GWAS_obj$markers[1:10,])[1:16,1:10]
 # FIND THE MISTAKE !!
 
 IBS2    <- function(X1,X2,normalization= max(nrow(X1),nrow(X2),ncol(X1),ncol(X2))) {
-                X1       <- as.matrix(X1)
-                Y1       <- X1
-                Y1[X1==0] <- 1
-                Y1[X1==1] <- 0
-                X2       <- as.matrix(X2)
-                Y2       <- X2
-                Y2[X2==0] <- 1
-                Y2[X2==1] <- 0
-                return((t(X1) %*% X2 + t(Y1) %*% Y2)/normalization)
-                }
+  X1       <- as.matrix(X1)
+  Y1       <- X1
+  Y1[X1==0] <- 1
+  Y1[X1==1] <- 0
+  X2       <- as.matrix(X2)
+  Y2       <- X2
+  Y2[X2==0] <- 1
+  Y2[X2==1] <- 0
+  return((t(X1) %*% X2 + t(Y1) %*% Y2)/normalization)
+}
 
 
 
 RemoveSmallEigenvalues    <- function(M,min.val=0)  {
-    EV      <- eigen(M)
-    comps   <- which(EV$values<=min.val)
-    M1      <- EV$vectors
-    M1[,comps]<-0
-    EV$vectors[comps]   <- 0
-return(M1 %*% diag(EV$values) %*% t(M1))
+  EV      <- eigen(M)
+  comps   <- which(EV$values<=min.val)
+  M1      <- EV$vectors
+  M1[,comps]<-0
+  EV$vectors[comps]   <- 0
+  return(M1 %*% diag(EV$values) %*% t(M1))
 }
 
 # old :
@@ -357,153 +357,153 @@ ttest   <- function(snp.obj,trait.obj) {summary(lm(y ~ x, data=data.frame(x = ma
 IbdCorrection  <- function(K,T=0) {return(apply(K-matrix(T,nrow(K),ncol(K)),c(1,2),function(x) max(x,0))/(1-T))}
 
 ComputeLargeCovarianceMatrix  <- function(mtr,file.name=NULL,block.size=50,correlation=TRUE) {
-# INPUT :
-# correlation : if TRUE, compute the correlation matrix; otherwise the covariance matrix
-# OUTPUT :
-# covariance matrix
-    mtr  <- as.matrix(mtr)
-    nind <- ncol(mtr)
-    C    <- matrix(0,ncol(mtr),ncol(mtr))
-    if (nind<=block.size) {
-      C   <- cor(mtr)
-      nbl <- 1
-      blocks <- list(1:nind)
+  # INPUT :
+  # correlation : if TRUE, compute the correlation matrix; otherwise the covariance matrix
+  # OUTPUT :
+  # covariance matrix
+  mtr  <- as.matrix(mtr)
+  nind <- ncol(mtr)
+  C    <- matrix(0,ncol(mtr),ncol(mtr))
+  if (nind<=block.size) {
+    C   <- cor(mtr)
+    nbl <- 1
+    blocks <- list(1:nind)
+  } else {
+    blocks          <- NULL
+    nbl             <- ceiling(nind/block.size)
+    if (nbl== nind/block.size) {
+      for (i in 1:nbl) {blocks[[i]]   <- (1:nind)[(i-1)*block.size + 1:block.size]}
     } else {
-      blocks          <- NULL
-      nbl             <- ceiling(nind/block.size)
-      if (nbl== nind/block.size) {
-        for (i in 1:nbl) {blocks[[i]]   <- (1:nind)[(i-1)*block.size + 1:block.size]}
-      } else {
-        for (i in 1:(nbl-1)) {blocks[[i]]   <- (1:nind)[(i-1)*block.size + 1:block.size]}
-        blocks[[nbl]]   <- (1:nind)[-(1:((nbl-1)*block.size))]
-      }
+      for (i in 1:(nbl-1)) {blocks[[i]]   <- (1:nind)[(i-1)*block.size + 1:block.size]}
+      blocks[[nbl]]   <- (1:nind)[-(1:((nbl-1)*block.size))]
     }
+  }
 
-    for (i in 1:nbl) {
-      if (correlation) {C[blocks[[i]],blocks[[i]]]  <- cor(mtr[,blocks[[i]]])} else {C[blocks[[i]],blocks[[i]]]  <- cov(mtr[,blocks[[i]]])}
-        }
-    if (nbl>1) {
-      for (i in 2:nbl) {
-        for (j in 1:i) {
-          if (correlation) {C[blocks[[i]],blocks[[j]]]  <- cor(mtr[blocks[[i]]],mtr[,blocks[[j]]])} else {C[blocks[[i]],blocks[[j]]]  <- cov(mtr[blocks[[i]]],mtr[,blocks[[j]]])}
-          C[blocks[[j]],blocks[[i]]]  <- t(C[blocks[[i]],blocks[[j]]])
-        }
+  for (i in 1:nbl) {
+    if (correlation) {C[blocks[[i]],blocks[[i]]]  <- cor(mtr[,blocks[[i]]])} else {C[blocks[[i]],blocks[[i]]]  <- cov(mtr[,blocks[[i]]])}
+  }
+  if (nbl>1) {
+    for (i in 2:nbl) {
+      for (j in 1:i) {
+        if (correlation) {C[blocks[[i]],blocks[[j]]]  <- cor(mtr[blocks[[i]]],mtr[,blocks[[j]]])} else {C[blocks[[i]],blocks[[j]]]  <- cov(mtr[blocks[[i]]],mtr[,blocks[[j]]])}
+        C[blocks[[j]],blocks[[i]]]  <- t(C[blocks[[i]],blocks[[j]]])
       }
     }
-return(C)
+  }
+  return(C)
 }
 
 #pst <- function(str) {paste(,sep="")}
 # AddMeans(input.frame=GWAS.obj$pheno,col.select=3)[,ncol(GWAS.obj$pheno)+1]
 AddMeans <- function(input.frame,col.select=1:ncol(input.frame),keep.original=TRUE) {
-    # input.frame is assumed to have the same format as data1; it should contain a column named "genotype"
-    #input.frame=data1;col.select=3:ncol(input.frame);keep.original=TRUE
-    n.col         <- ncol(input.frame)
-    n.col.select  <- length(col.select)
-    input.frame   <- cbind(input.frame,input.frame[col.select])
-    input.frame[,-(1:n.col)]  <- NA
-    names(input.frame)[-(1:n.col)]  <- paste(names(input.frame)[col.select],".mean",sep="")
-    #tapply(data1$AUC.NS, factor(data1$genotype,ordered=T),FUN=mean,na.rm =T)
-    ind.names     <- unique(input.frame$genotype)
-    first.occurence <- rep(0,length(ind.names))
-    for (pl in 1:length(ind.names)) {first.occurence[pl]  <- min(which(input.frame$genotype==ind.names[pl]))}
-    for (cl in 1:n.col.select) {
-      new.col <- aggregate(input.frame[,col.select[cl]], by=list(input.frame$genotype),FUN=mean,na.rm =T)
-      new.col <-     new.col[match(ind.names,new.col$Group.1),2]
-      new.col[is.nan(new.col)]  <- NA
-      input.frame[first.occurence,n.col+cl]   <- new.col
-    }
-    #if(!keep.original)
-    return(input.frame)
+  # input.frame is assumed to have the same format as data1; it should contain a column named "genotype"
+  #input.frame=data1;col.select=3:ncol(input.frame);keep.original=TRUE
+  n.col         <- ncol(input.frame)
+  n.col.select  <- length(col.select)
+  input.frame   <- cbind(input.frame,input.frame[col.select])
+  input.frame[,-(1:n.col)]  <- NA
+  names(input.frame)[-(1:n.col)]  <- paste(names(input.frame)[col.select],".mean",sep="")
+  #tapply(data1$AUC.NS, factor(data1$genotype,ordered=T),FUN=mean,na.rm =T)
+  ind.names     <- unique(input.frame$genotype)
+  first.occurence <- rep(0,length(ind.names))
+  for (pl in 1:length(ind.names)) {first.occurence[pl]  <- min(which(input.frame$genotype==ind.names[pl]))}
+  for (cl in 1:n.col.select) {
+    new.col <- aggregate(input.frame[,col.select[cl]], by=list(input.frame$genotype),FUN=mean,na.rm =T)
+    new.col <-     new.col[match(ind.names,new.col$Group.1),2]
+    new.col[is.nan(new.col)]  <- NA
+    input.frame[first.occurence,n.col+cl]   <- new.col
+  }
+  #if(!keep.original)
+  return(input.frame)
 }
 
 Heritability <- function(data.vector,geno.vector)   {
-# INPUT :
-#' @param data.vector :  vector of phenotypic values
-#' @param geno.vector :  vector (character or factor) of genotypes
-# OUTPUT :
-# heritability, genetic - and residual variance
-    her.frame   <- data.frame(dat=data.vector,geno=geno.vector)
-    her.frame   <- her.frame[!is.na(her.frame$dat),]
-    her.frame$geno   <- factor(her.frame$geno)
+  # INPUT :
+  #' @param data.vector :  vector of phenotypic values
+  #' @param geno.vector :  vector (character or factor) of genotypes
+  # OUTPUT :
+  # heritability, genetic - and residual variance
+  her.frame   <- data.frame(dat=data.vector,geno=geno.vector)
+  her.frame   <- her.frame[!is.na(her.frame$dat),]
+  her.frame$geno   <- factor(her.frame$geno)
 
-    if (max(table(her.frame$geno))==1) {
-      return(list(heritability=NA,gen.variance=NA,res.variance=NA))
-    } else {
-      av          <- anova(lm(dat~geno,data=her.frame))[[3]]
-      return(list(heritability=av[1]/sum(av),gen.variance=av[1],res.variance=av[2]))
-    }
+  if (max(table(her.frame$geno))==1) {
+    return(list(heritability=NA,gen.variance=NA,res.variance=NA))
+  } else {
+    av          <- anova(lm(dat~geno,data=her.frame))[[3]]
+    return(list(heritability=av[1]/sum(av),gen.variance=av[1],res.variance=av[2]))
+  }
 }
 
 #Heritability(data.vector=GWAS.obj$pheno[,tr.n],geno.vector=GWAS.obj$pheno$genotype)
 
 Heritability2 <- function(data.vector,geno.vector)   {
-# INCORRECT!!!!!!!!!!!!!!
-#
-# INPUT :
-#' @param data.vector :  vector of phenotypic values
-#' @param geno.vector :  vector (character or factor) of genotypes
-# OUTPUT :
-# heritability, genetic - and residual variance
-    her.frame   <- data.frame(data=data.vector,geno=geno.vector)
-    her.frame   <- her.frame[!is.na(her.frame$data),]
-    means       <- aggregate(her.frame$data, by=list(her.frame$geno),FUN=mean,na.rm =T)[,2]
-    vars        <- aggregate(her.frame$data, by=list(her.frame$geno),FUN=var,na.rm =T)[,2]
-    return(list(heritability=var(means,na.rm =T)/(mean(vars,na.rm =T)+var(means,na.rm =T)),gen.variance=var(means,na.rm =T),res.variance=mean(vars,na.rm =T)))
+  # INCORRECT!!!!!!!!!!!!!!
+  #
+  # INPUT :
+  #' @param data.vector :  vector of phenotypic values
+  #' @param geno.vector :  vector (character or factor) of genotypes
+  # OUTPUT :
+  # heritability, genetic - and residual variance
+  her.frame   <- data.frame(data=data.vector,geno=geno.vector)
+  her.frame   <- her.frame[!is.na(her.frame$data),]
+  means       <- aggregate(her.frame$data, by=list(her.frame$geno),FUN=mean,na.rm =T)[,2]
+  vars        <- aggregate(her.frame$data, by=list(her.frame$geno),FUN=var,na.rm =T)[,2]
+  return(list(heritability=var(means,na.rm =T)/(mean(vars,na.rm =T)+var(means,na.rm =T)),gen.variance=var(means,na.rm =T),res.variance=mean(vars,na.rm =T)))
 }
 
 Heritability3 <- function(data.vector,geno.vector,line.heritability=F,covariates.frame=data.frame())   {
-# INPUT :
-#' @param data.vector :  vector of phenotypic values
-#' @param geno.vector :  vector (character or factor) of genotypes. Must have the same length as geno.vector
-#' @param line.heritability : if TRUE, the definition h2 = \sigma_g^2 / (\sigma_g^2 + \sigma_e^2 / r) is used, r being the number of replicates;
-#                       otherwise (default) : h2 = \sigma_g^2 / (\sigma_g^2 + \sigma_e^2)
-#' @param covariates.frame : a data.frame with additional covariates; must have the same number of rows as the length of data.vector and geno.vector
-#                      Genotypes must also be in the same order as geno.vector
-# OUTPUT :
-# heritability, genetic - and residual variance
-#
-# data.vector=data[,tr.n] ; geno.vector= data[,1]; covariates.frame=data.frame(rep=data$Replicate)
-# data.vector=data2[,j];geno.vector= data2[,1];covariates.frame=data.frame(rep=temp.rep.factor,x=data2$x_within_image,y=data2$y_within_image )
-    stopifnot(length(geno.vector)==length(data.vector))
-    her.frame   <- data.frame(dat=data.vector,geno=geno.vector)
-    her.frame   <- her.frame[!is.na(her.frame$dat),]
-    number.of.covariates <- 0
+  # INPUT :
+  #' @param data.vector :  vector of phenotypic values
+  #' @param geno.vector :  vector (character or factor) of genotypes. Must have the same length as geno.vector
+  #' @param line.heritability : if TRUE, the definition h2 = \sigma_g^2 / (\sigma_g^2 + \sigma_e^2 / r) is used, r being the number of replicates;
+  #                       otherwise (default) : h2 = \sigma_g^2 / (\sigma_g^2 + \sigma_e^2)
+  #' @param covariates.frame : a data.frame with additional covariates; must have the same number of rows as the length of data.vector and geno.vector
+  #                      Genotypes must also be in the same order as geno.vector
+  # OUTPUT :
+  # heritability, genetic - and residual variance
+  #
+  # data.vector=data[,tr.n] ; geno.vector= data[,1]; covariates.frame=data.frame(rep=data$Replicate)
+  # data.vector=data2[,j];geno.vector= data2[,1];covariates.frame=data.frame(rep=temp.rep.factor,x=data2$x_within_image,y=data2$y_within_image )
+  stopifnot(length(geno.vector)==length(data.vector))
+  her.frame   <- data.frame(dat=data.vector,geno=geno.vector)
+  her.frame   <- her.frame[!is.na(her.frame$dat),]
+  number.of.covariates <- 0
 
+  if (nrow(covariates.frame) > 0) {
+    stopifnot(nrow(covariates.frame)==length(data.vector))
+    cov.names <- names(covariates.frame)
+    number.of.covariates <- length(cov.names)
+    covariates.frame <- as.data.frame(covariates.frame[!is.na(data.vector),])
+    names(covariates.frame) <- cov.names
+    her.frame <- cbind(her.frame,covariates.frame)
+    her.frame <- her.frame[apply(covariates.frame,1,function(x){sum(is.na(x))})==0,]
+    #cov.names <- names(her.frame)[-(1:2)]
+  }
+
+  her.frame$geno   <- factor(her.frame$geno)
+
+  n.rep.vector <- as.integer(table(her.frame$geno))
+  n.geno       <- length(n.rep.vector)
+
+  # see Lynch and Walsh, Ch. 18, p. 559
+  average.number.of.replicates <- ( sum(n.rep.vector) - sum(n.rep.vector^2) / sum(n.rep.vector) ) / ( length(n.rep.vector) - 1 )
+
+  if (max(n.rep.vector)==1) {
+    return(list(heritability=NA,gen.variance=NA,res.variance=NA))
+  } else {
     if (nrow(covariates.frame) > 0) {
-      stopifnot(nrow(covariates.frame)==length(data.vector))
-      cov.names <- names(covariates.frame)
-      number.of.covariates <- length(cov.names)
-      covariates.frame <- as.data.frame(covariates.frame[!is.na(data.vector),])
-      names(covariates.frame) <- cov.names
-      her.frame <- cbind(her.frame,covariates.frame)
-      her.frame <- her.frame[apply(covariates.frame,1,function(x){sum(is.na(x))})==0,]
-      #cov.names <- names(her.frame)[-(1:2)]
-    }
-
-    her.frame$geno   <- factor(her.frame$geno)
-
-    n.rep.vector <- as.integer(table(her.frame$geno))
-    n.geno       <- length(n.rep.vector)
-
-    # see Lynch and Walsh, Ch. 18, p. 559
-    average.number.of.replicates <- ( sum(n.rep.vector) - sum(n.rep.vector^2) / sum(n.rep.vector) ) / ( length(n.rep.vector) - 1 )
-
-    if (max(n.rep.vector)==1) {
-      return(list(heritability=NA,gen.variance=NA,res.variance=NA))
+      av          <- anova(lm(as.formula(paste('dat~geno+',paste(cov.names,collapse='+'))),data=her.frame))
     } else {
-      if (nrow(covariates.frame) > 0) {
-        av          <- anova(lm(as.formula(paste('dat~geno+',paste(cov.names,collapse='+'))),data=her.frame))
-      } else {
-        av          <- anova(lm(dat~geno,data=her.frame))
-      }
-      gen.variance <- (av[[3]][1] - av[[3]][2+number.of.covariates]) / average.number.of.replicates
-      if (gen.variance < 0) {gen.variance <- 0}
-      if (line.heritability) {
-        res.variance <- av[[3]][2+number.of.covariates] / average.number.of.replicates
-      } else {
-        res.variance <- av[[3]][2+number.of.covariates]
-      }
+      av          <- anova(lm(dat~geno,data=her.frame))
+    }
+    gen.variance <- (av[[3]][1] - av[[3]][2+number.of.covariates]) / average.number.of.replicates
+    if (gen.variance < 0) {gen.variance <- 0}
+    if (line.heritability) {
+      res.variance <- av[[3]][2+number.of.covariates] / average.number.of.replicates
+    } else {
+      res.variance <- av[[3]][2+number.of.covariates]
+    }
 
     if (!line.heritability) {
       F.ratio        <- av[[3]][1] / av[[3]][2 + number.of.covariates]
@@ -526,9 +526,9 @@ Heritability3 <- function(data.vector,geno.vector,line.heritability=F,covariates
     }
 
     return(list(heritability=gen.variance/(gen.variance + res.variance),gen.variance=gen.variance,res.variance=res.variance,
-                  line.heritability=line.heritability,average.number.of.replicates=average.number.of.replicates,
-                  conf.int.left=conf.int.left,conf.int.right=conf.int.right))
-    }
+      line.heritability=line.heritability,average.number.of.replicates=average.number.of.replicates,
+      conf.int.left=conf.int.left,conf.int.right=conf.int.right))
+  }
 }
 
 pin <- function (object, transform) {
@@ -538,7 +538,7 @@ pin <- function (object, transform) {
   X <- as.vector(attr(tvalue, "gradient"))
   X[object$gammas.type == 1] <- 0
   tname <- if (length(transform) == 3)
-  transform[[2]]
+    transform[[2]]
   else ""
   n <- length(pframe)
   i <- rep(1:n, 1:n)
@@ -556,7 +556,7 @@ pin.adapted <- function (object, average.number.of.replicates=average.number.of.
   X <- as.vector(attr(tvalue, "gradient"))
   X[object$gammas.type == 1] <- 0
   tname <- if (length(transform) == 3)
-  transform[[2]]
+    transform[[2]]
   else ""
   n <- length(pframe)
   i <- rep(1:n, 1:n)
@@ -569,216 +569,216 @@ pin.adapted <- function (object, average.number.of.replicates=average.number.of.
 
 
 HeritabilityMixedModel <- function(data.vector,geno.vector,covariates=NULL,K,no.BLUPs=F,line.heritability=F,average.number.of.replicates=1)   {
-# requires emma.R : emma.REMLE function
-#
-# INPUT :
-#' @param data.vector :  vector of phenotypic values
-#' @param geno.vector :  vector (character or factor) of genotypes
-#' @param K           :  kinship matrix, of class matrix. Column-names should contain all occurring genotypes (?)
-#' @param covariates  :  additional covariates (which should not include an intercept, which is included automatically)
-#' @param line.heritability            :
-#' @param average.number.of.replicates :
+  # requires emma.R : emma.REMLE function
+  #
+  # INPUT :
+  #' @param data.vector :  vector of phenotypic values
+  #' @param geno.vector :  vector (character or factor) of genotypes
+  #' @param K           :  kinship matrix, of class matrix. Column-names should contain all occurring genotypes (?)
+  #' @param covariates  :  additional covariates (which should not include an intercept, which is included automatically)
+  #' @param line.heritability            :
+  #' @param average.number.of.replicates :
 
-# OUTPUT :
-# heritability, genetic - and residual variance
-# data.vector=pheno.frame[,5]; geno.vector=pheno.frame$genotype; K=K[unique(pheno.frame$genotype),unique(pheno.frame$genotype)]
-    #data.vector=b$sim1;geno.vector=b$genotype
+  # OUTPUT :
+  # heritability, genetic - and residual variance
+  # data.vector=pheno.frame[,5]; geno.vector=pheno.frame$genotype; K=K[unique(pheno.frame$genotype),unique(pheno.frame$genotype)]
+  #data.vector=b$sim1;geno.vector=b$genotype
 
-# data.vector=pheno.frame[,5]; geno.vector=pheno.frame$genotype; covariates=pheno.frame[,-(1:5)]; K=K[unique(pheno.frame$genotype),unique(pheno.frame$genotype)]
-#browser()
-    #if (use.asreml) require(asreml)
+  # data.vector=pheno.frame[,5]; geno.vector=pheno.frame$genotype; covariates=pheno.frame[,-(1:5)]; K=K[unique(pheno.frame$genotype),unique(pheno.frame$genotype)]
+  #browser()
+  #if (use.asreml) require(asreml)
 
-#data.vector=GWAS.obj$pheno[,i];covariates=GWAS.obj$pheno[,c(2,5,6)];geno.vector=GWAS.obj$pheno$genotype;K=GWAS.obj$kinship;no.BLUPs=F;line.heritability=F;average.number.of.replicates=1
-# data.vector=temp.pheno$sim;covariates=NULL;geno.vector=temp.pheno$genotype;K=K2[temp.pheno$genotype;temp.pheno$genotype];no.BLUPs=no.BLUPs;line.heritability=line.heritability;average.number.of.replicates=av.temp
+  #data.vector=GWAS.obj$pheno[,i];covariates=GWAS.obj$pheno[,c(2,5,6)];geno.vector=GWAS.obj$pheno$genotype;K=GWAS.obj$kinship;no.BLUPs=F;line.heritability=F;average.number.of.replicates=1
+  # data.vector=temp.pheno$sim;covariates=NULL;geno.vector=temp.pheno$genotype;K=K2[temp.pheno$genotype;temp.pheno$genotype];no.BLUPs=no.BLUPs;line.heritability=line.heritability;average.number.of.replicates=av.temp
 
-    require(asreml)
+  require(asreml)
 
-    her.frame            <- data.frame(dat=data.vector,genotype=geno.vector)
-    her.frame$genotype   <- as.character(her.frame$genotype)
+  her.frame            <- data.frame(dat=data.vector,genotype=geno.vector)
+  her.frame$genotype   <- as.character(her.frame$genotype)
 
-    if (!is.null(covariates)) {
-      covariates            <- as.data.frame(covariates)
-      n.cov                 <- ncol(covariates)
-      names(covariates)     <- paste('c',1:n.cov,sep='')
-      row.names(covariates) <- row.names(her.frame)
-      her.frame             <- cbind(her.frame,covariates)
+  if (!is.null(covariates)) {
+    covariates            <- as.data.frame(covariates)
+    n.cov                 <- ncol(covariates)
+    names(covariates)     <- paste('c',1:n.cov,sep='')
+    row.names(covariates) <- row.names(her.frame)
+    her.frame             <- cbind(her.frame,covariates)
+  }
+
+  her.frame     <- her.frame[!is.na(her.frame$dat),]
+  n.rep.vector  <- as.integer(table(her.frame$genotype))
+
+  # compute the average (or 'effective') number of replicates, see Lynch and Walsh, chapter 18
+  average.number.of.replicates2 <- ( sum(n.rep.vector) - sum(n.rep.vector^2) / sum(n.rep.vector) ) / ( length(n.rep.vector) - 1 )
+
+  # If average.number.of.replicates is provided by the user and is larger than one, AND differs from average.number.of.replicates2 :
+  # Then continue with the latter value
+  if (average.number.of.replicates > 1 & average.number.of.replicates2 > 1) {
+    average.number.of.replicates <- average.number.of.replicates2
+  }
+
+  if (line.heritability) {
+    average.number.of.replicates <- average.number.of.replicates2
+  }
+
+
+  # re-scale the kinship matrix, for those genotypes for which phenotypic data are available
+  K <- K[unique(her.frame$genotype),unique(her.frame$genotype)]
+  K <- K / KinshipTransform(K)
+
+  K.asreml <<- MakeKinshipAsreml(K)
+
+  if (is.null(covariates)) {
+    fixed.formula <<- as.formula('dat ~ 1')
+  } else {
+    cov.part <- paste(paste('c',1:n.cov,sep=''),collapse='+')
+    fixed.formula <<- as.formula(paste('dat ~',cov.part))
+  }
+
+  random.formula <<- as.formula("~ giv(genotype,var=T)")
+  #her.frame$genotype <- factor(her.frame$genotype)
+  reml.obj <- asreml(fixed.formula,data=her.frame,random = random.formula,na.method.X="omit",ginverse = list(genotype=K.asreml))
+
+  if (!no.BLUPs) {
+    reml.pred <- predict(reml.obj, classify='genotype',data=her.frame)
+    blup.frame <- reml.pred$predictions$pvals
+    blup.frame$genotype <- as.character(blup.frame$genotype)
+    row.names(blup.frame) <- blup.frame$genotype
+  } else {
+    blup.frame <- data.frame(genotype=unique(her.frame$genotype),predicted.value=rep(NA,length(unique(her.frame$genotype))))
+    row.names(blup.frame) <- blup.frame$genotype
+  }
+  #head(blup.frame)
+
+  var.comp <- summary(reml.obj)$varcomp$component
+
+  inv.ai <- matrix(rep(0,4),ncol=2)
+  inv.ai[lower.tri(inv.ai,diag=T)] <- reml.obj$ai
+  inv.ai[1,2] <- inv.ai[2,1]
+
+  if (line.heritability) {
+    h2.estimate <- var.comp[1] / (var.comp[1] + var.comp[2] / average.number.of.replicates)
+  } else {
+    h2.estimate <- var.comp[1] / (var.comp[1] + var.comp[2] * average.number.of.replicates)
+  }
+  # in case of errors or strange output in predict.asreml, compute the BLUPs again
+  if (!no.BLUPs) {
+    if (max(abs(blup.frame$predicted.value),na.rm=T) > 100 * max(data.vector,na.rm=T)) {
+      delta <- var.comp[1] / var.comp[2]
+      K.temp <- K[her.frame$genotype,her.frame$genotype]
+      V <- delta * K.temp + diag(ncol(K.temp))
+      mu <- sum(solve(V) %*% as.matrix(her.frame$dat)) / sum(solve(V))
+      Z.temp <- createZmatrixForFactor(f.vector=as.character(her.frame$genotype),factor.name="",ordered.factor=F)
+      Z.temp <- Z.temp[,colnames(K)]
+      blup.frame[colnames(Z.temp),]$predicted.value <- delta * K %*% t(Z.temp) %*% solve(V) %*% as.matrix(her.frame$dat-mu) + mu
     }
+  }
 
-    her.frame     <- her.frame[!is.na(her.frame$dat),]
-    n.rep.vector  <- as.integer(table(her.frame$genotype))
+  if (line.heritability) {
+    st.error1 <- as.numeric(pin.adapted(reml.obj,average.number.of.replicates=average.number.of.replicates,h2 ~ V1 / (V1 + V2/average.number.of.replicates))[2])
+  } else {
+    st.error1 <- as.numeric(pin.adapted(reml.obj,average.number.of.replicates=average.number.of.replicates,h2 ~ V1 / (V1 + V2 * average.number.of.replicates))[2])
+  }
+  conf.int1 <- c(h2.estimate - qnorm(.975)*st.error1,h2.estimate + qnorm(.975)*st.error1)
 
-    # compute the average (or 'effective') number of replicates, see Lynch and Walsh, chapter 18
-    average.number.of.replicates2 <- ( sum(n.rep.vector) - sum(n.rep.vector^2) / sum(n.rep.vector) ) / ( length(n.rep.vector) - 1 )
+  if (line.heritability) {
+    st.error2 <- as.numeric(pin.adapted(reml.obj,average.number.of.replicates=average.number.of.replicates,h2 ~ log(V2 / (V1*average.number.of.replicates)))[2])
+  } else {
+    st.error2 <- as.numeric(pin.adapted(reml.obj,average.number.of.replicates=average.number.of.replicates,h2 ~ log(V2 * average.number.of.replicates / V1))[2])
+  }
 
-    # If average.number.of.replicates is provided by the user and is larger than one, AND differs from average.number.of.replicates2 :
-    # Then continue with the latter value
-    if (average.number.of.replicates > 1 & average.number.of.replicates2 > 1) {
-      average.number.of.replicates <- average.number.of.replicates2
-    }
+  if (line.heritability) {
+    conf.int2 <- c(1 / (1 + exp(log(var.comp[2]/(var.comp[1]*average.number.of.replicates)) + qnorm(.975)*st.error2)),1 / (1 + exp(log(var.comp[2]/(var.comp[1]*average.number.of.replicates)) - qnorm(.975)*st.error2)))
+  } else {
+    conf.int2 <- c(1 / (1 + exp(log(var.comp[2] * average.number.of.replicates /var.comp[1]) + qnorm(.975)*st.error2)),1 / (1 + exp(log(var.comp[2]* average.number.of.replicates/var.comp[1]) - qnorm(.975)*st.error2)))
+  }
 
-    if (line.heritability) {
-      average.number.of.replicates <- average.number.of.replicates2
-    }
+  vg.conf.int.left   <- var.comp[1] - qnorm(0.975) * summary(reml.obj)$varcomp$std.error[1]
+  vg.conf.int.right  <- var.comp[1] + qnorm(0.975) * summary(reml.obj)$varcomp$std.error[1]
+  ve.conf.int.left   <- var.comp[2] - qnorm(0.975) * summary(reml.obj)$varcomp$std.error[2]
+  ve.conf.int.right  <- var.comp[2] + qnorm(0.975) * summary(reml.obj)$varcomp$std.error[2]
 
-
-    # re-scale the kinship matrix, for those genotypes for which phenotypic data are available
-    K <- K[unique(her.frame$genotype),unique(her.frame$genotype)]
-    K <- K / KinshipTransform(K)
-
-    K.asreml <<- MakeKinshipAsreml(K)
-
-    if (is.null(covariates)) {
-      fixed.formula <<- as.formula('dat ~ 1')
-    } else {
-      cov.part <- paste(paste('c',1:n.cov,sep=''),collapse='+')
-      fixed.formula <<- as.formula(paste('dat ~',cov.part))
-    }
-
-    random.formula <<- as.formula("~ giv(genotype,var=T)")
-    #her.frame$genotype <- factor(her.frame$genotype)
-    reml.obj <- asreml(fixed.formula,data=her.frame,random = random.formula,na.method.X="omit",ginverse = list(genotype=K.asreml))
-
-    if (!no.BLUPs) {
-      reml.pred <- predict(reml.obj, classify='genotype',data=her.frame)
-      blup.frame <- reml.pred$predictions$pvals
-      blup.frame$genotype <- as.character(blup.frame$genotype)
-      row.names(blup.frame) <- blup.frame$genotype
-    } else {
-      blup.frame <- data.frame(genotype=unique(her.frame$genotype),predicted.value=rep(NA,length(unique(her.frame$genotype))))
-      row.names(blup.frame) <- blup.frame$genotype
-    }
-    #head(blup.frame)
-
-    var.comp <- summary(reml.obj)$varcomp$component
-
-    inv.ai <- matrix(rep(0,4),ncol=2)
-    inv.ai[lower.tri(inv.ai,diag=T)] <- reml.obj$ai
-    inv.ai[1,2] <- inv.ai[2,1]
-
-    if (line.heritability) {
-        h2.estimate <- var.comp[1] / (var.comp[1] + var.comp[2] / average.number.of.replicates)
-    } else {
-        h2.estimate <- var.comp[1] / (var.comp[1] + var.comp[2] * average.number.of.replicates)
-    }
-    # in case of errors or strange output in predict.asreml, compute the BLUPs again
-    if (!no.BLUPs) {
-      if (max(abs(blup.frame$predicted.value),na.rm=T) > 100 * max(data.vector,na.rm=T)) {
-        delta <- var.comp[1] / var.comp[2]
-        K.temp <- K[her.frame$genotype,her.frame$genotype]
-        V <- delta * K.temp + diag(ncol(K.temp))
-        mu <- sum(solve(V) %*% as.matrix(her.frame$dat)) / sum(solve(V))
-        Z.temp <- createZmatrixForFactor(f.vector=as.character(her.frame$genotype),factor.name="",ordered.factor=F)
-        Z.temp <- Z.temp[,colnames(K)]
-        blup.frame[colnames(Z.temp),]$predicted.value <- delta * K %*% t(Z.temp) %*% solve(V) %*% as.matrix(her.frame$dat-mu) + mu
-      }
-    }
-
-    if (line.heritability) {
-      st.error1 <- as.numeric(pin.adapted(reml.obj,average.number.of.replicates=average.number.of.replicates,h2 ~ V1 / (V1 + V2/average.number.of.replicates))[2])
-    } else {
-      st.error1 <- as.numeric(pin.adapted(reml.obj,average.number.of.replicates=average.number.of.replicates,h2 ~ V1 / (V1 + V2 * average.number.of.replicates))[2])
-    }
-    conf.int1 <- c(h2.estimate - qnorm(.975)*st.error1,h2.estimate + qnorm(.975)*st.error1)
-
-    if (line.heritability) {
-      st.error2 <- as.numeric(pin.adapted(reml.obj,average.number.of.replicates=average.number.of.replicates,h2 ~ log(V2 / (V1*average.number.of.replicates)))[2])
-    } else {
-      st.error2 <- as.numeric(pin.adapted(reml.obj,average.number.of.replicates=average.number.of.replicates,h2 ~ log(V2 * average.number.of.replicates / V1))[2])
-    }
-
-    if (line.heritability) {
-      conf.int2 <- c(1 / (1 + exp(log(var.comp[2]/(var.comp[1]*average.number.of.replicates)) + qnorm(.975)*st.error2)),1 / (1 + exp(log(var.comp[2]/(var.comp[1]*average.number.of.replicates)) - qnorm(.975)*st.error2)))
-    } else {
-      conf.int2 <- c(1 / (1 + exp(log(var.comp[2] * average.number.of.replicates /var.comp[1]) + qnorm(.975)*st.error2)),1 / (1 + exp(log(var.comp[2]* average.number.of.replicates/var.comp[1]) - qnorm(.975)*st.error2)))
-    }
-
-    vg.conf.int.left   <- var.comp[1] - qnorm(0.975) * summary(reml.obj)$varcomp$std.error[1]
-    vg.conf.int.right  <- var.comp[1] + qnorm(0.975) * summary(reml.obj)$varcomp$std.error[1]
-    ve.conf.int.left   <- var.comp[2] - qnorm(0.975) * summary(reml.obj)$varcomp$std.error[2]
-    ve.conf.int.right  <- var.comp[2] + qnorm(0.975) * summary(reml.obj)$varcomp$std.error[2]
-
-return(list(vg=var.comp[1],ve=var.comp[2],h2=h2.estimate,conf.int1=conf.int1,conf.int2=conf.int2,inv.ai=inv.ai,
-            vg.conf.int.left=vg.conf.int.left,vg.conf.int.right=vg.conf.int.right,ve.conf.int.left=ve.conf.int.left,ve.conf.int.right=ve.conf.int.right,
-            blup.frame=blup.frame,line.heritability=line.heritability,average.number.of.replicates=average.number.of.replicates))
+  return(list(vg=var.comp[1],ve=var.comp[2],h2=h2.estimate,conf.int1=conf.int1,conf.int2=conf.int2,inv.ai=inv.ai,
+    vg.conf.int.left=vg.conf.int.left,vg.conf.int.right=vg.conf.int.right,ve.conf.int.left=ve.conf.int.left,ve.conf.int.right=ve.conf.int.right,
+    blup.frame=blup.frame,line.heritability=line.heritability,average.number.of.replicates=average.number.of.replicates))
 }
 
 HeritabilityMixedModelWithFixedSigmaE2 <- function(data.vector,geno.vector,sigmaE2,covariates=NULL,K,no.BLUPs=F,line.heritability=F,average.number.of.replicates=1)   {
-# requires emma.R : emma.REMLE function
-#
-# INPUT :
-#' @param data.vector :  vector of phenotypic values
-#' @param geno.vector :  vector (character or factor) of genotypes
-#' @param K           :  kinship matrix, of class matrix. Column-names should contain all occurring genotypes (?)
-# N.B. This is NOT the kinship matrix for the replicates
-# OUTPUT :
-# heritability, genetic - and residual variance
-# data.vector=pheno.frame[,5]; geno.vector=pheno.frame$genotype; K=K[unique(pheno.frame$genotype),unique(pheno.frame$genotype)]
-    #data.vector=b$sim1;geno.vector=b$genotype
+  # requires emma.R : emma.REMLE function
+  #
+  # INPUT :
+  #' @param data.vector :  vector of phenotypic values
+  #' @param geno.vector :  vector (character or factor) of genotypes
+  #' @param K           :  kinship matrix, of class matrix. Column-names should contain all occurring genotypes (?)
+  # N.B. This is NOT the kinship matrix for the replicates
+  # OUTPUT :
+  # heritability, genetic - and residual variance
+  # data.vector=pheno.frame[,5]; geno.vector=pheno.frame$genotype; K=K[unique(pheno.frame$genotype),unique(pheno.frame$genotype)]
+  #data.vector=b$sim1;geno.vector=b$genotype
 
-# data.vector=pheno.frame[,5]; geno.vector=pheno.frame$genotype; covariates=pheno.frame[,-(1:5)]; K=K[unique(pheno.frame$genotype),unique(pheno.frame$genotype)]
-#browser()
-    #if (use.asreml) require(asreml)
-# data.vector=temp.pheno$sim;geno.vector=temp.pheno$genotype;K=K2[temp.pheno$genotype,temp.pheno$genotype]; covariates=NULL; no.BLUPs=no.BLUPs; line.heritability=line.heritability;average.number.of.replicates=av.temp;sigmaE2=Heritability3(data.vector=pheno.frame[,5],geno.vector=pheno.frame$genotype)[3]
-    require(asreml)
-    # when using msm :
-    #require(msm)
-    #
-    her.frame   <- data.frame(dat=data.vector,genotype=geno.vector)
-    her.frame$genotype   <- as.character(her.frame$geno)
+  # data.vector=pheno.frame[,5]; geno.vector=pheno.frame$genotype; covariates=pheno.frame[,-(1:5)]; K=K[unique(pheno.frame$genotype),unique(pheno.frame$genotype)]
+  #browser()
+  #if (use.asreml) require(asreml)
+  # data.vector=temp.pheno$sim;geno.vector=temp.pheno$genotype;K=K2[temp.pheno$genotype,temp.pheno$genotype]; covariates=NULL; no.BLUPs=no.BLUPs; line.heritability=line.heritability;average.number.of.replicates=av.temp;sigmaE2=Heritability3(data.vector=pheno.frame[,5],geno.vector=pheno.frame$genotype)[3]
+  require(asreml)
+  # when using msm :
+  #require(msm)
+  #
+  her.frame   <- data.frame(dat=data.vector,genotype=geno.vector)
+  her.frame$genotype   <- as.character(her.frame$geno)
 
-    if (!is.null(covariates)) {
-      covariates <- as.data.frame(covariates)
-      n.cov <- ncol(covariates)
-      names(covariates) <- paste('c',1:n.cov,sep='')
-      row.names(covariates) <- row.names(her.frame)
-      her.frame <- cbind(her.frame,covariates)
-    }
+  if (!is.null(covariates)) {
+    covariates <- as.data.frame(covariates)
+    n.cov <- ncol(covariates)
+    names(covariates) <- paste('c',1:n.cov,sep='')
+    row.names(covariates) <- row.names(her.frame)
+    her.frame <- cbind(her.frame,covariates)
+  }
 
-    her.frame   <- her.frame[!is.na(her.frame$dat),]
-    #her.frame$geno   <- factor(her.frame$geno)
-    #K <- K[levels(her.frame$geno),levels(her.frame$geno)]
-    # corrected
-    #n.rep.vector <- as.integer(table(her.frame$genotype))
-    #n.rep.vector <- rep(n.rep.vector,times=n.rep.vector)
+  her.frame   <- her.frame[!is.na(her.frame$dat),]
+  #her.frame$geno   <- factor(her.frame$geno)
+  #K <- K[levels(her.frame$geno),levels(her.frame$geno)]
+  # corrected
+  #n.rep.vector <- as.integer(table(her.frame$genotype))
+  #n.rep.vector <- rep(n.rep.vector,times=n.rep.vector)
 
-    #n.rep.vector <- table(her.frame$genotype)[her.frame$genotype]
-    n.rep.vector <- as.integer(table(her.frame$genotype))
+  #n.rep.vector <- table(her.frame$genotype)[her.frame$genotype]
+  n.rep.vector <- as.integer(table(her.frame$genotype))
 
-    #her.frame   <- data.frame(her.frame,wt=n.rep.vector)
+  #her.frame   <- data.frame(her.frame,wt=n.rep.vector)
 
-    average.number.of.replicates2 <- ( sum(n.rep.vector) - sum(n.rep.vector^2) / sum(n.rep.vector) ) / ( length(n.rep.vector) - 1 )
-    if (average.number.of.replicates > 1 & average.number.of.replicates2 > 1) {average.number.of.replicates <- average.number.of.replicates2}
+  average.number.of.replicates2 <- ( sum(n.rep.vector) - sum(n.rep.vector^2) / sum(n.rep.vector) ) / ( length(n.rep.vector) - 1 )
+  if (average.number.of.replicates > 1 & average.number.of.replicates2 > 1) {average.number.of.replicates <- average.number.of.replicates2}
 
-    K <- K[unique(her.frame$genotype),unique(her.frame$genotype)]
-    #K <- K[her.frame$geno,her.frame$geno]
-    K <- K / KinshipTransform(K)
+  K <- K[unique(her.frame$genotype),unique(her.frame$genotype)]
+  #K <- K[her.frame$geno,her.frame$geno]
+  K <- K / KinshipTransform(K)
 
-    #if (use.asreml) {
-    K.asreml <<- MakeKinshipAsreml(K)
+  #if (use.asreml) {
+  K.asreml <<- MakeKinshipAsreml(K)
 
-    if (is.null(covariates)) {
-      fixed.formula <<- as.formula('dat ~ 1')
-    } else {
-      cov.part <- paste(paste('c',1:n.cov,sep=''),collapse='+')
-      fixed.formula <<- as.formula(paste('dat ~',cov.part))
-    }
-    random.formula <<- as.formula("~ giv(genotype,var=T)")
-    #reml.obj <- asreml(sim1 ~ 1,data=b,random = random.formula,na.method.X="omit",ginverse = list(genotype=K.asreml))
+  if (is.null(covariates)) {
+    fixed.formula <<- as.formula('dat ~ 1')
+  } else {
+    cov.part <- paste(paste('c',1:n.cov,sep=''),collapse='+')
+    fixed.formula <<- as.formula(paste('dat ~',cov.part))
+  }
+  random.formula <<- as.formula("~ giv(genotype,var=T)")
+  #reml.obj <- asreml(sim1 ~ 1,data=b,random = random.formula,na.method.X="omit",ginverse = list(genotype=K.asreml))
 
-    #reml.obj <- asreml(fixed.formula,data=her.frame,random = random.formula,na.method.X="omit",weights=wt,ginverse = list(genotype=K.asreml))
-    reml.obj.init <- asreml(fixed.formula,data=her.frame,random = random.formula,na.method.X="omit",ginverse = list(genotype=K.asreml),rcov=~idv(units),start.values=T)
-    iv            <- reml.obj.init$gammas.table
-    iv$Value[3]  <- sigmaE2
-    iv$Constraint[3]  <- 'F'
-    #temp.init     <- sigmaE2
-    #names(temp.init) <- 'F'
-    #,rcov=~id(units,init=temp.init)
-    reml.obj      <- asreml(fixed.formula,data=her.frame,random = random.formula,na.method.X="omit",ginverse = list(genotype=K.asreml),rcov=~idv(units),R.param=iv)
+  #reml.obj <- asreml(fixed.formula,data=her.frame,random = random.formula,na.method.X="omit",weights=wt,ginverse = list(genotype=K.asreml))
+  reml.obj.init <- asreml(fixed.formula,data=her.frame,random = random.formula,na.method.X="omit",ginverse = list(genotype=K.asreml),rcov=~idv(units),start.values=T)
+  iv            <- reml.obj.init$gammas.table
+  iv$Value[3]  <- sigmaE2
+  iv$Constraint[3]  <- 'F'
+  #temp.init     <- sigmaE2
+  #names(temp.init) <- 'F'
+  #,rcov=~id(units,init=temp.init)
+  reml.obj      <- asreml(fixed.formula,data=her.frame,random = random.formula,na.method.X="omit",ginverse = list(genotype=K.asreml),rcov=~idv(units),R.param=iv)
 
-    if (!no.BLUPs) {
-      reml.pred <- predict(reml.obj, classify='genotype',data=her.frame)
-      blup.frame <- reml.pred$predictions$pvals
-      blup.frame$genotype <- as.character(blup.frame$genotype)
+  if (!no.BLUPs) {
+    reml.pred <- predict(reml.obj, classify='genotype',data=her.frame)
+    blup.frame <- reml.pred$predictions$pvals
+    blup.frame$genotype <- as.character(blup.frame$genotype)
       row.names(blup.frame) <- blup.frame$genotype
     } else {
       blup.frame <- data.frame(genotype=unique(her.frame$genotype),predicted.value=rep(NA,length(unique(her.frame$genotype))))
