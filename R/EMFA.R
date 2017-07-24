@@ -75,8 +75,8 @@ EMFA <- function(Y,
 
   w <- eigen(solve(as(K, "symmetricMatrix")), symmetric = TRUE)
   Uk <- w$vectors
-  Dk <- diag(w$values)
-  lambdaR <- as.matrix(Dk)
+  Dk <- w$values
+  lambdaR <- diag(w$values)
 
   ## Set starting values for Cm
   if (is.null(CmStart)) {
@@ -230,7 +230,7 @@ EMFA <- function(Y,
       }
       WgNew <- CmNewOutput$W
       PgNew <- CmNewOutput$P
-      CmNew <- Ginv(Ginv(PgNew) + WgNew %*% t(WgNew))
+      CmNew <- MASS::ginv(MASS::ginv(PgNew) + tcrossprod(WgNew))
     }
 
     ## Update D
@@ -264,7 +264,7 @@ EMFA <- function(Y,
       }
       WeNew <- DmNewOutput$W
       PeNew <- DmNewOutput$P
-      DmNew <- Ginv(Ginv(PeNew) + WeNew %*% t(WeNew))
+      DmNew <- MASS::ginv(MASS::ginv(PeNew) + tcrossprod(WeNew))
     }
 
     ## Compute log-likelihood and check stopping criteria
@@ -279,7 +279,7 @@ EMFA <- function(Y,
         decreased <- TRUE
       }
     }
-    if (iter / 1000 == round(iter / 1000)) {
+    if (iter %% 1000 == 0) {
       CmDiff <- sum(abs(CmNew - Cm))
       DmDiff <- sum(abs(DmNew - Dm))
       cat("Iteration ", iter, " : ", CmDiff, "  ", DmDiff, "    ", ELogLik,"\n")

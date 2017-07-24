@@ -14,7 +14,7 @@ makeVInvArray(Vg, Ve, Dk)
 
 \item{Ve}{a p x p symmetric matrix of environmental variance components}
 
-\item{Dk}{a diagonal n x n matrix containing the eigenvalues obtained by the eigendecomposition
+\item{Dk}{a vector of length n containing the eigenvalues obtained by the eigendecomposition
 of the kinship matrix K: \eqn{K = Uk * Dk * t(Uk)}}
 }
 \value{

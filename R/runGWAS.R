@@ -74,7 +74,7 @@
 #' @references Dahl et al. (2014). Network inference in matrix-variate Gaussian models with
 #' non-indenpent noise.
 #' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
-#' genome-wide association studies.
+#' genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
 #'
 #' @export
 
@@ -120,7 +120,7 @@ runGWAS <- function(markers,
   if (is.null(K) || !is.matrix(K)) stop("K should be a matrix")
   if (!is.null(X) && !(is.matrix(X))) stop("X should either be NULL or a matrix")
   if (anyNA(X)) stop("No missing values allowed in X")
-  if(is.null(X)) X <- matrix(data = 1, nrow = nrow(Y), ncol = 1)
+  if (is.null(X)) X <- matrix(data = 1, nrow = nrow(Y), ncol = 1)
   if (subsetMarkers && markerSubset == "") stop("If subsetting markers, markerSubset cannot be empty")
   if(!snpCovariates == "" && !all(snpCovariates %in% rownames(markers)))
     stop("All snpCovariates should be in markers")
@@ -254,7 +254,7 @@ runGWAS <- function(markers,
 
   ## Run GWAS
   w <- eigen(K, symmetric = TRUE)
-  Dk <- diag(w$values)
+  Dk <- w$values
   Uk <- w$vectors
   Yt <- t(Y) %*% Uk
   colnames(Yt) <- rownames(Y)
@@ -329,7 +329,7 @@ runGWAS <- function(markers,
       df = p, lower.tail = FALSE)
     M[mrk, ] <- LRTRes$effects
     TStat[mrk, ] <- LRTRes$effects / LRTRes$effects.se
-    if (round(mrk / 500) == mrk / 500) {cat("Progress: ", (mrk / nn) * 100, " percent\n")}
+    if (mrk %% 500 == 0) {cat("Progress: ", (mrk / nn) * 100, " percent\n")}
   }
 
   MExtended  <- data.frame(map[c("snp.name", "chromosome", "position")], LOD_F = -log10(results),

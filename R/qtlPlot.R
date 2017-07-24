@@ -27,7 +27,7 @@
 #' @param pptxName name of the .pptx file to which the plot is exported. Ignored if exportPptx =
 #' \code{FALSE}.
 #'
-#' @return a plot.
+#' @return A ggplot object is returned and plotted on screen. Optionally the plot is exported to pptx as well.
 #'
 #' @references Millet et al. (2016) Genome-wide analysis of yield in Europe: Allelic effects vary
 #' with drought and heat scenarios. Plant Physiology, October 2016, Vol. 172, p. 749–764
@@ -35,12 +35,6 @@
 #' @export
 
 ## TO DO: example
-## # Example 1 : different phenotypic trait
-##snpList <- read.table("./example_data_drops/ListeQTL_LOD45_DROPS_Response.csv",sep=",",header=TRUE)
-# Example 2: different environment
-##snpList2 <- read.table("./example_data_drops/Fixed_modelMEML_33+15QTL_GY_perenvt_effB73.csv",sep=",",header=TRUE)
-## TO DO: description + output
-## Dataframe format should be output of the "listQTL" function
 
 qtlPlot <- function(data,
   chromosome = "chromosome",

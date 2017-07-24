@@ -27,7 +27,7 @@
 #' x is input
 #'
 #' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
-#' genome-wide association studies.
+#' genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
 
 ## to do: example
 ## comment on missing values
@@ -65,40 +65,37 @@ estimateEffects <- function(X,
   if (!is.null(x)) {X <- rbind(X , t(matrix(as.numeric(x))))}
 
   if (p == 1 && ncTot == 1) {
-    Vbeta <- matrix(sum(sapply(1:n, function(i) {
-      kronecker(matrix(X[, i]) %*% t(matrix(X[, i])), VInvArray[i, , ])})))
+    Vbeta <- sum(sapply(1:n, function(i) {
+      kronecker(tcrossprod(X[, i]), VInvArray[i, , ])}))
   } else {
     Vbeta <- matrix(rowSums(sapply(1:n, function(i) {
-      kronecker(matrix(X[, i]) %*% t(matrix(X[, i])), VInvArray[i, , ])})),
+      kronecker(tcrossprod(X[, i]), VInvArray[i, , ])})),
       ncol = p * ncTot)
   }
-
   M <- solve(Vbeta)
-
   if (length(x) > 0) {
-    MSub <- solve(as.matrix(Vbeta[-(1:(p * nc)), -(1:(p * nc))]))
+    MSub <- solve(Vbeta[-(1:(p * nc)), -(1:(p * nc))])
   }
 
   if (p == 1 && ncTot == 1) {
-    v <- sum(sapply(1:n, function(i) {kronecker(matrix(X[, i]), VInvArray[i, , ] %*% matrix(Y[, i]))}))
+    v <- sum(sapply(1:n, function(i) {kronecker(X[, i], VInvArray[i, , ] %*% Y[, i])}))
   } else {
-    v <- rowSums(sapply(1:n, function(i) {kronecker(matrix(X[, i]), VInvArray[i, , ] %*% matrix(Y[, i]))}))
+    v <- rowSums(sapply(1:n, function(i) {kronecker(X[, i], VInvArray[i, , ] %*% Y[, i])}))
   }
 
   wald  <- NA
-
   if (returnAllEffects) {
     effectsEstimates <- as.numeric(M %*% v)
     effectsSd <- sqrt(diag(M))
     if (length(x) > 0) {
-      wald <- as.numeric(t(matrix(effectsEstimates[-(1:(p * nc))])) %*% MSub %*%
-          matrix(effectsEstimates[-(1:(p * nc))]))
+      wald <- as.numeric(crossprod(effectsEstimates[-(1:(p * nc))], MSub) %*%
+          effectsEstimates[-(1:(p * nc))])
     }
   } else {
     effectsEstimates <- as.numeric(M %*% v)[-(1:(p * nc))]
     effectsSd <- sqrt(diag(M))[-(1:(p * nc))]
     if (length(x) > 0) {
-      wald <- as.numeric(t(matrix(effectsEstimates)) %*% MSub %*% matrix(effectsEstimates))
+      wald <- as.numeric(crossprod(effectsEstimates, MSub) %*% effectsEstimates)
     }
   }
   return(list(effects.estimates = effectsEstimates, effects.sd = effectsSd, wald = wald))

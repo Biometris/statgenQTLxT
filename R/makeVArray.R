@@ -5,7 +5,7 @@
 #'
 #' @param Vg a p x p symmetric matrix of genetic variance components
 #' @param Ve a p x p symmetric matrix of environmental variance components
-#' @param Dk a diagonal n x n matrix containing the eigenvalues obtained by the eigendecomposition
+#' @param Dk a vector of length n containing the eigenvalues obtained by the eigendecomposition
 #' of the kinship matrix K: \eqn{K = Uk * Dk * t(Uk)}
 #'
 #' @return An array of n p x p matrices \eqn{v_l} where \eqn{v_l = Dk_{l,l} * Vg + Ve \forall
@@ -13,19 +13,19 @@
 #' When using \code{makeVInvArray} the output matrices are inverted.
 #'
 #' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
-#' genome-wide association studies, supplement 13-14.
+#' genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409.
 
 makeVArray <- function(Vg, Ve, Dk) {
   stopifnot(ncol(Vg) == nrow(Vg))
   stopifnot(ncol(Ve) == nrow(Ve))
   stopifnot(ncol(Vg) == ncol(Ve))
 
-  n <- ncol(Dk)
+  n <- length(Dk)
   p <- ncol(Vg)
 
-  VArray <- array(0, dim = c(n, p, p))
+  VArray <- array(dim = c(n, p, p))
   for (i in 1:n) {
-    VArray[i, , ] <- diag(Dk)[i] * Vg + Ve
+    VArray[i, , ] <- Dk[i] * Vg + Ve
   }
   return(VArray)
 }
@@ -36,12 +36,12 @@ makeVInvArray <- function(Vg, Ve, Dk) {
   stopifnot(ncol(Ve) == nrow(Ve))
   stopifnot(ncol(Vg) == ncol(Ve))
 
-  n <- ncol(Dk)
+  n <- length(Dk)
   p <- ncol(Vg)
 
-  VInvArray <- array(0, dim = c(n, p, p))
+  VInvArray <- array(dim = c(n, p, p))
   for (i in 1:n) {
-    VInvArray[i, , ] <- solve(diag(Dk)[i] * Vg + Ve)
+    VInvArray[i, , ] <- solve(Dk[i] * Vg + Ve)
   }
   return(VInvArray)
 }

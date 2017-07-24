@@ -1,4 +1,4 @@
-#' Plot a LOD-profile
+#' Create a manhattan plot.
 #'
 #' Given vectors of marker positions and corresponding LOD-scores plot a LOD-profile.
 #' Significant markers can be highlighted with red dots. If there are previously known
@@ -33,7 +33,7 @@
 
 ## TO DO: example
 
-lodPlot <- function(xValues,
+manhattanPlot <- function(xValues,
   yValues,
   map,
   fileName = "",

@@ -21,7 +21,7 @@
 #' @return a numeric value for the \eqn{t(y) * P * y} part of the log-likelihood function.
 #'
 #' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
-#' genome-wide association studies.
+#' genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
 
 ## To do: example
 ## To do: explanation missing X

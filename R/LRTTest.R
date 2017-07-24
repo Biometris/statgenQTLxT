@@ -22,7 +22,7 @@
 #' estimated effect, its standard error and results of the wald test for the additional covariate a returned.
 #'
 #' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
-#' genome-wide association studies.
+#' genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
 
 ## TO DO: example
 

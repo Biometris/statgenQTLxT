@@ -6,7 +6,8 @@
 \usage{
 qtlPlot(data, chromosome = "chromosome", trait = "trait",
   snpEffect = "effect", snpPosition = "position", map, normalize = FALSE,
-  sortData = FALSE, yLab = "Traits", exportPptx = FALSE, pptxName = "")
+  sortData = FALSE, binPositions = NULL, printVertGrid = TRUE,
+  yLab = "Traits", exportPptx = FALSE, pptxName = "")
 }
 \arguments{
 \item{data}{QTL data to be plotted}
@@ -22,27 +23,38 @@ the chromosome.}
 
 \item{map}{a dataframe with at least the columns chromosome, the number of the chromosome
 and position, the position of the snp on the chromosome. These are used for calculating the
-fysical limits of the chromosome.}
+physical limits of the chromosome.}
 
 \item{normalize}{should the snpEffect be normalized?}
 
 \item{sortData}{should the data be sorted before plotting? Either false if no sorting should be done
 or a character indicating the data column on which the data should be sorted.}
 
+\item{binPositions}{an optional dataframe containing at leasts two columns, chromosome and position.
+Vertical lines are plotted at those positions.}
+
+\item{printVertGrid}{Should default vertical grid lines be plotted.}
+
 \item{yLab}{y-axis label.}
 
-\item{exportPptx}{should the plot be exported to a .pptx file.}
+\item{exportPptx}{should the plot be exported to a .pptx file?}
 
 \item{pptxName}{name of the .pptx file to which the plot is exported. Ignored if exportPptx =
-\code{FALSE}}
+\code{FALSE}.}
 }
 \value{
-a plot.
+A ggplot object is returned and plotted on screen. Optionally the plot is exported to pptx as well.
 }
 \description{
-Description to be added.
+Visualisation of the final set of QTLs selected after the multi-trait GWAS.
+}
+\details{
+Each horizontal line contains QTLs of one trait, phenotypic trait or environment.
+Option: Vertical white lines can indicate chromosome subdivision, genes of interest, known QTL, etc.
+Circle diameters are proportional to the absolute value of allelic effect.
+Colors indicate the direction of effect: green when the allele increases the trait value, and blue it decreases the value.
 }
 \references{
 Millet et al. (2016) Genome-wide analysis of yield in Europe: Allelic effects vary
-with drought and heat scenarios
+with drought and heat scenarios. Plant Physiology, October 2016, Vol. 172, p. 749–764
 }
