@@ -3,13 +3,10 @@
 #' Create an object of S3 class gData based on external files or dataframes containing genotypic and phenotypic
 #' information
 #'
-<<<<<<< HEAD
 #' Using the argument \code{pheno} can only be used for basic phenotypic files with a column containing genotype
 #' and further columns containing traits. For adding more complex files, i.e. with extra factors use
 #' \code{\link{addPhenoData}}.
 #'
-=======
->>>>>>> d00278ca76f8509b5541be4ea603805d2720a252
 #' @param geno string, specifying a csv file with the genotypic data, markers in the rows and
 #' genotypes in the columns. Alternatively, an dataframe with a similar layout.
 #' @param genoHeader does \code{geno} contain a header row. If \code{FALSE} genotypes are given a default
@@ -30,13 +27,8 @@
 #' be identical to column names in geno. If \code{NULL} a kinship matrix is computed from \code{geno}
 #' using GRM.
 #' @param pheno string, specifying a csv file with phenotypic data, with genotypes in both the rows
-<<<<<<< HEAD
 #' and traits in the columns. Alternatively, an dataframe with a similar layout. Row names should be
 #' in column names in geno. See details.
-=======
-#' and the columns. Alternatively, an dataframe with a similar layout. Row names and column names should
-#' be identical to column names in geno.
->>>>>>> d00278ca76f8509b5541be4ea603805d2720a252
 #' @param phenoGeno the column corresponding to the genotype in \code{pheno}, either a string or the
 #' column number. If \code{NULL} the first column is assumed to be the genotype.
 #'
