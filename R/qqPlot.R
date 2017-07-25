@@ -3,7 +3,7 @@
 #' Given a vector of pvalues, generate a qq-plot of observed LOD-scores versus expected LOD-scores.
 #' Code taken from Segura et al. and adapted
 #'
-#' @inheritParams lodPlot
+#' @inheritParams manhattanPlot
 #'
 #' @param pValues a numeric vector of pValues. Missings are ignored when plotting.
 #' @param title main title for the plot

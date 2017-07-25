@@ -1,4 +1,12 @@
-KinshipTransform <- function(Matrix) {
-  nn <- ncol(Matrix)
-  return((sum(diag(Matrix))-as.numeric(matrix(1,1,nn) %*% Matrix %*% matrix(1,nn,1))/nn)/(nn-1))
+#' kinshipTransform
+#'
+#' Helper function for computing ... Used for calculating kinship matrices.
+#'
+#' @param K an n by n matrix
+#'
+#' @return the ...
+
+kinshipTransform <- function(K) {
+  n <- ncol(K)
+  return((sum(diag(K)) - rep(1, times = n) %*% K %*% rep(1, times = n) / n) / (n - 1))
 }
