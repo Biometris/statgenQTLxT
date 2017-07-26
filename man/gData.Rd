@@ -28,20 +28,19 @@ column number. If \code{NULL} the first column is assumed to be the SNP name.}
 \item{mapChromosome}{the column corresponding to the cromosome number in \code{map}, either a string or the
 column number. If \code{NULL} the second column is assumed to be the chromosome number.}
 
+\item{mapPosition}{the column corresponding to the position in \code{map}, either a string or the
+column number. If \code{NULL} the third column is assumed to be the position.}
+
 \item{kin}{string, specifying a csv file with the kinship matrix, with genotypes in both the rows
 and the columns. Alternatively, an dataframe with a similar layout. Row names and column names should
 be identical to column names in geno. If \code{NULL} a kinship matrix is computed from \code{geno}
 using GRM.}
 
-\item{pheno}{string, specifying a csv file with phenotypic data, with genotypes in both the rows
-and traits in the columns. Alternatively, an dataframe with a similar layout. Row names should be
-in column names in geno. See details.}
+\item{pheno}{a dataframe with phenotypic data, with genotypes in the rows and traits in the columns.
+Genotypes in pheno should be in column names in geno. See details.}
 
 \item{phenoGeno}{the column corresponding to the genotype in \code{pheno}, either a string or the
 column number. If \code{NULL} the first column is assumed to be the genotype.}
-
-\item{position}{the column corresponding to the position in \code{map}, either a string or the
-column number. If \code{NULL} the third column is assumed to be the position.}
 }
 \value{
 an object of class gData with the following components:
@@ -60,10 +59,9 @@ an object of class gData with the following components:
 }
 \description{
 Create an object of S3 class gData based on external files or dataframes containing genotypic and phenotypic
-information
+information.
 }
 \details{
-Using the argument \code{pheno} can only be used for basic phenotypic files with a column containing genotype
-and further columns containing traits. For adding more complex files, i.e. with extra factors use
-\code{\link{addPhenoData}}.
+Using the argument \code{pheno} can only be used for adding phenotypic data in a dataframe. For adding
+phenotypic data from a file use \code{\link{addPhenoData}}.
 }

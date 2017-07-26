@@ -1,11 +1,10 @@
 #' Create a gData object
 #'
 #' Create an object of S3 class gData based on external files or dataframes containing genotypic and phenotypic
-#' information
+#' information.
 #'
-#' Using the argument \code{pheno} can only be used for basic phenotypic files with a column containing genotype
-#' and further columns containing traits. For adding more complex files, i.e. with extra factors use
-#' \code{\link{addPhenoData}}.
+#' Using the argument \code{pheno} can only be used for adding phenotypic data in a dataframe. For adding
+#' phenotypic data from a file use \code{\link{addPhenoData}}.
 #'
 #' @param geno string, specifying a csv file with the genotypic data, markers in the rows and
 #' genotypes in the columns. Alternatively, an dataframe with a similar layout.
@@ -20,15 +19,14 @@
 #' column number. If \code{NULL} the first column is assumed to be the SNP name.
 #' @param mapChromosome the column corresponding to the cromosome number in \code{map}, either a string or the
 #' column number. If \code{NULL} the second column is assumed to be the chromosome number.
-#' @param position the column corresponding to the position in \code{map}, either a string or the
+#' @param mapPosition the column corresponding to the position in \code{map}, either a string or the
 #' column number. If \code{NULL} the third column is assumed to be the position.
 #' @param kin string, specifying a csv file with the kinship matrix, with genotypes in both the rows
 #' and the columns. Alternatively, an dataframe with a similar layout. Row names and column names should
 #' be identical to column names in geno. If \code{NULL} a kinship matrix is computed from \code{geno}
 #' using GRM.
-#' @param pheno string, specifying a csv file with phenotypic data, with genotypes in both the rows
-#' and traits in the columns. Alternatively, an dataframe with a similar layout. Row names should be
-#' in column names in geno. See details.
+#' @param pheno a dataframe with phenotypic data, with genotypes in the rows and traits in the columns.
+#' Genotypes in pheno should be in column names in geno. See details.
 #' @param phenoGeno the column corresponding to the genotype in \code{pheno}, either a string or the
 #' column number. If \code{NULL} the first column is assumed to be the genotype.
 #'
@@ -62,12 +60,12 @@ gData <- function(geno,
   createExternal = "none") {
 
   if (missing(geno) || (!is.data.frame(geno) && (!is.character(geno) && !file.exists(geno))))
-    stop("geno should be either a valid file name or a dataframe")
+    stop("geno should be either a valid file name or a dataframe\n")
 
   ## If geno is a character string, import corresponding file. Otherwise assign the data frame.
   if (is.character(geno)) {
     if (genoRowNames) rowNames = 1 else rowNames = NULL
-    markers <- read.table(geno, sep = ",", header = genoHeader, row.names = rowNames)
+    markers <- read.table(file = geno, header = genoHeader, sep = ",", row.names = rowNames)
   }
   else markers <- geno
 
@@ -80,17 +78,17 @@ gData <- function(geno,
       width = ceiling(log10(ncol(markers))), flag = "0"))}
 
   if (missing(map) || (!is.data.frame(map) && (!is.character(map) && !file.exists(map))))
-    stop("map should be either a valid file name or a dataframe")
+    stop("map should be either a valid file name or a dataframe\n")
   if ((!is.numeric(mapSnpName) && !is.character(mapSnpName)) || length(mapSnpName) > 1 )
-    stop("mapSnpName should be either an integer or a string")
+    stop("mapSnpName should be either an integer or a string\n")
   if ((!is.numeric(mapChromosome) && !is.character(mapChromosome)) || length(mapChromosome) > 1 )
-    stop("mapChromosome should be either an integer or a string")
+    stop("mapChromosome should be either an integer or a string\n")
   if ((!is.numeric(mapPosition) && !is.character(mapPosition)) || length(mapPosition) > 1 )
-    stop("mapPosition should be either an integer or a string")
+    stop("mapPosition should be either an integer or a string\n")
 
   ## If map is a character string, import corresponding file. Otherwise assign the data frame.
   if (is.character(map)) {
-    mapIn <- read.table(map, header = TRUE, stringsAsFactors = FALSE)
+    mapIn <- read.table(file = map, header = TRUE, stringsAsFactors = FALSE)
   } else {
     mapIn <- map}
 
@@ -121,25 +119,26 @@ gData <- function(geno,
   ## If kin is a character string, import corresponding file. Otherwise assign the matrix.
   ## If kin is NULL compute the kinship matrix using GRM.
   if (!is.null(kin) && !is.matrix(kin) && (!is.character(kin) || !file.exists(kin)))
-    stop("geno should be either NULL, a valid file name or a matrix")
+    stop("geno should be either NULL, a valid file name or a matrix\n")
   if (is.character(kin)) {
-    kinship <- as.matrix(read.table(kin, sep = ",", header = TRUE))
+    kinship <- as.matrix(read.table(file = kin, header = TRUE, sep = ","))
     if (!identical(sort(rownames(kinship)), colnames(markers)) ||
-      !identical(sort(colnames(kinship)), colnames(markers)))
-      stop("row and column names of kin should be identical to row and column names of geno")
+        !identical(sort(colnames(kinship)), colnames(markers)))
+      stop("row and column names of kin should be identical to row and column names of geno\n")
   } else {
     kinship <- GRM(t(markers))
   }
 
   ## If pheno is a character string, import corresponding file. Otherwise assign the data frame.
-  if (!is.null(pheno) && !is.matrix(pheno) && (!is.character(pheno) || !file.exists(pheno)))
-    stop("pheno should be either NULL, a valid file name or a data frame")
-  if (is.character(pheno)) {
-    phenoIn <- read.table(pheno, sep = ",", header = TRUE, stringsAsFactors = FALSE)
+  if (!is.null(pheno) && !is.data.frame(pheno))
+    stop("pheno should be either NULL or a data frame\n")
+  if (is.data.frame(pheno)) {
     genoPos <- ifelse(is.character(phenoGeno), which(colnames(pheno) == phenoGeno), phenoGeno)
     colnames(pheno)[genoPos] <- "genotype"
+    if (!all(pheno$genotype) %in% colnames(markers))
+      stop("all genotypes in pheno should be in column names of geno\n")
   } else {
-    phenoIn <- data.frame()
+    pheno <- data.frame()
   }
 
   # if (!(createExternal %in% c('none','plink','scan_GLS'))) {createExternal <- 'none'}
@@ -167,6 +166,10 @@ gData <- function(geno,
     chrLengthsBp = chrLengthsBp),
     # genes = data.frame()),
     class = "gData")
+}
+
+is.gData <- function(x) {
+  inherits(x, "gData")
 }
 
 
