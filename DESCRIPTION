@@ -15,6 +15,7 @@ Imports: Matrix,
     reshape2,
     ggplot2,
     dplyr,
-    MASS
+    MASS,
+    tibble
 Suggests: ReporteRs,
     testthat

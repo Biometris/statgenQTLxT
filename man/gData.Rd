@@ -4,35 +4,36 @@
 \alias{gData}
 \title{Create a gData object}
 \usage{
-gData(geno, genoHeader = TRUE, genoRowNames = TRUE, map, mapSnpName = 1,
-  mapChromosome = 2, mapPosition = 3, kin = NULL, pheno = NULL,
-  phenoGeno = 1, createExternal = "none")
+gData(geno, genoHeader = TRUE, genoRowNames = TRUE, map,
+  mapSnpName = NULL, mapChromosome = 2, mapPosition = 3, kin = NULL,
+  pheno = NULL, phenoGeno = 1)
 }
 \arguments{
-\item{geno}{string, specifying a csv file with the genotypic data, markers in the rows and
-genotypes in the columns. Alternatively, an dataframe with a similar layout.}
+\item{geno}{string, specifying a csv file with the genotypic data, genotypes in the rows and
+markers in the columns. Alternatively, a dataframe with a similar layout.}
 
-\item{genoHeader}{does \code{geno} contain a header row. If \code{FALSE} genotypes are given a default
-name.}
+\item{genoHeader}{does \code{geno} contain a header row. If \code{FALSE} markers are given a default
+name derived from the \code{map}.}
 
-\item{genoRowNames}{does \code{geno} contain rownames in its first column. If \code{FALSE} markers
+\item{genoRowNames}{does \code{geno} contain rownames in its first column. If \code{FALSE} genotypes
 are given a default name.}
 
-\item{map}{string, specifying a csv file with at least columns for SNP name, chromosome and position.
-The positions should be in base-pair or morgan. They should not be cumulative over the chromosomes. Other
-columns are ignored. Alternatively, an dataframe with a similar layout.}
+\item{map}{string, specifying a csv file with at least columns for chromosome and position. Column for
+SNP Name can be provided as well. The positions should be in base-pair or centimorgan. They should not
+be cumulative over the chromosomes. Other columns are ignored. Alternatively, a dataframe with a
+similar layout.}
 
 \item{mapSnpName}{the column corresponding to the SNP name in \code{map}, either a string or the
-column number. If \code{NULL} the first column is assumed to be the SNP name.}
+column number. If \code{NULL} the SNP name is constructed from the chromosome and position.}
 
 \item{mapChromosome}{the column corresponding to the cromosome number in \code{map}, either a string or the
-column number. If \code{NULL} the second column is assumed to be the chromosome number.}
+column number. Default the second column is assumed to be the chromosome number.}
 
 \item{mapPosition}{the column corresponding to the position in \code{map}, either a string or the
-column number. If \code{NULL} the third column is assumed to be the position.}
+column number. Default the third column is assumed to be the position.}
 
 \item{kin}{string, specifying a csv file with the kinship matrix, with genotypes in both the rows
-and the columns. Alternatively, an dataframe with a similar layout. Row names and column names should
+and the columns. Alternatively, a matrix with a similar layout. Row names and column names should
 be identical to column names in geno. If \code{NULL} a kinship matrix is computed from \code{geno}
 using GRM.}
 
@@ -54,7 +55,7 @@ an object of class gData with the following components:
 \item{nChr the number of chromosomes}
 \item{nGeno the number of genotypes}
 \item{nSNP the number of SNPs}
-\item{chrLengthsBp a numeric vector of chromosome lengths}
+\item{chrLengths a numeric vector of chromosome lengths}
 }
 }
 \description{
