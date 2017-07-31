@@ -116,5 +116,5 @@ Dahl et al. (2014). Network inference in matrix-variate Gaussian models with
 non-indenpent noise.
 
 Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
-genome-wide association studies.
+genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
 }

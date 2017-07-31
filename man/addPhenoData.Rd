@@ -4,23 +4,22 @@
 \alias{addPhenoData}
 \title{Add phenotypic data to a gData object}
 \usage{
-addPhenoData(gData, pheno, addVarMeans = FALSE, meanCols = 0,
-  addNormalTransform = FALSE, factorCols = NULL)
+addPhenoData(gData, pheno, factorCols = NULL)
 }
 \arguments{
 \item{gData}{an object of class \code{\link{gData}} to which the phenotypic data should be added.}
 
 \item{pheno}{string, specifying a csv file with genotype in the first column.}
 
-\item{factorCols}{a vector of columns in the csv file that should be imported as factors. Either a
-vector column names or of column numbers.}
+\item{factorCols}{a vector of columns that should be imported as factors from the csv file. Either a
+vector of column names or of column numbers.}
 }
 \value{
 the input object of class \code{\link{gData}} with the imported phenotypic data in the
 component pheno.
 }
 \description{
-Add phenotypic data from a csv file to a gData Object. The csv file should contain the genotype as
+Add phenotypic data from a csv file to a \code{\link{gData}} Object. The csv file should contain the genotype as
 its first column. Other columns are imported as numerical except for those in \code{factorCols} which are
 imported as factors.
 }

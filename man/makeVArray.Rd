@@ -28,5 +28,5 @@ transformed genotypes per individual as given by equation 4.
 }
 \references{
 Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
-genome-wide association studies, supplement 13-14.
+genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409.
 }

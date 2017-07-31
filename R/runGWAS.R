@@ -78,7 +78,6 @@
 #'
 #' @export
 
-
 # #snpCovariates.list <- list('AX-90548584')
 
 ## TO DO: more error checking
