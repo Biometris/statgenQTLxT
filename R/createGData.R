@@ -67,7 +67,7 @@ createGData <- function(geno,
       pheno <- list(pheno)
     }
     ## Convert all list items to matrices.
-    pheno <- apply(pheno, FUN = as.matrix)
+    pheno <- lapply(pheno, FUN = as.matrix)
   } else pheno <- NULL
 
   ## Modify geno

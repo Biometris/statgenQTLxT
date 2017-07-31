@@ -5,26 +5,26 @@
 \alias{fastGLSCov}
 \title{fastGLS}
 \usage{
-fastGLS(Y, X, Sigma)
+fastGLS(y, X, Sigma)
 
 fastGLSCov(y, X, Sigma, covs, nChunks = 10)
 }
 \arguments{
+\item{y}{a numeric vector of length n of phenotypic scores. No missing values allowed.}
+
 \item{X}{an n x m matrix of marker-scores, n being the number of individuals, m the number of markers.
 no missing values allowed.}
 
 \item{Sigma}{an n x n covariance matrix. No missing values allowed.}
-
-\item{y}{a numeric vector of length n of phenotypic scores. No missing values allowed.}
 
 \item{covs}{an n x c matrix of covariates (NOT including an intercept). No missing values allowed.}
 
 \item{nChunks}{an integer, the number of parts in which the calculations are split.}
 }
 \value{
-a list containing the following components:
+a data.frame with the following columns:
 \itemize{
-\item{\code{pValues} a vector of p-values for the GLS F-test}
+\item{\code{pValue} a vector of p-values for the GLS F-test}
 \item{\code{beta} a vector of effect sizes}
 \item{\code{betaSe} a vector of standard errors of the effect sizes}
 \item{\code{RLR2} a vector of R_LR^2 statistics as defined in Sun et al.}

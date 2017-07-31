@@ -10,9 +10,9 @@
 #' @param covs an n x c matrix of covariates (NOT including an intercept). No missing values allowed.
 #' @param nChunks an integer, the number of parts in which the calculations are split.
 #'
-#' @return a list containing the following components:
+#' @return a data.frame with the following columns:
 #' \itemize{
-#' \item{\code{pValues} a vector of p-values for the GLS F-test}
+#' \item{\code{pValue} a vector of p-values for the GLS F-test}
 #' \item{\code{beta} a vector of effect sizes}
 #' \item{\code{betaSe} a vector of standard errors of the effect sizes}
 #' \item{\code{RLR2} a vector of R_LR^2 statistics as defined in Sun et al.}
@@ -61,11 +61,11 @@ fastGLS <- function(y,
   }
 
   ## Matrix cookbook, 3.2.6 Rank-1 update of inverse of inner product
-  a  <- 1 / crossprod(tMInt)
+  a  <- 1 / as.numeric(crossprod(tMInt))
   vv <- colSums(tMX ^ 2)
-  vX <- crossprod(tMInt,  tMX)
+  vX <- as.numeric(crossprod(tMInt,  tMX))
   nn <- 1 / (vv - a * vX ^ 2)
-  XtXinv2ndRows <- c(-1 * a * vX * nn, nn)
+  XtXinv2ndRows <- cbind(-1 * a * vX * nn, nn)
   Xty <- cbind(rep(as.numeric(crossprod(tMInt, tMy), length(nn))), as.numeric(crossprod(tMy, tMX)))
   betaVec <- XtXinv2ndRows[, 1] * Xty[, 1] + XtXinv2ndRows[, 2] * Xty[, 2]
 
@@ -78,7 +78,12 @@ fastGLS <- function(y,
   # the R_LR^2 statistic from G. Sun et al 2010, heredity
   RLR2  <- 1 - exp((RSSFull - RSSEnv) / n)
 
-  return(list(pValues = pVal, beta = betaVec, betaSe = sqrt(XtXinv2ndRows[, 2]), RLR2 = RLR2))
+  GLS <- data.frame(pValue= pVal,
+    beta = betaVec,
+    betaSe = sqrt(XtXinv2ndRows[, 2]),
+    RLR2 = RLR2)
+
+  return(GLS)
 }
 
 #' @rdname fastGLS
@@ -162,5 +167,10 @@ fastGLSCov <-function(y,
   # the R_LR^2 statistic from G. Sun et al 2010, heredity
   RLR2  <- 1 - exp((RSSFull - RSSEnv) / n)
 
-  return(list(pValues = pVal, beta = betaVec, betaSe = sqrt(XtXinvLastRows[, 2]), RLR2 = RLR2))
+  GLS <- data.frame(pValue= pVal,
+    beta = betaVec,
+    betaSe = sqrt(XtXinvLastRows[, 2]),
+    RLR2 = RLR2)
+
+  return(GLS)
 }
