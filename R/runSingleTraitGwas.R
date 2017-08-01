@@ -200,12 +200,10 @@ runSingleTraitGwas <- function (gData,
   # Otherwise, it will be a dataframe with ones in the first
   # column, and the actual covariates in subsequent columns
 
-  if (!covariables) {
+  if (!is.null(covar)) {
     cov.cols  <- integer(0)
     covariate.file  <- ""
-  }
-
-  if (covariables) {
+  } else {
     # IF ONE OR MORE OF THE COVARIATES IN cov.cols is a factor: these are now "expanded" (i.e. dummy variables are created) using model.matrix
     # The new dummies are attached to gData$pheno, and cov.cols is changed accordingly
     factor.covs <- as.integer(which(lapply(gData$pheno,class)[cov.cols]=="factor"))
@@ -225,72 +223,77 @@ runSingleTraitGwas <- function (gData,
 
   ####################################################
 
-  if (make.all.trait.significant.snp.file) {cat("",file=paste("results/",all.trait.significant.snp.file,sep=""))}
-
-  if (make.all.trait.h2.file) {
-    all.traits <- data.frame(trait=names(gData$pheno)[trait.numbers],h2=rep(NA,length(trait.numbers)),inflation=rep(NA,length(trait.numbers)))
-  }
-
-  if (make.one.file.with.all.lod.scores) {
-    all.lod.scores.frame <- data.frame(gData$map,matrix(NA,gData$N,length(trait.numbers)))
-    names(all.lod.scores.frame)[-(1:ncol(gData$map))] <- names(gData$pheno)[trait.numbers]
-  }
-
-  if (make.one.file.with.all.snp.effects) {
-    all.snp.effects.frame <- data.frame(gData$map,matrix(NA,gData$N,length(trait.numbers)))
-    names(all.snp.effects.frame)[-(1:ncol(gData$map))] <- names(gData$pheno)[trait.numbers]
-  }
+  # if (make.all.trait.significant.snp.file) {cat("",file=paste("results/",all.trait.significant.snp.file,sep=""))}
+  #
+  # if (make.all.trait.h2.file) {
+  #   all.traits <- data.frame(trait=names(gData$pheno)[trait.numbers],h2=rep(NA,length(trait.numbers)),inflation=rep(NA,length(trait.numbers)))
+  # }
+  #
+  # if (make.one.file.with.all.lod.scores) {
+  #   all.lod.scores.frame <- data.frame(gData$map,matrix(NA,gData$N,length(trait.numbers)))
+  #   names(all.lod.scores.frame)[-(1:ncol(gData$map))] <- names(gData$pheno)[trait.numbers]
+  # }
+  #
+  # if (make.one.file.with.all.snp.effects) {
+  #   all.snp.effects.frame <- data.frame(gData$map,matrix(NA,gData$N,length(trait.numbers)))
+  #   names(all.snp.effects.frame)[-(1:ncol(gData$map))] <- names(gData$pheno)[trait.numbers]
+  # }
 
   ###################################################################################################
 
 
-  if (covariables) {
+  if (!is.null(covar)) {
     temp.pheno <- gData$pheno
   }
 
-  #######################################################################################################################################################################
-  #######################################################################################################################################################################
-  #######################################################################################################################################################################
+  ## TO DO: loop over fields
+  ## TO DO: convert traits to string per field
+  ## TO DO: convert covariates to string per field
 
-  for (trait in trait.numbers) {  # loop over traits
-    #trait = trait.numbers[1]
+  field <- 1
+  phenoField <- tibble::rownames_to_column(as.data.frame(gData$pheno[[field]]), var = "genotype")
+
+  ## Perform GWAS for all traits
+  for (trait in traits) {
+    # trait <- "anthesis.ARIHAS_2013_drought"
 
     start.date <- date()
 
-    if (strsplit(names(gData$pheno)[trait],split=" ")[[1]][1]!=names(gData$pheno)[trait]) {
-      stop(paste("ERROR: the variable name",names(gData$pheno)[trait],"should not contain spaces."))
-    }
-
-    if (covariables) {
-      # if covariates are used, all phenotypic values (for the current trait) for which at least one covariate is missing, are set to missing
+    if (!is.null(covar)) {
+      ## if covariates are used, all phenotypic values (for the current trait) for which at least one
+      ## covariate is missing, are set to missing
       gData$pheno[apply(as.data.frame(gData$pheno[, cov.cols]), 1, function(x) {sum(is.na(x))}) >0 , trait]  <- NA
     }
 
+    ## Select genotypes where trait is not missing
+    nonMissing <- unique(phenoField$genotype[!is.na(phenoField[trait])])
+    kinshipRed <- gData$kinship[nonMissing, nonMissing]
+    nonMissingRepId <- phenoField$genotype[!is.na(phenoField[trait])]
 
-    # the name of the trait, which will be the basis of many file names:
-    trait <- names(gData$pheno)[trait]
-
-
-    ###############################################################
-    # ESTIMATION OF THE VARIANCE COMPONENTS WITH EITHER EMMA OR ASREML
-
-
+    ## Estimate variance components
     if (reml.algo=="asreml") {
 
-      random.formula <- as.formula("~ giv(genotype,var=T)")
+      random <- as.formula("~ giv(genotype, var = TRUE)")
 
-      if (sum(cov.cols)!=0) {  # reml.formula is the formula for the fixed part of the model
-        reml.formula        <- as.formula(paste(paste(names(gData$pheno)[trait],"~"),paste(names(gData$pheno)[cov.cols],collapse="+")))
+      if (!is.null(covar)) {  # reml.formula is the formula for the fixed part of the model
+        fixed <- as.formula(paste(trait," ~ "), paste(covar, collapse = " + "))
       } else {
-        reml.formula        <- as.formula(paste(names(gData$pheno)[trait],"~ 1"))
+        fixed <- as.formula(paste(trait, " ~ 1"))
       }
 
-      reml.obj            <- asreml(aom=F,maxiter = 25,fixed= reml.formula,data=gData$pheno[!is.na(gData$pheno[,trait]),],
-        random = random.formula,na.method.X="omit",ginverse = list(genotype=gData$kinship.asreml))
+      reml.obj <- asreml::asreml(fixed = fixed, random = random, data = phenoField[!is.na(phenoField[, trait]), ],
+        na.method.X = "omit", ginverse = list(genotype = solve(kinshipRed)),
+        aom = FALSE, maxiter = 25)
 
-      varcomp.values      <- data.frame(var.comp.values=summary(reml.obj)$varcomp$component)
-      varcomp.std         <- summary(reml.obj)$varcomp$std.error
+      ## TO DO: CHECK!!!
+      sommerObj <- sommer::mmer2(fixed = fixed, data = phenoField, random = ~ sommer::g(genotype),
+        G = list(genotype = kinshipRed), MVM = TRUE)
 
+      vcov.matrix <- sommerObj$var.comp[1,1] * gData$kinship[phenoField$genotype, phenoField$genotype] +
+        sommerObj$var.comp[nrow(sommerObj$var.comp), 1] * diag(nrow(gData$kinship[phenoField$genotype, phenoField$genotype]))
+
+      varcomp.values <- data.frame(var.comp.values = summary(reml.obj)$varcomp$component)
+      varcomp.std <- summary(reml.obj)$varcomp$std.error
     }
 
     if (reml.algo=="emma" & GLSMethod!=4) {
@@ -316,7 +319,6 @@ runSingleTraitGwas <- function (gData,
           K.user=gData[[which(names(gData)==paste0('kchr',chr))]])
         varcomp.values.list[[which(chr==gData$chromosomes)]]      <- data.frame(var.comp.values=emma.obj.list[[which(chr==gData$chromosomes)]][[1]])
       }
-      #varcomp.std         <- c(NA,NA)
     }
 
 
@@ -362,31 +364,25 @@ runSingleTraitGwas <- function (gData,
       }
     }
 
-    ################################################
 
-    nonMissing <- unique(gData$pheno$genotype[!is.na(gData$pheno[, trait])])
-    kinship.reduced <- gData$kinship[nonMissing, nonMissing]
-
-    nonMissingRepId <- row.names(gData$pheno[!is.na(gData$pheno[, trait]),])
-    nonMissingRepGeno <- gData$pheno$genotype[!is.na(gData$pheno[, trait])]
 
     # Name of the scan_GLS output-file
-    output.file         <- paste("results/",trait,".","output",suffix,".csv",sep="")
+    output.file <- paste("results/",trait,".","output",suffix,".csv",sep="")
 
     ################################################
     # GWA USING scan_GLS (1), FaST-LMM (2), or R (3+4)
     maxScore <- max(gData$markers, na.rm = TRUE)
 
     ## Compute allele frequencies based on genotypes for which phenotypic data is available.
-    allFreq <- rowMeans(gData$markers[, nonMissing])
+    allFreq <- colMeans(gData$markers[nonMissing, ])
 
     ## variances of marker scores, based on genotypes for which phenotypic data is available.
     ## for inbreeders, this depends on maxScore. It is therefore scaled to marker scores 0, 1
     ## (or 0, 0.5, 1 if there are heterozygotes)
-    allVar <- apply(gData$markers[, nonMissing], 1, var) / maxScore ^ 2
+    allVar <- apply(gData$markers[nonMissing, ], 2, var) / maxScore ^ 2
 
     # allele frequencies based on all genotypes (trait-independent)
-    allFreqTot <- rowMeans(gData$markers)
+    allFreqTot <- colMeans(gData$markers)
 
     if (maxScore == 2) {
       allFreq <- allFreq / 2
@@ -544,13 +540,13 @@ runSingleTraitGwas <- function (gData,
       Sigma <- vcov.matrix
 
       ## The following is based on the genotypes, not the replicates:
-      markerMeans <- rowMeans(gData$markers[, nonMissing])
+      markerMeans <- colMeans(gData$markers[nonMissing, ])
       segMarkers <- which(markerMeans >= maxScore * MAF & markerMeans <= maxScore * (1 - MAF))
 
-      X.temp <- t(gData$markers[segMarkers, nonMissingRepGeno])
+      X.temp <- gData$markers[nonMissingRepId, segMarkers]
       rownames(X.temp) <- nonMissingRepId
-      Y.temp <- gData$pheno[!is.na(gData$pheno[, trait]), trait]
-      colnames(Y.temp) <- nonMissingRepId
+      Y.temp <- phenoField[!is.na(phenoField[trait]), trait]
+      names(Y.temp) <- nonMissingRepId
 
       GWAResult <- data.frame(snp = rownames(gData$map),
         gData$map,
@@ -582,7 +578,7 @@ runSingleTraitGwas <- function (gData,
 
       ## Calculate the genomic inflation factor and rescale p-values
       GC <- genomicControlPValues(pVals = GWAResult$pValue,
-        nObs = sum(!is.na(gData$pheno[, trait])),
+        nObs = sum(!is.na(phenoField[trait])),
         nCov = length(cov.cols))
       inflationFactor <- GC[[2]]
       if (genomicControl) {
@@ -606,10 +602,10 @@ runSingleTraitGwas <- function (gData,
         allFreq = allFreq,
         row.names = rownames(gData$map))
 
-      if (sum(cov.cols)==0) {
+      if (sum(cov.cols) == 0) {
         for (chr in gData$chromosomes) {
           X.temp <- t(gData$markers[intersect(which(gData$map$chromosome == chr), segMarkers),
-            nonMissingRepGeno])
+            nonMissingRepId])
           rownames(X.temp) <- nonMissingRepId
           Sigma <- vcov.matrix.list[[which(chr == gData$chromosomes)]]
           GLSResult <- fastGLS(y = Y.temp, X = X.temp, Sigma = Sigma)
@@ -620,13 +616,13 @@ runSingleTraitGwas <- function (gData,
         rownames(Z)<- nonMissingRepId
         for (chr in gData$chromosomes) {
           X.temp <- t(gData$markers[intersect(which(gData$map$chromosome == chr), segMarkers),
-            nonMissingRepGeno])
+            nonMissingRepId])
           row.names(X.temp) <- nonMissingRepId
           Sigma <- vcov.matrix.list[[which(chr == gData$chromosomes)]]
           GLSResult <- fastGLSCov(y = Y.temp, X = X.temp, Sigma = Sigma, covs = Z)
         }
       }
-      GWAResult[intersect(which(gData$map$chromosome==chr),segMarkers),
+      GWAResult[intersect(which(gData$map$chromosome == chr), segMarkers),
         c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
 
       ## Effects should be for a single allele, not for 2
@@ -636,7 +632,7 @@ runSingleTraitGwas <- function (gData,
 
       ## Calculate the genomic inflation factor and rescale p-values
       GC <- genomicControlPValues(pVals = GWAResult$pValue,
-        nObs = sum(!is.na(gData$pheno[, trait])),
+        nObs = sum(!is.na(phenoField[trait])),
         nCov = length(cov.cols))
       inflationFactor <- GC[[2]]
       if (genomicControl) {
@@ -646,14 +642,12 @@ runSingleTraitGwas <- function (gData,
       #rm(X.temp)
     }
 
-    nEff <- sum(!is.na(GWAResult$pvalue))
-
-
+    nEff <- sum(!is.na(GWAResult$pValue))
     ## Calculate the significance threshold
     ## When boundType is 1, 3 or 4, determine the LOD-threshold
 
     if (boundType == 1) {
-      LODThr <- -log10(alpha/nEff)
+      LODThr <- -log10(alpha / nEff)
       # } else if (boundType == 3) {
       #     LODThr <- sort(-log10(na.omit(GWAResult$pvalue)),decreasing=T)[K]
       # } else if (boundType == 4) {
@@ -716,17 +710,18 @@ runSingleTraitGwas <- function (gData,
       } else if (GLSMethod %in% 3:4) {
         effects <- GWAResult$effect[snpSelection]
         snpVar <- 4 * effects ^ 2 * allVar[snpSelection]
-        propSnpVar <- snpVar / var(as.numeric(na.omit(gData$pheno[, trait])))
+        propSnpVar <- snpVar / as.numeric(var(na.omit(phenoField[trait])))
       }
 
-      snpSig <- data.frame(marker = rownames(gData$markers)[snpSelection],
+      snpSig <- data.frame(marker = colnames(gData$markers)[snpSelection],
         gData$map[snpSelection, ],
         pValue = GWAResult$pValue[snpSelection],
         snpStatus,
         allFreq = allFreq[snpSelection],
         effects,
         propVarLRT = GWAResult$RLR2[snpSelection],
-        propSnpVar = propSnpVar)
+        propSnpVar = propSnpVar,
+        stringsAsFactors = FALSE)
 
 
       #############

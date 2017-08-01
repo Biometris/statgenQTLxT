@@ -20,7 +20,7 @@ genomicControlPValues <- function(pVals,
   nObs,
   nCov = 0) {
   ## Check input.
-  if (missing(pVals) || !is.numeric(pVals) || any(pVals, na.rm = TRUE) < 0 || any(pVals, na.rm = TRUE) > 1)
+  if (missing(pVals) || !is.numeric(pVals) || any(pVals < 0, na.rm = TRUE) || any(pVals > 1, na.rm = TRUE))
     stop("pVals should be a numeric vector with values between 0 and 1.\n")
   if (missing(nObs) || length(nObs) > 1 || !is.numeric(nObs) || nObs != round(nObs) || nObs < 1)
     stop("nObs should be a single integer > 0.\n")

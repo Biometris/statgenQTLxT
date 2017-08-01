@@ -4,19 +4,30 @@
 \alias{runSingleTraitGwas}
 \title{run single trait GWAS}
 \usage{
-runSingleTraitGwas(gData, GLSMethod = 3, sizeIncludedRegion = 0, minR2,
-  useMAF = TRUE, MAF = 0.05, MAC = 10)
+runSingleTraitGwas(gData, traits = NULL, fields = NULL, covar = NULL,
+  GLSMethod = 3, sizeIncludedRegion = 0, minR2, useMAF = TRUE,
+  MAF = 0.05, MAC = 10, genomicControl = FALSE, boundType = 1,
+  alpha = 0.05, LODThr = 4)
 }
 \arguments{
-\item{gData}{an object of class \code{gData}}
+\item{gData}{an object of class \code{gData} containing at least a data.frame \code{pheno}.}
+
+\item{traits}{a vector of traits on which to run GWAS. These can be either numeric indices or
+string names of columns in \code{pheno}. If \code{NULL} GWAS is run on all traits.}
+
+\item{fields}{a vector of fields on which to run GWAS. These can be either numeric indices or
+string names of list items in \code{pheno}. If \code{NULL} GWAS is run for all fields.}
+
+\item{covar}{a vector of covariates taken into account when running GWAS. These can be either
+numeric indices or string names of columns in \code{covar} in \code{gData}. If \code{NULL} no
+covariates are used.}
 
 \item{GLSMethod}{an integer indicating the software used to estimate the marker effects.
 \enumerate{
-\item{scan_GLS (not available when there are heterozygotes) - NOT IMPLEMENTED YET}
-\item{Fast-LMM - NOT IMPLEMENTED YET}
+\item{scan_GLS (not available when there are heterozygotes) -- NOT YET IMPLEMENTED}
+\item{Fast-LMM -- NOT YET IMPLEMENTED}
 \item{within R}
-\item{within R, with chromosome specific kinship matrices; similar to the approach of Rincent et al.
-(genetics, 2014)}
+\item{within R, with chromosome specific kinship matrices; similar to the approach of Rincent et al.}
 }}
 
 \item{sizeIncludedRegion}{an integer. Should the results for SNPs close to significant SNPs
@@ -39,10 +50,33 @@ put to missing (NA). Ignored if \code{useMAF} is \code{FALSE}.}
 \item{MAC}{A numerical value. SNPs with minor allele count below this value are not
 taken into account for the analysis, i.e. p-values and effect sizes are put to missing (NA).
 Ignored if \code{useMAF} is \code{TRUE}.}
+
+\item{genomicControl}{should genomic control correction as in Devlin and Roeder be applied?}
+
+\item{boundType}{an integer indicating the type of threshold used for the selection of candidate
+loci.
+\enumerate{
+\item{Bonferroni; a LOD-threshold of -log10(alpha/p), where p is the number of markers and alpha
+can be specified in alpha.}
+\item{a self-chosen LOD-threshold, specied in LODThr.}
+\item{the LOD-threshold is chosen such the the SNPs with the K smallest p-values are selected. K can
+be specified -- NOT YET IMPLEMENTED}
+\item{Bonferroni; as option 1 but with p replaced by the number of effective tests approach
+as in Gao et al. -- NOT YET IMPLEMENTED}
+}}
+
+\item{alpha}{a numerical value used for calculating the LOD-threshold for \code{boundType} = 1.}
+
+\item{LODThr}{a numerical value used as a LOD-threshold when \code{boundType} = 2.}
 }
 \description{
 run single trait GWAS
 }
 \references{
 Rincent et al. (2014) ....
+
+Devlin, B. and Roeder K. (1999) Genomic control for association studies. Biometrics,
+December 1999, Vol. 55(4), p. 997-1004.
+
+Gao et al. (2008, 2010)
 }

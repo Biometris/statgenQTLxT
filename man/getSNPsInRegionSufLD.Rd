@@ -23,6 +23,6 @@ have a minimum LD with the reference SNP.
 }
 \description{
 \code{getSNPsInRegionSufLD} extracts the SNPs from a map file that are within a given distance
-of a reference SNP (on either side). Only those SNPs that are in sufficient LD with the
-reference SNP are returned.
+of a reference SNP (on either side). Only those SNPs that are in sufficient linkage disequilibrium
+(LD) with the reference SNP are returned.
 }
