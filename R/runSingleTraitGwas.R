@@ -1,13 +1,19 @@
 #' run single trait GWAS
 
-#' @param gData an object of class \code{gData}
+#' @param gData an object of class \code{gData} containing at least a data.frame \code{pheno}.
+#' @param traits a vector of traits on which to run GWAS. These can be either numeric indices or
+#' string names of columns in \code{pheno}. If \code{NULL} GWAS is run on all traits.
+#' @param fields a vector of fields on which to run GWAS. These can be either numeric indices or
+#' string names of list items in \code{pheno}. If \code{NULL} GWAS is run for all fields.
+#' @param covar a vector of covariates taken into account when running GWAS. These can be either
+#' numeric indices or string names of columns in \code{covar} in \code{gData}. If \code{NULL} no
+#' covariates are used.
 #' @param GLSMethod an integer indicating the software used to estimate the marker effects.
 #' \enumerate{
-#' \item{scan_GLS (not available when there are heterozygotes) - NOT IMPLEMENTED YET}
-#' \item{Fast-LMM - NOT IMPLEMENTED YET}
+#' \item{scan_GLS (not available when there are heterozygotes) -- NOT YET IMPLEMENTED}
+#' \item{Fast-LMM -- NOT YET IMPLEMENTED}
 #' \item{within R}
-#' \item{within R, with chromosome specific kinship matrices; similar to the approach of Rincent et al.
-#' (genetics, 2014)}
+#' \item{within R, with chromosome specific kinship matrices; similar to the approach of Rincent et al.}
 #' }
 #' @param sizeIncludedRegion an integer. Should the results for SNPs close to significant SNPs
 #' be included? If so, the size of the region in centimorgan or base pairs. Otherwise 0.
@@ -25,21 +31,46 @@
 #' @param MAC A numerical value. SNPs with minor allele count below this value are not
 #' taken into account for the analysis, i.e. p-values and effect sizes are put to missing (NA).
 #' Ignored if \code{useMAF} is \code{TRUE}.
+#' @param genomicControl should genomic control correction as in Devlin and Roeder be applied?
+#' @param boundType an integer indicating the type of threshold used for the selection of candidate
+#' loci.
+#' \enumerate{
+#' \item{Bonferroni; a LOD-threshold of -log10(alpha/p), where p is the number of markers and alpha
+#' can be specified in alpha.}
+#' \item{a self-chosen LOD-threshold, specied in LODThr.}
+#' \item{the LOD-threshold is chosen such the the SNPs with the K smallest p-values are selected. K can
+#' be specified -- NOT YET IMPLEMENTED}
+#' \item{Bonferroni; as option 1 but with p replaced by the number of effective tests approach
+#' as in Gao et al. -- NOT YET IMPLEMENTED}
+#' }
+#' @param alpha a numerical value used for calculating the LOD-threshold for \code{boundType} = 1.
+#' @param LODThr a numerical value used as a LOD-threshold when \code{boundType} = 2.
+#'
 #'
 #' @references Rincent et al. (2014) ....
-
-
+#' @references Devlin, B. and Roeder K. (1999) Genomic control for association studies. Biometrics,
+#' December 1999, Vol. 55(4), p. 997-1004.
+#' @references Gao et al. (2008, 2010)
+#'
+#' @import stats
 
 
 
 
 runSingleTraitGwas <- function (gData,
+  traits = NULL,
+  fields = NULL,
+  covar = NULL,
   GLSMethod = 3,
   sizeIncludedRegion = 0,
   minR2,
   useMAF = TRUE,
   MAF = 0.05,
-  MAC = 10) {
+  MAC = 10,
+  genomicControl = FALSE,
+  boundType = 1,
+  alpha = 0.05 ,
+  LODThr = 4) {
 
 
   if (is.null(GLSMethod) || length(GLSMethod) > 1 || !is.numeric(GLSMethod) || !(GLSMethod %in% 1:4)) {
@@ -56,33 +87,21 @@ runSingleTraitGwas <- function (gData,
       stop("minR2 should be an numerical value between 0 and 1\n")
   }
 
-
-
-
-  if (strsplit(data.path,split=" ")[[1]][1]!=data.path) {
-    stop("ERROR: data.path should not contain spaces.")
-  }
-  if (strsplit(script.path,split=" ")[[1]][1]!=script.path) {
-    stop("ERROR: scipt.path should not contain spaces.")
-  }
-
   if (useMAF) {
     if (MAF == 0) {MAF <- 1e-6}
   } else {
     if (MAC == 0) {MAC <- 1}
   }
 
-  setwd(data.path)
-
   # Create the subdirectory structure. If it already exists, nothing is done.
-  dir.create("results", showWarnings = F)
-  dir.create("plots", showWarnings = F)
-  dir.create("output", showWarnings = F)
+  #dir.create("results", showWarnings = F)
+  #dir.create("plots", showWarnings = F)
+  #dir.create("output", showWarnings = F)
 
   ####################################################################################################################################################
   # load functions and data:
 
-  if (GLSMethod==4) {
+  if (GLSMethod == 4) {
     if (!(all(paste0('kchr',gData$chromosomes) %in% names(gData)))) {
       stop("If GLSMethod=4, gData should contain chromosome-specific-kinship matrices kchr1, kchr2, etc.")
     }
@@ -90,43 +109,13 @@ runSingleTraitGwas <- function (gData,
       kinship.type <- 1
       cat(paste0('Warning: GLSMethod=4: Therefore the kinship matrix contained in ',alternative.kinship.name,' is ignored.','\n'))
     }
-    if (reml.algo=="asreml") {
-      reml.algo <- 'emma'
-      cat(paste0('Warning: GLSMethod=4: Therefore reml.algo is set to emma','\n'))
-    }
-    if (h2.fixed==TRUE) {
-      h2.fixed <- FALSE
-      cat(paste0('Warning: GLSMethod=4: Therefore h2.fixed is set to FALSE','\n'))
-    }
-    #if (!all(gData$chromosomes==1:gData$nchr)) {
-    #  stop("When GLSMethod=4, the chromosomes in gData (indicated by gData$chromosomes)\n should be labeled 1,...,k, where k is the number given by gData$nchr")
-    #}
-    if (make.all.trait.h2.file==TRUE) {
-      make.all.trait.h2.file <- FALSE
-      cat(paste0('Warning: GLSMethod=4: Therefore make.all.trait.h2.file is set to FALSE','\n'))
-    }
+
+   # if (make.all.trait.h2.file==TRUE) {
+  #    make.all.trait.h2.file <- FALSE
+  #    cat(paste0('Warning: GLSMethod=4: Therefore make.all.trait.h2.file is set to FALSE','\n'))
+  #  }
   }
 
-  source(paste0(script.path,"gwas_functions.R"))
-
-  if (add.phenotypic.data) {
-    gData <- AddPhenoData(gData=gData,csv.file.name=csv.file.name,add.var.means=F,make.pheno.image=F,pheno.image.name="",
-      which.columns.as.factor=which.columns.as.factor)
-
-    if (length(which.columns.as.factor) > 0) {
-      if (!all(which.columns.as.factor %in% 2:ncol(gData$pheno))) {
-        stop("ERROR: which.columns.as.factor should be integer(0) (the default), or a number \n between 2 and the number of columns in the .csv file with the phenotypes")
-      }
-    }
-
-    for (k in which.columns.as.factor) {
-      if ("NA" %in% levels(gData$pheno[,k])) {
-        #gData$pheno[which(is.na(gData$pheno[,2])),2] <- "NA"
-        is.na(gData$pheno[,k])[gData$pheno[,k]=="NA"] <- TRUE
-        suppressWarnings(gData$pheno[,k] <- factor(gData$pheno[,k],exclude="NA"))
-      }
-    }
-  }
 
   if (!all(trait.numbers %in% setdiff(2:ncol(gData$pheno),which.columns.as.factor))) {
     stop("ERROR: all numbers in the vector trait.numbers should be between 2 and the \n number of columns in the .csv file with the phenotypes. \n In addition, colmun-numbers declared in which.columns.as.factor cannot be in trait.numbers")
@@ -144,11 +133,6 @@ runSingleTraitGwas <- function (gData,
   } #else {
   #  source(paste(script.path,"emma.R",sep=""))
   #}
-
-  if (var.explained.snp.random & (!is.installed("asreml"))) {
-    cat("WARNING: asreml is not available; the option var.explained.snp.random is set to FALSE","\n")
-    var.explained.snp.random <- FALSE
-  }
 
 
   # For all columns in gData$pheno that are factors, check if there are missing values; in that case, remove the corresponding rows
@@ -174,7 +158,7 @@ runSingleTraitGwas <- function (gData,
   }
 
   if (kinship.type==2) {
-    #genomic.control <- T
+    #genomicControl <- T
     gData$external$kinship.name <- alternative.kinship.name
     gData$kinship               <- read.table(file=gData$external$kinship.name,sep=",",header=T,check.names=F)
     gData$external$kinship.name <- paste("temp_",alternative.kinship.name,sep="")
@@ -190,20 +174,20 @@ runSingleTraitGwas <- function (gData,
   }
 
 
-  if (GLSMethod==2) {
-    if (!file.exists(paste(gData$external$plink.name,".bed",sep=""))) {
-      cat("Creating PLINK binary files; this may take a while.\n")
-      MakePlinkFiles(gData,file.name=plink.file.name)
-      gData <- AddBinaryPlinkFilesToGwasObj(gData=gData,plink.name=plink.file.name)
-      save(gData,file=r.image.name)
-      cat("",file="fastlmmLog.txt")
-      #   if (show.call) {cat(command.string,"\n",file="fastlmmLog.txt")}
-    }
-    #!# minor allele fr's should be based on only those accessions for which phenotypic values are available
-    #minor.allele.frequencies <- apply(gData$markers,1,function(x){mean(as.numeric(x))})
-    #minor.allele.frequencies[minor.allele.frequencies>.5] <-  1-minor.allele.frequencies[minor.allele.frequencies>.5]
-
-  }
+  # if (GLSMethod==2) {
+  #   if (!file.exists(paste(gData$external$plink.name,".bed",sep=""))) {
+  #     cat("Creating PLINK binary files; this may take a while.\n")
+  #     MakePlinkFiles(gData,file.name=plink.file.name)
+  #     gData <- AddBinaryPlinkFilesToGwasObj(gData=gData,plink.name=plink.file.name)
+  #     save(gData,file=r.image.name)
+  #     cat("",file="fastlmmLog.txt")
+  #     #   if (show.call) {cat(command.string,"\n",file="fastlmmLog.txt")}
+  #   }
+  #   #!# minor allele fr's should be based on only those accessions for which phenotypic values are available
+  #   #minor.allFreqSel <- apply(gData$markers,1,function(x){mean(as.numeric(x))})
+  #   #minor.allFreqSel[minor.allFreqSel>.5] <-  1-minor.allFreqSel[minor.allFreqSel>.5]
+  #
+  # }
 
   if (reml.algo == "asreml") {
     gData$kinship.asreml <- MakeKinshipAsreml(gData$kinship,genotype.names=gData$plant.names)
@@ -268,23 +252,23 @@ runSingleTraitGwas <- function (gData,
   #######################################################################################################################################################################
   #######################################################################################################################################################################
 
-  for (tr.n in trait.numbers) {  # loop over traits
-    #tr.n = trait.numbers[1]
+  for (trait in trait.numbers) {  # loop over traits
+    #trait = trait.numbers[1]
 
     start.date <- date()
 
-    if (strsplit(names(gData$pheno)[tr.n],split=" ")[[1]][1]!=names(gData$pheno)[tr.n]) {
-      stop(paste("ERROR: the variable name",names(gData$pheno)[tr.n],"should not contain spaces."))
+    if (strsplit(names(gData$pheno)[trait],split=" ")[[1]][1]!=names(gData$pheno)[trait]) {
+      stop(paste("ERROR: the variable name",names(gData$pheno)[trait],"should not contain spaces."))
     }
 
     if (covariables) {
       # if covariates are used, all phenotypic values (for the current trait) for which at least one covariate is missing, are set to missing
-      gData$pheno[apply(as.data.frame(gData$pheno[,cov.cols]),1,function(x){sum(is.na(x))})>0,tr.n]  <- NA
+      gData$pheno[apply(as.data.frame(gData$pheno[, cov.cols]), 1, function(x) {sum(is.na(x))}) >0 , trait]  <- NA
     }
 
 
     # the name of the trait, which will be the basis of many file names:
-    trait       <- names(gData$pheno)[tr.n]
+    trait <- names(gData$pheno)[trait]
 
 
     ###############################################################
@@ -296,12 +280,12 @@ runSingleTraitGwas <- function (gData,
       random.formula <- as.formula("~ giv(genotype,var=T)")
 
       if (sum(cov.cols)!=0) {  # reml.formula is the formula for the fixed part of the model
-        reml.formula        <- as.formula(paste(paste(names(gData$pheno)[tr.n],"~"),paste(names(gData$pheno)[cov.cols],collapse="+")))
+        reml.formula        <- as.formula(paste(paste(names(gData$pheno)[trait],"~"),paste(names(gData$pheno)[cov.cols],collapse="+")))
       } else {
-        reml.formula        <- as.formula(paste(names(gData$pheno)[tr.n],"~ 1"))
+        reml.formula        <- as.formula(paste(names(gData$pheno)[trait],"~ 1"))
       }
 
-      reml.obj            <- asreml(aom=F,maxiter = 25,fixed= reml.formula,data=gData$pheno[!is.na(gData$pheno[,tr.n]),],
+      reml.obj            <- asreml(aom=F,maxiter = 25,fixed= reml.formula,data=gData$pheno[!is.na(gData$pheno[,trait]),],
         random = random.formula,na.method.X="omit",ginverse = list(genotype=gData$kinship.asreml))
 
       varcomp.values      <- data.frame(var.comp.values=summary(reml.obj)$varcomp$component)
@@ -310,36 +294,12 @@ runSingleTraitGwas <- function (gData,
     }
 
     if (reml.algo=="emma" & GLSMethod!=4) {
-      if (h2.fixed) {
-
-        kinship.reduced  <- MakeScanGlsKinship(1,0,gData$kinship,plant.names=gData$plant.names,gData$pheno,tr.n=tr.n)
-        Knr <- kinship.reduced / KinshipTransform(kinship.reduced)
-        Knr <- kinship.reduced
-
-        delta <- h2 / (1-h2)
-        evk <- eigen(Knr)
-        U <- evk[[2]]
-        v <- evk[[1]]
-        xbar <- apply(U,2,sum)
-        ybar <- as.numeric(t(U) %*% as.matrix(gData$pheno[!is.na(gData$pheno[,tr.n]),tr.n]))
-        sbar <- 1/(v+delta)
-        betahat <- sum(sbar * xbar * ybar) / sum(sbar * xbar * xbar)
-        sigmaG2 <- mean(sbar * (ybar - betahat * xbar)^2)
-        sigmaE2 <- delta * sigmaG2
-        varcomp.values      <- data.frame(var.comp.values=c(sigmaG2/KinshipTransform(kinship.reduced),sigmaE2))
-
-      } else {
-
-        emma.obj            <- RunEmma(gData=gData,tr.n,cov.cols)
-        varcomp.values      <- data.frame(var.comp.values=emma.obj[[1]])
-
-      }
-
+      emma.obj            <- RunEmma(gwas.obj =gData,trait,cov.cols)
+      varcomp.values      <- data.frame(var.comp.values=emma.obj[[1]])
       varcomp.std         <- c(NA,NA)
-
     }
 
-    #emma.obj = RunEmma(gData=gData,tr.n,cov.cols)
+    #emma.obj = RunEmma(gData=gData,trait,cov.cols)
     #vr = emma.obj[[1]][1] * emma.obj[[2]] + emma.obj[[1]][2] * diag(nrow(emma.obj[[2]]))
     # sum(abs(vcov.matrix - vr))
 
@@ -347,20 +307,16 @@ runSingleTraitGwas <- function (gData,
 
 
     if (reml.algo=="emma" & GLSMethod==4) {
-
       emma.obj.list       <- list()
       varcomp.values.list <- list()
 
       for (chr in gData$chromosomes) {
 
-        emma.obj.list[[which(chr==gData$chromosomes)]]  <- RunEmma(gData=gData,tr.n,cov.cols,
+        emma.obj.list[[which(chr==gData$chromosomes)]]  <- RunEmma(gwas.obj = gData,trait,cov.cols,
           K.user=gData[[which(names(gData)==paste0('kchr',chr))]])
         varcomp.values.list[[which(chr==gData$chromosomes)]]      <- data.frame(var.comp.values=emma.obj.list[[which(chr==gData$chromosomes)]][[1]])
-
       }
-
       #varcomp.std         <- c(NA,NA)
-
     }
 
 
@@ -368,752 +324,555 @@ runSingleTraitGwas <- function (gData,
     # CREATE PHENO-TYPE FILE + VARCOMP-FILE FOR  SCAN-GLS / FAST-LMM
     #
 
-    if (GLSMethod==1) {
+    # if (GLSMethod==1) {
+    #
+    #   varcomp.file        <- paste("output/",trait,".","varcomp",".csv",sep="")
+    #
+    #   # Name of the phenotype-file for scan_GLS:
+    #   input.pheno <- paste("output/",trait,".csv",sep="")
+    #
+    #   if (sum(abs(gData$kinship-diag(nrow(gData$kinship)))) > 0.0001 ) { # if the kinship-matrix is (numerically) different from the identity matrix ...
+    #     # to do : the case where the kinship matrix is diagonal, but has unequal variances
+    #     vcov.matrix <- MakeScanGlsKinship(varcomp.values[1,],varcomp.values[nrow(varcomp.values),],
+    #       gData$kinship,plant.names=gData$plant.names,
+    #       gData$pheno,tr.n = trait)
+    #   } else {  # if the kinship-matrix is the identity matrix ...
+    #     vcov.matrix <- diag(sum(!is.na(gData$pheno[, trait])))
+    #   }
+    #   write.table(vcov.matrix,file=varcomp.file,sep=",",quote=F,col.names=F,row.names=F)
+    #   MakePhenoFile(pheno.object=gData$pheno,col.number=trait,file.name=input.pheno)
+    # }
 
-      varcomp.file        <- paste("output/",trait,".","varcomp",".csv",sep="")
-
-      # Name of the phenotype-file for scan_GLS:
-      input.pheno <- paste("output/",trait,".csv",sep="")
-
-      if (sum(abs(gData$kinship-diag(nrow(gData$kinship))))>0.0001 ) { # if the kinship-matrix is (numerically) different from the identity matrix ...
-        # to do : the case where the kinship matrix is diagonal, but has unequal variances
-        vcov.matrix <- MakeScanGlsKinship(varcomp.values[1,],varcomp.values[nrow(varcomp.values),],
-          gData$kinship,plant.names=gData$plant.names,
-          gData$pheno,tr.n=tr.n)
-      } else {  # if the kinship-matrix is the identity matrix ...
-        vcov.matrix <- diag(sum(!is.na(gData$pheno[,tr.n])))
+    if (GLSMethod == 3) {
+      if (sum(abs(gData$kinship - diag(nrow(gData$kinship)))) > 0.0001) {
+        ## if the kinship-matrix is (numerically) different from the identity matrix ...
+        ## TO DO: the case where the kinship matrix is diagonal, but has unequal variances
+        vcov.matrix <- emma.obj[[1]][1] * emma.obj[[2]] +
+          emma.obj[[1]][nrow(varcomp.values)] * diag(nrow(emma.obj[[2]]))
+      } else {
+        ## if the kinship-matrix is the identity matrix ...
+        vcov.matrix <- diag(sum(!is.na(gData$pheno[, trait])))
       }
-      write.table(vcov.matrix,file=varcomp.file,sep=",",quote=F,col.names=F,row.names=F)
-      MakePhenoFile(pheno.object=gData$pheno,col.number=tr.n,file.name=input.pheno)
-    }
-
-    if (GLSMethod==3) {
-      if (sum(abs(gData$kinship-diag(nrow(gData$kinship))))>0.0001 ) { # if the kinship-matrix is (numerically) different from the identity matrix ...
-        # to do : the case where the kinship matrix is diagonal, but has unequal variances
-        vcov.matrix <- emma.obj[[1]][1] * emma.obj[[2]] + emma.obj[[1]][nrow(varcomp.values)] * diag(nrow(emma.obj[[2]]))
-      } else {  # if the kinship-matrix is the identity matrix ...
-        vcov.matrix <- diag(sum(!is.na(gData$pheno[,tr.n])))
-      }
-    }
-
-    if (GLSMethod==4) {
+    } else if (GLSMethod == 4) {
       vcov.matrix.list <- list()
       for (chr in gData$chromosomes) {
-        chr.ind <- which(chr==gData$chromosomes)
-        vcov.matrix.list[[chr.ind]] <- emma.obj.list[[chr.ind]][[1]][1] * emma.obj.list[[chr.ind]][[2]] + emma.obj.list[[chr.ind]][[1]][2] * diag(nrow(emma.obj.list[[chr.ind]][[2]]))
+        chr.ind <- which(chr == gData$chromosomes)
+        vcov.matrix.list[[chr.ind]] <- emma.obj.list[[chr.ind]][[1]][1] * emma.obj.list[[chr.ind]][[2]] +
+          emma.obj.list[[chr.ind]][[1]][2] * diag(nrow(emma.obj.list[[chr.ind]][[2]]))
       }
     }
 
     ################################################
 
-    non.missing     <- unique(gData$pheno$genotype[!is.na(gData$pheno[,tr.n])])
-    kinship.reduced <- gData$kinship[non.missing,non.missing]
+    nonMissing <- unique(gData$pheno$genotype[!is.na(gData$pheno[, trait])])
+    kinship.reduced <- gData$kinship[nonMissing, nonMissing]
 
-    # new:
-    non.missing.rep.id <- row.names(gData$pheno[!is.na(gData$pheno[,tr.n]),])
-    non.missing.rep.geno <- gData$pheno$genotype[!is.na(gData$pheno[,tr.n])]
+    nonMissingRepId <- row.names(gData$pheno[!is.na(gData$pheno[, trait]),])
+    nonMissingRepGeno <- gData$pheno$genotype[!is.na(gData$pheno[, trait])]
 
     # Name of the scan_GLS output-file
     output.file         <- paste("results/",trait,".","output",suffix,".csv",sep="")
 
     ################################################
     # GWA USING scan_GLS (1), FaST-LMM (2), or R (3+4)
+    maxScore <- max(gData$markers, na.rm = TRUE)
 
-    max.score           <- max(gData$markers,na.rm=T)
+    ## Compute allele frequencies based on genotypes for which phenotypic data is available.
+    allFreq <- rowMeans(gData$markers[, nonMissing])
 
-    # allele frequencies based on genotypes for which phenotypic data is available (trait-dependent)
-    all.allele.frequencies    <- apply(gData$markers[,unique(gData$pheno$genotype[!is.na(gData$pheno[,tr.n])])],1,mean)
-
-    # variances of marker scores, based on genotypes for which phenotypic data is available (trait-dependent)
-    # for inbreeders, this depends on max.score. It is therefore scaled to marker scores 0,1 (or 0,0.5,1 if there are heterozygotes)
-    all.allele.variances      <- apply(gData$markers[,unique(gData$pheno$genotype[!is.na(gData$pheno[,tr.n])])],1,var) / (max.score)^2
+    ## variances of marker scores, based on genotypes for which phenotypic data is available.
+    ## for inbreeders, this depends on maxScore. It is therefore scaled to marker scores 0, 1
+    ## (or 0, 0.5, 1 if there are heterozygotes)
+    allVar <- apply(gData$markers[, nonMissing], 1, var) / maxScore ^ 2
 
     # allele frequencies based on all genotypes (trait-independent)
-    all.allele.frequencies2   <- apply(gData$markers,1,mean)
+    allFreqTot <- rowMeans(gData$markers)
 
-    if (max.score==2) {all.allele.frequencies <- all.allele.frequencies / 2}
-
-    if (max.score==2) {all.allele.frequencies2<- all.allele.frequencies2/ 2}
-
-    if (useMAF==FALSE) {MAF <- MAC / length(non.missing) - 0.00001}
-
-    if (GLSMethod ==1) {
-
-      GWA.result          <- scan_GLS(gData=gData,input.pheno=input.pheno,
-        varcomp.file=varcomp.file,output.file=output.file,
-        covariate.file=covariate.file,maf=MAF)
-
-      GWA.result          <- GWA.result[,setdiff(colnames(GWA.result),c('Nalleles','major_allele','minor_allele'))]
-
-      #######
-      # CALCULATE THE GENOMIC INFLATION FACTOR, AND, IF THIS OPTION IS CHOSEN, RESCALE THE P-VALUES
-
-      GC <- GenomicControlPvalues(pvals=GWA.result$pvalue,
-        n.obs=sum(!is.na(gData$pheno[,tr.n])),
-        n.cov=length(cov.cols))
-
-      inflation.factor  <- GC[[2]]
-
-      if (genomic.control) {
-        GWA.result$pvalue <- GC[[1]]
-      }
-
-      #allele.frequencies
-
-      names(GWA.result)[which(names(GWA.result)=='stat')]   <- 'effect'
-      names(GWA.result)[which(names(GWA.result)=='marker')] <- 'snp'
-      names(GWA.result)[which(names(GWA.result)=='minorfreq')] <- 'allele.frequency'
-
-      # replace the minorfreq column by the frequencies calculated within R
-      GWA.result$allele.frequency <- all.allele.frequencies
-
-      # effects should be wrt the reference allele, not wrt the rare allele
-      # (and The rare allele in scan_GLS is defined based on the whole panel; therefore
-      #  the use of  all.allele.frequencies2)
-      GWA.result$effect[all.allele.frequencies2 > 0.5] <- -1 * GWA.result$effect[all.allele.frequencies2 > 0.5]
-
-      # effects should be for a single allele, not for 2
-      #if (max.score==1) {GWA.result$effect <- 0.5 * GWA.result$effect}
-      # REMOVED! already done in scan_GLS !
-
-      write.table(GWA.result,file=output.file,quote=F,row.names=F,col.names=T,sep=",")
+    if (maxScore == 2) {
+      allFreq <- allFreq / 2
+      allFreqTot<- allFreqTot/ 2
     }
 
+    if (!useMAF) {MAF <- MAC / length(nonMissing) - 0.00001}
 
+    # if (GLSMethod ==1) {
+    #
+    #   GWAResult          <- scan_GLS(gData=gData,input.pheno=input.pheno,
+    #     varcomp.file=varcomp.file,output.file=output.file,
+    #     covariate.file=covariate.file,maf=MAF)
+    #
+    #   GWAResult          <- GWAResult[,setdiff(colnames(GWAResult),c('Nalleles','major_allele','minor_allele'))]
+    #
+    #   #######
+    #   # CALCULATE THE GENOMIC INFLATION FACTOR, AND, IF THIS OPTION IS CHOSEN, RESCALE THE P-VALUES
+    #
+    #   GC <- GenomicControlPvalues(pvals=GWAResult$pvalue,
+    #     n.obs=sum(!is.na(gData$pheno[,trait])),
+    #     n.cov=length(cov.cols))
+    #
+    #   inflationFactor  <- GC[[2]]
+    #
+    #   if (genomicControl) {
+    #     GWAResult$pvalue <- GC[[1]]
+    #   }
+    #
+    #   #allFreqSel
+    #
+    #   names(GWAResult)[which(names(GWAResult)=='stat')]   <- 'effect'
+    #   names(GWAResult)[which(names(GWAResult)=='marker')] <- 'snp'
+    #   names(GWAResult)[which(names(GWAResult)=='minorfreq')] <- 'allele.frequency'
+    #
+    #   # replace the minorfreq column by the frequencies calculated within R
+    #   GWAResult$allele.frequency <- allFreq
+    #
+    #   # effects should be wrt the reference allele, not wrt the rare allele
+    #   # (and The rare allele in scan_GLS is defined based on the whole panel; therefore
+    #   #  the use of  allFreqTot)
+    #   GWAResult$effect[allFreqTot > 0.5] <- -1 * GWAResult$effect[allFreqTot > 0.5]
+    #
+    #   # effects should be for a single allele, not for 2
+    #   #if (maxScore==1) {GWAResult$effect <- 0.5 * GWAResult$effect}
+    #   # REMOVED! already done in scan_GLS !
+    #
+    #   write.table(GWAResult,file=output.file,quote=F,row.names=F,col.names=T,sep=",")
+    # }
+    #
+    #
+    #
+    # if (GLSMethod ==2) {
+    #
+    #   if (kinship.type %in% 1:2) {
+    #     gData$kinship <- gData$kinship / KinshipTransform(gData$kinship)
+    #     WriteFastLmmKinship(gData=gData,trait=trait,file="output/temp_kinship.txt")
+    #     FaST_LMM(gData=gData,trait.nr=trait,cov.cols=cov.cols,full.lm=full.scan,kinship.file="output/temp_kinship.txt",
+    #       output.file=output.file,excludebyposition=excludebyposition,show.call=T,
+    #       prefix=linux.prefix)
+    #   }
+    #
+    #   markerMeans        <- apply(gData$markers[,nonMissing],1,mean)
+    #   marker.sd           <- apply(gData$markers[,nonMissing],1,sd)
+    #
+    #   segMarkers <- which(markerMeans >= maxScore * MAF & (markerMeans <= maxScore * (1-MAF)))
+    #
+    #   GWAResult            <- ReadFastLmmResult(output.file)
+    #   row.names(GWAResult) <- GWAResult$snp
+    #
+    #   if (allelic.substitution.effects) {
+    #
+    #     if (maxScore==1) {extra.constant <- 2} else {extra.constant <- 1}
+    #
+    #     GWAResult$SNPWeight   <- GWAResult$SNPWeight / (marker.sd[row.names(GWAResult)] * extra.constant)
+    #     GWAResult$SNPWeightSE <- GWAResult$SNPWeightSE / (marker.sd[row.names(GWAResult)] * extra.constant)
+    #
+    #   }
+    #
+    #   GWAResult <- data.frame(GWAResult,
+    #     R_LR_2=1 - exp(-2*(GWAResult$AltLogLike-GWAResult$NullLogLike)/GWAResult$N))
+    #
+    #
+    #   if (nrow(GWAResult) < gData$N) {
+    #
+    #     non.segregating.marker.numbers <- setdiff(1:gData$N,segMarkers)
+    #
+    #     non.segregating.marker.names   <- setdiff(row.names(gData$markers),GWAResult$snp)
+    #
+    #     N.non.segregating              <- length(non.segregating.marker.names)
+    #
+    #     extra.block <- matrix(NA,N.non.segregating,ncol(GWAResult))
+    #
+    #     extra.block <- as.data.frame(extra.block)
+    #
+    #     colnames(extra.block) <- colnames(GWAResult)
+    #
+    #     extra.block[,c("chromosome","position")] <- gData$map[non.segregating.marker.names,c("chromosome","position")]
+    #
+    #     extra.block$snp <- as.character(non.segregating.marker.names)
+    #
+    #     rownames(extra.block) <- extra.block$snp
+    #
+    #     GWAResult <- rbind(GWAResult,extra.block)
+    #
+    #     GWAResult <- GWAResult[order(GWAResult$chromosome,GWAResult$position),]
+    #
+    #     GWAResult <- data.frame(GWAResult,allele.frequency=allFreq)
+    #   }
+    #
+    #
+    #   ########
+    #   # CALCULATE THE GENOMIC INFLATION FACTOR, AND, IF THIS OPTION IS CHOSEN, RESCALE THE P-VALUES
+    #
+    #   GC <- GenomicControlPvalues(pvals=GWAResult$pvalue,
+    #     n.obs=sum(!is.na(gData$pheno[,trait])),
+    #     n.cov=length(cov.cols))
+    #
+    #   inflationFactor  <- GC[[2]]
+    #
+    #   if (genomicControl) {
+    #     GWAResult$pvalue <- GC[[1]]
+    #   }
+    #
+    #   #######################################
+    #
+    #   colnames(GWAResult)[which(colnames(GWAResult)=='SNPWeight')]   <- 'effect'
+    #   colnames(GWAResult)[which(colnames(GWAResult)=='SNPWeightSE')] <- 'effect_se'
+    #
+    #   ########################
+    #
+    #   GWAResult$pvalue[setdiff(1:gData$N,segMarkers)] <- NA
+    #   GWAResult$effect[setdiff(1:gData$N,segMarkers)] <- NA
+    #   GWAResult$effect_se[setdiff(1:gData$N,segMarkers)] <- NA
+    #
+    #   ##########################
+    #
+    #   #if (maxScore==1) {
+    #   # effects should be wrt the reference allele, not wrt the rare allele
+    #   # (and The rare allele in scan_GLS is defined based on the whole panel; therefore
+    #   #  the use of  allFreqTot)
+    #   GWAResult$effect[allFreqTot > 0.5] <- -1 * GWAResult$effect[allFreqTot > 0.5]
+    #   #}
+    #   #########################
+    #
+    #   write.table(GWAResult,file=output.file,quote=F,row.names=F,col.names=T,sep=",")
+    # }
+    #
+    #
+    # #maxScore           <- max(gData$markers,na.rm=T)
+    #
+    #
 
-    if (GLSMethod ==2) {
-
-      if (kinship.type %in% 1:2) {
-        gData$kinship <- gData$kinship / KinshipTransform(gData$kinship)
-        WriteFastLmmKinship(gData=gData,tr.n=tr.n,file="output/temp_kinship.txt")
-        FaST_LMM(gData=gData,trait.nr=tr.n,cov.cols=cov.cols,full.lm=full.scan,kinship.file="output/temp_kinship.txt",
-          output.file=output.file,excludebyposition=excludebyposition,show.call=T,
-          prefix=linux.prefix)
-      }
-
-      marker.means        <- apply(gData$markers[,non.missing],1,mean)
-      marker.sd           <- apply(gData$markers[,non.missing],1,sd)
-
-      segregating.markers <- which(marker.means >= max.score * MAF & (marker.means <= max.score * (1-MAF)))
-
-      GWA.result            <- ReadFastLmmResult(output.file)
-      row.names(GWA.result) <- GWA.result$snp
-
-      if (allelic.substitution.effects) {
-
-        if (max.score==1) {extra.constant <- 2} else {extra.constant <- 1}
-
-        GWA.result$SNPWeight   <- GWA.result$SNPWeight / (marker.sd[row.names(GWA.result)] * extra.constant)
-        GWA.result$SNPWeightSE <- GWA.result$SNPWeightSE / (marker.sd[row.names(GWA.result)] * extra.constant)
-
-      }
-
-      GWA.result <- data.frame(GWA.result,
-        R_LR_2=1 - exp(-2*(GWA.result$AltLogLike-GWA.result$NullLogLike)/GWA.result$N))
-
-
-      if (nrow(GWA.result) < gData$N) {
-
-        non.segregating.marker.numbers <- setdiff(1:gData$N,segregating.markers)
-
-        non.segregating.marker.names   <- setdiff(row.names(gData$markers),GWA.result$snp)
-
-        N.non.segregating              <- length(non.segregating.marker.names)
-
-        extra.block <- matrix(NA,N.non.segregating,ncol(GWA.result))
-
-        extra.block <- as.data.frame(extra.block)
-
-        colnames(extra.block) <- colnames(GWA.result)
-
-        extra.block[,c("chromosome","position")] <- gData$map[non.segregating.marker.names,c("chromosome","position")]
-
-        extra.block$snp <- as.character(non.segregating.marker.names)
-
-        rownames(extra.block) <- extra.block$snp
-
-        GWA.result <- rbind(GWA.result,extra.block)
-
-        GWA.result <- GWA.result[order(GWA.result$chromosome,GWA.result$position),]
-
-        GWA.result <- data.frame(GWA.result,allele.frequency=all.allele.frequencies)
-      }
-
-
-      ########
-      # CALCULATE THE GENOMIC INFLATION FACTOR, AND, IF THIS OPTION IS CHOSEN, RESCALE THE P-VALUES
-
-      GC <- GenomicControlPvalues(pvals=GWA.result$pvalue,
-        n.obs=sum(!is.na(gData$pheno[,tr.n])),
-        n.cov=length(cov.cols))
-
-      inflation.factor  <- GC[[2]]
-
-      if (genomic.control) {
-        GWA.result$pvalue <- GC[[1]]
-      }
-
-      #######################################
-
-      colnames(GWA.result)[which(colnames(GWA.result)=='SNPWeight')]   <- 'effect'
-      colnames(GWA.result)[which(colnames(GWA.result)=='SNPWeightSE')] <- 'effect_se'
-
-      ########################
-
-      GWA.result$pvalue[setdiff(1:gData$N,segregating.markers)] <- NA
-      GWA.result$effect[setdiff(1:gData$N,segregating.markers)] <- NA
-      GWA.result$effect_se[setdiff(1:gData$N,segregating.markers)] <- NA
-
-      ##########################
-
-      #if (max.score==1) {
-      # effects should be wrt the reference allele, not wrt the rare allele
-      # (and The rare allele in scan_GLS is defined based on the whole panel; therefore
-      #  the use of  all.allele.frequencies2)
-      GWA.result$effect[all.allele.frequencies2 > 0.5] <- -1 * GWA.result$effect[all.allele.frequencies2 > 0.5]
-      #}
-      #########################
-
-      write.table(GWA.result,file=output.file,quote=F,row.names=F,col.names=T,sep=",")
-    }
-
-
-    #max.score           <- max(gData$markers,na.rm=T)
-
-
-
-    if (GLSMethod ==3) {
+    if (GLSMethod == 3) {
       Sigma <- vcov.matrix
-      #rownames(Sigma) <-  non.missing.rep.id
-      #colnames(Sigma) <-  non.missing.rep.id
 
-      # the following is based on the genotypes, not the replicates:
+      ## The following is based on the genotypes, not the replicates:
+      markerMeans <- rowMeans(gData$markers[, nonMissing])
+      segMarkers <- which(markerMeans >= maxScore * MAF & markerMeans <= maxScore * (1 - MAF))
 
-      marker.means        <- apply(gData$markers[,non.missing],1,mean)
-      segregating.markers <- which(marker.means >= max.score * MAF & (marker.means <= max.score * (1-MAF)))
+      X.temp <- t(gData$markers[segMarkers, nonMissingRepGeno])
+      rownames(X.temp) <- nonMissingRepId
+      Y.temp <- gData$pheno[!is.na(gData$pheno[, trait]), trait]
+      colnames(Y.temp) <- nonMissingRepId
 
-      X.temp            <- t(gData$markers[segregating.markers,non.missing.rep.geno])
-      row.names(X.temp) <- non.missing.rep.id
+      GWAResult <- data.frame(snp = rownames(gData$map),
+        gData$map,
+        pValue = NA,
+        effect = NA,
+        effectSe = NA,
+        RLR2 = NA,
+        allFreq = allFreq,
+        row.names = rownames(gData$map))
 
-      Y.temp              <- gData$pheno[!is.na(gData$pheno[,tr.n]),tr.n]
-      names(Y.temp)       <- non.missing.rep.id
+      if (sum(cov.cols) == 0) {
+        GLSResult <- fastGLS(y = Y.temp, X = X.temp, Sigma = Sigma)
+      } else {
+        Z <- as.matrix(gData$pheno[!is.na(gData$pheno[, trait]), cov.cols])
+        colnames(Z) <- names(gData$pheno)[cov.cols]
+        rownames(Z) <- nonMissingRepId
+        GLSResult <- fastGLSCov(y = Y.temp, X = X.temp, Sigma = Sigma, covs = Z)
+      }
+      GWAResult[segMarkers, c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
 
-      GWA.result          <- data.frame(gData$map[,1:2],pvalue=rep(NA,gData$N),
-        effect=rep(NA,gData$N),
-        effect_se=rep(NA,gData$N),
-        R_LR_2=rep(NA,gData$N))
+      if (ncol(gData$genes) != 0) {
+        GWAResult <- cbind(GWAResult, gene1 = gData$map$gene1, gene2 = gData$map$gene2)
+      }
 
-      row.names(GWA.result) <-   row.names(gData$markers)
+      ## Effects should be for a single allele, not for 2
+      if (maxScore == 1) {
+        GWAResult$effect <- 0.5 * GWAResult$effect
+      }
+
+      ## Calculate the genomic inflation factor and rescale p-values
+      GC <- genomicControlPValues(pVals = GWAResult$pValue,
+        nObs = sum(!is.na(gData$pheno[, trait])),
+        nCov = length(cov.cols))
+      inflationFactor <- GC[[2]]
+      if (genomicControl) {
+        GWAResult$pvalue <- GC[[1]]
+      }
+      #write.table(GWAResult,file=output.file,quote=F,row.names=F,col.names=T,sep=",")
+      #rm(X.temp)
+    } else if (GLSMethod ==4) {
+      markerMeans <- rowMeans(gData$markers[, nonMissing])
+      segMarkers <- which(markerMeans >= maxScore * MAF & markerMeans <= maxScore * (1 - MAF))
+
+      Y.temp <- gData$pheno[!is.na(gData$pheno[, trait]), trait]
+      colnames(Y.temp) <- nonMissingRepId
+
+      GWAResult <- data.frame(snp = rownames(gData$map),
+        gData$map,
+        pValue = NA,
+        effect = NA,
+        effectSe = NA,
+        RLR2 = NA,
+        allFreq = allFreq,
+        row.names = rownames(gData$map))
 
       if (sum(cov.cols)==0) {
-        ww <- fastGLS_with_effect_sizes(Y=Y.temp,X=X.temp,Sigma=Sigma)
-        GWA.result$pvalue[segregating.markers]    <- ww$pvalue
-        GWA.result$effect[segregating.markers]    <- ww$beta
-        GWA.result$effect_se[segregating.markers] <- ww$beta_se
-        GWA.result$R_LR_2[segregating.markers]    <- ww$R_LR_2
-      } else {
-        Z <- as.matrix(gData$pheno[!is.na(gData$pheno[,tr.n]),cov.cols])
-        colnames(Z) <- names(gData$pheno)[cov.cols]
-        rownames(Z)<- non.missing.rep.id
-        GWA.result$pvalue[segregating.markers]          <- fastGLS_cof(Y=Y.temp,X=X.temp,cofs=Z,Sigma=Sigma)
-
-        ww <- fastGLS_cof_with_effect_sizes(Y=Y.temp,X=X.temp,cofs=Z,Sigma=Sigma)
-        GWA.result$pvalue[segregating.markers] <- ww$pvalue
-        GWA.result$effect[segregating.markers] <- ww$beta
-        GWA.result$effect_se[segregating.markers] <- ww$beta_se
-        GWA.result$R_LR_2[segregating.markers] <- ww$R_LR_2
-      }
-
-      GWA.result <- data.frame(GWA.result,allele.frequency=all.allele.frequencies)
-
-      if (ncol(gData$genes)!=0) {
-        old.names           <- colnames(GWA.result)
-        GWA.result          <- cbind(GWA.result,gene1=gData$map$gene1,gene2=gData$map$gene2)
-        colnames(GWA.result)<- c(old.names,"gene1","gene2")
-      }
-
-      # effects should be for a single allele, not for 2
-      if (max.score==1) {GWA.result$effect <- 0.5 * GWA.result$effect}
-
-      ########
-      # CALCULATE THE GENOMIC INFLATION FACTOR, AND, IF THIS OPTION IS CHOSEN, RESCALE THE P-VALUES
-
-      GC <- GenomicControlPvalues(pvals=GWA.result$pvalue,
-        n.obs=sum(!is.na(gData$pheno[,tr.n])),
-        n.cov=length(cov.cols))
-
-      inflation.factor  <- GC[[2]]
-
-      if (genomic.control) {
-        GWA.result$pvalue <- GC[[1]]
-      }
-      #######################################
-      # already done
-      #if (max.score==1) {
-      #  GWA.result$effect   <- 0.5 * GWA.result$effect
-      #}
-
-      #############################
-
-      GWA.result <- data.frame(snp=rownames(gData$markers),GWA.result)
-
-
-      ########################
-      write.table(GWA.result,file=output.file,quote=F,row.names=F,col.names=T,sep=",")
-      rm(X.temp)
-    }
-
-
-
-    if (GLSMethod ==4) {
-
-      marker.means        <- apply(gData$markers[,non.missing],1,mean)
-      segregating.markers <- which(marker.means >= max.score * MAF & (marker.means <= max.score * (1-MAF)))
-
-      Y.temp              <- gData$pheno[!is.na(gData$pheno[,tr.n]),tr.n]
-      names(Y.temp)       <- non.missing.rep.id
-
-      GWA.result          <- data.frame(gData$map[,1:2],pvalue=rep(NA,gData$N),
-        effect=rep(NA,gData$N),
-        effect_se=rep(NA,gData$N),
-        R_LR_2=rep(NA,gData$N))
-
-      row.names(GWA.result) <-   row.names(gData$markers)
-
-      if (sum(cov.cols)==0) {
-
         for (chr in gData$chromosomes) {
-
-          X.temp            <- t(gData$markers[intersect(which(gData$map$chromosome==chr),segregating.markers),non.missing.rep.geno])
-          row.names(X.temp) <- non.missing.rep.id
-          Sigma <- vcov.matrix.list[[which(chr==gData$chromosomes)]]
-
-          ww <- fastGLS_with_effect_sizes(Y=Y.temp,X=X.temp,Sigma=Sigma)
-          GWA.result$pvalue[intersect(which(gData$map$chromosome==chr),segregating.markers)]    <- ww$pvalue
-          GWA.result$effect[intersect(which(gData$map$chromosome==chr),segregating.markers)]    <- ww$beta
-          GWA.result$effect_se[intersect(which(gData$map$chromosome==chr),segregating.markers)] <- ww$beta_se
-          GWA.result$R_LR_2[intersect(which(gData$map$chromosome==chr),segregating.markers)]    <- ww$R_LR_2
+          X.temp <- t(gData$markers[intersect(which(gData$map$chromosome == chr), segMarkers),
+            nonMissingRepGeno])
+          rownames(X.temp) <- nonMissingRepId
+          Sigma <- vcov.matrix.list[[which(chr == gData$chromosomes)]]
+          GLSResult <- fastGLS(y = Y.temp, X = X.temp, Sigma = Sigma)
         }
       } else {
-
-        Z <- as.matrix(gData$pheno[!is.na(gData$pheno[,tr.n]),cov.cols])
+        Z <- as.matrix(gData$pheno[!is.na(gData$pheno[,trait]), cov.cols])
         colnames(Z) <- names(gData$pheno)[cov.cols]
-        rownames(Z)<- non.missing.rep.id
-
+        rownames(Z)<- nonMissingRepId
         for (chr in gData$chromosomes) {
-
-          X.temp            <- t(gData$markers[intersect(which(gData$map$chromosome==chr),segregating.markers),non.missing.rep.geno])
-          row.names(X.temp) <- non.missing.rep.id
-          Sigma <- vcov.matrix.list[[which(chr==gData$chromosomes)]]
-          #GWA.result$pvalue[segregating.markers]          <- fastGLS_cof(Y=Y.temp,X=X.temp,cofs=Z,Sigma=Sigma)
-
-          ww <- fastGLS_cof_with_effect_sizes(Y=Y.temp,X=X.temp,cofs=Z,Sigma=Sigma)
-          GWA.result$pvalue[intersect(which(gData$map$chromosome==chr),segregating.markers)]    <- ww$pvalue
-          GWA.result$effect[intersect(which(gData$map$chromosome==chr),segregating.markers)]    <- ww$beta
-          GWA.result$effect_se[intersect(which(gData$map$chromosome==chr),segregating.markers)] <- ww$beta_se
-          GWA.result$R_LR_2[intersect(which(gData$map$chromosome==chr),segregating.markers)]    <- ww$R_LR_2
+          X.temp <- t(gData$markers[intersect(which(gData$map$chromosome == chr), segMarkers),
+            nonMissingRepGeno])
+          row.names(X.temp) <- nonMissingRepId
+          Sigma <- vcov.matrix.list[[which(chr == gData$chromosomes)]]
+          GLSResult <- fastGLSCov(y = Y.temp, X = X.temp, Sigma = Sigma, covs = Z)
         }
       }
+      GWAResult[intersect(which(gData$map$chromosome==chr),segMarkers),
+        c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
 
-      # effects should be for a single allele, not for 2
-      if (max.score==1) {GWA.result$effect <- 0.5 * GWA.result$effect}
-
-      ######################################################################################
-      # CALCULATE THE GENOMIC INFLATION FACTOR, AND, IF THIS OPTION IS CHOSEN, RESCALE THE P-VALUES
-
-      GC <- GenomicControlPvalues(pvals=GWA.result$pvalue,
-        n.obs=sum(!is.na(gData$pheno[,tr.n])),
-        n.cov=length(cov.cols))
-
-      inflation.factor  <- GC[[2]]
-
-      if (genomic.control) {
-        GWA.result$pvalue <- GC[[1]]
+      ## Effects should be for a single allele, not for 2
+      if (maxScore==1) {
+        GWAResult$effect <- 0.5 * GWAResult$effect
       }
 
-      #######################################
-
-      GWA.result <- data.frame(snp=rownames(gData$markers),GWA.result,allele.frequency=all.allele.frequencies)
-
-      if (ncol(gData$genes)!=0) {
-        old.names           <- colnames(GWA.result)
-        GWA.result          <- cbind(GWA.result,gData$map$gene1,gData$map$gene2)
-        colnames(GWA.result)<- c(old.names,"gene1","gene2")
+      ## Calculate the genomic inflation factor and rescale p-values
+      GC <- genomicControlPValues(pVals = GWAResult$pValue,
+        nObs = sum(!is.na(gData$pheno[, trait])),
+        nCov = length(cov.cols))
+      inflationFactor <- GC[[2]]
+      if (genomicControl) {
+        GWAResult$pValue <- GC[[1]]
       }
-
-      ########################
-
-
-      if (max.score==1) {
-        GWA.result$effect   <- 0.5 * GWA.result$effect
-      }
-
-      ##################
-
-      write.table(GWA.result,file=output.file,quote=F,row.names=F,col.names=T,sep=",")
-      rm(X.temp)
+      #write.table(GWAResult,file=output.file,quote=F,row.names=F,col.names=T,sep=",")
+      #rm(X.temp)
     }
 
+    nEff <- sum(!is.na(GWAResult$pvalue))
 
-    N.effective <- sum(!is.na(GWA.result$pvalue))
-    analyzed.snps <- which(!is.na(GWA.result$pvalue))
 
-    ##########################################
-    #CALCULATE A SIGNIFICANCE THRESHOLD
+    ## Calculate the significance threshold
+    ## When boundType is 1, 3 or 4, determine the LOD-threshold
 
-    # When BT is 1,2,3 or 4, determine the LOD-threshold
-    if (BT==1) {LOD.thr <- -log10(alpha/N.effective) }# -log10(alpha/gData$N)}
-    #if (BT==2) {LOD.thr <- -log10(1/gData$N)}
-    if (BT==3) {LOD.thr <- sort(-log10(na.omit(GWA.result$pvalue)),decreasing=T)[K]}
-
-    if (BT==4) {
-      cut.off <- 0.995
-      number.of.nonmissing  <- aggregate(gData$pheno[,tr.n],by=list(ordered(gData$pheno$genotype)),FUN=function(x){sum(!is.na(x))})[match(gData$plant.names,sort(gData$plant.names)),2]
-      number.of.nonmissing[number.of.nonmissing>0] <- 1
-      ind.indices <- rep((1:gData$n)[number.of.nonmissing>0],times=number.of.nonmissing[number.of.nonmissing>0])
-      SIGMA       <- varcomp.values[1,] * gData$kinship[ind.indices,ind.indices] + varcomp.values[2,] * diag(sum(number.of.nonmissing))
-      COR         <- cov2cor(SIGMA)
-      INV.COR     <- GINV(COR)
-      Keff      <- 0
-      n.block   <- 0
-      b.size    <- 10*sum(number.of.nonmissing)
-      for (CHR in 1:gData$nchr) {
-        blocks  <- DefineBlocks(which(gData$map$chromosome==CHR),block.size=b.size)
-        n.block <- n.block  +  length(blocks)
-        for (b in 1:length(blocks)) {
-          marker.frame <- gData$markers[blocks[[b]],]
-          Keff <- Keff + GaoCorrection(marker.frame=marker.frame,number.of.replicates=number.of.nonmissing,inv.cor.matrix=INV.COR,cut.off=cut.off)
-        }
-      }
-      LOD.thr <- -log10(alpha/Keff)
+    if (boundType == 1) {
+      LODThr <- -log10(alpha/nEff)
+      # } else if (boundType == 3) {
+      #     LODThr <- sort(-log10(na.omit(GWAResult$pvalue)),decreasing=T)[K]
+      # } else if (boundType == 4) {
+      #   cut.off <- 0.995
+      #   number.of.nonmissing  <- aggregate(gData$pheno[,trait],by=list(ordered(gData$pheno$genotype)),FUN=function(x){sum(!is.na(x))})[match(gData$plant.names,sort(gData$plant.names)),2]
+      #   number.of.nonmissing[number.of.nonmissing>0] <- 1
+      #   ind.indices <- rep((1:gData$n)[number.of.nonmissing>0],times=number.of.nonmissing[number.of.nonmissing>0])
+      #   SIGMA       <- varcomp.values[1,] * gData$kinship[ind.indices,ind.indices] + varcomp.values[2,] * diag(sum(number.of.nonmissing))
+      #   COR         <- cov2cor(SIGMA)
+      #   INV.COR     <- GINV(COR)
+      #   Keff      <- 0
+      #   n.block   <- 0
+      #   b.size    <- 10*sum(number.of.nonmissing)
+      #   for (CHR in 1:gData$nchr) {
+      #     blocks  <- DefineBlocks(which(gData$map$chromosome==CHR),block.size=b.size)
+      #     n.block <- n.block  +  length(blocks)
+      #     for (b in 1:length(blocks)) {
+      #       marker.frame <- gData$markers[blocks[[b]],]
+      #       Keff <- Keff + GaoCorrection(marker.frame=marker.frame,number.of.replicates=number.of.nonmissing,inv.cor.matrix=INV.COR,cut.off=cut.off)
+      #     }
+      #   }
+      #   LODThr <- -log10(alpha/Keff)
     }
 
-    #######################################################################
-    #GIVEN THE SIGNIFICANCE THRESHOLD FROM THE PREVIOUS STEP, SELECT THE SNPs WHOSE LOD-SCORE IS ABOVE THIS THRESHOLD
-
-    snp.selection         <- (-log10(ReplaceNaByOne(GWA.result$pvalue)) >= LOD.thr)
-    snp.selection[is.na(snp.selection)] <- F
-
-    ########################################################################
-
-    if (sum(snp.selection,na.rm=T) > 0) {
-      #
-      selection.numbers <- which(snp.selection)
-      snp.selection.extra   <- (1:gData$N %in% selection.numbers)
-
+    ##Select the SNPs whose LOD-scores is above the threshold
+    signSnp <- which(!is.na(GWAResult$pValue) & -log10(GWAResult$pValue) >= LODThr)
+    if (length(signSnp) > 0) {
       if (sizeIncludedRegion > 0) {
-        if (extra.output.file & nrow(gData$genes)>0) {
-          for (mg in which(snp.selection)) {
-            #selection.numbers <- c(selection.numbers,GetSNPsInRegion(gData,mg,sizeIncludedRegion))
-            selection.numbers <- c(selection.numbers,
-              GetSNPsInRegionWithSufficientLD(gData,snp.number=mg,
-                region.size=sizeIncludedRegion,
-                minR2=minR2))
-          }
-          selection.numbers           <- sort(unique(selection.numbers))
-          snp.status                  <- rep(paste("within",as.character(sizeIncludedRegion/1000),"kb of a significant snp"),length(selection.numbers))
-          significant.among.selection <- which(selection.numbers %in% which(snp.selection))
-          snp.status[significant.among.selection] <- "significant snp"
-
-          snp.selection            <- (1:gData$N %in% selection.numbers)
-
-          selection.numbers.extra  <- which(snp.selection.extra)
-          snp.selection.extra      <- (1:gData$N %in% selection.numbers.extra)
-
-          snp.sig.extra               <- data.frame(marker=row.names(gData$markers)[snp.selection.extra],
-            chromosome=gData$map$chromosome[snp.selection.extra],
-            position=gData$map$position[snp.selection.extra],
-            pvalue=GWA.result$pvalue[snp.selection.extra])
-
-          snp.sig.extra               <- data.frame(snp.sig.extra,gene1=as.character(gData$map$gene1[snp.selection.extra]),
-            gene2=as.character(gData$map$gene2[snp.selection.extra]),
-            other.genes=as.character(rep("",length(selection.numbers.extra))))
-
-          snp.sig.extra$other.genes   <- as.character(snp.sig.extra$other.genes )
-
-          for (mg in which(snp.selection.extra)) {
-            mg.index <- which(which(snp.selection.extra)==mg)
-            extra.snps <- GetSNPsInRegionWithSufficientLD(gData,snp.number=mg,region.size=sizeIncludedRegion,minR2=minR2)
-            if (length(extra.snps) > 0) {
-              new.genes <- na.omit(as.character(sort(unique(gData$map$gene1[extra.snps],unique(gData$map$gene2[extra.snps])))))
-              snp.sig.extra$other.genes[mg.index] <- paste(setdiff(new.genes,na.omit(c(as.character(snp.sig.extra$gene1[mg.index]),as.character(snp.sig.extra$gene2[mg.index])))),collapse=',')
-            }
-          }
-          snp.output.file.extra       <- paste("results/","significant.snps.with.extra.genes_",trait,suffix,".csv",sep="")
-          write.table(snp.sig.extra,file=snp.output.file.extra,quote=FALSE,row.names=FALSE,sep=",")
-
-        } else {
-          for (mg in which(snp.selection)) {
-            selection.numbers <- c(selection.numbers,GetSNPsInRegionWithSufficientLD(gData,snp.number=mg,region.size=sizeIncludedRegion,minR2=minR2))
-          }
-          selection.numbers           <- sort(unique(selection.numbers))
-          snp.status                  <- rep(paste("within",as.character(sizeIncludedRegion/1000),"kb of a significant snp"),length(selection.numbers))
-          significant.among.selection <- which(selection.numbers %in% which(snp.selection))
-          snp.status[significant.among.selection] <- "significant snp"
-          snp.selection   <- (1:gData$N %in% selection.numbers)
-        }
+        snpSelection <- unlist(sapply(signSnp,
+          FUN = getSNPsInRegionSufLD,
+          gData = gData,
+          regionSize = sizeIncludedRegion,
+          minR2 = minR2))
+        snpSelection <- sort(union(snpSelection, signSnp))
+        snpStatus <- rep(paste("within", sizeIncludedRegion/1000 , "kb of a significant snp"),
+          length(snpSelection))
+        snpStatus[snpSelection %in% signSnp] <- "significant snp"
       } else {
-        snp.status                  <- rep("significant snp",length(selection.numbers))
+        snpStatus <- rep("significant snp", length(signSnp))
       }
-
-
-      snp.sig               <- data.frame(marker=row.names(gData$markers)[snp.selection],
-        chromosome=gData$map$chromosome[snp.selection],
-        position=gData$map$position[snp.selection],
-        pvalue=GWA.result$pvalue[snp.selection],
-        snp.status=snp.status)
-
-
-      if (nrow(gData$genes)>0) {
-
-        snp.sig               <- data.frame(snp.sig,gene1=gData$map$gene1[snp.selection],gene2=gData$map$gene2[snp.selection])
-
-        if (gData$nchr==5) { # if the species is arabisopsis ...
-          gene1http <- as.character(snp.sig$gene1)
-          gene2http <- as.character(snp.sig$gene2)
-          gene1http[!is.na(gene1http)] <- paste("=HYPERLINK(\"http://arabidopsis.org/servlets/TairObject?type=locus&name=",gene1http[!is.na(gene1http)],"\")",sep="")
-          gene2http[!is.na(gene2http)] <- paste("=HYPERLINK(\"http://arabidopsis.org/servlets/TairObject?type=locus&name=",gene2http[!is.na(gene2http)],"\")",sep="")
-          snp.sig               <- data.frame(snp.sig,gene1_http=gene1http,gene2_http=gene2http)
-          snp.sig$gene1_http<- as.character(snp.sig$gene1_http)
-          snp.sig$gene2_http<- as.character(snp.sig$gene2_http)
-        }
-
-      }
-
-      snp.sig$marker        <- as.character(snp.sig$marker)
-      no.significant.snps   <- FALSE
-
-      allele.frequencies    <- all.allele.frequencies[snp.selection]
-      #apply(gData$markers[snp.sig$marker,unique(gData$pheno$genotype[!is.na(gData$pheno[,tr.n])])],1,mean)
-
-      #if (max.score==2) {allele.frequencies <- allele.frequencies / 2}
-
-
       if (GLSMethod==1) {
-        effect.sizes                  <- GWA.result$effect[snp.selection]
-
-        variance.explained.by.snp     <- 4 * effect.sizes^2 * all.allele.variances[snp.selection]
-        proportion.var.snp.fixed <- variance.explained.by.snp / var(as.numeric(na.omit(gData$pheno[,tr.n])))
-
-        snp.sig             <- cbind(snp.sig,data.frame(reference.allele.freq=allele.frequencies,
-          effect.size=effect.sizes,
-          proportion.var.snp.fixed=proportion.var.snp.fixed))
-        #perc.of.phenetic.var=explained.phenotypic.variance))
+      #   effects                  <- GWAResult$effect[snpSelection]
+      #
+      #   snpVar     <- 4 * effects^2 * allVar[snpSelection]
+      #   propSnpVar <- snpVar / var(as.numeric(na.omit(gData$pheno[,trait])))
+      #
+      #   snp.sig             <- cbind(snp.sig,data.frame(reference.allele.freq=allFreqSel,
+      #     effect.size=effects,
+      #     propSnpVar=propSnpVar))
+      #   #perc.of.phenetic.var=explained.phenotypic.variance))
+      # } else if (GLSMethod==2) {
+      #   effects                  <- GWAResult$effect[snpSelection]
+      #   #snpVar     <- 4 * effects^2 * allFreqSel * (1 - allFreqSel)
+      #   #explained.phenotypic.variance <- 100 * snpVar / var(as.numeric(na.omit(gData$pheno[,trait])))
+      #   #
+      #   snp.sig             <- cbind(snp.sig,data.frame(reference.allele.freq=allFreqSel,
+      #     effect.size=effects,
+      #     proportion.var.LRT=GWAResult$R_LR_2[snpSelection]))
+      #   #                             perc.of.phenetic.var=explained.phenotypic.variance))
+      } else if (GLSMethod %in% 3:4) {
+        effects <- GWAResult$effect[snpSelection]
+        snpVar <- 4 * effects ^ 2 * allVar[snpSelection]
+        propSnpVar <- snpVar / var(as.numeric(na.omit(gData$pheno[, trait])))
       }
 
-      if (GLSMethod==2) {
-        effect.sizes                  <- GWA.result$effect[snp.selection]
-        #variance.explained.by.snp     <- 4 * effect.sizes^2 * allele.frequencies * (1 - allele.frequencies)
-        #explained.phenotypic.variance <- 100 * variance.explained.by.snp / var(as.numeric(na.omit(gData$pheno[,tr.n])))
-        #
-        snp.sig             <- cbind(snp.sig,data.frame(reference.allele.freq=allele.frequencies,
-          effect.size=effect.sizes,
-          proportion.var.LRT=GWA.result$R_LR_2[snp.selection]))
-        #                             perc.of.phenetic.var=explained.phenotypic.variance))
-      }
+      snpSig <- data.frame(marker = rownames(gData$markers)[snpSelection],
+        gData$map[snpSelection, ],
+        pValue = GWAResult$pValue[snpSelection],
+        snpStatus,
+        allFreq = allFreq[snpSelection],
+        effects,
+        propVarLRT = GWAResult$RLR2[snpSelection],
+        propSnpVar = propSnpVar)
 
-      if (GLSMethod %in% 3:4) {
-
-        effect.sizes          <- GWA.result$effect[snp.selection]
-        #variance.explained.by.snp       <- 4 * effect.sizes^2 * allele.frequencies * (1 - allele.frequencies)
-        #explained.phenotypic.variance   <- 100* variance.explained.by.snp / var(as.numeric(na.omit(gData$pheno[,tr.n])))
-
-        variance.explained.by.snp     <- 4 * effect.sizes^2 * all.allele.variances[snp.selection]
-        proportion.var.snp.fixed      <- variance.explained.by.snp / var(as.numeric(na.omit(gData$pheno[,tr.n])))
-
-        snp.sig             <- cbind(snp.sig,data.frame(reference.allele.freq=allele.frequencies,
-          effect.size=effect.sizes,
-          proportion.var.LRT=GWA.result$R_LR_2[snp.selection],
-          proportion.var.snp.fixed=proportion.var.snp.fixed))
-        #                             perc.of.phenetic.var=explained.phenotypic.variance))
-      }
-
-
-      if (var.explained.snp.random) {
-
-        require(asreml)
-        K.main              <- GRM(t(as.matrix(gData$markers)))
-        Kinv.asreml         <- MakeKinshipAsreml(K.main)
-
-        # the following lines are in fact redundant if asreml was already used before to estimate the variance components.
-        if (sum(cov.cols)!=0) {  # reml.formula is the formula for the fixed part of the model
-          reml.formula        <- as.formula(paste(paste(names(gData$pheno)[tr.n],"~"),paste(names(gData$pheno)[cov.cols],collapse="+")))
-        } else {
-          reml.formula        <- as.formula(paste(names(gData$pheno)[tr.n],"~ 1"))
-        }
-
-
-        random.result <- rep(0,nrow(snp.sig))
-
-        for (i in 1:nrow(snp.sig)) {
-          unstandardized.snp  <- gData$markers[snp.sig$marker[i],]
-          standardized.snp    <- as.numeric(scale(as.numeric(unstandardized.snp)))
-          names(standardized.snp) <- names(unstandardized.snp)
-
-          reml.obj.i <- asreml(fixed= reml.formula,random = as.formula(" ~ giv(genotype,var=T) + snp"),
-            data=data.frame(gData$pheno[!is.na(gData$pheno[,tr.n]),],
-              snp=standardized.snp[gData$pheno$genotype[!is.na(gData$pheno[,tr.n])]]),
-            na.method.X="omit",ginverse =list(genotype=Kinv.asreml))
-
-          smv <- summary(reml.obj.i)$varcomp$component
-          random.result[i] <- (smv[2] / sum(smv))
-        }
-        snp.sig             <- data.frame(snp.sig,proportion.var.snp.random=random.result)
-        colnames(snp.sig)[ncol(snp.sig)] <- 'proportion.var.snp.random'
-      }
 
       #############
 
       # restore for arabidopsis ?
       #accessions.with.the.rare.allele <- rep("",nrow(snp.sig))
-      #for (mg in 1:nrow(snp.sig)) {
-      #  if (snp.sig$reference.allele.freq[mg] < 0.5) {rare.allele<-1} else {rare.allele<-0}
-      #  temp.obj <- gData$markers[snp.sig$marker[mg],unique(gData$pheno$genotype[!is.na(gData$pheno[,tr.n])])]
+      #for (snp in 1:nrow(snp.sig)) {
+      #  if (snp.sig$reference.allele.freq[snp] < 0.5) {rare.allele<-1} else {rare.allele<-0}
+      #  temp.obj <- gData$markers[snp.sig$marker[snp],unique(gData$pheno$genotype[!is.na(gData$pheno[,trait])])]
       #  temp.names <- names(temp.obj)
-      #  accessions.with.the.rare.allele[mg] <- paste(temp.names[temp.obj==rare.allele],collapse=",")
+      #  accessions.with.the.rare.allele[snp] <- paste(temp.names[temp.obj==rare.allele],collapse=",")
       #}
       #snp.sig <- cbind(snp.sig,data.frame(accessions.with.the.rare.allele=accessions.with.the.rare.allele))
 
       # creating this file
-      snp.output.file       <- paste("results/","significant.snps.",trait,suffix,".csv",sep="")
+     # snp.output.file       <- paste("results/","significant.snps.",trait,suffix,".csv",sep="")
 
-      write.table(snp.sig,file=snp.output.file,quote=FALSE,row.names=FALSE,sep=",")
+      #write.table(snp.sig,file=snp.output.file,quote=FALSE,row.names=FALSE,sep=",")
 
-      if (make.all.trait.significant.snp.file) {
-        snp.sig <- data.frame(snp.sig[,1:(ncol(snp.sig)-1)],trait.name=rep(trait,nrow(snp.sig)),snp.sig[,ncol(snp.sig)])
-        write.table(snp.sig,file=paste("results/",all.trait.significant.snp.file,sep=""),append=T,quote=FALSE,row.names=FALSE,col.names=F,sep=",")
-      }
+      #if (make.all.trait.significant.snp.file) {
+      #  snp.sig <- data.frame(snp.sig[,1:(ncol(snp.sig)-1)],trait.name=rep(trait,nrow(snp.sig)),snp.sig[,ncol(snp.sig)])
+      #  write.table(snp.sig,file=paste("results/",all.trait.significant.snp.file,sep=""),append=T,quote=FALSE,row.names=FALSE,col.names=F,sep=",")
+      #}
 
-
-    } else {
-
-      no.significant.snps         <- TRUE
 
     }
 
-    if (make.all.trait.h2.file) {
-      all.traits$h2[which(trait.numbers==tr.n)] <- (varcomp.values[1,1])/(sum(varcomp.values[,1])) # which(names(gData$pheno)==trait)-min(trait.numbers)+1
-      all.traits$inflation[which(trait.numbers==tr.n)] <- inflation.factor
-      if (kinship.type %in% 3:4) {all.traits$n.markers.in.K[which(trait.numbers==tr.n)] <- testK$m.optimal}
-    }
-
-    if (make.one.file.with.all.lod.scores) {
-      all.lod.scores.frame[,which(names(all.lod.scores.frame)==trait)] <- -log10(ReplaceNaByOne(GWA.result$pvalue))
-    }
-
-    if (make.one.file.with.all.snp.effects) {
-      if (GLSMethod==1) {all.snp.effects.frame[,which(names(all.snp.effects.frame)==trait)] <- GWA.result$effect}
-      if (GLSMethod %in% 2:4) {all.snp.effects.frame[,which(names(all.snp.effects.frame)==trait)] <- GWA.result$effect}
-    }
+    # if (make.all.trait.h2.file) {
+    #   all.traits$h2[which(trait.numbers==trait)] <- (varcomp.values[1,1])/(sum(varcomp.values[,1])) # which(names(gData$pheno)==trait)-min(trait.numbers)+1
+    #   all.traits$inflation[which(trait.numbers==trait)] <- inflationFactor
+    #   if (kinship.type %in% 3:4) {all.traits$n.markers.in.K[which(trait.numbers==trait)] <- testK$m.optimal}
+    # }
+    #
+    # if (make.one.file.with.all.lod.scores) {
+    #   all.lod.scores.frame[,which(names(all.lod.scores.frame)==trait)] <- -log10(ReplaceNaByOne(GWAResult$pvalue))
+    # }
+    #
+    # if (make.one.file.with.all.snp.effects) {
+    #   if (GLSMethod==1) {all.snp.effects.frame[,which(names(all.snp.effects.frame)==trait)] <- GWAResult$effect}
+    #   if (GLSMethod %in% 2:4) {all.snp.effects.frame[,which(names(all.snp.effects.frame)==trait)] <- GWAResult$effect}
+    # }
 
     ############################################################################
 
     # Create the summary file:
+#
+#     summ.file    <- paste("results/","summary.",trait,suffix,".txt",sep="")
+#
+#
+#     cat("R-image used: ",r.image.name,"\n","\n",file=summ.file)     # file is created and first line is written; APPEND=FALSE (default)
+#     cat("Trait: ",trait,"\n","\n",file=summ.file,append=T)
+#     cat("Analysis started on: ",start.date,"\n",file=summ.file,append=TRUE)
+#     cat("Analysis finished on: ",date(),"\n","\n",file=summ.file,append=TRUE)
+#
+#     cat("Data are available for",gData$N,"SNPs", "\n",file=summ.file,append=TRUE)
+#     if (MAF > 0) {cat(gData$N-nEff,"of them were not analyzed because their minor allele frequency is below",MAF,"\n","\n",file=summ.file,append=TRUE)}
+#
+#
+#     if (GLSMethod %in% c(1,3)) {
+#       cat("Mixed model with only polygenic effects, and no marker effects:","\n",file=summ.file,append=TRUE)
+#       cat("Genetic variance: ",varcomp.values[1,1],"\t","standard error: ",varcomp.std[1],"\n",file=summ.file,append=TRUE)
+#       cat("Residual variance: ",varcomp.values[nrow(varcomp.values),1],"\t","standard error: ",varcomp.std[nrow(varcomp.values)],"\n\n",file=summ.file,append=TRUE)
+#       #
+#       cat("File containing the p-values of all snps:  ",output.file,"\n","\n",append=TRUE,file=summ.file,sep="")
+#     }
+#     #
+#
+#     if (boundType %in% 1:4) {
+#       cat("LOD-threshold: ",LODThr,"\n",append=TRUE,file=summ.file)
+#       if (boundType==4) {cat("Number of effective tests: ",Keff,"\n",append=TRUE,file=summ.file)}
+#       #
+#       if (!no.significant.snps) {
+#         cat("File containing the p-values of the selected snps: ",snp.output.file,"\n",append=TRUE,file=summ.file)
+#         cat("Number of selected snps =",nrow(snp.sig),"\n",append=TRUE,file=summ.file)
+#         cat("Smallest p-value among the selected snps:",min(snp.sig$pvalue),"\n",append=TRUE,file=summ.file)
+#         cat("Largest  p-value among the selected snps:",max(snp.sig$pvalue),"(LOD-score:",-log10(max(snp.sig$pvalue)),")","\n",append=TRUE,file=summ.file)
+#       } else {
+#         cat("No significant snps found.","\n",append=TRUE,file=summ.file)
+#       }
+#       if (genomicControl) {cat("\n","Genomic control correction was applied","\n",append=TRUE,file=summ.file)}
+#       if (!genomicControl) {cat("\n","No Genomic control correction","\n",append=TRUE,file=summ.file)}
+#       cat("Genomic control inflation-factor = ",GC[[2]],"\n","\n",append=TRUE,file=summ.file)
+#     }
 
-    summ.file    <- paste("results/","summary.",trait,suffix,".txt",sep="")
-
-
-    cat("R-image used: ",r.image.name,"\n","\n",file=summ.file)     # file is created and first line is written; APPEND=FALSE (default)
-    cat("Trait: ",trait,"\n","\n",file=summ.file,append=T)
-    cat("Analysis started on: ",start.date,"\n",file=summ.file,append=TRUE)
-    cat("Analysis finished on: ",date(),"\n","\n",file=summ.file,append=TRUE)
-
-    cat("Data are available for",gData$N,"SNPs", "\n",file=summ.file,append=TRUE)
-    if (MAF > 0) {cat(gData$N-N.effective,"of them were not analyzed because their minor allele frequency is below",MAF,"\n","\n",file=summ.file,append=TRUE)}
-
-
-    if (GLSMethod %in% c(1,3)) {
-      cat("Mixed model with only polygenic effects, and no marker effects:","\n",file=summ.file,append=TRUE)
-      cat("Genetic variance: ",varcomp.values[1,1],"\t","standard error: ",varcomp.std[1],"\n",file=summ.file,append=TRUE)
-      cat("Residual variance: ",varcomp.values[nrow(varcomp.values),1],"\t","standard error: ",varcomp.std[nrow(varcomp.values)],"\n\n",file=summ.file,append=TRUE)
-      #
-      cat("File containing the p-values of all snps:  ",output.file,"\n","\n",append=TRUE,file=summ.file,sep="")
-    }
-    #
-
-    if (BT %in% 1:4) {
-      cat("LOD-threshold: ",LOD.thr,"\n",append=TRUE,file=summ.file)
-      if (BT==4) {cat("Number of effective tests: ",Keff,"\n",append=TRUE,file=summ.file)}
-      #
-      if (!no.significant.snps) {
-        cat("File containing the p-values of the selected snps: ",snp.output.file,"\n",append=TRUE,file=summ.file)
-        cat("Number of selected snps =",nrow(snp.sig),"\n",append=TRUE,file=summ.file)
-        cat("Smallest p-value among the selected snps:",min(snp.sig$pvalue),"\n",append=TRUE,file=summ.file)
-        cat("Largest  p-value among the selected snps:",max(snp.sig$pvalue),"(LOD-score:",-log10(max(snp.sig$pvalue)),")","\n",append=TRUE,file=summ.file)
-      } else {
-        cat("No significant snps found.","\n",append=TRUE,file=summ.file)
-      }
-      if (genomic.control) {cat("\n","Genomic control correction was applied","\n",append=TRUE,file=summ.file)}
-      if (!genomic.control) {cat("\n","No Genomic control correction","\n",append=TRUE,file=summ.file)}
-      cat("Genomic control inflation-factor = ",GC[[2]],"\n","\n",append=TRUE,file=summ.file)
-    }
-
-
-    if ((sum(cov.cols)!=0)  &  reml.algo == "asreml") {
-      cat(paste("pvalues for the covariables",paste(names(gData$pheno)[cov.cols],collapse=","),"in the mixed model without snps:"),"\n",append=TRUE,file=summ.file)
-      cat((wald(reml.obj))[1+(1:length(cov.cols)),4],"\n","\n",append=TRUE,file=summ.file)
-    }
 
     ##################################################################################################
 
     # Make a plot of the LOD-profile: (pdf and jpeg)
-    LOD.thr.plot  <- 0
-    if (BT %in% 1:4) {LOD.thr.plot <- LOD.thr}
-    if (BT == 5) {if (!no.significant.snps) {LOD.thr.plot <- min(-log10(GWA.result$pvalue[snp.selection]))}}
+    # LODThr.plot  <- 0
+    # if (boundType %in% 1:4) {LODThr.plot <- LODThr}
+    # if (boundType == 5) {if (!no.significant.snps) {LODThr.plot <- min(-log10(GWAResult$pvalue[snpSelection]))}}
+    # #
+    # x.effects=integer(0)
+    # effects.size=numeric(0)
     #
-    x.effects=integer(0)
-    effects.size=numeric(0)
+    # if ("real.effects" %in% names(gData)) {
+    #   if (nrow(gData$real.effects$locations)>0) {
+    #     x.effects=gData$real.effects$locations[,trait-1]
+    #     effects.size=gData$real.effects$sizes[,trait-1]
+    #   }
+    # }
+    #
+    # if (no.significant.snps) {
+    #   x.sig <- integer(0)
+    # } else {
+    #   x.sig <- which(snpSelection)[which(snp.sig$snpStatus=="significant snp")]
+    # }
+    #
+    #
+    # MakeLodPlotWithChromosomeColors(xvalues=gData$map$cum.position,yvalues=-log10(ReplaceNaByOne(GWAResult$pvalue)),plot.title=trait,gData=gData,
+    #   col.palette = rep(c("royalblue","maroon"),50)[1:gData$nchr],file.name=paste("plots/",trait,suffix,".jpeg",sep=""),
+    #   x.sig=x.sig,chr.boundaries=cumsum(gData$chr.lengths.bp)[-1],y.thr=LODThr.plot,
+    #   x.effects=x.effects,effects.size=effects.size,plot.type="d")
+    #
+    # if (!jpeg.only) {
+    #   MakeLodPlotWithChromosomeColors(xvalues=gData$map$cum.position,yvalues=-log10(GWAResult$pvalue),plot.title=trait,gData=gData,
+    #     col.palette = rep(c("royalblue","maroon"),50)[1:gData$nchr],
+    #     file.name=paste("plots/",trait,suffix,".pdf",sep=""),x.sig=x.sig,
+    #     chr.boundaries=cumsum(gData$chr.lengths.bp)[-1],y.thr=LODThr.plot,x.effects=x.effects,
+    #     effects.size=effects.size,jpeg.plot=FALSE,plot.type="d")
+    # }
+    #
+    # QQplotPvalues2(pvalues=GWAResult$pvalue,main.title=trait,file.name=paste0("plots/QQplot_",trait,suffix,".png"))
+    #
 
-    if ("real.effects" %in% names(gData)) {
-      if (nrow(gData$real.effects$locations)>0) {
-        x.effects=gData$real.effects$locations[,tr.n-1]
-        effects.size=gData$real.effects$sizes[,tr.n-1]
-      }
-    }
-
-    if (no.significant.snps) {
-      x.sig <- integer(0)
-    } else {
-      x.sig <- which(snp.selection)[which(snp.sig$snp.status=="significant snp")]
-    }
-
-
-    MakeLodPlotWithChromosomeColors(xvalues=gData$map$cum.position,yvalues=-log10(ReplaceNaByOne(GWA.result$pvalue)),plot.title=trait,gData=gData,
-      col.palette = rep(c("royalblue","maroon"),50)[1:gData$nchr],file.name=paste("plots/",trait,suffix,".jpeg",sep=""),
-      x.sig=x.sig,chr.boundaries=cumsum(gData$chr.lengths.bp)[-1],y.thr=LOD.thr.plot,
-      x.effects=x.effects,effects.size=effects.size,plot.type="d")
-
-    if (!jpeg.only) {
-      MakeLodPlotWithChromosomeColors(xvalues=gData$map$cum.position,yvalues=-log10(GWA.result$pvalue),plot.title=trait,gData=gData,
-        col.palette = rep(c("royalblue","maroon"),50)[1:gData$nchr],
-        file.name=paste("plots/",trait,suffix,".pdf",sep=""),x.sig=x.sig,
-        chr.boundaries=cumsum(gData$chr.lengths.bp)[-1],y.thr=LOD.thr.plot,x.effects=x.effects,
-        effects.size=effects.size,jpeg.plot=FALSE,plot.type="d")
-    }
-
-    QQplotPvalues2(pvalues=GWA.result$pvalue,main.title=trait,file.name=paste0("plots/QQplot_",trait,suffix,".png"))
-
-
-  }   # end for (tr.n in trait.numbers)
+  }   # end for (trait in trait.numbers)
 
 
   ########################################################################################################################
   ########################################################################################################################
 
-  if (make.all.trait.h2.file) {
-    write.csv(all.traits,file=paste("results/",all.trait.h2.file,sep=""),row.names=F)
-  }
-
-  if (make.one.file.with.all.lod.scores) {
-    write.csv(all.lod.scores.frame,file=paste("results/",file.with.all.lod.scores,sep=""),quote=F)
-  }
-
-  if (make.one.file.with.all.snp.effects) {
-    write.csv(all.snp.effects.frame,file=paste("results/",file.with.all.snp.effects,sep=""),quote=F)
-  }
+  # if (make.all.trait.h2.file) {
+  #   write.csv(all.traits,file=paste("results/",all.trait.h2.file,sep=""),row.names=F)
+  # }
+  #
+  # if (make.one.file.with.all.lod.scores) {
+  #   write.csv(all.lod.scores.frame,file=paste("results/",file.with.all.lod.scores,sep=""),quote=F)
+  # }
+  #
+  # if (make.one.file.with.all.snp.effects) {
+  #   write.csv(all.snp.effects.frame,file=paste("results/",file.with.all.snp.effects,sep=""),quote=F)
+  # }
 
   #if (covariables) {
   #  # After the loop over traits
   #  gData$pheno <- temp.pheno
   #}
+  return(signSnp)
 }
