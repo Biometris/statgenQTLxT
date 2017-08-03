@@ -2,12 +2,17 @@
 
 #' @param gData an object of class \code{gData} containing at least a data.frame \code{pheno}.
 #' @param traits a vector of traits on which to run GWAS. These can be either numeric indices or
-#' string names of columns in \code{pheno}. If \code{NULL} GWAS is run on all traits.
+#' character names of columns in \code{pheno}. If \code{NULL} GWAS is run on all traits.
 #' @param fields a vector of fields on which to run GWAS. These can be either numeric indices or
-#' string names of list items in \code{pheno}. If \code{NULL} GWAS is run for all fields.
-#' @param covar a vector of covariates taken into account when running GWAS. These can be either
-#' numeric indices or string names of columns in \code{covar} in \code{gData}. If \code{NULL} no
+#' character names of list items in \code{pheno}. If \code{NULL} GWAS is run for all fields.
+#' @param covar an optional vector of covariates taken into account when running GWAS. These can be either
+#' numeric indices or character names of columns in \code{covar} in \code{gData}. If \code{NULL} no
 #' covariates are used.
+#' @param remlAlgo an integer indicating the algorithm used to estimate the variance components
+#' \enumerate{
+#' \item{sommer}
+#' \item{emma}
+#' }
 #' @param GLSMethod an integer indicating the software used to estimate the marker effects.
 #' \enumerate{
 #' \item{scan_GLS (not available when there are heterozygotes) -- NOT YET IMPLEMENTED}
@@ -61,6 +66,7 @@ runSingleTraitGwas <- function (gData,
   traits = NULL,
   fields = NULL,
   covar = NULL,
+  remlAlgo = 1,
   GLSMethod = 3,
   sizeIncludedRegion = 0,
   minR2,
@@ -110,10 +116,10 @@ runSingleTraitGwas <- function (gData,
       cat(paste0('Warning: GLSMethod=4: Therefore the kinship matrix contained in ',alternative.kinship.name,' is ignored.','\n'))
     }
 
-   # if (make.all.trait.h2.file==TRUE) {
-  #    make.all.trait.h2.file <- FALSE
-  #    cat(paste0('Warning: GLSMethod=4: Therefore make.all.trait.h2.file is set to FALSE','\n'))
-  #  }
+    # if (make.all.trait.h2.file==TRUE) {
+    #    make.all.trait.h2.file <- FALSE
+    #    cat(paste0('Warning: GLSMethod=4: Therefore make.all.trait.h2.file is set to FALSE','\n'))
+    #  }
   }
 
 
@@ -123,17 +129,7 @@ runSingleTraitGwas <- function (gData,
 
   ##################################################################################################################
 
-  # install and load R-packages asreml and multtest (asreml needs to be installed from a zip file)
-  if (!(reml.algo %in% c("asreml","emma"))) {reml.algo <- "emma"}
-  if (kinship.type==4) {reml.algo     <- "emma"}
-
-  if (reml.algo %in% c("asreml")) {
-    if (!is.installed("asreml")) {cat("ERROR: first install asreml, or use emma","\n")}
-    library(asreml)
-  } #else {
-  #  source(paste(script.path,"emma.R",sep=""))
-  #}
-
+  if (!remlAlgo %in% c(1, 2)) {remlAlgo <- 2}
 
   # For all columns in gData$pheno that are factors, check if there are missing values; in that case, remove the corresponding rows
   if (covariables) {
@@ -188,10 +184,6 @@ runSingleTraitGwas <- function (gData,
   #   #minor.allFreqSel[minor.allFreqSel>.5] <-  1-minor.allFreqSel[minor.allFreqSel>.5]
   #
   # }
-
-  if (reml.algo == "asreml") {
-    gData$kinship.asreml <- MakeKinshipAsreml(gData$kinship,genotype.names=gData$plant.names)
-  }
 
   ################################################################
   ####### covariates
@@ -262,7 +254,7 @@ runSingleTraitGwas <- function (gData,
     if (!is.null(covar)) {
       ## if covariates are used, all phenotypic values (for the current trait) for which at least one
       ## covariate is missing, are set to missing
-      gData$pheno[apply(as.data.frame(gData$pheno[, cov.cols]), 1, function(x) {sum(is.na(x))}) >0 , trait]  <- NA
+      phenoField[apply(as.data.frame(phenoField[cov.cols]), 1, FUN = anyNA), trait]  <- NA
     }
 
     ## Select genotypes where trait is not missing
@@ -271,45 +263,29 @@ runSingleTraitGwas <- function (gData,
     nonMissingRepId <- phenoField$genotype[!is.na(phenoField[trait])]
 
     ## Estimate variance components
-    if (reml.algo=="asreml") {
-
-      random <- as.formula("~ giv(genotype, var = TRUE)")
-
-      if (!is.null(covar)) {  # reml.formula is the formula for the fixed part of the model
+    if (remlAlgo == 2) {
+      ## Define random part of the model.
+      random <- as.formula("~ sommer::g(genotype)")
+      ## Construct the formula for the fixed part of the model.
+      if (!is.null(covar)) {
         fixed <- as.formula(paste(trait," ~ "), paste(covar, collapse = " + "))
       } else {
         fixed <- as.formula(paste(trait, " ~ 1"))
       }
-
-      reml.obj <- asreml::asreml(fixed = fixed, random = random, data = phenoField[!is.na(phenoField[, trait]), ],
-        na.method.X = "omit", ginverse = list(genotype = solve(kinshipRed)),
-        aom = FALSE, maxiter = 25)
-
-      ## TO DO: CHECK!!!
-      sommerObj <- sommer::mmer2(fixed = fixed, data = phenoField, random = ~ sommer::g(genotype),
-        G = list(genotype = kinshipRed), MVM = TRUE)
-
-      vcov.matrix <- sommerObj$var.comp[1,1] * gData$kinship[phenoField$genotype, phenoField$genotype] +
-        sommerObj$var.comp[nrow(sommerObj$var.comp), 1] * diag(nrow(gData$kinship[phenoField$genotype, phenoField$genotype]))
-
-      varcomp.values <- data.frame(var.comp.values = summary(reml.obj)$varcomp$component)
-      varcomp.std <- summary(reml.obj)$varcomp$std.error
+      ## Fit mmer2 model
+      sommerFit <- sommer::mmer2(fixed = fixed, data = phenoField[!is.na(phenoField[, trait]), ],
+        random = random, G = list(genotype = kinshipRed), silent = TRUE)
+      ## Extract variance components from fitted model.
+      varComp <- sommerFit$var.comp[1]
+    } else if (remlAlgo == 1 & GLSMethod != 4) {
+      emma.obj <- runEmma(gData = gData, trait = trait, field = field, covar = covar, K = K)
+      varComp <- data.frame(var.comp.values = emma.obj[[1]])
     }
-
-    if (reml.algo=="emma" & GLSMethod!=4) {
-      emma.obj            <- RunEmma(gwas.obj =gData,trait,cov.cols)
-      varcomp.values      <- data.frame(var.comp.values=emma.obj[[1]])
-      varcomp.std         <- c(NA,NA)
-    }
-
-    #emma.obj = RunEmma(gData=gData,trait,cov.cols)
-    #vr = emma.obj[[1]][1] * emma.obj[[2]] + emma.obj[[1]][2] * diag(nrow(emma.obj[[2]]))
-    # sum(abs(vcov.matrix - vr))
 
     #!# to do : if the kinship-matrix is the identity matrix ...
 
 
-    if (reml.algo=="emma" & GLSMethod==4) {
+    if (remlAlgo=="emma" & GLSMethod==4) {
       emma.obj.list       <- list()
       varcomp.values.list <- list()
 
@@ -335,13 +311,13 @@ runSingleTraitGwas <- function (gData,
     #
     #   if (sum(abs(gData$kinship-diag(nrow(gData$kinship)))) > 0.0001 ) { # if the kinship-matrix is (numerically) different from the identity matrix ...
     #     # to do : the case where the kinship matrix is diagonal, but has unequal variances
-    #     vcov.matrix <- MakeScanGlsKinship(varcomp.values[1,],varcomp.values[nrow(varcomp.values),],
+    #     vcovMatrix <- MakeScanGlsKinship(varcomp.values[1,],varcomp.values[nrow(varcomp.values),],
     #       gData$kinship,plant.names=gData$plant.names,
     #       gData$pheno,tr.n = trait)
     #   } else {  # if the kinship-matrix is the identity matrix ...
-    #     vcov.matrix <- diag(sum(!is.na(gData$pheno[, trait])))
+    #     vcovMatrix <- diag(sum(!is.na(gData$pheno[, trait])))
     #   }
-    #   write.table(vcov.matrix,file=varcomp.file,sep=",",quote=F,col.names=F,row.names=F)
+    #   write.table(vcovMatrix,file=varcomp.file,sep=",",quote=F,col.names=F,row.names=F)
     #   MakePhenoFile(pheno.object=gData$pheno,col.number=trait,file.name=input.pheno)
     # }
 
@@ -349,17 +325,23 @@ runSingleTraitGwas <- function (gData,
       if (sum(abs(gData$kinship - diag(nrow(gData$kinship)))) > 0.0001) {
         ## if the kinship-matrix is (numerically) different from the identity matrix ...
         ## TO DO: the case where the kinship matrix is diagonal, but has unequal variances
-        vcov.matrix <- emma.obj[[1]][1] * emma.obj[[2]] +
+        vcovMatrix <- emma.obj[[1]][1] * emma.obj[[2]] +
           emma.obj[[1]][nrow(varcomp.values)] * diag(nrow(emma.obj[[2]]))
+
+        ## Compute varcov matrix using var components from model
+        vcovMatrix <- sommerFit$var.comp[1,1] * kinshipRed +
+          diag(sommerFit$var.comp[nrow(sommerFit$var.comp), 1], nrow = nrow(kinshipRed))
+
+
       } else {
         ## if the kinship-matrix is the identity matrix ...
-        vcov.matrix <- diag(sum(!is.na(gData$pheno[, trait])))
+        vcovMatrix <- diag(sum(!is.na(gData$pheno[, trait])))
       }
     } else if (GLSMethod == 4) {
-      vcov.matrix.list <- list()
+      vcovMatrix.list <- list()
       for (chr in gData$chromosomes) {
         chr.ind <- which(chr == gData$chromosomes)
-        vcov.matrix.list[[chr.ind]] <- emma.obj.list[[chr.ind]][[1]][1] * emma.obj.list[[chr.ind]][[2]] +
+        vcovMatrix.list[[chr.ind]] <- emma.obj.list[[chr.ind]][[1]][1] * emma.obj.list[[chr.ind]][[2]] +
           emma.obj.list[[chr.ind]][[1]][2] * diag(nrow(emma.obj.list[[chr.ind]][[2]]))
       }
     }
@@ -376,7 +358,7 @@ runSingleTraitGwas <- function (gData,
     ## Compute allele frequencies based on genotypes for which phenotypic data is available.
     allFreq <- colMeans(gData$markers[nonMissing, ])
 
-    ## variances of marker scores, based on genotypes for which phenotypic data is available.
+    ## Compute variance of marker scores, based on genotypes for which phenotypic data is available.
     ## for inbreeders, this depends on maxScore. It is therefore scaled to marker scores 0, 1
     ## (or 0, 0.5, 1 if there are heterozygotes)
     allVar <- apply(gData$markers[nonMissing, ], 2, var) / maxScore ^ 2
@@ -537,7 +519,7 @@ runSingleTraitGwas <- function (gData,
     #
 
     if (GLSMethod == 3) {
-      Sigma <- vcov.matrix
+      Sigma <- vcovMatrix
 
       ## The following is based on the genotypes, not the replicates:
       markerMeans <- colMeans(gData$markers[nonMissing, ])
@@ -607,7 +589,7 @@ runSingleTraitGwas <- function (gData,
           X.temp <- t(gData$markers[intersect(which(gData$map$chromosome == chr), segMarkers),
             nonMissingRepId])
           rownames(X.temp) <- nonMissingRepId
-          Sigma <- vcov.matrix.list[[which(chr == gData$chromosomes)]]
+          Sigma <- vcovMatrix.list[[which(chr == gData$chromosomes)]]
           GLSResult <- fastGLS(y = Y.temp, X = X.temp, Sigma = Sigma)
         }
       } else {
@@ -618,7 +600,7 @@ runSingleTraitGwas <- function (gData,
           X.temp <- t(gData$markers[intersect(which(gData$map$chromosome == chr), segMarkers),
             nonMissingRepId])
           row.names(X.temp) <- nonMissingRepId
-          Sigma <- vcov.matrix.list[[which(chr == gData$chromosomes)]]
+          Sigma <- vcovMatrix.list[[which(chr == gData$chromosomes)]]
           GLSResult <- fastGLSCov(y = Y.temp, X = X.temp, Sigma = Sigma, covs = Z)
         }
       }
@@ -689,24 +671,24 @@ runSingleTraitGwas <- function (gData,
         snpStatus <- rep("significant snp", length(signSnp))
       }
       if (GLSMethod==1) {
-      #   effects                  <- GWAResult$effect[snpSelection]
-      #
-      #   snpVar     <- 4 * effects^2 * allVar[snpSelection]
-      #   propSnpVar <- snpVar / var(as.numeric(na.omit(gData$pheno[,trait])))
-      #
-      #   snp.sig             <- cbind(snp.sig,data.frame(reference.allele.freq=allFreqSel,
-      #     effect.size=effects,
-      #     propSnpVar=propSnpVar))
-      #   #perc.of.phenetic.var=explained.phenotypic.variance))
-      # } else if (GLSMethod==2) {
-      #   effects                  <- GWAResult$effect[snpSelection]
-      #   #snpVar     <- 4 * effects^2 * allFreqSel * (1 - allFreqSel)
-      #   #explained.phenotypic.variance <- 100 * snpVar / var(as.numeric(na.omit(gData$pheno[,trait])))
-      #   #
-      #   snp.sig             <- cbind(snp.sig,data.frame(reference.allele.freq=allFreqSel,
-      #     effect.size=effects,
-      #     proportion.var.LRT=GWAResult$R_LR_2[snpSelection]))
-      #   #                             perc.of.phenetic.var=explained.phenotypic.variance))
+        #   effects                  <- GWAResult$effect[snpSelection]
+        #
+        #   snpVar     <- 4 * effects^2 * allVar[snpSelection]
+        #   propSnpVar <- snpVar / var(as.numeric(na.omit(gData$pheno[,trait])))
+        #
+        #   snp.sig             <- cbind(snp.sig,data.frame(reference.allele.freq=allFreqSel,
+        #     effect.size=effects,
+        #     propSnpVar=propSnpVar))
+        #   #perc.of.phenetic.var=explained.phenotypic.variance))
+        # } else if (GLSMethod==2) {
+        #   effects                  <- GWAResult$effect[snpSelection]
+        #   #snpVar     <- 4 * effects^2 * allFreqSel * (1 - allFreqSel)
+        #   #explained.phenotypic.variance <- 100 * snpVar / var(as.numeric(na.omit(gData$pheno[,trait])))
+        #   #
+        #   snp.sig             <- cbind(snp.sig,data.frame(reference.allele.freq=allFreqSel,
+        #     effect.size=effects,
+        #     proportion.var.LRT=GWAResult$R_LR_2[snpSelection]))
+        #   #                             perc.of.phenetic.var=explained.phenotypic.variance))
       } else if (GLSMethod %in% 3:4) {
         effects <- GWAResult$effect[snpSelection]
         snpVar <- 4 * effects ^ 2 * allVar[snpSelection]
@@ -737,7 +719,7 @@ runSingleTraitGwas <- function (gData,
       #snp.sig <- cbind(snp.sig,data.frame(accessions.with.the.rare.allele=accessions.with.the.rare.allele))
 
       # creating this file
-     # snp.output.file       <- paste("results/","significant.snps.",trait,suffix,".csv",sep="")
+      # snp.output.file       <- paste("results/","significant.snps.",trait,suffix,".csv",sep="")
 
       #write.table(snp.sig,file=snp.output.file,quote=FALSE,row.names=FALSE,sep=",")
 
@@ -767,44 +749,44 @@ runSingleTraitGwas <- function (gData,
     ############################################################################
 
     # Create the summary file:
-#
-#     summ.file    <- paste("results/","summary.",trait,suffix,".txt",sep="")
-#
-#
-#     cat("R-image used: ",r.image.name,"\n","\n",file=summ.file)     # file is created and first line is written; APPEND=FALSE (default)
-#     cat("Trait: ",trait,"\n","\n",file=summ.file,append=T)
-#     cat("Analysis started on: ",start.date,"\n",file=summ.file,append=TRUE)
-#     cat("Analysis finished on: ",date(),"\n","\n",file=summ.file,append=TRUE)
-#
-#     cat("Data are available for",gData$N,"SNPs", "\n",file=summ.file,append=TRUE)
-#     if (MAF > 0) {cat(gData$N-nEff,"of them were not analyzed because their minor allele frequency is below",MAF,"\n","\n",file=summ.file,append=TRUE)}
-#
-#
-#     if (GLSMethod %in% c(1,3)) {
-#       cat("Mixed model with only polygenic effects, and no marker effects:","\n",file=summ.file,append=TRUE)
-#       cat("Genetic variance: ",varcomp.values[1,1],"\t","standard error: ",varcomp.std[1],"\n",file=summ.file,append=TRUE)
-#       cat("Residual variance: ",varcomp.values[nrow(varcomp.values),1],"\t","standard error: ",varcomp.std[nrow(varcomp.values)],"\n\n",file=summ.file,append=TRUE)
-#       #
-#       cat("File containing the p-values of all snps:  ",output.file,"\n","\n",append=TRUE,file=summ.file,sep="")
-#     }
-#     #
-#
-#     if (boundType %in% 1:4) {
-#       cat("LOD-threshold: ",LODThr,"\n",append=TRUE,file=summ.file)
-#       if (boundType==4) {cat("Number of effective tests: ",Keff,"\n",append=TRUE,file=summ.file)}
-#       #
-#       if (!no.significant.snps) {
-#         cat("File containing the p-values of the selected snps: ",snp.output.file,"\n",append=TRUE,file=summ.file)
-#         cat("Number of selected snps =",nrow(snp.sig),"\n",append=TRUE,file=summ.file)
-#         cat("Smallest p-value among the selected snps:",min(snp.sig$pvalue),"\n",append=TRUE,file=summ.file)
-#         cat("Largest  p-value among the selected snps:",max(snp.sig$pvalue),"(LOD-score:",-log10(max(snp.sig$pvalue)),")","\n",append=TRUE,file=summ.file)
-#       } else {
-#         cat("No significant snps found.","\n",append=TRUE,file=summ.file)
-#       }
-#       if (genomicControl) {cat("\n","Genomic control correction was applied","\n",append=TRUE,file=summ.file)}
-#       if (!genomicControl) {cat("\n","No Genomic control correction","\n",append=TRUE,file=summ.file)}
-#       cat("Genomic control inflation-factor = ",GC[[2]],"\n","\n",append=TRUE,file=summ.file)
-#     }
+    #
+    #     summ.file    <- paste("results/","summary.",trait,suffix,".txt",sep="")
+    #
+    #
+    #     cat("R-image used: ",r.image.name,"\n","\n",file=summ.file)     # file is created and first line is written; APPEND=FALSE (default)
+    #     cat("Trait: ",trait,"\n","\n",file=summ.file,append=T)
+    #     cat("Analysis started on: ",start.date,"\n",file=summ.file,append=TRUE)
+    #     cat("Analysis finished on: ",date(),"\n","\n",file=summ.file,append=TRUE)
+    #
+    #     cat("Data are available for",gData$N,"SNPs", "\n",file=summ.file,append=TRUE)
+    #     if (MAF > 0) {cat(gData$N-nEff,"of them were not analyzed because their minor allele frequency is below",MAF,"\n","\n",file=summ.file,append=TRUE)}
+    #
+    #
+    #     if (GLSMethod %in% c(1,3)) {
+    #       cat("Mixed model with only polygenic effects, and no marker effects:","\n",file=summ.file,append=TRUE)
+    #       cat("Genetic variance: ",varcomp.values[1,1],"\t","standard error: ",varcomp.std[1],"\n",file=summ.file,append=TRUE)
+    #       cat("Residual variance: ",varcomp.values[nrow(varcomp.values),1],"\t","standard error: ",varcomp.std[nrow(varcomp.values)],"\n\n",file=summ.file,append=TRUE)
+    #       #
+    #       cat("File containing the p-values of all snps:  ",output.file,"\n","\n",append=TRUE,file=summ.file,sep="")
+    #     }
+    #     #
+    #
+    #     if (boundType %in% 1:4) {
+    #       cat("LOD-threshold: ",LODThr,"\n",append=TRUE,file=summ.file)
+    #       if (boundType==4) {cat("Number of effective tests: ",Keff,"\n",append=TRUE,file=summ.file)}
+    #       #
+    #       if (!no.significant.snps) {
+    #         cat("File containing the p-values of the selected snps: ",snp.output.file,"\n",append=TRUE,file=summ.file)
+    #         cat("Number of selected snps =",nrow(snp.sig),"\n",append=TRUE,file=summ.file)
+    #         cat("Smallest p-value among the selected snps:",min(snp.sig$pvalue),"\n",append=TRUE,file=summ.file)
+    #         cat("Largest  p-value among the selected snps:",max(snp.sig$pvalue),"(LOD-score:",-log10(max(snp.sig$pvalue)),")","\n",append=TRUE,file=summ.file)
+    #       } else {
+    #         cat("No significant snps found.","\n",append=TRUE,file=summ.file)
+    #       }
+    #       if (genomicControl) {cat("\n","Genomic control correction was applied","\n",append=TRUE,file=summ.file)}
+    #       if (!genomicControl) {cat("\n","No Genomic control correction","\n",append=TRUE,file=summ.file)}
+    #       cat("Genomic control inflation-factor = ",GC[[2]],"\n","\n",append=TRUE,file=summ.file)
+    #     }
 
 
     ##################################################################################################
@@ -869,5 +851,5 @@ runSingleTraitGwas <- function (gData,
   #  # After the loop over traits
   #  gData$pheno <- temp.pheno
   #}
-  return(signSnp)
+  return(GWAResult = GWAResult, signSnp = signSnp)
 }
