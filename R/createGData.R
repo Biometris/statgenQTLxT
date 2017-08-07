@@ -74,8 +74,8 @@ createGData <- function(geno,
   if (!missing(geno)) {
     if (!is.data.frame(geno) && !is.matrix(geno)) stop("geno should be a matrix or a data.frame.\n")
     if (is.data.frame(geno)) markers <- as.matrix(geno) else markers <- geno
+    ## Check for row names in markers. If not available take them from pheno or use default names.
     if (all(rownames(markers) == as.character(1:nrow(markers)))) {
-      ## Check for row names in markers. If not available take them from pheno or use default names.
       if (missing(pheno)) {
         ## Default names are constructed as g001, g002, etc. with the number of 0 dependent on the
         ## number of rows.
@@ -88,6 +88,9 @@ createGData <- function(geno,
       } else {
         stop("geno contains no genotype names. Dimensions between geno and pheno differ.\n")
       }
+    } else {
+      ## Sort rownames alphabetically.
+      markers <- markers[order(rownames(markers)), ]
     }
     if (is.null(colnames(markers))) {
       ## Check for column names in markers. If not available take them from map.
@@ -113,7 +116,7 @@ createGData <- function(geno,
 
   ## Modify covar
   if (!missing(covar)) {
-    if (!is.null(covar) && !data.frame(covar))
+    if (!is.null(covar) && !is.data.frame(covar))
       stop("covar should be a data.frame.\n")
   } else covar <- NULL
 

@@ -78,7 +78,7 @@ fastGLS <- function(y,
   # the R_LR^2 statistic from G. Sun et al 2010, heredity
   RLR2  <- 1 - exp((RSSFull - RSSEnv) / n)
 
-  GLS <- data.frame(pValue= pVal,
+  GLS <- data.frame(pValue = pVal,
     beta = betaVec,
     betaSe = sqrt(XtXinv2ndRows[, 2]),
     RLR2 = RLR2)
@@ -114,7 +114,6 @@ fastGLSCov <-function(y,
   if (nrow(covs) != n)
     stop("The number of elements in y should be identical to the number of rows in covs")
 
-  n <- length(y)
   m <- ncol(X)
   fixCovs <- cbind(rep(1, n), covs)
   nCov <- ncol(fixCovs)
@@ -126,10 +125,10 @@ fastGLSCov <-function(y,
 
   ## pre-multiply the snp-matrix with t(M)
   ## for extra robustness, distinguish
-  if (ncol(X)==1) {
-    tMX <- crossprod(M,matrix(as.numeric(X)))
+  if (m == 1) {
+    tMX <- crossprod(M, matrix(as.numeric(X)))
   } else {
-    tMX <- crossprod(M,X)
+    tMX <- crossprod(M, X)
   }
 
   ## Matrix cookbook, 3.2.6 Rank-1 update of inverse of inner product
@@ -150,15 +149,16 @@ fastGLSCov <-function(y,
   Q <- qr.Q(qr(tMfixCovs))
   tMQtQ <- t(M %*% (diag(n) - tcrossprod(Q)))
 
-  RSSFull <- numeric(length = nChunks)
+  RSSFull <- vector(mode = "list", length = nChunks)
   for (j in 1:(nChunks - 1)) {
     tX <- tMQtQ %*% X[, ((j - 1) * round(m / nChunks) + 1):(j * round(m / nChunks))]
-    RSSFull[j] <- apply(tX, 2, function(x){
+    RSSFull[[j]] <- apply(tX, 2, function(x){
       sum(lsfit(x = x, y = ResEnv, intercept = FALSE)$residuals ^ 2)})
   }
   tX <- tMQtQ %*%  X[ , -(1:(j * round(m / nChunks)))]
-  RSSFull[nChunks] <- apply(tX, 2, function(x){
+  RSSFull[[nChunks]] <- apply(tX, 2, function(x){
     sum(lsfit(x = x, y = ResEnv, intercept = FALSE)$residuals ^ 2)})
+  RSSFull <- unlist(RSSFull)
 
   df2 <- n - 1 - nCov
   FVal <- (RSSEnv - RSSFull) / RSSFull * df2
@@ -167,9 +167,9 @@ fastGLSCov <-function(y,
   # the R_LR^2 statistic from G. Sun et al 2010, heredity
   RLR2  <- 1 - exp((RSSFull - RSSEnv) / n)
 
-  GLS <- data.frame(pValue= pVal,
+  GLS <- data.frame(pValue = pVal,
     beta = betaVec,
-    betaSe = sqrt(XtXinvLastRows[, 2]),
+    betaSe = sqrt(XtXinvLastRows[, 1 + nCov]),
     RLR2 = RLR2)
 
   return(GLS)

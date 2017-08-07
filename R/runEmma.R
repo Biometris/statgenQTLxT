@@ -39,9 +39,6 @@
 
 #' @import stats
 
-# trait <- "anthesis.SYNHUN_2013_drought"
-# snpName <- "AX-90549756"
-
 runEmma <- function(gData,
   trait,
   field,
@@ -73,9 +70,9 @@ runEmma <- function(gData,
     stop("gData contains no matrix kinship so K should be provided.\n")
   if(!is.null(covar) && !is.numeric(covar) && !is.character(covar))
     stop("covar should be a numeric or character.\n")
-  if ((is.character(covar) && !all(covar %in% colnames(covar))) ||
-      (is.numeric(covar) && any(covar > ncol(covar))))
-    stop("covar should be a columns in covar in gData.\n")
+  if ((is.character(covar) && !all(covar %in% colnames(gData$covar))) ||
+      (is.numeric(covar) && any(covar > ncol(gData$covar))))
+    stop("covar should be columns in covar in gData.\n")
   if(!is.null(snpName) && (length(snpName) > 1 || !is.character(snpName)))
     stop("snpName should be a single character.\n")
   if(!is.null(Z) && !is.matrix(Z))
