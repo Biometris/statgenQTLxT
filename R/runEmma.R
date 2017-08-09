@@ -50,7 +50,6 @@ runEmma <- function(gData,
   lLim = - 10,
   uLim = 10,
   eps = 1e-10) {
-
   ## Check input
   if(missing(gData) || !is.gData(gData) || is.null(gData$pheno))
     stop("gData should be a valid gData object with at least pheno included.\n")
@@ -90,20 +89,17 @@ runEmma <- function(gData,
 
   ## Add column genotype to field.
   phenoField <- tibble::rownames_to_column(as.data.frame(gData$pheno[[field]]), var = "genotype")
-
   ## Remove data with missings in trait or any of the covars.
-  nonMissing <- which(!is.na(phenoField[trait]))
+  nonMissing <- phenoField$genotype[!is.na(phenoField[trait])]
   if (!is.null(covar)) {
-    nonMissing <- intersect(nonMissing, which(rowSums(is.na(gData$covar[covar])) == 0))
+    nonMissing <- intersect(nonMissing, rownames(gData$covar)[which(rowSums(is.na(gData$covar[covar])) == 0)])
   }
   if (is.null(K)) {
     K <- gData$kinship[nonMissing, nonMissing]
   } else {
     K <- K[nonMissing, nonMissing]
   }
-
-  y <- phenoField[nonMissing, trait]
-
+  y <- phenoField[phenoField$genotype %in% nonMissing, trait]
   ## Define intercept.
   X <- rep(1, length(nonMissing))
   if (!is.null(covar)) {
@@ -120,7 +116,6 @@ runEmma <- function(gData,
     warning("X is singular.")
     return(list(varcomp = c(0, 0), K = K))
   }
-
   ## Using notation of Kang et al.
   n <- length(y)
   t <- nrow(K)

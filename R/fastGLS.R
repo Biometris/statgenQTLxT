@@ -104,7 +104,6 @@ fastGLSCov <-function(y,
     stop("covs should be a numeric vector without missing values.")
   if (!is.numeric(nChunks) || length(nChunks) > 1 || nChunks != round(nChunks))
     stop("nChunks should be an integer")
-
   n <- length(y)
   ## Check dimensions.
   if (nrow(X) != n)
@@ -122,7 +121,6 @@ fastGLSCov <-function(y,
   tMy <- crossprod(M, y)
   ## pre-multiply the intercept and covariates with t(M)
   tMfixCovs <- crossprod(M, fixCovs)
-
   ## pre-multiply the snp-matrix with t(M)
   ## for extra robustness, distinguish
   if (m == 1) {
@@ -132,7 +130,7 @@ fastGLSCov <-function(y,
   }
 
   ## Matrix cookbook, 3.2.6 Rank-1 update of inverse of inner product
-  A  <- solve(crossprod(tMfixCovs), symmetric = TRUE)
+  A <- solve(crossprod(tMfixCovs), symmetric = TRUE)
   vv <- colSums(tMX ^ 2)
   vX <- crossprod(tMfixCovs, tMX)
   nn <- 1 / (vv - colSums(vX * (A %*% vX)))
