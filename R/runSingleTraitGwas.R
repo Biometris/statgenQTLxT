@@ -165,7 +165,8 @@ runSingleTraitGwas <- function (gData,
     KChr <- vector(mode = "list", length = length(chrs))
     for (chr in chrs) {
       nonChr <- which(colnames(gData$markers) %in% rownames(gData$map[gData$map$chr != chr, ]))
-      KChr[[which(chrs == chr)]] <- GRM(gData$markers[, nonChr])
+      #KChr[[which(chrs == chr)]] <- GRM(gData$markers[, nonChr])
+      KChr[[which(chrs == chr)]] <- astle(gData$markers[, nonChr])
     }
   }
   ## Compute max value in markers

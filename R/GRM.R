@@ -9,4 +9,14 @@ GRM <- function(X) {
   return(K)
 }
 
+astle <- function(X) {
+  if (!is.matrix(X)) X <- as.matrix(X)
+  n <- ncol(X)
+  p <- colSums(X) / (2 * nrow(X))
+  Z <- sapply(1:n, function(i) {sqrt(1 / n) * (X[, i] - 2 * p[i]) / sqrt(2 * p[i] * (1 - p[i]))})
+  K <- tcrossprod(Z)
+  K <- as.matrix(Matrix::nearPD(K)$mat)
+}
+
+
 
