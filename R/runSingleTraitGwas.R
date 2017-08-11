@@ -16,7 +16,7 @@
 #' @param remlAlgo an integer indicating the algorithm used to estimate the variance components
 #' \enumerate{
 #' \item{sommer}
-#' \item{emma}
+#' \item{newton raphson using sommer package}
 #' }
 #' @param GLSMethod an integer indicating the software used to estimate the marker effects.
 #' \enumerate{
@@ -46,18 +46,17 @@
 #' loci.
 #' \enumerate{
 #' \item{Bonferroni; a LOD-threshold of -log10(alpha/p), where p is the number of markers and alpha
-#' can be specified in alpha.}
-#' \item{a self-chosen LOD-threshold, specied in LODThr.}
+#' can be specified in \code{alpha}.}
+#' \item{a self-chosen LOD-threshold, specied in \code{LODThr}.}
 #' \item{the LOD-threshold is chosen such the the SNPs with the nSnpLOD smallest p-values are selected.
-#' nSnpLOD can be specified}
+#' nSnpLOD can be specified.}
 #' \item{Bonferroni; as option 1 but with p replaced by the number of effective tests approach
 #' as in Gao et al. -- NOT YET IMPLEMENTED}
 #' }
 #' @param alpha a numerical value used for calculating the LOD-threshold for \code{boundType} = 1.
 #' @param LODThr a numerical value used as a LOD-threshold when \code{boundType} = 2.
 #' @param nSnpLOD a numerical value indicating the number of SNPs with the smallest p-values that
-#' are selected when \code{boundType} =3.
-#'
+#' are selected when \code{boundType} = 3.
 #'
 #' @references Rincent et al. (2014) Recovering power in association mapping panels with variable
 #' levels of linkage disequilibrium. Genetics, May 2014. Vol. 197. p. 375–387.
@@ -97,7 +96,7 @@ runSingleTraitGwas <- function (gData,
     stop("traits should be a numeric or character vector.\n")
   for (field in fields) {
     if ((is.character(traits) && !all(traits %in% colnames(gData$pheno[[field]]))) ||
-        (is.numeric(traits) && any(traits > ncol(gData$pheno[[field]]))))
+        (is.numeric(traits) && (any(traits == 1) || any(traits > ncol(gData$pheno[[field]])))))
       stop("traits should be columns in pheno.\n")
   }
   ## If fields is null set fields as all fields in pheno.
@@ -161,13 +160,15 @@ runSingleTraitGwas <- function (gData,
   }
   ## Compute kinship matrices per chromosome. Only needs to be done once.
   if (GLSMethod == 4) {
-    chrs <- unique(gData$map$chr)
-    KChr <- vector(mode = "list", length = length(chrs))
+    chrs <- unique(gData$map$chr[rownames(gData$map) %in% colnames(gData$markers)])
+    KChr <- replicate(length(chrs),
+      matrix(data = 0, nrow = nrow(gData$markers), ncol = nrow(gData$markers)), simplify = FALSE)
     for (chr in chrs) {
-      nonChr <- which(colnames(gData$markers) %in% rownames(gData$map[gData$map$chr != chr, ]))
-      #KChr[[which(chrs == chr)]] <- GRM(gData$markers[, nonChr])
-      KChr[[which(chrs == chr)]] <- astle(gData$markers[, nonChr])
+      chrMrk <- which(colnames(gData$markers) %in% rownames(gData$map[gData$map$chr == chr, ]))
+      K <- astle(gData$markers[, chrMrk]) / ncol(gData$markers)
+      for (i in setdiff(1:length(chrs), which(chr == chrs))) KChr[[i]] <- KChr[[i]] + K
     }
+    #KChr <- lapply(KChr, function(x) as.matrix(Matrix::nearPD(x)$mat))
   }
   ## Compute max value in markers
   maxScore <- max(gData$markers, na.rm = TRUE)
@@ -182,15 +183,14 @@ runSingleTraitGwas <- function (gData,
     ## If traits is given as numeric convert to character.
     if (is.numeric(traits)) traits <- colnames(gData$pheno[[field]])[traits]
     ## If no traits supplied extract them from pheno data.
-    if (is.null(traits)) traits <- colnames(gData$pheno[[field]])
+    if (is.null(traits)) traits <- colnames(gData$pheno[[field]])[-1]
     ## Add covariates to pheno data.
     if (is.null(covar)) {
-      phenoField <- tibble::rownames_to_column(as.data.frame(gData$pheno[[field]]), var = "genotype")
+      phenoField <- gData$pheno[[field]]
       covarField <- NULL
     } else {
       ## Append covariates to pheno data. Merge to remove values from pheno that are missing in covar.
-      phenoField <- merge(gData$pheno[[field]], gData$covar[covar], by = "row.names")
-      colnames(phenoField)[1] <- "genotype"
+      phenoField <- merge(gData$pheno[[field]], gData$covar[covar], by.x = "genotype", by.y = "row.names")
       ## Remove rows from phenoField with missing covar check if there are missing values.
       phenoField <- phenoField[!is.na(phenoField[covar]), ]
       ## Expand covariates that are a factor (i.e. dummy variables are created) using model.matrix
@@ -234,15 +234,13 @@ runSingleTraitGwas <- function (gData,
         if (!isTRUE(all.equal(kinshipRed, diag(nrow(kinshipRed)), check.names = FALSE))) {
           if (remlAlgo == 1) {
             ## emma algorithm takes covariates from gData.
-            gDataEmma <- gData
-            gDataEmma$covar <- as.data.frame(phenoField[covarField], row.names = phenoField$genotype)
+            gDataEmma <- createGData(pheno = gData$pheno,
+              covar = as.data.frame(phenoField[covarField], row.names = phenoField$genotype))
             remlObj <- runEmma(gData = gDataEmma, trait = trait, field = field, covar = covarField, K = kinshipRed)
             ## Compute varcov matrix using var components.
             vcovMatrix <- remlObj[[1]][1] * remlObj[[2]] +
               remlObj[[1]][2] * diag(nrow(remlObj[[2]]))
           } else if (remlAlgo == 2) {
-            ## Define random part of the model.
-            random <- as.formula("~ sommer::g(genotype)")
             ## Construct the formula for the fixed part of the model.
             if (!is.null(covarField)) {
               ## Define formula for fixed part. ` needed to accommodate - in variable names.
@@ -252,7 +250,7 @@ runSingleTraitGwas <- function (gData,
             }
             ## Fit mmer2 model.
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoFieldTrait,
-              random = random, G = list(genotype = kinshipRed), silent = TRUE)
+              random = ~ sommer::g(genotype), G = list(genotype = kinshipRed), silent = TRUE)
             ## Compute varcov matrix using var components from model.
             vcovMatrix <- sommerFit$var.comp[1, 1] * kinshipRed +
               diag(sommerFit$var.comp[nrow(sommerFit$var.comp), 1], nrow = nrow(kinshipRed))
@@ -263,31 +261,33 @@ runSingleTraitGwas <- function (gData,
         }
       } else if (GLSMethod == 4) {
         vcovMatrix <- vector(mode = "list", length = length(chrs))
-        for (chr in chrs) {
-          ## Get chromosome specific kinship.
-          KinshipRedChr <- KChr[[which(chrs == chr)]][nonMissing, nonMissing]
-          if (remlAlgo == 1) {
-            ## emma algorithm takes covariates from gData.
-            gDataEmma <- gData
-            gDataEmma$covar <- phenoField[covarField]
+        ## emma algorithm takes covariates from gData.
+        if (remlAlgo == 1) {
+          gDataEmma <- createGData(pheno = gData$pheno,
+            covar = as.data.frame(phenoField[covarField], row.names = phenoField$genotype))
+          for (chr in chrs) {
+            ## Get chromosome specific kinship.
+            KinshipRedChr <- KChr[[which(chrs == chr)]][nonMissing, nonMissing]
             ## Compute variance components using chromosome specific kinship.
             remlObj <- runEmma(gData = gDataEmma, trait = trait, field = field,
               covar = covarField, K = KinshipRedChr)
             ## Compute varcov matrix using var components.
             vcovMatrix[[which(chrs == chr)]] <- remlObj[[1]][1] * remlObj[[2]] +
               remlObj[[1]][2] * diag(nrow(remlObj[[2]]))
-          } else if (remlAlgo == 2) {
-            ## Define random part of the model.
-            random <- as.formula("~ sommer::g(genotype)")
-            ## Construct the formula for the fixed part of the model.
-            if (!is.null(covarField)) {
-              fixed <- as.formula(paste(trait," ~ "), paste(covarField, collapse = " + "))
-            } else {
-              fixed <- as.formula(paste(trait, " ~ 1"))
-            }
+          }
+        } else if (remlAlgo == 2) {
+          if (!is.null(covarField)) {
+            ## Define formula for fixed part. ` needed to accommodate - in variable names.
+            fixed <- as.formula(paste0(trait," ~ `", paste0(covarField, collapse = "` + `"), "`"))
+          } else {
+            fixed <- as.formula(paste(trait, " ~ 1"))
+          }
+          for (chr in chrs) {
+            ## Get chromosome specific kinship.
+            KinshipRedChr <- KChr[[which(chrs == chr)]][nonMissing, nonMissing]
             ## Fit mmer2 model using chromosome specific kinship.
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoFieldTrait,
-              random = random, G = list(genotype = KinshipRedChr), silent = TRUE)
+              random = ~ sommer::g(genotype), G = list(genotype = KinshipRedChr), silent = TRUE)
             ## Compute varcov matrix using var components from model.
             vcovMatrix[[which(chrs == chr)]] <- sommerFit$var.comp[1, 1] * KinshipRedChr +
               diag(sommerFit$var.comp[nrow(sommerFit$var.comp), 1], nrow = nrow(KinshipRedChr))
@@ -296,6 +296,7 @@ runSingleTraitGwas <- function (gData,
       }
       ## Compute allele frequencies based on genotypes for which phenotypic data is available.
       markersRed <- gData$markers[nonMissing, ]
+      mapRed <- gData$map[rownames(gData$map) %in% colnames(markersRed), ]
       allFreq <- colMeans(markersRed)
       if (maxScore == 2) {
         allFreq <- allFreq / 2
@@ -318,14 +319,15 @@ runSingleTraitGwas <- function (gData,
         segMarkers <- setdiff(segMarkers, exclude)
       }
       ## Define data.frame for results.
-      GWAResult <- data.frame(snp = rownames(gData$map),
-        gData$map,
+      GWAResult <- data.frame(snp = rownames(mapRed),
+        mapRed,
         pValue = NA,
         effect = NA,
         effectSe = NA,
+        LOD = NA,
         RLR2 = NA,
         allFreq = allFreq,
-        row.names = rownames(gData$map),
+        row.names = rownames(mapRed),
         stringsAsFactors = FALSE)
       y <- phenoFieldTrait[which(phenoFieldTrait$genotype %in% nonMissing), trait]
       if (GLSMethod == 3) {
@@ -345,7 +347,7 @@ runSingleTraitGwas <- function (gData,
         ## Same as for GLSMethod 3 but then per chromosome using the chromosome specific
         ## kinship calculated before.
         for (chr in chrs) {
-          segMarkersChr <- intersect(segMarkers, which(gData$map$chr == chr))
+          segMarkersChr <- intersect(segMarkers, which(mapRed$chr == chr))
           X <- markersRed[nonMissingRepId, segMarkersChr]
           if (length(covarField) == 0) {
             GLSResult <- fastGLS(y = y, X = X, Sigma = vcovMatrix[[which(chrs == chr)]])
@@ -360,7 +362,9 @@ runSingleTraitGwas <- function (gData,
       if (maxScore == 1) {
         GWAResult$effect <- 0.5 * GWAResult$effect
       }
-      ## Calculate the genomic inflation factor and rescale p-values
+      ## Compute LOD score.
+      GWAResult$LOD <- -log10(GWAResult$pValue)
+      ## Calculate the genomic inflation factor and rescale p-values.
       if (genomicControl) {
         GC <- genomicControlPValues(pVals = GWAResult$pValue,
           nObs = length(nonMissing),
@@ -369,7 +373,7 @@ runSingleTraitGwas <- function (gData,
       }
       ## Add gene information if available.
       if ("genes" %in% names(gData)) {
-        GWAResult <- cbind(GWAResult, gene1 = gData$map$gene1, gene2 = gData$map$gene2)
+        GWAResult <- cbind(GWAResult, gene1 = gData$genes$gene1, gene2 = gData$genes$gene2)
       }
       ## When boundType is 1, 3 or 4, determine the LOD threshold.
       if (boundType == 1) {
@@ -379,35 +383,36 @@ runSingleTraitGwas <- function (gData,
       } else if (boundType == 3) {
         ## Compute LOD threshold by computing the 10log of the nSnpLOD item of ordered p values.
         LODThr <- -log10(sort(na.omit(GWAResult$pValue))[nSnpLOD])
-      # } else if (boundType == 4) {
-      #   cut.off <- 0.995
-      #   number.of.nonmissing  <- aggregate(gData$pheno[,trait],by=list(ordered(phenoField$genotype)),
-      #     FUN = function(x){sum(!is.na(x))})[match(gData$plant.names,sort(gData$plant.names)),2]
-      #   number.of.nonmissing[number.of.nonmissing>0] <- 1
-      #   ind.indices <- rep((1:gData$n)[number.of.nonmissing>0],times=number.of.nonmissing[number.of.nonmissing>0])
-      #   SIGMA       <- varcomp.values[1,] * gData$kinship[ind.indices,ind.indices] + varcomp.values[2,] * diag(sum(number.of.nonmissing))
-      #   COR         <- cov2cor(SIGMA)
-      #   INV.COR     <- GINV(COR)
-      #   Keff      <- 0
-      #   n.block   <- 0
-      #   b.size    <- 10*sum(number.of.nonmissing)
-      #   for (CHR in 1:gData$nchr) {
-      #     blocks  <- DefineBlocks(which(gData$map$chromosome==CHR),block.size=b.size)
-      #     n.block <- n.block  +  length(blocks)
-      #     for (b in 1:length(blocks)) {
-      #       marker.frame <- gData$markers[blocks[[b]],]
-      #       Keff <- Keff + GaoCorrection(marker.frame=marker.frame,number.of.replicates=number.of.nonmissing,inv.cor.matrix=INV.COR,cut.off=cut.off)
-      #     }
-      #   }
-      #   LODThr <- -log10(alpha/Keff)
+        # } else if (boundType == 4) {
+        #   cut.off <- 0.995
+        #   number.of.nonmissing  <- aggregate(gData$pheno[,trait],by=list(ordered(phenoField$genotype)),
+        #     FUN = function(x){sum(!is.na(x))})[match(gData$plant.names,sort(gData$plant.names)),2]
+        #   number.of.nonmissing[number.of.nonmissing>0] <- 1
+        #   ind.indices <- rep((1:gData$n)[number.of.nonmissing>0],times=number.of.nonmissing[number.of.nonmissing>0])
+        #   SIGMA       <- varcomp.values[1,] * gData$kinship[ind.indices,ind.indices] + varcomp.values[2,] * diag(sum(number.of.nonmissing))
+        #   COR         <- cov2cor(SIGMA)
+        #   INV.COR     <- GINV(COR)
+        #   Keff      <- 0
+        #   n.block   <- 0
+        #   b.size    <- 10*sum(number.of.nonmissing)
+        #   for (CHR in 1:gData$nchr) {
+        #     blocks  <- DefineBlocks(which(gData$map$chromosome==CHR),block.size=b.size)
+        #     n.block <- n.block  +  length(blocks)
+        #     for (b in 1:length(blocks)) {
+        #       marker.frame <- gData$markers[blocks[[b]],]
+        #       Keff <- Keff + GaoCorrection(marker.frame=marker.frame,number.of.replicates=number.of.nonmissing,inv.cor.matrix=INV.COR,cut.off=cut.off)
+        #     }
+        #   }
+        #   LODThr <- -log10(alpha/Keff)
       }
-      ##Select the SNPs whose LOD-scores is above the threshold
+      ## Select the SNPs whose LOD-scores is above the threshold
       signSnp <- which(!is.na(GWAResult$pValue) & -log10(GWAResult$pValue) >= LODThr)
       if (length(signSnp) > 0) {
         if (sizeIncludedRegion > 0) {
           snpSelection <- unlist(sapply(signSnp,
             FUN = getSNPsInRegionSufLD,
-            gData = gData,
+            ## Create new minimal gData to match map and markers used for SNP selection.
+            gData = createGData(map = mapRed, geno = markersRed),
             regionSize = sizeIncludedRegion,
             minR2 = minR2))
           snpSelection <- sort(union(snpSelection, signSnp))
@@ -424,20 +429,21 @@ runSingleTraitGwas <- function (gData,
           ## for inbreeders, this depends on maxScore. It is therefore scaled to marker scores 0, 1
           ## (or 0, 0.5, 1 if there are heterozygotes)
           snpVar <- 4 * effects ^ 2 *
-            apply(as.data.frame(markersRed[, snpSelection]), MARGIN = 2, FUN = var) / maxScore ^ 2
+            apply(as.matrix(markersRed[, snpSelection]), MARGIN = 2, FUN = var) / maxScore ^ 2
           propSnpVar <- snpVar / as.numeric(var(phenoFieldTrait[trait]))
         }
         ## Create data.frame with significant snps.
-        snpSig <- data.frame(marker = colnames(gData$markers)[snpSelection],
+        signSnp <- data.frame(marker = colnames(gData$markers)[snpSelection],
           gData$map[snpSelection, ],
           pValue = GWAResult$pValue[snpSelection],
+          LOD = GWAResult$LOD[snpSelection],
           snpStatus,
           allFreq = allFreq[snpSelection],
           effects,
           propVarLRT = GWAResult$RLR2[snpSelection],
           propSnpVar = propSnpVar,
           stringsAsFactors = FALSE)
-        signSnpTotField <- rbind(signSnpTotField, data.frame(trait = trait, snpSig, stringsAsFactors = FALSE))
+        signSnpTotField <- rbind(signSnpTotField, data.frame(trait = trait, signSnp, stringsAsFactors = FALSE))
       }
       GWATotField <- rbind(GWATotField, data.frame(trait = trait, GWAResult, stringsAsFactors = FALSE))
     } # end for (trait in traits)

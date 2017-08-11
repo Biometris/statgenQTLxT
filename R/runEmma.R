@@ -88,18 +88,21 @@ runEmma <- function(gData,
     stop("eps should be a single numeric value.\n")
 
   ## Add column genotype to field.
-  phenoField <- tibble::rownames_to_column(as.data.frame(gData$pheno[[field]]), var = "genotype")
+  phenoField <- gData$pheno[[field]]
   ## Remove data with missings in trait or any of the covars.
   nonMissing <- phenoField$genotype[!is.na(phenoField[trait])]
+  nonMissingId <- which(!is.na(phenoField[trait]))
   if (!is.null(covar)) {
-    nonMissing <- intersect(nonMissing, rownames(gData$covar)[which(rowSums(is.na(gData$covar[covar])) == 0)])
+    misCov <- rownames(gData$covar)[which(rowSums(is.na(gData$covar[covar])) == 0)]
+    nonMissing <- nonMissing[nonMissing %in% misCov]
+    nonMissingId <- intersect(nonMissingId, which(phenoField$genotype %in% misCov))
   }
   if (is.null(K)) {
     K <- gData$kinship[nonMissing, nonMissing]
   } else {
     K <- K[nonMissing, nonMissing]
   }
-  y <- phenoField[phenoField$genotype %in% nonMissing, trait]
+  y <- phenoField[nonMissingId, trait]
   ## Define intercept.
   X <- rep(1, length(nonMissing))
   if (!is.null(covar)) {
@@ -194,17 +197,3 @@ runEmma <- function(gData,
 
   return(list(varcomp = c(Vg = maxVg, Ve = maxVe), K = K))
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

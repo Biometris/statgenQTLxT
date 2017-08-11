@@ -14,8 +14,8 @@
 #' the marker names in \code{geno} (if supplied).
 #' @param kin a kinship matrix with genotype in rows and colums. These should be identical to the genotypes
 #' in \code{geno}
-#' @param pheno a matrix or data.frame or a list of matrices/data.frames with phenotypic data, with
-#' genotypes in the rows and traits in the columns. A list of data.frames can be used for replications,
+#' @param pheno a data.frame or a list of data.frames with phenotypic data, with genotype in the
+#' first column and traits in the following columns. A list of data.frames can be used for replications,
 #' i.e. different environments.
 #' @param covar a data.frame with extra covariates per genotype. Genotype should be in the rows.
 #'
@@ -33,11 +33,9 @@ createGData <- function(geno,
   kin,
   pheno,
   covar) {
-
   ## Check that at least one input is provided.
   if(missing(geno) && missing(map) && missing(kin) && missing(pheno) && missing(covar))
     stop("At least one of geno, map, kin, pheno and covar should be provided.\n")
-
   ## Modify map
   if (!missing(map)) {
     if (!is.data.frame(map)) stop("map should be a data.frame.\n")
@@ -56,20 +54,19 @@ createGData <- function(geno,
         call. = FALSE)
     }
   } else map <- NULL
-
   ## Modify pheno
   if (!missing(pheno)) {
-    if (!(is.data.frame(pheno) || is.matrix(pheno) ||
-        (is.list(pheno) && all(sapply(pheno, FUN = function(x) {is.data.frame(x) || is.matrix(x)})))))
-      stop("pheno should be a matrix, a data.frame or a list of matrices/ data.frames.\n")
-    if (is.data.frame(pheno) || is.matrix(pheno)) {
+    if (!is.data.frame(pheno) &&
+        !(is.list(pheno) && all(sapply(pheno, FUN = is.data.frame))))
+      stop("pheno should be a data.frame or a list data.frames.\n")
+    if (is.data.frame(pheno)) {
       ## If not a list already put data.frame/matrix in a list.
       pheno <- list(pheno)
     }
+    if (!all(sapply(pheno, FUN = function(x) {colnames(x)[1] == "genotype"})))
+      stop("First column in pheno should be genotype.\n")
     ## Convert all list items to matrices.
-    pheno <- lapply(pheno, FUN = as.matrix)
   } else pheno <- NULL
-
   ## Modify geno
   if (!missing(geno)) {
     if (!is.data.frame(geno) && !is.matrix(geno)) stop("geno should be a matrix or a data.frame.\n")
@@ -101,7 +98,6 @@ createGData <- function(geno,
       warning("geno contains no marker names. Names taken from map.\n", call. = FALSE)
     }
   } else markers <- NULL
-
   ## Modify kin
   if (!missing(kin)) {
     if (!is.null(kin) && !is.matrix(kin))
@@ -113,19 +109,19 @@ createGData <- function(geno,
     ## Order as in geno.
     kin <- kin[order(match(rownames(kin), rownames(markers))), order(match(colnames(kin), rownames(markers)))]
   } else kin <- NULL
-
   ## Modify covar
   if (!missing(covar)) {
     if (!is.null(covar) && !is.data.frame(covar))
       stop("covar should be a data.frame.\n")
   } else covar <- NULL
-
-  structure(list(map = map,
+  ## Create gData object.
+  gData <- structure(list(map = map,
     markers = markers,
     pheno = pheno,
     kinship = kin,
     covar = covar),
     class = "gData")
+  return(gData)
 }
 
 is.gData <- function(x) {
