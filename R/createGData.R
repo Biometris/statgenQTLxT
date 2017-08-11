@@ -2,7 +2,8 @@
 #'
 #' \code{createGData} creates an object of S3 class with genotypic and phenotypic data for usage in
 #' further analysis. All input to the function is optional, however at least one input should be
-#' provided.
+#' provided. It is possible to provide an existing \code{gData} object as additional input in which case
+#' data is added to this object. Existing data will be overwritten with a warning.
 #'
 #' @param geno matrix or data.frame with genotypes in the rows and markers in the columns.
 #' If no row names are used they are taken from \code{pheno} (if supplied and dimension matches).
@@ -28,18 +29,23 @@
 #' \item{covar a data.frame with extra covariates}
 #' }
 
-createGData <- function(geno,
+createGData <- function(gData = NULL,
+  geno,
   map,
   kin,
   pheno,
   covar) {
+  ## Check gData
+  if (!is.null(gData) && !is.gData(gData))
+    stop("gData should be a gData object.\n")
   ## Check that at least one input is provided.
-  if(missing(geno) && missing(map) && missing(kin) && missing(pheno) && missing(covar))
+  if (missing(geno) && missing(map) && missing(kin) && missing(pheno) && missing(covar))
     stop("At least one of geno, map, kin, pheno and covar should be provided.\n")
   ## Modify map
   if (!missing(map)) {
     if (!is.data.frame(map)) stop("map should be a data.frame.\n")
     if (!all(c("chr", "pos") %in% colnames(map))) stop("chr and pos should be columns in map.\n")
+    if (!is.null(gData$map)) warning("existing map will be overwritten.\n", call. = FALSE)
     ## Extract columns and order
     map <- map[c("chr", "pos")]
     map <- map[order(map$chr, map$pos), ]
@@ -53,7 +59,8 @@ createGData <- function(geno,
       warning("map contains no marker names. Names constructed from chromosome and position.\n",
         call. = FALSE)
     }
-  } else map <- NULL
+  } else if (!is.null(gData$map)) map <- gData$map
+  else map <- NULL
   ## Modify pheno
   if (!missing(pheno)) {
     if (!is.data.frame(pheno) &&
@@ -65,8 +72,10 @@ createGData <- function(geno,
     }
     if (!all(sapply(pheno, FUN = function(x) {colnames(x)[1] == "genotype"})))
       stop("First column in pheno should be genotype.\n")
+    if (!is.null(gData$pheno)) warning("existing pheno will be overwritten.\n", call. = FALSE)
     ## Convert all list items to matrices.
-  } else pheno <- NULL
+  } else if (!is.null(gData$pheno)) pheno <- gData$pheno
+  else pheno <- NULL
   ## Modify geno
   if (!missing(geno)) {
     if (!is.data.frame(geno) && !is.matrix(geno)) stop("geno should be a matrix or a data.frame.\n")
@@ -97,7 +106,9 @@ createGData <- function(geno,
       colnames(markers) <- rownames(map)
       warning("geno contains no marker names. Names taken from map.\n", call. = FALSE)
     }
-  } else markers <- NULL
+    if (!is.null(gData$markers)) warning("existing geno will be overwritten.\n", call. = FALSE)
+  } else if (!is.null(gData$markers)) markers <- gData$markers
+  else markers <- NULL
   ## Modify kin
   if (!missing(kin)) {
     if (!is.null(kin) && !is.matrix(kin))
@@ -108,12 +119,16 @@ createGData <- function(geno,
       stop("row and column names of kin should be in row and column names of geno.\n")
     ## Order as in geno.
     kin <- kin[order(match(rownames(kin), rownames(markers))), order(match(colnames(kin), rownames(markers)))]
-  } else kin <- NULL
+    if (!is.null(gData$kinship)) warning("existing kin will be overwritten.\n", call. = FALSE)
+  } else if (!is.null(gData$kinship)) kin <- gData$kinship
+  else kin <- NULL
   ## Modify covar
   if (!missing(covar)) {
     if (!is.null(covar) && !is.data.frame(covar))
       stop("covar should be a data.frame.\n")
-  } else covar <- NULL
+    if (!is.null(gData$covar)) warning("existing covar will be overwritten.\n", call. = FALSE)
+  } else if (!is.null(gData$covar)) covar <- gData$covar
+  else covar <- NULL
   ## Create gData object.
   gData <- structure(list(map = map,
     markers = markers,

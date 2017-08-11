@@ -28,7 +28,6 @@
 fastGLS <- function(y,
   X,
   Sigma) {
-
   ## Check class and missing values.
   if (missing(y) || !is.numeric(y) || anyNA(y))
     stop("y should be a numeric vector without missing values.")
@@ -36,22 +35,18 @@ fastGLS <- function(y,
     stop("y should be a matrix without missing values.")
   if (missing(Sigma) || !is.matrix(Sigma) || !is.numeric(Sigma) || anyNA(Sigma))
     stop("Sigma should be a matrix without missing values.")
-
-  n <- length(y)
   ## Check dimensions.
+  n <- length(y)
   if (nrow(X) != n)
     stop("The number of elements in y should be identical to the number of rows in X")
   if (nrow(Sigma) != n || ncol(Sigma) != n)
     stop("The number of elements in y should be identical to the number of rows and columns in Sigma")
-
   # check for missing values, and class of y
-  n <- length(y)
   M <- solve(chol(Sigma))
   ## pre-multiply the phenotype (y) with t(M)
   tMy <- crossprod(M, y)
   ## pre-multiply the intercept with t(M)
   tMInt <- crossprod(M, rep(1, n))
-
   ## pre-multiply the snp-matrix with t(M)
   ## for extra robustness, distinguish
   if (ncol(X) == 1) {
@@ -59,7 +54,6 @@ fastGLS <- function(y,
   } else {
     tMX <- crossprod(M, X)
   }
-
   ## Matrix cookbook, 3.2.6 Rank-1 update of inverse of inner product
   a  <- 1 / as.numeric(crossprod(tMInt))
   vv <- colSums(tMX ^ 2)
@@ -68,21 +62,22 @@ fastGLS <- function(y,
   XtXinv2ndRows <- cbind(-1 * a * vX * nn, nn)
   Xty <- cbind(rep(as.numeric(crossprod(tMInt, tMy), length(nn))), as.numeric(crossprod(tMy, tMX)))
   betaVec <- XtXinv2ndRows[, 1] * Xty[, 1] + XtXinv2ndRows[, 2] * Xty[, 2]
-
-  RSSEnv <- sum(lsfit(x = tMInt, y = tMy,intercept = FALSE)$residuals ^ 2)
+  ## Compute residuals and RSS over all markers.
+  RSSEnv <- sum(lsfit(x = tMInt, y = tMy, intercept = FALSE)$residuals ^ 2)
+  ## Compute RSS per marker.
   RSSFull <- apply(tMX, 2, function(x) {
     sum(lsfit(x = cbind(tMInt, x), y = tMy, intercept = FALSE)$residuals ^ 2)})
-  FVal <- (RSSEnv - RSSFull) / (RSSFull / (n - 2))
-  pVal <- pf(q = FVal, df1 = 1, df2 = n - 2, lower.tail = FALSE)
-
+  ## Compute F and p values.
+  df2 <- n - 2
+  FVal <- (RSSEnv - RSSFull) / RSSFull * df2
+  pVal <- pf(q = FVal, df1 = 1, df2 = df2, lower.tail = FALSE)
   # the R_LR^2 statistic from G. Sun et al 2010, heredity
   RLR2  <- 1 - exp((RSSFull - RSSEnv) / n)
-
+  ## Construct output data.frame.
   GLS <- data.frame(pValue = pVal,
     beta = betaVec,
     betaSe = sqrt(XtXinv2ndRows[, 2]),
     RLR2 = RLR2)
-
   return(GLS)
 }
 
@@ -92,7 +87,6 @@ fastGLSCov <-function(y,
   Sigma,
   covs,
   nChunks = 10) {
-
   ## Check class and missing values.
   if (missing(y) || !is.numeric(y) || anyNA(y))
     stop("y should be a numeric vector without missing values.")
@@ -112,7 +106,6 @@ fastGLSCov <-function(y,
     stop("The number of elements in y should be identical to the number of rows and columns in Sigma")
   if (nrow(covs) != n)
     stop("The number of elements in y should be identical to the number of rows in covs")
-
   m <- ncol(X)
   fixCovs <- cbind(rep(1, n), covs)
   nCov <- ncol(fixCovs)
@@ -128,8 +121,7 @@ fastGLSCov <-function(y,
   } else {
     tMX <- crossprod(M, X)
   }
-
-  ## Matrix cookbook, 3.2.6 Rank-1 update of inverse of inner product
+  ## Matrix cookbook, 3.2.6 Rank-1 update of inverse of inner product.
   A <- solve(crossprod(tMfixCovs), symmetric = TRUE)
   vv <- colSums(tMX ^ 2)
   vX <- crossprod(tMfixCovs, tMX)
@@ -139,14 +131,13 @@ fastGLSCov <-function(y,
     , as.numeric(crossprod(tMy, tMX)))
   betaVec <- rowSums(XtXinvLastRows[, 1:nCov] * Xty[, 1:nCov]) +
     XtXinvLastRows[, 1 + nCov] * Xty[, 1 + nCov]
-
-  ##
-  ResEnv <- residuals(lm(tMy ~ 0 + tMfixCovs))
+  ## Compute residuals and RSS over all markers.
+  ResEnv <- lsfit(x = tMfixCovs, y = tMy, intercept = FALSE)$residuals
   RSSEnv <- sum(ResEnv ^ 2)
-
+  ## QR decomposition of covariates.
   Q <- qr.Q(qr(tMfixCovs))
   tMQtQ <- t(M %*% (diag(n) - tcrossprod(Q)))
-
+  ## Compute RSS per marker, breaking up X for speed.
   RSSFull <- vector(mode = "list", length = nChunks)
   for (j in 1:(nChunks - 1)) {
     tX <- tMQtQ %*% X[, ((j - 1) * round(m / nChunks) + 1):(j * round(m / nChunks))]
@@ -157,18 +148,16 @@ fastGLSCov <-function(y,
   RSSFull[[nChunks]] <- apply(tX, 2, function(x){
     sum(lsfit(x = x, y = ResEnv, intercept = FALSE)$residuals ^ 2)})
   RSSFull <- unlist(RSSFull)
-
+  ## Compute F and p values.
   df2 <- n - 1 - nCov
   FVal <- (RSSEnv - RSSFull) / RSSFull * df2
   pVal <- pf(q = FVal, df1 = 1, df2 = df2, lower.tail = FALSE)
-
-  # the R_LR^2 statistic from G. Sun et al 2010, heredity
+  ## Compute R_LR^2 statistic from G. Sun et al 2010, heredity.
   RLR2  <- 1 - exp((RSSFull - RSSEnv) / n)
-
+  ## Construct output data.frame.
   GLS <- data.frame(pValue = pVal,
     beta = betaVec,
     betaSe = sqrt(XtXinvLastRows[, 1 + nCov]),
     RLR2 = RLR2)
-
   return(GLS)
 }
