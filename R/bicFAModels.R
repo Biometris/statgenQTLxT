@@ -26,8 +26,8 @@ bicFAModels <- function(Y,
       stopIfDecreasing = stopIfDecreasing)
 
     nPar <- (sum(faModels[m, ]) + nc) * p
-    bic <- -2 * EMFAResult$logLik2 + log(n * p) * nPar
-    aic <- -2 * EMFAResult$logLik2 + 2 * (n * p / (n * p - nPar - 1)) * nPar
+    bic <- - 2 * EMFAResult$logLik2 + log(n * p) * nPar
+    aic <- - 2 * EMFAResult$logLik2 + 2 * (n * p / (n * p - nPar - 1)) * nPar
 
     return(list(mG = faModels$m.G[m],
       mE = faModels$m.E[m],
