@@ -1,6 +1,6 @@
 #' fastGLS
 #'
-#' compute p-values for the GLS F-test as in emma-x, Fast-LMM or scan_GLS. \code{fastGLS} can be used when
+#' compute p-values for the GLS F-test as in emma-x. \code{fastGLS} can be used when
 #' there are no further covariates, otherwise use \code{fastGLSCov}.
 #'
 #' @param y a numeric vector of length n of phenotypic scores. No missing values allowed.
@@ -18,10 +18,10 @@
 #' \item{\code{RLR2} a vector of R_LR^2 statistics as defined in Sun et al.}
 #' }
 #'
-#' @references Segura et al. (2012) An efficient multi-locus mixed-model approach for genome-wide association
-#' studies in structured populations. Nature Genetics, June 2012, Vol. 44, p. 825–830
+#' @references Segura et al. (2012) An efficient multi-locus mixed-model approach for genome-wide
+#' association studies in structured populations. Nature Genetics, June 2012, Vol. 44, p. 825–830.
 #' @references Sun et al. (2010) Variation explained in mixed-model association mapping.
-#' Heredity, February 2010, Vol. 105, p. 333–340
+#' Heredity, February 2010, Vol. 105, p. 333–340.
 #'
 #' @import stats
 

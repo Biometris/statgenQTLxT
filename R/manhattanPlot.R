@@ -6,8 +6,8 @@
 #'
 #' @param xValues a vector of cumulative marker positions.
 #' @param yValues a vector of LOD-scores.
-#' @param map a dataframe with at least the columns chromosome, the number of the chromosome
-#' and cum.position, the cumulative position of the snp the cumulative position of the snp
+#' @param map a dataframe with at least the columns chr, the number of the chromosome
+#' and cumPos, the cumulative position of the snp the cumulative position of the snp
 #' starting from the first chromosome.
 #' @param fileName name of the outputfile that is created. If left empty the plot is written
 #' to the screen.
@@ -29,6 +29,9 @@
 #' markers with a real effect get a blue dot. If both significant and real effects are given
 #' false positives get an orange dot, true negatives a yellow dot and true positives a green dot.
 #'
+#' @import grDevices
+#' @import graphics
+#'
 #' @export
 
 ## TO DO: example
@@ -44,11 +47,10 @@ manhattanPlot <- function(xValues,
   plotType = "l",
   xSig = integer(),
   xEffects = integer(),
-  colPalette = rep(c("royalblue", "maroon"), 50)[1:length(levels(factor(map$chromosome)))],
+  colPalette = rep(c("royalblue", "maroon"), 50)[1:length(levels(factor(map$chr)))],
   chrBoundaries = 0,
   yThr = NULL,
   signPointsThickness = 0.6) {
-
   ## Basic argument checks
   if (is.null(xValues) || !is.numeric(xValues) || any(xValues != round(xValues)))
     stop("xValues should be an integer vector")
@@ -64,42 +66,36 @@ manhattanPlot <- function(xValues,
     stop("xEffects should be an integer vector")
   if (is.null(chrBoundaries) || !is.numeric(chrBoundaries) || any(chrBoundaries != round(chrBoundaries)))
     stop("chrBoundaries should be an integer vector")
-  if (!is.null(yThr) && (length(yThr) > 1 || !is.numeric(yThr) || yThr != round(yThr)))
+  if (!is.null(yThr) && (length(yThr) > 1))
     stop("yThr should be a single integer")
   if (is.null(signPointsThickness) || length(signPointsThickness) > 1 || !is.numeric(signPointsThickness))
     stop("signPointsThickness should be a single number")
-
   ## Check correspondence xValues and yValues
   if (length(xValues) != length(yValues))
     stop("xValues and yValues should be of the same length")
-
   if (!(plotType %in% c("l", "d", "p")) ) {plotType <- "l"}
-
   ## Open file connection
   if (fileName != "") {
     if (jpegPlot) {jpeg(fileName, width = 720, height = 480, quality = 100)} else {pdf(fileName)}
   }
-
   ## Extract central chromosome postions from map
-  chromosomes <- as.numeric(levels(factor(map$chromosome)))
-  xMarks <- aggregate(x = map$cum.position, by = list(map$chromosome),
+  chromosomes <- as.numeric(levels(factor(map$chr)))
+  xMarks <- aggregate(x = map$cumPos, by = list(map$chr),
     FUN = function(x) {min(x) + (max(x) - min(x)) / 2})[, 2]
-
   ## Setup empty plot
   plot(x = xValues, y = yValues, xlab = xLab, ylab = yLab, type = "n", lwd = 0.4,
     main = title, xaxt = 'n')
   axis(side = 1, at = xMarks, labels = chromosomes)
-
   ## If chromosome boundaries are known add lines/ points per chromosome
   if (sum(chrBoundaries) != 0) {
     for (chromosome in chromosomes) {
       if (plotType == "l") {
-        lines(x = xValues[map$chromosome == chromosome],
-          y = yValues[map$chromosome == chromosome],
+        lines(x = xValues[map$chr == chromosome],
+          y = yValues[map$chr == chromosome],
           lwd = 0.4, col = colPalette[which(chromosomes == chromosome)])
       } else {
-        points(x = xValues[map$chromosome == chromosome],
-          y = yValues[map$chromosome == chromosome], pch = 20, lwd = 0.4,
+        points(x = xValues[map$chr == chromosome],
+          y = yValues[map$chr == chromosome], pch = 20, lwd = 0.4,
           col = colPalette[which(chromosomes==chromosome)])
       }
     }
@@ -111,7 +107,6 @@ manhattanPlot <- function(xValues,
       points(x = xValues, y = yValues, xlab = xLab, ylab = yLab, pch = 20, lwd = 0.4, col = "royalblue")
     }
   }
-
   ## Add red dots for significant markers
   if (sum(xSig) != 0 && sum(xEffects) == 0) {
     points(x = xValues[xSig], y = yValues[xSig],

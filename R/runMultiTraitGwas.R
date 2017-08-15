@@ -1,12 +1,7 @@
 #' run multi trait GWAS
 #'
-#' @param markers A dataframe with marker information. Row names should be chromosomes, column names
-#' genotypes.
-#' @param map A dataframe with four columns; chromosome, the number of the chromosome,
-#' position, the position of the snp on the chromosome, snp.name, the name of the snp and
-#' cum.position, the cumulative position of the snp starting from the first chromosome.
-#' @param Y an n x p matrix or dataframe of observed phenotypes, on p traits or environments for n
-#' individuals. Missing values are allowed.
+#' @param gData an object of class \code{gData} containing at least \code{map}, \code{markers} and
+#' \code{pheno}.
 #' @param K an n x n kinship matrix.
 #' @param X an n x c covariate matrix, c being the number of covariates and n being the number
 #' of genotypes. c has to be at least one (typically an intercept). No missing values are allowed.
@@ -14,7 +9,7 @@
 #' @param subsetMarkers should the marker data be subsetted?
 #' @param markerSubset numeric or character vector for subsetting the markers. Ignored if
 #' subsetMarkers = \code{FALSE}.
-#' @param snpCovariates a character vacter of snps that are to be included as covariates.
+#' @param snpCovariates a character vector of snps that are to be included as covariates.
 #' @param MAF a numeric value between 0 and 1. Snps with a minor allele frequency outside MAF
 #' and 1 - MAF are excluded from the GWAS analysis.
 #' @param fitVarComp should the variance components be fitted? If \code{FALSE} they should be supplied
@@ -86,9 +81,7 @@
 ## LOD.thr <- 0 if larger than zero, it is assumed a GWAS was done previously with the same name
 ## .. and GWAS is now only (re)run for markers with -log(p) larger than LOD.thr
 
-runMultiTraitGwas <- function(markers,
-  map,
-  Y,
+runMultiTraitGwas <- function(gData,
   K,
   X = NULL,
   subsetMarkers = FALSE,
@@ -111,19 +104,20 @@ runMultiTraitGwas <- function(markers,
   Ve = NULL,
   reduceK = FALSE,
   nPca = NULL) {
-
-  if (is.null(markers) || !is.data.frame(markers)) stop("markers should be a dataframe")
-  if (is.null(map) || !is.data.frame(map)) stop("map should be a dataframe")
-  if (is.null(Y) || !(is.matrix(Y) || is.data.frame(Y))) stop("Y should be a matrix or dataframe")
-  if (!is.matrix(Y)) Y <- as.matrix(Y)
+  ## Check input.
+  if (missing(gData) || !is.gData(gData) || is.null(gData$markers) ||
+      is.null(gData$map) || is.null(gData$pheno))
+    stop("gData should be a valid gData object containing at least map, markers and pheno")
+  markers <- gData$markers
+  map <- gData$map
+  Y <- as.matrix(tibble::column_to_rownames(gData$pheno[[1]], var = "genotype"))
   if (is.null(K) || !is.matrix(K)) stop("K should be a matrix")
-  if (!is.null(X) && !(is.matrix(X))) stop("X should either be NULL or a matrix")
+  if (!is.null(X) && !is.matrix(X)) stop("X should either be NULL or a matrix")
   if (anyNA(X)) stop("No missing values allowed in X")
-  if (is.null(X)) X <- matrix(data = 1, nrow = nrow(Y), ncol = 1)
+  if (is.null(X)) X <- matrix(data = 1, nrow = nrow(Y), ncol = 1, dimnames = list(rownames(Y), NULL))
   if (subsetMarkers && markerSubset == "") stop("If subsetting markers, markerSubset cannot be empty")
-  if(!snpCovariates == "" && !all(snpCovariates %in% rownames(markers)))
+  if(!snpCovariates == "" && !all(snpCovariates %in% colnames(markers)))
     stop("All snpCovariates should be in markers")
-
   ## Check Vg and Ve if variance components are not fitted.
   if (!fitVarComp) {
     if (is.null(Vg) || !is.matrix(Vg)) stop("Vg should be a matrix")
@@ -142,67 +136,59 @@ runMultiTraitGwas <- function(markers,
     if (is.null(covModel))
       stop("If variance components are computed, covModel cannot be NULL")
   }
-
   if (reduceK && is.null(nPca))
     stop("If the kinship matrix is to be reduced, nPca cannot be NULL")
-
   if (covModel %in% c(2, 4)) {stopifnot(snpCovariates=='')}
-
   ## Make sure that when subsetting markers snpCovariates are included in the subset
   if (subsetMarkers) {
     if (snpCovariates != "") {
-      if (length(which(rownames(markers) %in% snpCovariates)) > 0) {
-        markerSubset <- sort(c(markerSubset, which(rownames(markers) %in% snpCovariates)))
+      if (!all(length(which(colnames(markers) %in% snpCovariates) %in% markerSubset))) {
+        markerSubset <- union(markerSubset,
+          which(colnames(markers) %in% snpCovariates))
         cat('Co-factors have been added to the marker-subset \n')
       }
     }
-    ##K <- IBS(markers)[rownames(Y), rownames(Y)]
     K <- K[rownames(Y), rownames(Y)]
-    markers <- markers[markerSubset, ]
+    markers <- markers[, markerSubset]
     map <- map[markerSubset, ]
   }
-
   ## Add snpCovariates to X
   if (snpCovariates[1] != "") {
-    X <- cbind(X, t(as.matrix(markers[snpCovariates, rownames(X)])))
+    X <- cbind(X, as.matrix(markers[rownames(X), snpCovariates]))
     if (ncol(X) == length(snpCovariates)) {
       XRed <- matrix(nrow = nrow(X), ncol = 0, dimnames = list(rownames(X)))
     } else {
       XRed <- as.matrix(X[, 1:(ncol(X) - length(snpCovariates))])
     }
   }
-
   if (reduceK) {
     K <- reduceKinship(K = K, nPca = nPca)
   }
-
   ## fit variance components
   if (fitVarComp) {
     ## Unstructured (pairwise) models
     if (covModel == 2) {
-      YLong <- reshape2::melt(data = data.frame(genotype = rownames(Y), Y),
-        id.vars = "genotype", variable.name = "trait", value.name = "pheno")
-
-      out <- asreml_unstructured_pairwise(d = YLong, K = K, fix.diag = FALSE,
-        correlation.matrix = TRUE,
-        vE.diag = vE.diag,
-        genotype.column = 1,
-        traitname.column = 2,
-        phenotype.column = 3,
-        covariates = integer())
-
-      out$vG.matrix <- out$vG.matrix[colnames(Y), colnames(Y)]
-      out$vE.matrix <- out$vE.matrix[colnames(Y), colnames(Y)]
-      out$vG.vector <- out$vG.vector[colnames(Y)]
-      out$vE.vector <- out$vE.vector[colnames(Y)]
-      vG.matrix <- as.matrix(Matrix::nearPD(out$vG.matrix, corr = TRUE)$mat)
-      vE.matrix <- as.matrix(Matrix::nearPD(out$vE.matrix, corr = TRUE)$mat)
-      vG.matrix <- (matrix(sqrt(out$vG.vector)) %*% t(matrix(sqrt(out$vG.vector)))) * vG.matrix
-      vE.matrix <- (matrix(sqrt(out$vE.vector)) %*% t(matrix(sqrt(out$vE.vector)))) * vE.matrix
-      rownames(vG.matrix) <- rownames(vE.matrix) <- colnames(Y)
-      colnames(vG.matrix) <- colnames(vE.matrix) <- colnames(Y)
-      Vg <- vG.matrix
-      Ve <- vE.matrix
+      # YLong <- reshape2::melt(data = data.frame(genotype = rownames(Y), Y),
+      #   id.vars = "genotype", variable.name = "trait", value.name = "pheno")
+      # out <- asreml_unstructured_pairwise(d = YLong, K = K, fix.diag = FALSE,
+      #   correlation.matrix = TRUE,
+      #   vE.diag = vE.diag,
+      #   genotype.column = 1,
+      #   traitname.column = 2,
+      #   phenotype.column = 3,
+      #   covariates = integer())
+      # out$vG.matrix <- out$vG.matrix[colnames(Y), colnames(Y)]
+      # out$vE.matrix <- out$vE.matrix[colnames(Y), colnames(Y)]
+      # out$vG.vector <- out$vG.vector[colnames(Y)]
+      # out$vE.vector <- out$vE.vector[colnames(Y)]
+      # vG.matrix <- as.matrix(Matrix::nearPD(out$vG.matrix, corr = TRUE)$mat)
+      # vE.matrix <- as.matrix(Matrix::nearPD(out$vE.matrix, corr = TRUE)$mat)
+      # vG.matrix <- (matrix(sqrt(out$vG.vector)) %*% t(matrix(sqrt(out$vG.vector)))) * vG.matrix
+      # vE.matrix <- (matrix(sqrt(out$vE.vector)) %*% t(matrix(sqrt(out$vE.vector)))) * vE.matrix
+      # rownames(vG.matrix) <- rownames(vE.matrix) <- colnames(Y)
+      # colnames(vG.matrix) <- colnames(vE.matrix) <- colnames(Y)
+      # Vg <- vG.matrix
+      # Ve <- vE.matrix
     } else if (covModel == 3) {
       ## FA models
       ## Including snpCovariates.
@@ -220,7 +206,6 @@ runMultiTraitGwas <- function(markers,
         computeLogLik = computeLogLik)
       Vg <- solve(varcomp$Cm)
       Ve <- solve(varcomp$Dm)
-
       if (snpCovariates[1] != "") {
         ## Without snpCovariates.
         varcompRed <- EMFA(Y = Y,
@@ -240,51 +225,47 @@ runMultiTraitGwas <- function(markers,
       }
     } else if (covModel==4) {
       ## ??
-      p <- ncol(Y)
+      p <- nrow(Y)
       geno <- rownames(Y)
-      GBLUP <- sapply(Y, function(i) {
+      GBLUP <- sapply(as.data.frame(Y), function(i) {
         outH2 <- heritability::marker_h2_means(data.vector = i, geno.vector = geno, K = K)
         delta <- outH2$va / outH2$ve
-        return(delta * K %*% solve(delta * K + diag(p), matrix(i)))})
+        return(delta * K %*% solve((delta * K + diag(p)), matrix(i)))})
       Vg <- cov(GBLUP)
       Ve <- cov(Y - GBLUP)
     }
   }
-
   ## Run GWAS
   w <- eigen(K, symmetric = TRUE)
   Dk <- w$values
   Uk <- w$vectors
-  Yt <- t(Y) %*% Uk
+  Yt <- crossprod(Y, Uk)
   colnames(Yt) <- rownames(Y)
   if (ncol(X) > 0) {
-    Xt <- t(X) %*% Uk
+    Xt <- crossprod(X, Uk)
   }
   VInvArray <- makeVInvArray(Vg = Vg, Ve = Ve, Dk = Dk)
   if (snpCovariates[1] != "") {
     if (ncol(XRed) > 0) {
-      XtRed <- t(XRed) %*% Uk
+      XtRed <- crossprod(XRed, Uk)
     }
     VInvArrayRed <- makeVInvArray(Vg = VgRed, Ve = VeRed, Dk = Dk)
   }
-
   nn <- nrow(map)
-  means <- rowMeans(markers[1:nn, rownames(Y)])
+  means <- colMeans(markers[rownames(Y), 1:nn])
   means <- means / max(markers)
   excludedMarkers <- which(means < MAF | means > 1 - MAF)
-
   if (snpCovariates != "") {
-    snpCovariateNumbers <- which(rownames(markers) %in% snpCovariates)
+    snpCovariateNumbers <- which(colnames(markers) %in% snpCovariates)
     excludedMarkers <- c(excludedMarkers, snpCovariateNumbers)
-
     extraExcludedMarkers <- numeric()
     for (snp in snpCovariateNumbers) {
       candidates <- which(means == means[snp])
       ## Only the snp itself is not enough; there needs to be one other snp at least with
       ## the same maf, before proceding.
       if (length(candidates) > 1) {
-        snpInfo <- markers[snp, rownames(Y)]
-        exclude <- apply(markers[candidates, rownames(Y)], 1,
+        snpInfo <- markers[rownames(Y), snp]
+        exclude <- apply(markers[rownames(Y), candidates], 2,
           function(x) {identical(as.numeric(x), as.numeric(snpInfo))})
         extraExcludedMarkers <- c(extraExcludedMarkers, setdiff(candidates[exclude], snp))
       }
@@ -292,21 +273,19 @@ runMultiTraitGwas <- function(markers,
     excludedMarkers <- c(excludedMarkers, extraExcludedMarkers)
     snpCovariateNumbers <- sort(c(snpCovariateNumbers, extraExcludedMarkers))
   }
-
   ## Scan
   p <- ncol(Y)
-  M <- TStat <- matrix(nrow = nn, ncol = p, dimnames = list(rownames(markers), colnames(Y)))
+  M <- TStat <- matrix(nrow = nn, ncol = p, dimnames = list(colnames(markers), colnames(Y)))
   results <- resultsWald <- rep(NA, nn)
   results[excludedMarkers] <- resultsWald[excludedMarkers] <- 1
-  markers <- markers[ , rownames(Y)]
-
+  markers <- markers[rownames(Y), ]
   if (snpCovariates[1]!='') {
     est0Red <- estimateEffects(X = XtRed, Y = Yt, VInvArray = VInvArrayRed, returnAllEffects = TRUE)
     fittedMean0Red <- matrix(est0Red$effects.estimates,ncol = length(est0Red$effects.estimates) / p) %*% XtRed
     SS0Red <- LLQuadFormDiag(Y = Yt - fittedMean0Red, VInvArray = VInvArrayRed)
     for (mrk in snpCovariateNumbers) {
-      x <- matrix(as.numeric(markers[mrk, ]))
-      xt <- t(x) %*% Uk
+      x <- matrix(as.numeric(markers[, mrk]))
+      xt <- crossprod(x, Uk)
       LRTRes <- LRTTest(X = XtRed, x = xt, Y = Yt, VInvArray = VInvArrayRed, SS0 = SS0Red)
       results[mrk] <- LRTRes$pvalue
       resultsWald[mrk] <- pchisq(sum((LRTRes$effects / LRTRes$effects.se) ^ 2),
@@ -315,26 +294,23 @@ runMultiTraitGwas <- function(markers,
       TStat[mrk, ] <-  LRTRes$effects / LRTRes$effects.se
     }
   }
-
   est0 <- estimateEffects(X = Xt, Y = Yt, VInvArray = VInvArray, returnAllEffects = TRUE)
   fittedMean0 <- matrix(est0$effects.estimates, ncol = length(est0$effects.estimates) / p) %*% Xt
   SS0 <- LLQuadFormDiag(Y = Yt - fittedMean0, VInvArray = VInvArray)
   for (mrk in setdiff(1:nn, excludedMarkers)) {
-    x <- matrix(as.numeric(markers[mrk, ]))
-    xt <- t(x) %*% Uk
+    x <- matrix(as.numeric(markers[, mrk]))
+    xt <- crossprod(x, Uk)
     LRTRes <- LRTTest(X = Xt, x = xt, Y = Yt, VInvArray = VInvArray, SS0 = SS0)
     results[mrk] <- LRTRes$pvalue
     resultsWald[mrk] <- pchisq(q = sum((LRTRes$effects / LRTRes$effects.se) ^ 2),
       df = p, lower.tail = FALSE)
     M[mrk, ] <- LRTRes$effects
     TStat[mrk, ] <- LRTRes$effects / LRTRes$effects.se
-    if (mrk %% 500 == 0) {cat("Progress: ", (mrk / nn) * 100, " percent\n")}
+    if (mrk %% 1000 == 0) {cat("Progress: ", (mrk / nn) * 100, " percent\n")}
   }
-
-  MExtended  <- data.frame(map[c("snp.name", "chromosome", "position")], LOD_F = -log10(results),
+  MExtended  <- data.frame(map[c("chr", "pos")], LOD_F = -log10(results),
     LOD_Wald = -log10(resultsWald), M, row.names = rownames(M))
-
-  TStatExtended  <- data.frame(map[c("snp.name", "chromosome", "position")], LOD_F = -log10(results),
+  TStatExtended  <- data.frame(map[c("chr", "pos")], LOD_F = -log10(results),
     LOD_Wald = -log10(resultsWald), TStat, row.names = rownames(TStat))
   # }
   return(list(Vg = Vg, Ve = Ve, M = M, TStat = TStat, results = results, resultsWald = resultsWald,

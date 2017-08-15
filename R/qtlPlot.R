@@ -32,10 +32,12 @@
 #' @references Millet et al. (2016) Genome-wide analysis of yield in Europe: Allelic effects vary
 #' with drought and heat scenarios. Plant Physiology, October 2016, Vol. 172, p. 749–764
 #'
+#' @import grDevices
+#' @import graphics
+#'
 #' @export
 
 ## TO DO: example
-
 qtlPlot <- function(data,
   chromosome = "chromosome",
   trait = "trait",
@@ -72,7 +74,6 @@ qtlPlot <- function(data,
     stop("exportPptx should be a single logical")
   if (exportPptx && (is.null(pptxName) || length(pptxName) > 1 || !is.character(pptxName)))
     stop("pptxName cannot be empty")
-
   ## Check that all necessary columns are in the data
   requiredColumns <- c(chromosome, trait, snpEffect, snpPosition)
   if (is.character(sortData)) requiredColumns <- c(requiredColumns, sortData)
@@ -80,14 +81,12 @@ qtlPlot <- function(data,
   if (!all(requiredCheck))
     stop("data lacks the following columns: ",
       paste0(requiredColumns[!requiredCheck], collapse = ", "), ".\n\n")
-
   ## Check that all necessary columns are in the map file
   requiredColumnsMap <- c("chromosome", "position")
   requiredCheckMap <- requiredColumnsMap %in% colnames(map)
   if (!all(requiredCheckMap))
     stop("map lacks the following columns: ",
       paste0(requiredColumnsMap[!requiredCheckMap], collapse = ", "), ".\n\n")
-
   ## Check that all necessary columns are in the bin file
   if (!is.null(binPositions)) {
   requiredColumnsBin <- c("chromosome", "position")
@@ -98,7 +97,6 @@ qtlPlot <- function(data,
   } else {
     binPositions <- data.frame(position = integer())
   }
-
   ## Center and reduce the allelic effect (because of the different units)
   if (normalize) {
     data$eff <- sapply(1:nrow(data), function(x)
@@ -111,7 +109,6 @@ qtlPlot <- function(data,
   } else {
     data$sort <- 1
   }
-
   ## Add the physical limits of the chromosomes, calculated from the map file
   ## This ensures plotting of all chromosomes
   limitsLow <- aggregate(map$position, by = list(map$chromosome), FUN = min)
@@ -126,15 +123,12 @@ qtlPlot <- function(data,
   limits$eff <- -Inf
   limits[, c(chromosome, snpPosition)] <- rbind(limitsLow, limitsHigh)
   data <- rbind(data, limits)
-
   ## Select and rename relevant columns for plotting
   plotData <- dplyr::select(data, trait = trait, chromosome = chromosome,
-    snpEffect = snpEffect, snpPosition = snpPosition, sort, eff)
-
+    snpEffect = snpEffect, snpPosition = snpPosition, sort, eff = data$eff)
   ## Add a column with the allelic effect direction (for points color)
   plotData$color <- ifelse(plotData$eff > 0, "pos", "neg")
   plotData <- droplevels(plotData)
-
   ## Create theme for plot
   qtlPlotTheme <-
     ggplot2::theme(plot.background = ggplot2::element_blank(),
@@ -162,15 +156,15 @@ qtlPlot <- function(data,
         ## Y data is sorted in reverse order because of the way ggplot plots
         y = reorder(trait, -sort),
         ## Point size proportional to (absolute value of) allelic effect
-        size = abs(eff),
-        # Point color depends on the effect direction
-        color = factor(color)))  +
+        size = abs(plotData$eff),
+        ## Point color depends on the effect direction
+        color = factor(plotData$color)))  +
     ## use custom made theme
     qtlPlotTheme +
     ggplot2::ylab(yLab) +
     ggplot2::xlab("Chromosomes")  +
     # add vertical lines at the bin positions
-    ggplot2::geom_vline(ggplot2::aes(xintercept = position),
+    ggplot2::geom_vline(ggplot2::aes_(xintercept = "position"),
        data = binPositions,
        linetype = 1,
        color = "white")   +
@@ -188,10 +182,8 @@ qtlPlot <- function(data,
     ggplot2::scale_color_manual("color",
       labels = c("neg", "pos"),
       values = c("darkblue", "green4"))
-
   ## Plot the plot object on screen
   plot(qtlPlot)
-
   if (exportPptx) {
     ## Save figure in .pptx
     if (requireNamespace("ReporteRs", quietly = TRUE)) {

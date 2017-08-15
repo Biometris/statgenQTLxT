@@ -4,7 +4,6 @@ GRM <- function(X) {
   X <- scale(X)
   X <- X[, !is.na(colSums(X))]
   K <- tcrossprod(X)
-  #K <- as.matrix(Matrix::nearPD(K)$mat)
   return(K)
 }
 
@@ -14,5 +13,4 @@ astle <- function(X) {
   p <- colSums(X) / (2 * nrow(X))
   Z <- sapply(1:n, function(i) {(X[, i] - 2 * p[i]) / sqrt(2 * p[i] * (1 - p[i]))})
   K <- tcrossprod(Z)
-  #K <- as.matrix(Matrix::nearPD(K)$mat)
 }

@@ -39,7 +39,7 @@ estimateEffects <- function(X,
   Y,
   VInvArray,
   returnAllEffects = TRUE) {
-
+  ## Checks.
   stopifnot(ncol(X) == ncol(Y))
   stopifnot(ncol(X) == dim(VInvArray)[1])
   stopifnot(nrow(Y) == dim(VInvArray)[2])
@@ -48,22 +48,18 @@ estimateEffects <- function(X,
   if (anyNA(X)) stop("No missing values allowed in X")
   if (anyNA(x)) stop("No missing values allowed in x")
   if (anyNA(Y)) stop("No missing values allowed in Y")
-
   nc <- nrow(X)
   n <- ncol(X)
   p <- nrow(Y)
-
   if (is.null(x)) {
     returnAllEffects <- TRUE
     ncTot <- nc
   } else {
     ncTot <- nc + 1
   }
-
   ## the last p coefficients should be the marker-effects
   ## the first p * nc should correspond to the other coefficients
   if (!is.null(x)) {X <- rbind(X , t(matrix(as.numeric(x))))}
-
   if (p == 1 && ncTot == 1) {
     Vbeta <- sum(sapply(1:n, function(i) {
       kronecker(tcrossprod(X[, i]), VInvArray[i, , ])}))
@@ -76,13 +72,11 @@ estimateEffects <- function(X,
   if (length(x) > 0) {
     MSub <- solve(Vbeta[-(1:(p * nc)), -(1:(p * nc))])
   }
-
   if (p == 1 && ncTot == 1) {
     v <- sum(sapply(1:n, function(i) {kronecker(X[, i], VInvArray[i, , ] %*% Y[, i])}))
   } else {
     v <- rowSums(sapply(1:n, function(i) {kronecker(X[, i], VInvArray[i, , ] %*% Y[, i])}))
   }
-
   wald  <- NA
   if (returnAllEffects) {
     effectsEstimates <- as.numeric(M %*% v)

@@ -5,6 +5,7 @@
 #' provided. It is possible to provide an existing \code{gData} object as additional input in which case
 #' data is added to this object. Existing data will be overwritten with a warning.
 #'
+#' @param gData an optional gData object to be modified. If \code{NULL} a new gData object is created.
 #' @param geno matrix or data.frame with genotypes in the rows and markers in the columns.
 #' If no row names are used they are taken from \code{pheno} (if supplied and dimension matches).
 #' If no column names are used the row names are taken from \code{map}
@@ -28,6 +29,7 @@
 #' \item{kinship a kinship matrix}
 #' \item{covar a data.frame with extra covariates}
 #' }
+#' @export
 
 createGData <- function(gData = NULL,
   geno,
@@ -52,7 +54,7 @@ createGData <- function(gData = NULL,
     if (all(rownames(map) == as.character(1:nrow(map)))) {
       ## If no marker name in input compute them from chromosome and position.
       ## Names are made unique if necessary by adding a suffix _1, _2, etc.
-      replicates <- dplyr::count(map, chr, pos)$n
+      replicates <- dplyr::count(map, map$chr, map$pos)$n
       suffix <- unlist(sapply(replicates, FUN = function(n) {
         if (n == 1) return("") else return(paste0("_", seq(1:n)))}))
       rownames(map) <- paste0("chr", map$chr, "_", map$pos, suffix)

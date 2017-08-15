@@ -2,11 +2,11 @@
 #'
 #' The kinship matrix is reduced using nPca eigenvectors of K.
 #'
-#' @inheritParams runGWAS
+#' @inheritParams runMultiTraitGwas
 #'
 #' @param nPca an integer, the number of eigenvectors used for reducing the kinship matrix.
 #'
-#' @return the reduce kinship matrix
+#' @return the reduced kinship matrix
 
 reduceKinship <- function(K, nPca) {
   w <- eigen(K, symmetric = TRUE)

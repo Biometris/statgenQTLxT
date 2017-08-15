@@ -1,8 +1,15 @@
-#' run single trait GWAS
+#' perform single-trait GWAS
 #'
-#' Description to be added
+#' \code{runSingleTraitGwas} performs a single-trait Genome Wide Association Study (GWAS) on phenotypic and
+#' genotypic data contained in a \code{gData} object. A covariance matrix is computed using the EMMA algorithm
+#' (Kang et al., 2008) or the Newton-Raphson algorithm (Tunnicliffe, 1989) of the \code{sommer}
+#' package. Then a Generalized Least Squares (GLS) method is used for estimating the marker effects and
+#' corresponding p-values. This is done using either one kinship matrix for all chromosomes or different
+#' chromosome specific kinship matrices for each chromosome. Significant SNPs are selected based on a user
+#' defined threshold.
 #'
-#' @param gData an object of class \code{gData} containing at least a data.frame \code{pheno}.
+#' @param gData an object of class \code{gData} containing at least \code{map}, \code{markers} and
+#' \code{pheno}.
 #' @param traits a vector of traits on which to run GWAS. These can be either numeric indices or
 #' character names of columns in \code{pheno}. If \code{NULL} GWAS is run on all traits.
 #' @param fields a vector of fields on which to run GWAS. These can be either numeric indices or
@@ -15,53 +22,87 @@
 #' If both \code{K} is provided and \code{gData} contains a matrix \code{kinship} then \code{K} is used.
 #' @param remlAlgo an integer indicating the algorithm used to estimate the variance components
 #' \enumerate{
-#' \item{sommer}
-#' \item{newton raphson using sommer package}
+#' \item{EMMA}
+#' \item{Newton-Raphson using sommer package}
 #' }
-#' @param GLSMethod an integer indicating the software used to estimate the marker effects.
+#' @param GLSMethod an integer indicating the method used to estimate the marker effects.
 #' \enumerate{
-#' \item{scan_GLS (not available when there are heterozygotes) -- NOT YET IMPLEMENTED}
-#' \item{Fast-LMM -- NOT YET IMPLEMENTED}
-#' \item{within R}
-#' \item{within R, with chromosome specific kinship matrices; similar to the approach of Rincent et al.}
+#' \item{using one kinship matrix.}
+#' \item{using chromosome specific kinship matrices; similar to the approach of Rincent et al.}
 #' }
-#' @param sizeIncludedRegion an integer. Should the results for SNPs close to significant SNPs
+#' @param sizeInclRegion an integer. Should the results for SNPs close to significant SNPs
 #' be included? If so, the size of the region in centimorgan or base pairs. Otherwise 0.
 #' @param minR2 A numerical value between 0 and 1. Restricts the SNPs included in the region close
-#' to significant SNPs to only those SNPs that are in sufficient LD with the significant snp,
-#' where LD is measured in terms of r^2. If for example \code{sizeIncludedRegion} = 200000
-#' and \code{minR2} = 0.5, then for every significant SNP also those SNPs whose LD (r^2) with the
-#' significant SNP is at least 0.5 AND which are at most 200kb away from this significant snp are
-#' included. Ignored if \code{sizeIncludedRegion} = 0.
+#' to significant SNPs to only those SNPs that are in sufficient Linkage Disequilibruim (LD) with
+#' the significant snp, where LD is measured in terms of r^2. If for example
+#' \code{sizeInclRegion} = 200000 and \code{minR2} = 0.5, then for every significant SNP
+#' also those SNPs whose LD (r^2) with the significant SNP is at least 0.5 AND which are
+#' at most 200kb away from this significant snp are included. Ignored if \code{sizeInclRegion} = 0.
 #' @param useMAF should the minor allele frequency be used for selecting SNPs for the analysis.
-#' If \code{FALSE} the minor allele count is used.
+#' If \code{FALSE} the minor allele count is used instead.
 #' @param MAF A numerical value between 0 and 1. SNPs with minor allele frequency below
 #' this value are not taken into account for the analysis, i.e. p-values and effect sizes are
 #' put to missing (NA). Ignored if \code{useMAF} is \code{FALSE}.
 #' @param MAC A numerical value. SNPs with minor allele count below this value are not
 #' taken into account for the analysis, i.e. p-values and effect sizes are put to missing (NA).
 #' Ignored if \code{useMAF} is \code{TRUE}.
-#' @param genomicControl should genomic control correction as in Devlin and Roeder be applied?
-#' @param boundType an integer indicating the type of threshold used for the selection of candidate
+#' @param genomicControl should genomic control correction as in Devlin and Roeder (1999) be applied?
+#' @param thrType an integer indicating the type of threshold used for the selection of candidate
 #' loci.
 #' \enumerate{
-#' \item{Bonferroni; a LOD-threshold of -log10(alpha/p), where p is the number of markers and alpha
+#' \item{Bonferroni; a LOD-threshold of \eqn{-log10(alpha/p)}, where p is the number of markers and alpha
 #' can be specified in \code{alpha}.}
 #' \item{a self-chosen LOD-threshold, specied in \code{LODThr}.}
-#' \item{the LOD-threshold is chosen such the the SNPs with the nSnpLOD smallest p-values are selected.
-#' nSnpLOD can be specified.}
-#' \item{Bonferroni; as option 1 but with p replaced by the number of effective tests approach
-#' as in Gao et al. -- NOT YET IMPLEMENTED}
+#' \item{the LOD-threshold is chosen such the the SNPs with the \code{nSnpLOD} smallest p-values are selected.
+#' \code{nSnpLOD} can be specified.}
 #' }
-#' @param alpha a numerical value used for calculating the LOD-threshold for \code{boundType} = 1.
-#' @param LODThr a numerical value used as a LOD-threshold when \code{boundType} = 2.
+#' @param alpha a numerical value used for calculating the LOD-threshold for \code{thrType} = 1.
+#' @param LODThr a numerical value used as a LOD-threshold when \code{thrType} = 2.
 #' @param nSnpLOD a numerical value indicating the number of SNPs with the smallest p-values that
-#' are selected when \code{boundType} = 3.
+#' are selected when \code{thrType} = 3.
 #'
+#' @return A list containing two data.frames:
+#' \code{GWAResult}, the full results for all markers with the following columns:
+#' \itemize{
+#' \item{trait: trait name.}
+#' \item{snp: marker name.}
+#' \item{chr: chromosome on which the marker lies.}
+#' \item{pos: position of the marker on the chromosome.}
+#' \item{pValue: p-value of the GLS-test.}
+#' \item{effect: effect size.}
+#' \item{effectSe: standard error of the effect size.}
+#' \item{LOD: LOD-score.}
+#' \item{RLR2: likelihood-ratio based \eqn{R^2} as described by Sun et al.}
+#' \item{allFreq: allele frequency.}
+#' }
+#' \code{SignSnp}, results for significant SNPs including SNPs close to significant SNPs if
+#' \code{sizeInclRegion} > 0. \code{SignSnp} contains the following columns:
+#' \itemize{
+#' \item{trait: trait name.}
+#' \item{snp: marker name.}
+#' \item{chr: chromosome on which the marker lies.}
+#' \item{pos: position of the marker on the chromosome.}
+#' \item{pValue: p-value of the GLS-test.}
+#' \item{LOD: LOD-score.}
+#' \item{snpStatus: status of the SNP, i.e. "significant SNP" or "within ... of sign. SNP".}
+#' \item{allFreq: allele frequency.}
+#' \item{effect: effect size.}
+#' \item{RLR2: likelihood-ratio based \eqn{R^2} as described by Sun et al.}
+#' \item{propSnpVar: proportion of the variance explained by the SNP.}
+#' }
+#'
+#' @references Kang et al. (2008) Efficient Control of Population Structure in Model Organism
+#' Association Mapping. Genetics, March 2008, Vol. 178, no. 3, p. 1709-1723
+#' @references Tunnicliffe W. (1989) On the use of marginal likelihood in time series model estimation.
+#' JRSS, Vol.51(1), p.15-27.
 #' @references Rincent et al. (2014) Recovering power in association mapping panels with variable
 #' levels of linkage disequilibrium. Genetics, May 2014. Vol. 197. p. 375–387.
 #' @references Devlin, B. and Roeder K. (1999) Genomic control for association studies. Biometrics,
 #' December 1999, Vol. 55(4), p. 997-1004.
+#' @references Segura et al. (2012) An efficient multi-locus mixed-model approach for genome-wide
+#' association studies in structured populations. Nature Genetics, June 2012, Vol. 44, p. 825–830.
+#' @references Sun et al. (2010) Variation explained in mixed-model association mapping.
+#' Heredity, February 2010, Vol. 105, p. 333–340.
 #'
 #' @import stats
 
@@ -72,14 +113,14 @@ runSingleTraitGwas <- function (gData,
   snpCovariates = NULL,
   K = NULL,
   remlAlgo = 1,
-  GLSMethod = 3,
-  sizeIncludedRegion = 0,
+  GLSMethod = 1,
+  sizeInclRegion = 0,
   minR2,
   useMAF = TRUE,
   MAF = 0.05,
   MAC = 10,
   genomicControl = FALSE,
-  boundType = 1,
+  thrType = 1,
   alpha = 0.05 ,
   LODThr = 4,
   nSnpLOD = 10) {
@@ -99,7 +140,7 @@ runSingleTraitGwas <- function (gData,
         (is.numeric(traits) && (any(traits == 1) || any(traits > ncol(gData$pheno[[field]])))))
       stop("traits should be columns in pheno.\n")
   }
-  ## If fields is null set fields as all fields in pheno.
+  ## If fields is null set fields to all fields in pheno.
   if (is.null(fields)) fields <- 1:length(gData$pheno)
   if (!is.null(covar) && !is.numeric(covar) && !is.character(covar))
     stop("covar should be a numeric or character vector.\n")
@@ -116,12 +157,12 @@ runSingleTraitGwas <- function (gData,
     stop("remlAlgo should be a single numeric value.\n")
   if (is.null(GLSMethod) || length(GLSMethod) > 1 || !is.numeric(GLSMethod))
     stop("GLSMethod should be a single numeric value.\n")
-  if (GLSMethod != 4 && is.null(K) && is.null(gData$kinship))
+  if (GLSMethod != 2 && is.null(K) && is.null(gData$kinship))
     stop("gData contains no matrix kinship so K should be provided.\n")
-  if (is.null(sizeIncludedRegion) || length(sizeIncludedRegion) > 1 || !is.numeric(sizeIncludedRegion) ||
-      round(sizeIncludedRegion) != sizeIncludedRegion)
-    stop("sizeIncludedRegion should be a single integer\n")
-  if (sizeIncludedRegion > 0) {
+  if (is.null(sizeInclRegion) || length(sizeInclRegion) > 1 || !is.numeric(sizeInclRegion) ||
+      round(sizeInclRegion) != sizeInclRegion)
+    stop("sizeInclRegion should be a single integer\n")
+  if (sizeInclRegion > 0) {
     if (missing(minR2) || length(minR2) > 1 || !is.numeric(minR2) || minR2 < 0 || minR2 > 1)
       stop("minR2 should be a single numerical value between 0 and 1.\n")
   }
@@ -134,15 +175,15 @@ runSingleTraitGwas <- function (gData,
       stop("MAF should be a single numerical value.\n")
     if (MAC == 0) {MAC <- 1}
   }
-  if (is.null(boundType) || length(boundType) > 1 || !is.numeric(boundType))
-    stop("boundType should be a single numeric value.\n")
-  if (boundType %in% c(1,4)) {
+  if (is.null(thrType) || length(thrType) > 1 || !is.numeric(thrType))
+    stop("thrType should be a single numeric value.\n")
+  if (thrType %in% c(1,4)) {
     if (is.null(alpha) || length(alpha) > 1 || !is.numeric(alpha))
       stop("alpha should be a single numerical value.\n")
-  } else if (boundType == 2) {
+  } else if (thrType == 2) {
     if (is.null(LODThr) || length(LODThr) > 1 || !is.numeric(LODThr))
       stop("LODThr should be a single numerical value.\n")
-  } else if (boundType == 3) {
+  } else if (thrType == 3) {
     if (is.null(nSnpLOD) || length(nSnpLOD) > 1 || !is.numeric(nSnpLOD))
       stop("nSnpLOD should be a single numerical value.\n")
   }
@@ -150,16 +191,16 @@ runSingleTraitGwas <- function (gData,
     remlAlgo <- 2
     warning("Invalid value for remlAlgo. remlAlgo set to 2.\n")
   }
-  if (!(GLSMethod %in% 3:4)) {
-    GLSMethod <- 3
-    warning("Invalid value for GLSMethod. GLSMethod set to 3.\n")
+  if (!(GLSMethod %in% 1:2)) {
+    GLSMethod <- 1
+    warning("Invalid value for GLSMethod. GLSMethod set to 1.\n")
   }
-  if (!(boundType %in% 1:3)) {
-    boundType <- 1
-    warning("Invalid value for boundType. boundType set to 1.\n")
+  if (!(thrType %in% 1:3)) {
+    thrType <- 1
+    warning("Invalid value for thrType. thrType set to 1.\n")
   }
   ## Compute kinship matrices per chromosome. Only needs to be done once.
-  if (GLSMethod == 4) {
+  if (GLSMethod == 2) {
     chrs <- unique(gData$map$chr[rownames(gData$map) %in% colnames(gData$markers)])
     KChr <- replicate(length(chrs),
       matrix(data = 0, nrow = nrow(gData$markers), ncol = nrow(gData$markers)), simplify = FALSE)
@@ -168,7 +209,6 @@ runSingleTraitGwas <- function (gData,
       K <- astle(gData$markers[, chrMrk]) / ncol(gData$markers)
       for (i in setdiff(1:length(chrs), which(chr == chrs))) KChr[[i]] <- KChr[[i]] + K
     }
-    #KChr <- lapply(KChr, function(x) as.matrix(Matrix::nearPD(x)$mat))
   }
   ## Compute max value in markers
   maxScore <- max(gData$markers, na.rm = TRUE)
@@ -221,7 +261,7 @@ runSingleTraitGwas <- function (gData,
       phenoFieldTrait <- phenoField[!is.na(phenoField[trait]), c("genotype", trait, covarField)]
       ## Select genotypes where trait is not missing.
       nonMissing <- unique(phenoFieldTrait$genotype)
-      if (GLSMethod != 4) {
+      if (GLSMethod != 2) {
         if (is.null(K)) {
           kinshipRed <- gData$kinship[nonMissing, nonMissing]
         } else {
@@ -230,7 +270,7 @@ runSingleTraitGwas <- function (gData,
       }
       nonMissingRepId <- phenoFieldTrait$genotype
       ## Estimate variance components.
-      if (GLSMethod == 3) {
+      if (GLSMethod == 1) {
         if (!isTRUE(all.equal(kinshipRed, diag(nrow(kinshipRed)), check.names = FALSE))) {
           if (remlAlgo == 1) {
             ## emma algorithm takes covariates from gData.
@@ -238,6 +278,7 @@ runSingleTraitGwas <- function (gData,
               covar = as.data.frame(phenoField[covarField], row.names = phenoField$genotype))
             remlObj <- runEmma(gData = gDataEmma, trait = trait, field = field, covar = covarField, K = kinshipRed)
             ## Compute varcov matrix using var components.
+            varcomp <- remlObj[[1]]
             vcovMatrix <- remlObj[[1]][1] * remlObj[[2]] +
               remlObj[[1]][2] * diag(nrow(remlObj[[2]]))
           } else if (remlAlgo == 2) {
@@ -252,6 +293,7 @@ runSingleTraitGwas <- function (gData,
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoFieldTrait,
               random = ~ sommer::g(genotype), G = list(genotype = kinshipRed), silent = TRUE)
             ## Compute varcov matrix using var components from model.
+            varcomp <- sommerFit$var.comp[c(1, nrow(sommerFit$var.comp)), 1]
             vcovMatrix <- sommerFit$var.comp[1, 1] * kinshipRed +
               diag(sommerFit$var.comp[nrow(sommerFit$var.comp), 1], nrow = nrow(kinshipRed))
           }
@@ -259,7 +301,7 @@ runSingleTraitGwas <- function (gData,
           ## Kinship matrix is computationally identical to identity matrix.
           vcovMatrix <- diag(nrow(phenoFieldTrait))
         }
-      } else if (GLSMethod == 4) {
+      } else if (GLSMethod == 2) {
         vcovMatrix <- vector(mode = "list", length = length(chrs))
         ## emma algorithm takes covariates from gData.
         if (remlAlgo == 1) {
@@ -330,7 +372,7 @@ runSingleTraitGwas <- function (gData,
         row.names = rownames(mapRed),
         stringsAsFactors = FALSE)
       y <- phenoFieldTrait[which(phenoFieldTrait$genotype %in% nonMissing), trait]
-      if (GLSMethod == 3) {
+      if (GLSMethod == 1) {
         ## The following is based on the genotypes, not the replicates:
         X <- markersRed[nonMissingRepId, segMarkers]
         if (length(covarField) == 0) {
@@ -343,8 +385,8 @@ runSingleTraitGwas <- function (gData,
           GLSResult <- fastGLSCov(y = y, X = X, Sigma = vcovMatrix, covs = Z)
         }
         GWAResult[segMarkers, c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
-      } else if (GLSMethod == 4) {
-        ## Same as for GLSMethod 3 but then per chromosome using the chromosome specific
+      } else if (GLSMethod == 2) {
+        ## Same as for GLSMethod 1 but then per chromosome using the chromosome specific
         ## kinship calculated before.
         for (chr in chrs) {
           segMarkersChr <- intersect(segMarkers, which(mapRed$chr == chr))
@@ -362,8 +404,6 @@ runSingleTraitGwas <- function (gData,
       if (maxScore == 1) {
         GWAResult$effect <- 0.5 * GWAResult$effect
       }
-      ## Compute LOD score.
-      GWAResult$LOD <- -log10(GWAResult$pValue)
       ## Calculate the genomic inflation factor and rescale p-values.
       if (genomicControl) {
         GC <- genomicControlPValues(pVals = GWAResult$pValue,
@@ -371,59 +411,40 @@ runSingleTraitGwas <- function (gData,
           nCov = length(covarField))
         GWAResult$pValue <- GC[[1]]
       }
+      ## Compute LOD score.
+      GWAResult$LOD <- -log10(GWAResult$pValue)
       ## Add gene information if available.
       if ("genes" %in% names(gData)) {
         GWAResult <- cbind(GWAResult, gene1 = gData$genes$gene1, gene2 = gData$genes$gene2)
       }
-      ## When boundType is 1, 3 or 4, determine the LOD threshold.
-      if (boundType == 1) {
+      ## When thrType is 1, 3 or 4, determine the LOD threshold.
+      if (thrType == 1) {
         ## Compute LOD threshold using Bonferroni correction.
         nEff <- sum(!is.na(GWAResult$pValue))
         LODThr <- -log10(alpha / nEff)
-      } else if (boundType == 3) {
+      } else if (thrType == 3) {
         ## Compute LOD threshold by computing the 10log of the nSnpLOD item of ordered p values.
         LODThr <- -log10(sort(na.omit(GWAResult$pValue))[nSnpLOD])
-        # } else if (boundType == 4) {
-        #   cut.off <- 0.995
-        #   number.of.nonmissing  <- aggregate(gData$pheno[,trait],by=list(ordered(phenoField$genotype)),
-        #     FUN = function(x){sum(!is.na(x))})[match(gData$plant.names,sort(gData$plant.names)),2]
-        #   number.of.nonmissing[number.of.nonmissing>0] <- 1
-        #   ind.indices <- rep((1:gData$n)[number.of.nonmissing>0],times=number.of.nonmissing[number.of.nonmissing>0])
-        #   SIGMA       <- varcomp.values[1,] * gData$kinship[ind.indices,ind.indices] + varcomp.values[2,] * diag(sum(number.of.nonmissing))
-        #   COR         <- cov2cor(SIGMA)
-        #   INV.COR     <- GINV(COR)
-        #   Keff      <- 0
-        #   n.block   <- 0
-        #   b.size    <- 10*sum(number.of.nonmissing)
-        #   for (CHR in 1:gData$nchr) {
-        #     blocks  <- DefineBlocks(which(gData$map$chromosome==CHR),block.size=b.size)
-        #     n.block <- n.block  +  length(blocks)
-        #     for (b in 1:length(blocks)) {
-        #       marker.frame <- gData$markers[blocks[[b]],]
-        #       Keff <- Keff + GaoCorrection(marker.frame=marker.frame,number.of.replicates=number.of.nonmissing,inv.cor.matrix=INV.COR,cut.off=cut.off)
-        #     }
-        #   }
-        #   LODThr <- -log10(alpha/Keff)
       }
       ## Select the SNPs whose LOD-scores is above the threshold
       signSnp <- which(!is.na(GWAResult$pValue) & -log10(GWAResult$pValue) >= LODThr)
       if (length(signSnp) > 0) {
-        if (sizeIncludedRegion > 0) {
+        if (sizeInclRegion > 0) {
           snpSelection <- unlist(sapply(signSnp,
             FUN = getSNPsInRegionSufLD,
-            ## Create new minimal gData to match map and markers used for SNP selection.
+            ## Create new minimal gData object to match map and markers used for SNP selection.
             gData = createGData(map = mapRed, geno = markersRed),
-            regionSize = sizeIncludedRegion,
+            regionSize = sizeInclRegion,
             minR2 = minR2))
           snpSelection <- sort(union(snpSelection, signSnp))
-          snpStatus <- rep(paste("within", sizeIncludedRegion/1000 , "kb of a significant snp"),
+          snpStatus <- rep(paste("within", sizeInclRegion/1000 , "kb of a significant snp"),
             length(snpSelection))
           snpStatus[snpSelection %in% signSnp] <- "significant snp"
         } else {
           snpSelection <- signSnp
           snpStatus <- rep("significant snp", length(signSnp))
         }
-        if (GLSMethod %in% 3:4) {
+        if (GLSMethod %in% 1:2) {
           effects <- GWAResult$effect[snpSelection]
           ## Compute variance of marker scores, based on genotypes for which phenotypic data is available.
           ## for inbreeders, this depends on maxScore. It is therefore scaled to marker scores 0, 1
@@ -433,14 +454,14 @@ runSingleTraitGwas <- function (gData,
           propSnpVar <- snpVar / as.numeric(var(phenoFieldTrait[trait]))
         }
         ## Create data.frame with significant snps.
-        signSnp <- data.frame(marker = colnames(gData$markers)[snpSelection],
+        signSnp <- data.frame(snp = colnames(gData$markers)[snpSelection],
           gData$map[snpSelection, ],
           pValue = GWAResult$pValue[snpSelection],
           LOD = GWAResult$LOD[snpSelection],
-          snpStatus,
+          snpStatus = as.factor(snpStatus),
           allFreq = allFreq[snpSelection],
           effects,
-          propVarLRT = GWAResult$RLR2[snpSelection],
+          RLR2 = GWAResult$RLR2[snpSelection],
           propSnpVar = propSnpVar,
           stringsAsFactors = FALSE)
         signSnpTotField <- rbind(signSnpTotField, data.frame(trait = trait, signSnp, stringsAsFactors = FALSE))
@@ -450,5 +471,14 @@ runSingleTraitGwas <- function (gData,
     GWATot[[match(field, fields)]] <- GWATotField
     signSnpTot[[match(field, fields)]] <- signSnpTotField
   } # end for (field in fields)
-  return(list(GWAResult = GWATot, signSnp = signSnpTot))
+  names(GWATot) <- names(signSnpTot) <- names(gData$pheno[fields])
+  ## Collect info
+  GWASInfo <- list(GLSMethod = factor(GLSMethod, levels = c(1, 2), labels = c("EMMA", "Newton-Raphson")),
+    thrType = factor(thrType, levels = c(1, 2, 3),
+      labels = c("bonferroni", "self-chosen", "smallest p-values")),
+    MAF = MAF,
+    varcomp = varcomp,
+    genomicControl = genomicControl)
+  if (genomicControl) GWASInfo$inflationFactor <- GC[[2]]
+  return(createGWAS(GWAResult = GWATot, signSnp = signSnpTot, thr = LODThr, GWASInfo = GWASInfo))
 }

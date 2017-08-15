@@ -11,6 +11,9 @@
 #' @references Segura et al. (2012) An efficient multi-locus mixed model approach for genome-wide
 #' association studies in structured populations
 #'
+#' @import grDevices
+#' @import graphics
+#'
 #' @export
 
 ## TO DO: example

@@ -30,6 +30,8 @@
 #'
 #' @references Dahl et al. (2014). Network inference in matrix-variate Gaussian models with
 #' non-indenpent noise.
+#'
+#' @importFrom methods as
 
 ## TO DO: also check : missing data
 ## TO DO: describe output. Everything needed?
@@ -88,7 +90,6 @@ EMFA <- function(Y,
   } else {
     Cm <- CmStart
   }
-
   ## Set starting values for Dm
   if (is.null(DmStart)) {
     if (mE == 0) {
@@ -161,7 +162,6 @@ EMFA <- function(Y,
     # Each time we compute the right hand side of the equation
     # In dahl_etal_2013_debug.r we checked the left hand side(s) as well
     # Also S1 and S2 correspond to p. 6 of their preprint
-
     if (nc > 0) {
       tUYminXb <- t(Uk) %*% (Y - X %*% B)
       S1 <- vecInvDiag(x = lambda1, y = w$values) * (tUYminXb %*% (matrixRoot(Dm) %*% Q1))
@@ -232,7 +232,6 @@ EMFA <- function(Y,
       PgNew <- CmNewOutput$P
       CmNew <- MASS::ginv(MASS::ginv(PgNew) + tcrossprod(WgNew))
     }
-
     ## Update D
     if (mE == 0) {
       ## Recall that the model is Dm^{-1} = P^{-1} + W W^t.
@@ -266,7 +265,6 @@ EMFA <- function(Y,
       PeNew <- DmNewOutput$P
       DmNew <- MASS::ginv(MASS::ginv(PeNew) + tcrossprod(WeNew))
     }
-
     ## Compute log-likelihood and check stopping criteria
     ELogLikOld <- ELogLikCm + ELogLikDm
     ELogLikCm <- n * (determinant(Cm)[[1]][1] - sum(diag(Cm %*% Omega2)))
@@ -284,7 +282,6 @@ EMFA <- function(Y,
       DmDiff <- sum(abs(DmNew - Dm))
       cat("Iteration ", iter, " : ", CmDiff, "  ", DmDiff, "    ", ELogLik,"\n")
     }
-
     ## Update values for next iteration
     Cm <- CmNew
     Dm <- DmNew
@@ -295,7 +292,6 @@ EMFA <- function(Y,
     continue <- abs(ELogLik - ELogLikOld) >= tolerance && continue
     iter <- iter + 1
   }
-
   ## Compute log-likelihood
   if (computeLogLik) {
     VInvArray <- makeVInvArray(Vg <- solve(Cm), Ve <- solve(Dm), Dk = Dk)
@@ -308,7 +304,6 @@ EMFA <- function(Y,
   } else {
     logLik <- NA
   }
-
   ## prevent that Cm, Dm become asymmetric because of numerical inaccuracies
   Cm <- (Cm + t(Cm)) / 2
   Dm <- (Dm + t(Dm)) / 2
