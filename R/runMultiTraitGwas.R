@@ -110,7 +110,10 @@ runMultiTraitGwas <- function(gData,
     stop("gData should be a valid gData object containing at least map, markers and pheno")
   markers <- gData$markers
   map <- gData$map
-  Y <- as.matrix(tibble::column_to_rownames(gData$pheno[[1]], var = "genotype"))
+  ## Construct Y from pheno data in gData. Remove rownames first since column_to_rownames doesn't
+  ## overwrite existing rownames.
+  Y <- as.matrix(tibble::column_to_rownames(tibble::remove_rownames(gData$pheno[[1]]),
+    var = "genotype"))
   if (is.null(K) || !is.matrix(K)) stop("K should be a matrix")
   if (!is.null(X) && !is.matrix(X)) stop("X should either be NULL or a matrix")
   if (anyNA(X)) stop("No missing values allowed in X")
@@ -168,27 +171,9 @@ runMultiTraitGwas <- function(gData,
   if (fitVarComp) {
     ## Unstructured (pairwise) models
     if (covModel == 2) {
-      # YLong <- reshape2::melt(data = data.frame(genotype = rownames(Y), Y),
-      #   id.vars = "genotype", variable.name = "trait", value.name = "pheno")
-      # out <- asreml_unstructured_pairwise(d = YLong, K = K, fix.diag = FALSE,
-      #   correlation.matrix = TRUE,
-      #   vE.diag = vE.diag,
-      #   genotype.column = 1,
-      #   traitname.column = 2,
-      #   phenotype.column = 3,
-      #   covariates = integer())
-      # out$vG.matrix <- out$vG.matrix[colnames(Y), colnames(Y)]
-      # out$vE.matrix <- out$vE.matrix[colnames(Y), colnames(Y)]
-      # out$vG.vector <- out$vG.vector[colnames(Y)]
-      # out$vE.vector <- out$vE.vector[colnames(Y)]
-      # vG.matrix <- as.matrix(Matrix::nearPD(out$vG.matrix, corr = TRUE)$mat)
-      # vE.matrix <- as.matrix(Matrix::nearPD(out$vE.matrix, corr = TRUE)$mat)
-      # vG.matrix <- (matrix(sqrt(out$vG.vector)) %*% t(matrix(sqrt(out$vG.vector)))) * vG.matrix
-      # vE.matrix <- (matrix(sqrt(out$vE.vector)) %*% t(matrix(sqrt(out$vE.vector)))) * vE.matrix
-      # rownames(vG.matrix) <- rownames(vE.matrix) <- colnames(Y)
-      # colnames(vG.matrix) <- colnames(vE.matrix) <- colnames(Y)
-      # Vg <- vG.matrix
-      # Ve <- vE.matrix
+      varcomp <- covPairwise(Y = Y, K = K, fixDiag = FALSE, corMat = TRUE, VeDiag = FALSE)
+      Vg <- varcomp$Vg
+      Ve <- varcomp$Ve
     } else if (covModel == 3) {
       ## FA models
       ## Including snpCovariates.
@@ -206,6 +191,8 @@ runMultiTraitGwas <- function(gData,
         computeLogLik = computeLogLik)
       Vg <- solve(varcomp$Cm)
       Ve <- solve(varcomp$Dm)
+      colnames(Vg) <- rownames(Vg) <- colnames(Y)
+      colnames(Ve) <- rownames(Ve) <- colnames(Y)
       if (snpCovariates[1] != "") {
         ## Without snpCovariates.
         varcompRed <- EMFA(Y = Y,

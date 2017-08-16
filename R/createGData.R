@@ -75,7 +75,6 @@ createGData <- function(gData = NULL,
     if (!all(sapply(pheno, FUN = function(x) {colnames(x)[1] == "genotype"})))
       stop("First column in pheno should be genotype.\n")
     if (!is.null(gData$pheno)) warning("existing pheno will be overwritten.\n", call. = FALSE)
-    ## Convert all list items to matrices.
   } else if (!is.null(gData$pheno)) pheno <- gData$pheno
   else pheno <- NULL
   ## Modify geno
