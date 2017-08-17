@@ -10,8 +10,8 @@
 #' in \code{pheno} are allowed but will be excluded from the calculations.
 #' @param trait a trait for which to estimate variance components. This can be either numeric index
 #' or character name of a column in \code{pheno}.
-#' @param field a field for which to estimate variance components. This can be either numeric index
-#' or character name of a list item in \code{pheno}.
+#' @param environment an environment for which to estimate variance components. This can be either numeric
+#' index or character name of a list item in \code{pheno}.
 #' @param K an optional kinship matrix. If \code{NULL} then matrix \code{kinship} in \code{gData} is used.
 #' If both \code{K} is provided and \code{gData} contains a matrix \code{kinship} then \code{K} is used.
 #' @param covar an optional vector of covariates taken into account when estimating variance components.
@@ -41,7 +41,7 @@
 
 runEmma <- function(gData,
   trait,
-  field,
+  environment,
   K = NULL,
   covar = NULL,
   snpName = NULL,
@@ -53,15 +53,15 @@ runEmma <- function(gData,
   ## Check input
   if(missing(gData) || !is.gData(gData) || is.null(gData$pheno))
     stop("gData should be a valid gData object with at least pheno included.\n")
-  if(missing(field) || length(field) > 1 || !(is.numeric(field) || is.character(field)))
-    stop("field should be a single numeric or character.\n")
-  if ((is.character(field) && !field %in% names(gData$pheno)) ||
-      (is.numeric(field) && field > length(gData$pheno)))
-    stop("field should be a list item in pheno.\n")
+  if(missing(environment) || length(environment) > 1 || !(is.numeric(environment) || is.character(environment)))
+    stop("environment should be a single numeric or character.\n")
+  if ((is.character(environment) && !environment %in% names(gData$pheno)) ||
+      (is.numeric(environment) && environment > length(gData$pheno)))
+    stop("environment should be a list item in pheno.\n")
   if(missing(trait) || length(trait) > 1 || !(is.numeric(trait) || is.character(trait)))
     stop("trait should be a single numeric or character.\n")
-  if ((is.character(trait) && !trait %in% colnames(gData$pheno[[field]])) ||
-      (is.numeric(trait) && trait > ncol(gData$pheno[[field]])))
+  if ((is.character(trait) && !trait %in% colnames(gData$pheno[[environment]])) ||
+      (is.numeric(trait) && trait > ncol(gData$pheno[[environment]])))
     stop("trait should be a column in pheno.\n")
   if (!is.null(K) && !is.matrix(K))
     stop("K should be a matrix.\n")
@@ -87,22 +87,22 @@ runEmma <- function(gData,
   if(!is.null(eps) && (length(eps) > 1 || !is.numeric(eps)))
     stop("eps should be a single numeric value.\n")
 
-  ## Add column genotype to field.
-  phenoField <- gData$pheno[[field]]
+  ## Add column genotype to environment.
+  phenoEnvir <- gData$pheno[[environment]]
   ## Remove data with missings in trait or any of the covars.
-  nonMissing <- phenoField$genotype[!is.na(phenoField[trait])]
-  nonMissingId <- which(!is.na(phenoField[trait]))
+  nonMissing <- phenoEnvir$genotype[!is.na(phenoEnvir[trait])]
+  nonMissingId <- which(!is.na(phenoEnvir[trait]))
   if (!is.null(covar)) {
     misCov <- rownames(gData$covar)[which(rowSums(is.na(gData$covar[covar])) == 0)]
     nonMissing <- nonMissing[nonMissing %in% misCov]
-    nonMissingId <- intersect(nonMissingId, which(phenoField$genotype %in% misCov))
+    nonMissingId <- intersect(nonMissingId, which(phenoEnvir$genotype %in% misCov))
   }
   if (is.null(K)) {
     K <- gData$kinship[nonMissing, nonMissing]
   } else {
     K <- K[nonMissing, nonMissing]
   }
-  y <- phenoField[nonMissingId, trait]
+  y <- phenoEnvir[nonMissingId, trait]
   ## Define intercept.
   X <- rep(1, length(nonMissing))
   if (!is.null(covar)) {
@@ -111,7 +111,7 @@ runEmma <- function(gData,
   }
   if (!is.null(snpName)) {
     ## Add extra snp to intercept + covars.
-    X <- cbind(X, as.numeric(gData$markers[phenoField$genotype, snpName][nonMissing]))
+    X <- cbind(X, as.numeric(gData$markers[phenoEnvir$genotype, snpName][nonMissing]))
   }
   X <- as.matrix(X)
   ## Check resulting X for singularity.

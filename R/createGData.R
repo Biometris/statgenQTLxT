@@ -17,8 +17,8 @@
 #' @param kin a kinship matrix with genotype in rows and colums. These should be identical to the genotypes
 #' in \code{geno}
 #' @param pheno a data.frame or a list of data.frames with phenotypic data, with genotype in the
-#' first column \code{genotype} and traits in the following columns. A list of data.frames can be used for replications,
-#' i.e. different environments.
+#' first column \code{genotype} and traits in the following columns. A list of data.frames can be
+#' used for replications, i.e. different environments.
 #' @param covar a data.frame with extra covariates per genotype. Genotype should be in the rows.
 #'
 #' @return an object of class gData with the following components:
@@ -74,6 +74,9 @@ createGData <- function(gData = NULL,
     }
     if (!all(sapply(pheno, FUN = function(x) {colnames(x)[1] == "genotype"})))
       stop("First column in pheno should be genotype.\n")
+    for (i in 1:length(pheno)) {
+      pheno[[i]]$genotype <- as.character(pheno[[i]]$genotype)
+    }
     if (!is.null(gData$pheno)) warning("existing pheno will be overwritten.\n", call. = FALSE)
   } else if (!is.null(gData$pheno)) pheno <- gData$pheno
   else pheno <- NULL
