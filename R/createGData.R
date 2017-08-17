@@ -10,14 +10,14 @@
 #' If no row names are used they are taken from \code{pheno} (if supplied and dimension matches).
 #' If no column names are used the row names are taken from \code{map}
 #' (if supplied and dimension matches).
-#' @param map a data.frame with columns chr for chromosome and pos for position. Positions can
+#' @param map a data.frame with columns \code{chr} for chromosome and \code{pos} for position. Positions can
 #' be in basepair or centimorgan. They should not be cumulative over the chromosomes.
 #' Other columns are ignored. Marker names should be in the row names. These should match
 #' the marker names in \code{geno} (if supplied).
 #' @param kin a kinship matrix with genotype in rows and colums. These should be identical to the genotypes
 #' in \code{geno}
 #' @param pheno a data.frame or a list of data.frames with phenotypic data, with genotype in the
-#' first column and traits in the following columns. A list of data.frames can be used for replications,
+#' first column \code{genotype} and traits in the following columns. A list of data.frames can be used for replications,
 #' i.e. different environments.
 #' @param covar a data.frame with extra covariates per genotype. Genotype should be in the rows.
 #'
