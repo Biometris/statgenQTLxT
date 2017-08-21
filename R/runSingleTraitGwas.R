@@ -23,6 +23,10 @@
 #' equal to the number of chromosomes in \code{map} in \code{gData}. If \code{NULL} then matrix
 #' \code{kinship} in \code{gData} is used. If both \code{K} is provided and \code{gData} contains a
 #' matrix \code{kinship} then \code{K} is used.
+#' @param kinshipMethod an optional character indicating the method used for calculating the kinship
+#' matrix(ces). Currently "astle" (Astle and Balding, 2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008)
+#' are supported. If a kinship matrix is supplied either in \code{gData} or in parameter \code{K}
+#' \code{kinshipMatrix} is ignored.
 #' @param remlAlgo an integer indicating the algorithm used to estimate the variance components
 #' \enumerate{
 #' \item{EMMA}
@@ -64,35 +68,7 @@
 #' @param nSnpLOD a numerical value indicating the number of SNPs with the smallest p-values that
 #' are selected when \code{thrType} = 3.
 #'
-#' @return A list containing two data.frames:
-#' \code{GWAResult}, the full results for all markers with the following columns:
-#' \itemize{
-#' \item{trait: trait name.}
-#' \item{snp: marker name.}
-#' \item{chr: chromosome on which the marker lies.}
-#' \item{pos: position of the marker on the chromosome.}
-#' \item{pValue: p-value of the GLS-test.}
-#' \item{effect: effect size.}
-#' \item{effectSe: standard error of the effect size.}
-#' \item{LOD: LOD-score.}
-#' \item{RLR2: likelihood-ratio based \eqn{R^2} as described by Sun et al.}
-#' \item{allFreq: allele frequency.}
-#' }
-#' \code{SignSnp}, results for significant SNPs including SNPs close to significant SNPs if
-#' \code{sizeInclRegion} > 0. \code{SignSnp} contains the following columns:
-#' \itemize{
-#' \item{trait: trait name.}
-#' \item{snp: marker name.}
-#' \item{chr: chromosome on which the marker lies.}
-#' \item{pos: position of the marker on the chromosome.}
-#' \item{pValue: p-value of the GLS-test.}
-#' \item{LOD: LOD-score.}
-#' \item{snpStatus: status of the SNP, i.e. "significant SNP" or "within ... of sign. SNP".}
-#' \item{allFreq: allele frequency.}
-#' \item{effect: effect size.}
-#' \item{RLR2: likelihood-ratio based \eqn{R^2} as described by Sun et al.}
-#' \item{propSnpVar: proportion of the variance explained by the SNP.}
-#' }
+#' @return an object of \code{\func{class GWAS}}
 #'
 #' @references Kang et al. (2008) Efficient Control of Population Structure in Model Organism
 #' Association Mapping. Genetics, March 2008, Vol. 178, no. 3, p. 1709-1723
@@ -106,6 +82,10 @@
 #' association studies in structured populations. Nature Genetics, June 2012, Vol. 44, p. 825–830.
 #' @references Sun et al. (2010) Variation explained in mixed-model association mapping.
 #' Heredity, February 2010, Vol. 105, p. 333–340.
+#' @references Astle W., Balding D. J. (2009) Population structure and cryptic relatedness in genetic
+#' association studies, Stat. Sci., November 2009, Vol. 24, no. 4, p. 451–471.L
+#' @references VanRaden P.M. (2008) Efficient methods to compute genomic predictions. J Dairy Sci,
+#' November 2008, Vol. 91 p. 4414–4423.
 #'
 #' @import stats
 
@@ -115,6 +95,7 @@ runSingleTraitGwas <- function (gData,
   covar = NULL,
   snpCovariates = NULL,
   K = NULL,
+  kinshipMethod = "astle",
   remlAlgo = 1,
   GLSMethod = 1,
   sizeInclRegion = 0,
@@ -127,7 +108,7 @@ runSingleTraitGwas <- function (gData,
   alpha = 0.05 ,
   LODThr = 4,
   nSnpLOD = 10) {
-
+  ## Checks.
   if(missing(gData) || !is.gData(gData) || is.null(gData$map) || is.null(gData$markers) ||
       is.null(gData$pheno))
     stop("gData should be a valid gData object with at least map, markers and pheno included.\n")
@@ -164,8 +145,9 @@ runSingleTraitGwas <- function (gData,
       !all(sapply(K, FUN = is.matrix)) || length(K) != length(unique(gData$map$chr))))
     stop("K should be a list of matrices of length equal to the number of chromosomes
       in the map.\n")
-  if (GLSMethod != 2 && is.null(K) && is.null(gData$kinship))
-    stop("gData contains no matrix kinship so K should be provided.\n")
+  if ((GLSMethod == 1 && is.null(gData$kinship) && is.null(K)) ||
+      GLSMethod == 2 && is.null(K))
+    kinshipMethod <- match.arg(kinshipMethod, choices = c("astle", "GRM", "IBS", "vanRaden"))
   if (is.null(sizeInclRegion) || length(sizeInclRegion) > 1 || !is.numeric(sizeInclRegion) ||
       round(sizeInclRegion) != sizeInclRegion)
     stop("sizeInclRegion should be a single integer\n")
@@ -184,7 +166,7 @@ runSingleTraitGwas <- function (gData,
   }
   if (is.null(thrType) || length(thrType) > 1 || !is.numeric(thrType))
     stop("thrType should be a single numeric value.\n")
-  if (thrType %in% c(1,4)) {
+  if (thrType == 1) {
     if (is.null(alpha) || length(alpha) > 1 || !is.numeric(alpha))
       stop("alpha should be a single numerical value.\n")
   } else if (thrType == 2) {
@@ -206,17 +188,25 @@ runSingleTraitGwas <- function (gData,
     thrType <- 1
     warning("Invalid value for thrType. thrType set to 1.\n")
   }
+  ## Compute kinship matrix.
+  if (GLSMethod == 1 && is.null(gData$kinship) && is.null(K))
+      K <- do.call(kinshipMethod, list(X = gData$markers))
   ## Compute kinship matrices per chromosome. Only needs to be done once.
   if (GLSMethod == 2) {
     chrs <- unique(gData$map$chr[rownames(gData$map) %in% colnames(gData$markers)])
     if (!is.null(K)) {
+      ## K is supplied. Set KChr to K.
       KChr <- K
     } else {
+      ## Create list of zero matrices.
       KChr <- replicate(length(chrs),
         matrix(data = 0, nrow = nrow(gData$markers), ncol = nrow(gData$markers)), simplify = FALSE)
       for (chr in chrs) {
+        ## Extract markers for current chromosome.
         chrMrk <- which(colnames(gData$markers) %in% rownames(gData$map[gData$map$chr == chr, ]))
-        K <- astle(gData$markers[, chrMrk]) / ncol(gData$markers)
+        ## Compute kinship for current chromosome only.
+        K <- do.call(kinshipMethod, list(X = gData$markers[, chrMrk], denominator = ncol(gData$markers)))
+        ## Add computed kinship to all other matrices in KChr.
         for (i in setdiff(1:length(chrs), which(chr == chrs))) KChr[[i]] <- KChr[[i]] + K
       }
     }
@@ -272,7 +262,7 @@ runSingleTraitGwas <- function (gData,
       phenoEnvirTrait <- phenoEnvir[!is.na(phenoEnvir[trait]), c("genotype", trait, covarEnvir)]
       ## Select genotypes where trait is not missing.
       nonMissing <- unique(phenoEnvirTrait$genotype)
-      if (GLSMethod != 2) {
+      if (GLSMethod == 1) {
         if (is.null(K)) {
           kinshipRed <- gData$kinship[nonMissing, nonMissing]
         } else {
@@ -287,7 +277,8 @@ runSingleTraitGwas <- function (gData,
             ## emma algorithm takes covariates from gData.
             gDataEmma <- createGData(pheno = gData$pheno,
               covar = as.data.frame(phenoEnvir[covarEnvir], row.names = phenoEnvir$genotype))
-            remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment, covar = covarEnvir, K = kinshipRed)
+            remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment,
+              covar = covarEnvir, K = kinshipRed)
             ## Compute varcov matrix using var components.
             varComp <- remlObj[[1]]
             vcovMatrix <- remlObj[[1]][1] * remlObj[[2]] +
@@ -378,12 +369,11 @@ runSingleTraitGwas <- function (gData,
       GWAResult <- data.frame(snp = rownames(mapRed),
         mapRed,
         pValue = NA,
+        LOD = NA,
         effect = NA,
         effectSe = NA,
-        LOD = NA,
         RLR2 = NA,
         allFreq = allFreq,
-        row.names = rownames(mapRed),
         stringsAsFactors = FALSE)
       y <- phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing), trait]
       if (GLSMethod == 1) {
@@ -487,12 +477,17 @@ runSingleTraitGwas <- function (gData,
   } # end for (environment in environments)
   names(GWATot) <- names(signSnpTot) <- names(gData$pheno[environments])
   ## Collect info
-  GWASInfo <- list(GLSMethod = factor(GLSMethod, levels = c(1, 2), labels = c("EMMA", "Newton-Raphson")),
+  GWASInfo <- list(call = match.call(),
+    GLSMethod = factor(GLSMethod, levels = c(1, 2), labels = c("EMMA", "Newton-Raphson")),
     thrType = factor(thrType, levels = c(1, 2, 3),
       labels = c("bonferroni", "self-chosen", "smallest p-values")),
     MAF = MAF,
     varComp = varComp,
     genomicControl = genomicControl)
   if (genomicControl) GWASInfo$inflationFactor <- GC[[2]]
-  return(createGWAS(GWAResult = GWATot, signSnp = signSnpTot, thr = LODThr, GWASInfo = GWASInfo))
+  return(createGWAS(GWAResult = GWATot,
+    signSnp = signSnpTot,
+    kin = if (GLSMethod == 1) K else KChr,
+    thr = LODThr,
+    GWASInfo = GWASInfo))
 }

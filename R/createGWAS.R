@@ -12,13 +12,47 @@
 #' SNPs and optionally the SNPs close to the significant SNPs. Should at least contain columns
 #' \code{trait}, the evaluated trait, \code{snp}, the name of the SNP, \code{pValue}, the p-values
 #' from the analysis and \code{LOD} the LOD-score.
+#' @param kin optional kinship matrix or list of chromosome specific kinship matrices.
 #' @param thr optional numeric value, the threshold used in performing the GWAS analysis.
 #' @param GWASInfo list containing extra information concering the GWAS analysis.
 #'
 #' @return an object of class GWAS, a list of the input items.
+#'
+#' @return A list containing two data.frames:
+#' \code{GWAResult}, the full results for all markers with the following columns:
+#' \itemize{
+#' \item{trait: trait name.}
+#' \item{snp: marker name.}
+#' \item{chr: chromosome on which the marker lies.}
+#' \item{pos: position of the marker on the chromosome.}
+#' \item{pValue: p-value of the GLS-test.}
+#' \item{effect: effect size.}
+#' \item{effectSe: standard error of the effect size.}
+#' \item{LOD: LOD-score.}
+#' \item{RLR2: likelihood-ratio based \eqn{R^2} as described by Sun et al.}
+#' \item{allFreq: allele frequency.}
+#' }
+#' \code{SignSnp}, results for significant SNPs including SNPs close to significant SNPs if
+#' \code{sizeInclRegion} > 0. \code{SignSnp} contains the following columns:
+#' \itemize{
+#' \item{trait: trait name.}
+#' \item{snp: marker name.}
+#' \item{chr: chromosome on which the marker lies.}
+#' \item{pos: position of the marker on the chromosome.}
+#' \item{pValue: p-value of the GLS-test.}
+#' \item{LOD: LOD-score.}
+#' \item{snpStatus: status of the SNP, i.e. "significant SNP" or "within ... of sign. SNP".}
+#' \item{allFreq: allele frequency.}
+#' \item{effect: effect size.}
+#' \item{RLR2: likelihood-ratio based \eqn{R^2} as described by Sun et al.}
+#' \item{propSnpVar: proportion of the variance explained by the SNP.}
+#' }
+#'
+#'
 
 createGWAS <- function(GWAResult = NULL,
   signSnp = NULL,
+  kin = NULL,
   thr = NULL,
   GWASInfo = NULL) {
   ## Check that at least one input is provided.
@@ -41,7 +75,7 @@ createGWAS <- function(GWAResult = NULL,
   if (!is.null(signSnp)) {
     if (!is.data.frame(signSnp) &&
         !(is.list(signSnp) && all(sapply(signSnp, FUN = is.data.frame))))
-      stop("signSnp should be a data.frame or a list data.frames.\n")
+      stop("signSnp should be a data.frame or a list of data.frames.\n")
     if (is.data.frame(signSnp)) {
       ## If not a list already put data.frame in a list.
       signSnp <- list(signSnp)
@@ -50,9 +84,16 @@ createGWAS <- function(GWAResult = NULL,
       all(c("trait", "snp", "snpStatus", "pValue", "LOD") %in% colnames(x))})))
       stop("signSnp should contain columns trait, snp, snpStatus, pValue and LOD.\n")
   }
+  ## Check signSnps
+  if (!is.null(kin)) {
+    if (!is.matrix(kin) &&
+        !(is.list(kin) && all(sapply(kin, FUN = is.matrix))))
+      stop("kin should be a matrix or a list of matrices.\n")
+  }
   ## Create GWAS object.
   GWAS <- structure(list(GWAResult = GWAResult,
     signSnp = signSnp,
+    kinship = kin,
     thr = thr,
     GWASInfo = GWASInfo),
     class = "GWAS")
