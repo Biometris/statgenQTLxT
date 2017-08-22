@@ -68,7 +68,7 @@
 #' @param nSnpLOD a numerical value indicating the number of SNPs with the smallest p-values that
 #' are selected when \code{thrType} = 3.
 #'
-#' @return an object of \code{\func{class GWAS}}
+#' @return an object of class \code{GWAS}.
 #'
 #' @references Kang et al. (2008) Efficient Control of Population Structure in Model Organism
 #' Association Mapping. Genetics, March 2008, Vol. 178, no. 3, p. 1709-1723
@@ -201,13 +201,23 @@ runSingleTraitGwas <- function (gData,
       ## Create list of zero matrices.
       KChr <- replicate(length(chrs),
         matrix(data = 0, nrow = nrow(gData$markers), ncol = nrow(gData$markers)), simplify = FALSE)
+      ## Create vector of marker numbers per chromosome.
+      nMrkChr <- setNames(numeric(length = length(chrs)), chrs)
       for (chr in chrs) {
         ## Extract markers for current chromosome.
         chrMrk <- which(colnames(gData$markers) %in% rownames(gData$map[gData$map$chr == chr, ]))
-        ## Compute kinship for current chromosome only.
-        K <- do.call(kinshipMethod, list(X = gData$markers[, chrMrk], denominator = ncol(gData$markers)))
+        ## Compute kinship for current chromosome only. Denominator = 1, division is done later.
+        K <- do.call(kinshipMethod, list(X = gData$markers[, chrMrk], denominator = 1))
+        ## Compute number of markers for other chromosomes.
+        nMrkChr[which(chrs == chr)] <- ncol(gData$markers[, -chrMrk])
         ## Add computed kinship to all other matrices in KChr.
-        for (i in setdiff(1:length(chrs), which(chr == chrs))) KChr[[i]] <- KChr[[i]] + K
+        for (i in setdiff(1:length(chrs), which(chr == chrs))) {
+          KChr[[i]] <- KChr[[i]] + K
+        }
+      }
+      ## Divide matrix for current chromosome by number of markers in other chromosomes.
+      for (i in 1:length(KChr)) {
+        KChr[[i]] <- KChr[[i]] / nMrkChr[i]
       }
     }
   }
@@ -256,6 +266,7 @@ runSingleTraitGwas <- function (gData,
       colnames(phenoEnvir)[(ncol(phenoEnvir) - length(snpCovariates) + 1):ncol(phenoEnvir)] <- snpCovariates
     }
     GWATotEnvir <- signSnpTotEnvir <- NULL
+    inflationFactor <- setNames(numeric(length = length(traits)), traits)
     ## Perform GWAS for all traits.
     for (trait in traits) {
       ## Select relevant columns only.
@@ -351,20 +362,6 @@ runSingleTraitGwas <- function (gData,
       if (!useMAF) {MAF <- MAC / length(nonMissing) - 1e-5}
       ## Determine segregating markers. Exclude snps used as covariates.
       segMarkers <- which(allFreq >= maxScore * MAF & allFreq <= maxScore * (1 - MAF))
-      ## Exclude snpCovariates from segragating markers.
-      if (!is.null(snpCovariates)) {
-        snpCovariateNumbers <- which(colnames(markersRed) %in% snpCovariates)
-        for (snp in snpCovariateNumbers) {
-          ## Rough selection based on allele frequency. Done for speed.
-          candidates <- which(allFreq == allFreq[snp])
-          ## Exclude all snps that are identical to snps in snpCovariates.
-          snpInfo <- markersRed[, snp]
-          exclude <- candidates[apply(markersRed[, candidates], MARGIN = 2,
-            FUN = function(x) {identical(as.numeric(x), as.numeric(snpInfo))})]
-        }
-        ## Remove excluded snps from segregating markers.
-        segMarkers <- setdiff(segMarkers, exclude)
-      }
       ## Define data.frame for results.
       GWAResult <- data.frame(snp = rownames(mapRed),
         mapRed,
@@ -377,8 +374,22 @@ runSingleTraitGwas <- function (gData,
         stringsAsFactors = FALSE)
       y <- phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing), trait]
       if (GLSMethod == 1) {
+        ## Exclude snpCovariates from segregating markers.
+        if (!is.null(snpCovariates)) {
+          snpCovariateNumbers <- which(colnames(markersRed) %in% snpCovariates)
+          for (snp in snpCovariateNumbers) {
+            ## Rough selection based on allele frequency. Done for speed.
+            candidates <- which(allFreq == allFreq[snp])
+            ## Exclude all snps that are identical to snps in snpCovariates.
+            snpInfo <- markersRed[, snp]
+            exclude <- candidates[apply(markersRed[, candidates], MARGIN = 2,
+              FUN = function(x) {identical(as.numeric(x), as.numeric(snpInfo))})]
+          }
+        } else {
+          exclude <- integer()
+        }
         ## The following is based on the genotypes, not the replicates:
-        X <- markersRed[nonMissingRepId, segMarkers]
+        X <- markersRed[nonMissingRepId, setdiff(segMarkers, exclude)]
         if (length(covarEnvir) == 0) {
           ## Compute pvalues and effects using fastGLS.
           GLSResult <- fastGLS(y = y, X = X, Sigma = vcovMatrix)
@@ -388,20 +399,45 @@ runSingleTraitGwas <- function (gData,
           ## Compute pvalues and effects using fastGLS.
           GLSResult <- fastGLSCov(y = y, X = X, Sigma = vcovMatrix, covs = Z)
         }
-        GWAResult[segMarkers, c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
+        GWAResult[setdiff(segMarkers, exclude),
+          c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
       } else if (GLSMethod == 2) {
-        ## Same as for GLSMethod 1 but then per chromosome using the chromosome specific
-        ## kinship calculated before.
+        ## Similar to GLSMethod 1 except using chromosome specific kinship matrices.
         for (chr in chrs) {
-          segMarkersChr <- intersect(segMarkers, which(mapRed$chr == chr))
-          X <- markersRed[nonMissingRepId, segMarkersChr]
+          mapRedChr <- mapRed[which(mapRed$chr == chr), ]
+          markersRedChr <- markersRed[, which(colnames(markersRed) %in% rownames(mapRedChr))]
+          allFreqChr <- colMeans(markersRedChr)
+          if (maxScore == 2) {
+            allFreqChr <- allFreqChr / 2
+          }
+          ## Determine segregating markers. Exclude snps used as covariates.
+          segMarkersChr <- which(allFreqChr >= maxScore * MAF &
+              allFreqChr <= maxScore * (1 - MAF))
+          ## Exclude snpCovariates from segregating markers.
+          if (any(snpCovariates %in% colnames(markersRedChr))) {
+            snpCovariateNumbers <- which(colnames(markersRedChr) %in% snpCovariates)
+            for (snp in snpCovariateNumbers) {
+              ## Rough selection based on allele frequency. Done for speed.
+              candidates <- which(allFreqChr == allFreqChr[snp])
+              ## Exclude all snps that are identical to snps in snpCovariates.
+              snpInfo <- markersRedChr[, snp]
+              exclude <- candidates[apply(markersRedChr[, candidates], MARGIN = 2,
+                FUN = function(x) {identical(as.numeric(x), as.numeric(snpInfo))})]
+            }
+          } else {
+            exclude <- integer()
+          }
+          ## Remove excluded snps from segregating markers for current chromosome.
+          segMarkersChr <- setdiff(intersect(segMarkersChr, which(mapRedChr$chr == chr)), exclude)
+          X <- markersRedChr[nonMissingRepId, segMarkersChr]
           if (length(covarEnvir) == 0) {
             GLSResult <- fastGLS(y = y, X = X, Sigma = vcovMatrix[[which(chrs == chr)]])
           } else {
             Z <- as.matrix(phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing), covarEnvir])
             GLSResult <- fastGLSCov(y = y, X = X, Sigma = vcovMatrix[[which(chrs == chr)]], covs = Z)
           }
-          GWAResult[segMarkersChr, c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
+          GWAResult[colnames(markersRedChr)[segMarkersChr],
+            c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
         }
       }
       ## Effects should be for a single allele, not for 2
@@ -413,12 +449,13 @@ runSingleTraitGwas <- function (gData,
         GC <- genomicControlPValues(pVals = GWAResult$pValue,
           nObs = length(nonMissing),
           nCov = length(covarEnvir))
-        GWAResult$pValue <- GC[[1]]
+        inflationFactor[trait] <- GC$inflation
+        GWAResult$pValue <- GC$pValues
       }
       ## Compute LOD score.
       GWAResult$LOD <- -log10(GWAResult$pValue)
       ## Add gene information if available.
-      if ("genes" %in% names(gData)) {
+      if (!is.null(gData$genes)) {
         GWAResult <- cbind(GWAResult, gene1 = gData$genes$gene1, gene2 = gData$genes$gene2)
       }
       ## When thrType is 1, 3 or 4, determine the LOD threshold.
@@ -449,11 +486,11 @@ runSingleTraitGwas <- function (gData,
           snpStatus <- rep("significant snp", length(signSnp))
         }
         if (GLSMethod %in% 1:2) {
-          effects <- GWAResult$effect[snpSelection]
+          effect <- GWAResult$effect[snpSelection]
           ## Compute variance of marker scores, based on genotypes for which phenotypic data is available.
           ## for inbreeders, this depends on maxScore. It is therefore scaled to marker scores 0, 1
           ## (or 0, 0.5, 1 if there are heterozygotes)
-          snpVar <- 4 * effects ^ 2 *
+          snpVar <- 4 * effect ^ 2 *
             apply(as.matrix(markersRed[, snpSelection]), MARGIN = 2, FUN = var) / maxScore ^ 2
           propSnpVar <- snpVar / as.numeric(var(phenoEnvirTrait[trait]))
         }
@@ -464,7 +501,7 @@ runSingleTraitGwas <- function (gData,
           LOD = GWAResult$LOD[snpSelection],
           snpStatus = as.factor(snpStatus),
           allFreq = allFreq[snpSelection],
-          effects,
+          effect,
           RLR2 = GWAResult$RLR2[snpSelection],
           propSnpVar = propSnpVar,
           stringsAsFactors = FALSE)
@@ -484,10 +521,10 @@ runSingleTraitGwas <- function (gData,
     MAF = MAF,
     varComp = varComp,
     genomicControl = genomicControl)
-  if (genomicControl) GWASInfo$inflationFactor <- GC[[2]]
+  if (genomicControl) GWASInfo$inflationFactor <- inflationFactor
   return(createGWAS(GWAResult = GWATot,
     signSnp = signSnpTot,
-    kin = if (GLSMethod == 1) K else KChr,
+    kin = if (GLSMethod == 1) {if (is.null(K)) gData$kinship else K} else KChr,
     thr = LODThr,
     GWASInfo = GWASInfo))
 }

@@ -59,7 +59,7 @@ fastGLS <- function(y,
   vv <- colSums(tMX ^ 2)
   vX <- as.numeric(crossprod(tMInt,  tMX))
   nn <- 1 / (vv - a * vX ^ 2)
-  XtXinv2ndRows <- cbind(-1 * a * vX * nn, nn)
+  XtXinv2ndRows <- cbind(- a * vX * nn, nn)
   Xty <- cbind(rep(as.numeric(crossprod(tMInt, tMy), length(nn))), as.numeric(crossprod(tMy, tMX)))
   betaVec <- XtXinv2ndRows[, 1] * Xty[, 1] + XtXinv2ndRows[, 2] * Xty[, 2]
   ## Compute residuals and RSS over all markers.
@@ -122,7 +122,7 @@ fastGLSCov <-function(y,
     tMX <- crossprod(M, X)
   }
   ## Matrix cookbook, 3.2.6 Rank-1 update of inverse of inner product.
-  A <- solve(crossprod(tMfixCovs), symmetric = TRUE)
+  A <- solve(crossprod(tMfixCovs))
   vv <- colSums(tMX ^ 2)
   vX <- crossprod(tMfixCovs, tMX)
   nn <- 1 / (vv - colSums(vX * (A %*% vX)))

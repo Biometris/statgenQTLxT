@@ -111,10 +111,10 @@ summary.GWAS <- function(object) {
   ## Print traits
   cat("Traits analysed: ", paste(unique(GWAResult$trait), collapse = ", "), "\n\n")
   ## Print SNP numbers.
-  cat("Data are available for", nrow(GWAResult), "SNPs.\n")
+  cat("Data are available for", length(unique(GWAResult$snp)), "SNPs.\n")
   if (!is.null(GWASInfo$MAF)) {
-    cat(sum(is.na(GWAResult$pValue)), "of them were not analyzed because their minor allele frequency",
-      "is below", GWASInfo$MAF, "\n\n")
+    cat(length(unique(GWAResult$snp[is.na(GWAResult$pValue)])), "of them were not analyzed because their ",
+      "minor allele frequency is below", GWASInfo$MAF, "\n\n")
   }
   if (as.numeric(GWASInfo$GLSMethod) == 1) {
     ## Print mixed model info.
@@ -145,11 +145,20 @@ summary.GWAS <- function(object) {
   }
 }
 
-plot.GWAS <- function(x, y, ..., type = "manhattan") {
+plot.GWAS <- function(x, y, ..., trait = NULL, type = "manhattan") {
+  type <- match.arg(type, choices = c("manhattan", "qq", "qtl"))
   GWAResult <- x$GWAResult[[1]]
   signSnp <- x$signSnp[[1]]
-  if (!is.character(type) || length(type) > 1 || !type %in% c("manhattan", "qq")) {
-    stop("type should be one of manhattan and qq.")
+  if (type != "qtl") {
+    if (is.null(trait)) {
+      trait <- unique(GWAResult$trait)
+      if (length(trait) > 1) {
+        stop("Trait not supplied but multiple traits detected in data.")
+      }
+    } else {
+      GWAResult <- GWAResult[GWAResult$trait == trait, ]
+      signSnp <- signSnp[signSnp$trait == trait, ]
+    }
   }
   if (type == "manhattan") {
     ## Compute chromosome boundaries.
@@ -166,7 +175,14 @@ plot.GWAS <- function(x, y, ..., type = "manhattan") {
   } else if (type == "qq") {
     ## Create qq-plot
     qqPlot(pValues = na.omit(GWAResult$pValue), ...)
+  } else if (type == "qtl") {
+    qtlPlot(data = signSnp,
+      map = GWAResult[c("chr", "pos")])
   }
 }
+
+
+
+
 
 
