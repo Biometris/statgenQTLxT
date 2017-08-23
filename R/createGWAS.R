@@ -1,8 +1,9 @@
-#' Create a GWAS object
+#' S3 Class GWAS
 #'
 #' \code{createGWAS} creates an object of S3 class containing the results of a GWAS analysis.
 #' \code{GWAResult} and \code{signSnp} are both optional, however at least one of those should be provided
-#' as input.
+#' as input.\cr
+#' \code{summary} and \code{plot} functions are available.
 #'
 #' @param GWAResult optional data.frame or list of data.frames containing the overall analysis results.
 #' Should a least contain columns \code{trait}, the evaluated trait, \code{snp}, the name of the SNP,
@@ -18,38 +19,13 @@
 #'
 #' @return an object of class GWAS, a list of the input items.
 #'
-#' @return A list containing two data.frames:
-#' \code{GWAResult}, the full results for all markers with the following columns:
-#' \itemize{
-#' \item{trait: trait name.}
-#' \item{snp: marker name.}
-#' \item{chr: chromosome on which the marker lies.}
-#' \item{pos: position of the marker on the chromosome.}
-#' \item{pValue: p-value of the GLS-test.}
-#' \item{effect: effect size.}
-#' \item{effectSe: standard error of the effect size.}
-#' \item{LOD: LOD-score.}
-#' \item{RLR2: likelihood-ratio based \eqn{R^2} as described by Sun et al.}
-#' \item{allFreq: allele frequency.}
-#' }
-#' \code{SignSnp}, results for significant SNPs including SNPs close to significant SNPs if
-#' \code{sizeInclRegion} > 0. \code{SignSnp} contains the following columns:
-#' \itemize{
-#' \item{trait: trait name.}
-#' \item{snp: marker name.}
-#' \item{chr: chromosome on which the marker lies.}
-#' \item{pos: position of the marker on the chromosome.}
-#' \item{pValue: p-value of the GLS-test.}
-#' \item{LOD: LOD-score.}
-#' \item{snpStatus: status of the SNP, i.e. "significant SNP" or "within ... of sign. SNP".}
-#' \item{allFreq: allele frequency.}
-#' \item{effect: effect size.}
-#' \item{RLR2: likelihood-ratio based \eqn{R^2} as described by Sun et al.}
-#' \item{propSnpVar: proportion of the variance explained by the SNP.}
-#' }
+#' @seealso \code{\link{summary.GWAS}}, \code{\link{plot.GWAS}}
 #'
-#'
+#' @name GWAS
+NULL
 
+#' @rdname GWAS
+#' @export
 createGWAS <- function(GWAResult = NULL,
   signSnp = NULL,
   kin = NULL,
@@ -84,7 +60,7 @@ createGWAS <- function(GWAResult = NULL,
       all(c("trait", "snp", "snpStatus", "pValue", "LOD") %in% colnames(x))})))
       stop("signSnp should contain columns trait, snp, snpStatus, pValue and LOD.\n")
   }
-  ## Check signSnps
+  ## Check kin
   if (!is.null(kin)) {
     if (!is.matrix(kin) &&
         !(is.list(kin) && all(sapply(kin, FUN = is.matrix))))
@@ -104,82 +80,7 @@ is.GWAS <- function(x) {
   inherits(x, "GWAS")
 }
 
-summary.GWAS <- function(object) {
-  GWAResult <- object$GWAResult[[1]]
-  signSnp <- object$signSnp[[1]]
-  GWASInfo <- object$GWASInfo
-  ## Print traits
-  cat("Traits analysed: ", paste(unique(GWAResult$trait), collapse = ", "), "\n\n")
-  ## Print SNP numbers.
-  cat("Data are available for", length(unique(GWAResult$snp)), "SNPs.\n")
-  if (!is.null(GWASInfo$MAF)) {
-    cat(length(unique(GWAResult$snp[is.na(GWAResult$pValue)])), "of them were not analyzed because their ",
-      "minor allele frequency is below", GWASInfo$MAF, "\n\n")
-  }
-  if (as.numeric(GWASInfo$GLSMethod) == 1) {
-    ## Print mixed model info.
-    cat("Mixed model with only polygenic effects, and no marker effects:\n")
-    cat("Genetic variance: ", GWASInfo$varComp[1], "\n")
-    cat("Residual variance: ", GWASInfo$varComp[2], "\n\n")
-  }
-  if (as.numeric(GWASInfo$thrType) %in% 1:3) {
-    ## Print significant SNP info.
-    cat("LOD-threshold: ", object$thr, "\n")
-    if (!is.null(signSnp)) {
-      cat("Number of significant SNPs =" , nrow(signSnp[signSnp$snpStatus == "significant snp", ]), "\n")
-      cat("Smallest p-value among the significant SNPs:",
-        min(signSnp[signSnp$snpStatus == "significant snp", "pValue"]), "\n")
-      cat("Largest  p-value among the significant SNPs:",
-        max(signSnp[signSnp$snpStatus == "significant snp", "pValue"]),
-        "(LOD-score:", min(signSnp[signSnp$snpStatus == "significant snp", "LOD"]), ")\n")
-    } else {
-      cat("No significant SNPs found.","\n")
-    }
-    if (GWASInfo$genomicControl) {
-      ## Print genomic control.
-      cat("\nGenomic control correction was applied\n")
-      cat("Genomic control inflation-factor = ", GWASInfo$inflationFactor, "\n\n")
-    } else {
-      cat("\n","No Genomic control correction was applied", "\n")
-    }
-  }
-}
 
-plot.GWAS <- function(x, y, ..., trait = NULL, type = "manhattan") {
-  type <- match.arg(type, choices = c("manhattan", "qq", "qtl"))
-  GWAResult <- x$GWAResult[[1]]
-  signSnp <- x$signSnp[[1]]
-  if (type != "qtl") {
-    if (is.null(trait)) {
-      trait <- unique(GWAResult$trait)
-      if (length(trait) > 1) {
-        stop("Trait not supplied but multiple traits detected in data.")
-      }
-    } else {
-      GWAResult <- GWAResult[GWAResult$trait == trait, ]
-      signSnp <- signSnp[signSnp$trait == trait, ]
-    }
-  }
-  if (type == "manhattan") {
-    ## Compute chromosome boundaries.
-    chrBnd <- aggregate(GWAResult$pos, by = list(GWAResult$chr), FUN = max)
-    ## Compute cumulative positions.
-    addPos <- data.frame(chr = chrBnd[, 1], add = c(0, cumsum(chrBnd[,2]))[1:nrow(chrBnd)])
-    map <- merge(data.frame(chr = GWAResult$chr, pos = GWAResult$pos), addPos, by = "chr")
-    map <- data.frame(snp = GWAResult$snp, chr = map$chr, cumPos = map$pos + map$add)
-    ## Extract numbers of significant SNPs.
-    signSnpNr <- which(map$snp %in% signSnp$snp[signSnp$snpStatus == "significant snp"])
-    ## Create manhattan plot.
-    manhattanPlot(xValues = map$cumPos, yValues = GWAResult$LOD, map = map,
-      plotType = "p", xSig = signSnpNr, chrBoundaries = chrBnd[ , 2], yThr = x$thr, ...)
-  } else if (type == "qq") {
-    ## Create qq-plot
-    qqPlot(pValues = na.omit(GWAResult$pValue), ...)
-  } else if (type == "qtl") {
-    qtlPlot(data = signSnp,
-      map = GWAResult[c("chr", "pos")])
-  }
-}
 
 
 

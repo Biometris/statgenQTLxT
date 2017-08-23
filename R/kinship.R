@@ -1,4 +1,4 @@
-#' Function for calculating kinship matrices
+#' Functions for calculating kinship matrices
 #'
 #' A collection of functions for calculating kinship matrices using different algorithms. The following
 #' algorithms are included: astle (Astle and Balding, 2009), GRM, Identity By State (IBS) and

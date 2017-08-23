@@ -1,7 +1,7 @@
-#' fastGLS
+#' Fast Generalized Least Squares algoritm.
 #'
-#' compute p-values for the GLS F-test as in emma-x. \code{fastGLS} can be used when
-#' there are no further covariates, otherwise use \code{fastGLSCov}.
+#' Compute statistics for the Generalized Least Squares (GLS) F-test based on the algorithm proposed by
+#' Segura (2012). Also the \eqn{R_LR^2} statistics as in Sun (2010) is computed.
 #'
 #' @param y a numeric vector of length n of phenotypic scores. No missing values allowed.
 #' @param X an n x m matrix of marker-scores, n being the number of individuals, m the number of markers.
@@ -82,6 +82,7 @@ fastGLS <-function(y,
   tMQtQ <- t(M %*% (diag(n) - tcrossprod(Q)))
   ## Compute RSS per marker, breaking up X for speed.
   RSSFull <- vector(mode = "list", length = nChunks)
+  ## In case nChunks = 1 everything can be done in a single step. Otherwise loop over the chunks.
   if (nChunks > 1) {
     for (j in 1:(nChunks - 1)) {
       tX <- tMQtQ %*% X[, ((j - 1) * round(m / nChunks) + 1):(j * round(m / nChunks))]
@@ -105,7 +106,6 @@ fastGLS <-function(y,
   GLS <- data.frame(pValue = pVal,
     beta = betaVec,
     betaSe = sqrt(XtXinvLastRows[, 1 + nCov]),
-    RLR2 = RLR2,
-    row.names = )
+    RLR2 = RLR2)
   return(GLS)
 }

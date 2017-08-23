@@ -190,7 +190,7 @@ runSingleTraitGwas <- function (gData,
   }
   ## Compute kinship matrix.
   if (GLSMethod == 1 && is.null(gData$kinship) && is.null(K))
-      K <- do.call(kinshipMethod, list(X = gData$markers))
+    K <- do.call(kinshipMethod, list(X = gData$markers))
   ## Compute kinship matrices per chromosome. Only needs to be done once.
   if (GLSMethod == 2) {
     chrs <- unique(gData$map$chr[rownames(gData$map) %in% colnames(gData$markers)])
@@ -391,16 +391,25 @@ runSingleTraitGwas <- function (gData,
         ## The following is based on the genotypes, not the replicates:
         X <- markersRed[nonMissingRepId, setdiff(segMarkers, exclude)]
         if (length(covarEnvir) == 0) {
-          ## Compute pvalues and effects using fastGLS.
-          GLSResult <- fastGLS(y = y, X = X, Sigma = vcovMatrix)
+          Z <- NULL
         } else {
           ## Define covariate matrix Z.
           Z <- as.matrix(phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing), covarEnvir])
-          ## Compute pvalues and effects using fastGLS.
-          GLSResult <- fastGLSCov(y = y, X = X, Sigma = vcovMatrix, covs = Z)
         }
+        ## Compute pvalues and effects using fastGLS.
+        GLSResult <- fastGLS(y = y, X = X, Sigma = vcovMatrix, covs = Z)
         GWAResult[setdiff(segMarkers, exclude),
           c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
+        ## Compute pvalues and effects for snpCovariates using fastGLS.
+        for (snpCovariate in snpCovariates) {
+          GLSResultSnpCov <- fastGLS(y = y,
+            X = as.matrix(markersRed[nonMissingRepId, snpCovariate]),
+            Sigma = vcovMatrix,
+            covs = as.matrix(Z[, which(colnames(Z) != snpCovariate)]),
+            nChunks = 1)
+          GWAResult[snpCovariate,
+            c("pValue", "effect", "effectSe", "RLR2")] <- GLSResultSnpCov
+        }
       } else if (GLSMethod == 2) {
         ## Similar to GLSMethod 1 except using chromosome specific kinship matrices.
         for (chr in chrs) {
@@ -431,13 +440,24 @@ runSingleTraitGwas <- function (gData,
           segMarkersChr <- setdiff(intersect(segMarkersChr, which(mapRedChr$chr == chr)), exclude)
           X <- markersRedChr[nonMissingRepId, segMarkersChr]
           if (length(covarEnvir) == 0) {
-            GLSResult <- fastGLS(y = y, X = X, Sigma = vcovMatrix[[which(chrs == chr)]])
+            Z <- NULL
           } else {
+            ## Define covariate matrix Z.
             Z <- as.matrix(phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing), covarEnvir])
-            GLSResult <- fastGLSCov(y = y, X = X, Sigma = vcovMatrix[[which(chrs == chr)]], covs = Z)
           }
+          GLSResult <- fastGLS(y = y, X = X, Sigma = vcovMatrix[[which(chrs == chr)]], covs = Z)
           GWAResult[colnames(markersRedChr)[segMarkersChr],
             c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
+          ## Compute pvalues and effects for snpCovariates using fastGLS.
+          for (snpCovariate in intersect(snpCovariates, colnames(markersRedChr))) {
+            GLSResultSnpCov <- fastGLS(y = y,
+              X = as.matrix(markersRed[nonMissingRepId, snpCovariate]),
+              Sigma = vcovMatrix[[which(chrs == chr)]],
+              covs = as.matrix(Z[, which(colnames(Z) != snpCovariate)]),
+              nChunks = 1)
+            GWAResult[snpCovariate,
+              c("pValue", "effect", "effectSe", "RLR2")] <- GLSResultSnpCov
+          }
         }
       }
       ## Effects should be for a single allele, not for 2

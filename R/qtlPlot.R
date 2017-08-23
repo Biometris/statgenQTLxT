@@ -5,7 +5,8 @@
 #' Each horizontal line contains QTLs of one trait, phenotypic trait or environment.
 #' Option: Vertical white lines can indicate chromosome subdivision, genes of interest, known QTL, etc.
 #' Circle diameters are proportional to the absolute value of allelic effect.
-#' Colors indicate the direction of effect: green when the allele increases the trait value, and blue it decreases the value.
+#' Colors indicate the direction of effect: green when the allele increases the trait value, and blue
+#' when it decreases the value.
 #'
 #' @param data QTL data to be plotted
 #' @param chromosome a character indicating the data column containing the chromosome number.
@@ -13,8 +14,8 @@
 #' @param snpEffect a character indicating the data column containing the snp effect.
 #' @param snpPosition a character indicating the data column containing the position of the snp on
 #' the chromosome.
-#' @param map a dataframe with at least the columns chromosome, the number of the chromosome
-#' and position, the position of the snp on the chromosome. These are used for calculating the
+#' @param map a dataframe with at least the columns \code{chr}, the number of the chromosome
+#' and \code{pos}, the position of the snp on the chromosome. These are used for calculating the
 #' physical limits of the chromosome.
 #' @param normalize should the snpEffect be normalized?
 #' @param sortData should the data be sorted before plotting? Either false if no sorting should be done
@@ -39,10 +40,10 @@
 
 ## TO DO: example
 qtlPlot <- function(data,
-  chromosome = "chromosome",
+  chromosome = "chr",
   trait = "trait",
   snpEffect = "effect",
-  snpPosition = "position",
+  snpPosition = "pos",
   map,
   normalize = FALSE,
   sortData = FALSE,
@@ -51,7 +52,6 @@ qtlPlot <- function(data,
   yLab = "Traits",
   exportPptx = FALSE,
   pptxName = "") {
-
   ## Basic argument checks
   if (is.null(data) || !is.data.frame(data)) stop("data should be a dataframe")
   if (is.null(chromosome) || length(chromosome) > 1 || !is.character(chromosome))
@@ -82,20 +82,20 @@ qtlPlot <- function(data,
     stop("data lacks the following columns: ",
       paste0(requiredColumns[!requiredCheck], collapse = ", "), ".\n\n")
   ## Check that all necessary columns are in the map file
-  requiredColumnsMap <- c("chromosome", "position")
+  requiredColumnsMap <- c("chr", "pos")
   requiredCheckMap <- requiredColumnsMap %in% colnames(map)
   if (!all(requiredCheckMap))
     stop("map lacks the following columns: ",
       paste0(requiredColumnsMap[!requiredCheckMap], collapse = ", "), ".\n\n")
   ## Check that all necessary columns are in the bin file
   if (!is.null(binPositions)) {
-  requiredColumnsBin <- c("chromosome", "position")
-  requiredCheckBin <- requiredColumnsBin %in% colnames(map)
-  if (!all(requiredCheckBin))
-    stop("binPositions lacks the following columns: ",
-      paste0(requiredColumnsBin[!requiredCheckBin], collapse = ", "), ".\n\n")
+    requiredColumnsBin <- c("chr", "pos")
+    requiredCheckBin <- requiredColumnsBin %in% colnames(map)
+    if (!all(requiredCheckBin))
+      stop("binPositions lacks the following columns: ",
+        paste0(requiredColumnsBin[!requiredCheckBin], collapse = ", "), ".\n\n")
   } else {
-    binPositions <- data.frame(position = integer())
+    binPositions <- data.frame(pos = integer())
   }
   ## Center and reduce the allelic effect (because of the different units)
   if (normalize) {
@@ -103,16 +103,16 @@ qtlPlot <- function(data,
       (data[x, snpEffect] - mean(data[data[trait] == as.character(data[x, trait]), snpEffect], na.rm=TRUE)) /
         sd(data[data[trait] == as.character(data[x, trait]), snpEffect], na.rm = TRUE) )
   } else data$eff <- data[[snpEffect]]
-
   if (is.character(sortData)) {
     data$sort <- data[[sortData]]
   } else {
     data$sort <- 1
   }
+  eff <- color <- NULL
   ## Add the physical limits of the chromosomes, calculated from the map file
   ## This ensures plotting of all chromosomes
-  limitsLow <- aggregate(map$position, by = list(map$chromosome), FUN = min)
-  limitsHigh <- aggregate(map$position, by = list(map$chromosome), FUN = max)
+  limitsLow <- aggregate(map$pos, by = list(map$chr), FUN = min)
+  limitsHigh <- aggregate(map$pos, by = list(map$chr), FUN = max)
   ## Empty dataframe with 2 lines per chromosomes and as many columns as the QTL dataframe
   limits <- data.frame(matrix(ncol = ncol(data), nrow = 2 * nrow(limitsLow)))
   names(limits) <- names(data)
@@ -125,7 +125,7 @@ qtlPlot <- function(data,
   data <- rbind(data, limits)
   ## Select and rename relevant columns for plotting
   plotData <- dplyr::select(data, trait = trait, chromosome = chromosome,
-    snpEffect = snpEffect, snpPosition = snpPosition, sort, eff = data$eff)
+    snpEffect = snpEffect, snpPosition = snpPosition, sort, eff)
   ## Add a column with the allelic effect direction (for points color)
   plotData$color <- ifelse(plotData$eff > 0, "pos", "neg")
   plotData <- droplevels(plotData)
@@ -156,18 +156,18 @@ qtlPlot <- function(data,
         ## Y data is sorted in reverse order because of the way ggplot plots
         y = reorder(trait, -sort),
         ## Point size proportional to (absolute value of) allelic effect
-        size = abs(plotData$eff),
+        size = abs(eff),
         ## Point color depends on the effect direction
-        color = factor(plotData$color)))  +
+        color = factor(color)))  +
     ## use custom made theme
     qtlPlotTheme +
     ggplot2::ylab(yLab) +
     ggplot2::xlab("Chromosomes")  +
     # add vertical lines at the bin positions
-    ggplot2::geom_vline(ggplot2::aes_(xintercept = "position"),
-       data = binPositions,
-       linetype = 1,
-       color = "white")   +
+    ggplot2::geom_vline(ggplot2::aes_(xintercept = ~pos),
+      data = binPositions,
+      linetype = 1,
+      color = "white")   +
     ## Add the points with a slight transparency in case of overlap
     ggplot2:: geom_point(alpha = I(0.7)) +
     ## Split of the plot according to the chromosomes on the x axis
@@ -183,7 +183,7 @@ qtlPlot <- function(data,
       labels = c("neg", "pos"),
       values = c("darkblue", "green4"))
   ## Plot the plot object on screen
-  plot(qtlPlot)
+  #plot(qtlPlot)
   if (exportPptx) {
     ## Save figure in .pptx
     if (requireNamespace("ReporteRs", quietly = TRUE)) {
