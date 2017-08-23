@@ -119,8 +119,8 @@ summary.GWAS <- function(object) {
   if (as.numeric(GWASInfo$GLSMethod) == 1) {
     ## Print mixed model info.
     cat("Mixed model with only polygenic effects, and no marker effects:\n")
-    cat("Genetic variance: ", GWASInfo$varcomp[1], "\n")
-    cat("Residual variance: ", GWASInfo$varcomp[2], "\n\n")
+    cat("Genetic variance: ", GWASInfo$varComp[1], "\n")
+    cat("Residual variance: ", GWASInfo$varComp[2], "\n\n")
   }
   if (as.numeric(GWASInfo$thrType) %in% 1:3) {
     ## Print significant SNP info.
