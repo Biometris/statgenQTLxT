@@ -1,9 +1,10 @@
-#' Create a gData object
+#' S3 Class gData
 #'
-#' \code{createGData} creates an object of S3 class with genotypic and phenotypic data for usage in
+#' \code{createGData} creates an object of S3 class gData with genotypic and phenotypic data for usage in
 #' further analysis. All input to the function is optional, however at least one input should be
 #' provided. It is possible to provide an existing \code{gData} object as additional input in which case
-#' data is added to this object. Existing data will be overwritten with a warning.
+#' data is added to this object. Existing data will be overwritten with a warning.\cr\cr
+#' \code{is.gData} tests if an \code{R} object is of class \code{gData}.
 #'
 #' @param gData an optional gData object to be modified. If \code{NULL} a new gData object is created.
 #' @param geno matrix or data.frame with genotypes in the rows and markers in the columns.
@@ -20,17 +21,55 @@
 #' first column \code{genotype} and traits in the following columns. A list of data.frames can be
 #' used for replications, i.e. different environments.
 #' @param covar a data.frame with extra covariates per genotype. Genotype should be in the rows.
+#' @param x \code{R} object
 #'
-#' @return an object of class gData with the following components:
+#' @return \code{createGData} returns an object of class \code{gData} with the following components:
 #' \itemize{
-#' \item{map a data.frame containing map data. Map is sorted by chromosome and position.}
-#' \item{markers a matrix containing marker information}
-#' \item{pheno a list of matrices containing phenotypic data}
-#' \item{kinship a kinship matrix}
-#' \item{covar a data.frame with extra covariates}
-#' }
-#' @export
+#' \item{\code{map} a data.frame containing map data. Map is sorted by chromosome and position.}
+#' \item{\code{markers} a matrix containing marker information}
+#' \item{\code{pheno} a list of matrices containing phenotypic data}
+#' \item{\code{kinship} a kinship matrix}
+#' \item{\code{covar} a data.frame with extra covariates}
+#' } \cr
+#' \code{is.gData} returns \code{TRUE} or \code{FALSE} depending on whether its argument is a \code{gData}
+#' object.
+#'
+#' @seealso \code{\link{summary.gData}}
+#'
+#' @examples set.seed(1234)
+#' ## Create genotypic data.
+#' geno <- matrix(sample(x = c(0, 1, 2), size = 15, replace = TRUE), nrow = 3)
+#' dimnames(geno) <- list(paste0("G", 1:3), paste0("M", 1:5))
+#'
+#' ## Construct map.
+#' map <- data.frame(chr = c(1, 1, 2, 2, 2), pos = 1:5, row.names = paste0("M", 1:5))
+#'
+#' ## Compute kinship matrix.
+#' kin <- IBS(geno)
+#'
+#' ## Create phenotypic data.
+#' pheno <- data.frame(paste0("G", 1:3), matrix(rnorm(n = 12, mean = 50, sd = 5), nrow = 3),
+#'  stringsAsFactors = FALSE)
+#' dimnames(pheno) = list(paste0("G", 1:3), c("genotype", paste0("T", 1:4)))
+#'
+#' ## Combine all data in gData object.
+#' gData <- createGData(geno = geno, map = map, kin = kin, pheno = pheno)
+#' summary(gData)
+#'
+#' ## Construct covariate.
+#' covar <- data.frame(C1 = c("a", "a", "b"), row.names = paste0("G", 1:3))
+#'
+#' ## Compute alternative kinship matrix.
+#' kin2 <- astle(geno)
+#'
+#' ## Add covariates to previously created gData object
+#' gData2 <- createGData(gData = gData, kin = kin2, covar = covar)
+#'
+#' @name gData
+NULL
 
+#' @rdname gData
+#' @export
 createGData <- function(gData = NULL,
   geno,
   map,
@@ -143,6 +182,8 @@ createGData <- function(gData = NULL,
   return(gData)
 }
 
+#' @rdname gData
+#' @export
 is.gData <- function(x) {
   inherits(x, "gData")
 }

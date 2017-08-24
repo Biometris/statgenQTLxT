@@ -1,9 +1,10 @@
 #' S3 Class GWAS
 #'
-#' \code{createGWAS} creates an object of S3 class containing the results of a GWAS analysis.
+#' \code{createGWAS} creates an object of S3 class GWAS containing the results of a GWAS analysis.
 #' \code{GWAResult} and \code{signSnp} are both optional, however at least one of those should be provided
 #' as input.\cr
-#' \code{summary} and \code{plot} functions are available.
+#' \code{summary} and \code{plot} functions are available.\cr\cr
+#' \code{is.gData} tests if an \code{R} object is of class \code{gData}.
 #'
 #' @param GWAResult optional data.frame or list of data.frames containing the overall analysis results.
 #' Should a least contain columns \code{trait}, the evaluated trait, \code{snp}, the name of the SNP,
@@ -16,8 +17,11 @@
 #' @param kin optional kinship matrix or list of chromosome specific kinship matrices.
 #' @param thr optional numeric value, the threshold used in performing the GWAS analysis.
 #' @param GWASInfo list containing extra information concering the GWAS analysis.
+#' @param x \code{R} object
 #'
-#' @return an object of class GWAS, a list of the input items.
+#' @return \code{createGWAS} returns an object of class GWAS, a list of the input items.\cr\cr
+#' \code{is.gData} returns \code{TRUE} or \code{FALSE} depending on whether its argument is a \code{gData}
+#' object.
 #'
 #' @seealso \code{\link{summary.GWAS}}, \code{\link{plot.GWAS}}
 #'
@@ -76,6 +80,8 @@ createGWAS <- function(GWAResult = NULL,
   return(GWAS)
 }
 
+#' @rdname GWAS
+#' @export
 is.GWAS <- function(x) {
   inherits(x, "GWAS")
 }
