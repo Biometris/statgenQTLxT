@@ -3,30 +3,30 @@
 #' Compute pairwise covariance.
 #'
 #' @inheritParams EMFA
-#'
+
+#' @param X a covariate matrix, c being the number of covariates and n being the number
+#' of genotypes.
 #' @param fixDiag should the diagonal of the covariate matrix be fixed during calculations?
 #' -- NOT YET IMPLEMENTED
 #' @param VeDiag should Ve be a diagonale matrix? -- NOT YET IMPLEMENTED
 #' @param corMat should the output be a correlation matrix instead of a covariance matrix?
-#' @param covar covariates to be included -- NOT YET IMPLEMENTED
+
 #'
 #' @return a list of two matrices \code{Vg} and \code{Ve} containing genotypic and environmental
 #' variance components respectively.
 
 
 ## TO DO: univariate G-BLUPs; + correlations in case of non-convergence
-## covar
 ## diagonal Ve
 ## Checks on data-structure
 ## p-values for correlations#
 
-
 covPairwise <- function(Y,
   K,
+  X = NULL,
   fixDiag = FALSE,
   corMat = FALSE,
-  VeDiag = FALSE,
-  covar = NULL) {
+  VeDiag = FALSE) {
   ## Check input.
   if (missing(Y) || !is.matrix(Y))
     stop("Y should be a matrix")
@@ -40,11 +40,13 @@ covPairwise <- function(Y,
     warning("VeDiag = TRUE not implemented yet. Value set to FALSE")
     VeDiag <- FALSE
   }
-  if (!is.null(covar)) {
-    warning("covar not implemented yet. Value set to NULL")
-    covar <- integer()
-  }
   Y <- tibble::rownames_to_column(as.data.frame(Y), var = "genotype")
+  if (!is.null(X)) {
+    X <- tibble::rownames_to_column(as.data.frame(X), var = "genotype")
+    data <- merge(Y, X, by = "genotype")
+  } else {
+    data <- Y
+  }
   ## Restrict K to genotypes in Y.
   K <- K[unique(Y$genotype), unique(Y$genotype)]
   traits <- colnames(Y)[-1]
@@ -56,14 +58,15 @@ covPairwise <- function(Y,
   colnames(convMat) <- rownames(convMat) <- traits
   for (trait in traits) {
     ## Univariate analysis; estimation of genetic- and residual variances.
-    if (!is.null(covar)) {
-      ## fixed <- paste0('pheno ~ ', paste(names(x)[covar], collapse ='+')) #commented out because of "x"
+    if (!is.null(X)) {
+      ## Define formula for fixed part. ` needed to accommodate - in variable names.
+      fixed <- as.formula(paste0(trait, " ~ `", paste(colnames(X)[-1], collapse ='` + `'), "`"))
     } else {
       fixed <- as.formula(paste(trait, " ~ 1"))
     }
     ## Fit model.
     sommerFit <- sommer::mmer2(fixed = fixed, random = ~ sommer::g(genotype),
-      data = Y, G = list(genotype = K), silent = TRUE)
+      data = data, G = list(genotype = K), silent = TRUE)
     ## Extract components from fitted model.
     VgVec[trait] <- sommerFit$var.comp$component[1]
     VeVec[trait] <- sommerFit$var.comp$component[2]
@@ -77,17 +80,23 @@ covPairwise <- function(Y,
     VgMat <- diag(x = VgVec)
     VeMat <- diag(x = VeVec)
   }
-  ## Loop over trait in upper triangle. Fill matrix using symmetry.
+  ## Loop over traits in upper triangle. Fill matrix using symmetry.
   for (i in 1:(nTrait - 1)) {
     for (j in (i + 1):nTrait) {
       trait1 <- traits[i]
       trait2 <- traits[j]
       if (!VeDiag) {
         ## Fit model.
-        fixed <- as.formula(paste0("cbind(", trait1, ", ", trait2, ") ~ 1"))
+        if (!is.null(X)) {
+          ## Define formula for fixed part. ` needed to accommodate - in variable names.
+          fixed <- as.formula(paste0("cbind(", trait1, ", ", trait2, ") ~ `",
+            paste(colnames(X)[-1], collapse ='` + `'), "`"))
+        } else {
+          fixed <- as.formula(paste0("cbind(", trait1, ", ", trait2, ") ~ 1"))
+        }
         sommerFit <- sommer::mmer2(fixed = fixed,
           random = ~ sommer::g(genotype) , G = list(genotype = K),
-          MVM = TRUE, data = Y, silent = TRUE)
+          MVM = TRUE, data = data, silent = TRUE)
         ## Extract components from fitted model.
         varCov <- as.matrix(sommerFit$var.comp[[1]])
         Ve <- as.matrix(sommerFit$var.comp[[2]])

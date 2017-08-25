@@ -45,6 +45,7 @@ summary.gData <- function(object, ...) {
   }
   if (!is.null(covar)) {
     cat("covar\n")
-    cat("\tCovariates:", paste(colnames(covar), collapse = ", "))
+    cat("\tNumber of covariates:", ncol(covar), "\n")
+    print(summary(covar))
   }
 }

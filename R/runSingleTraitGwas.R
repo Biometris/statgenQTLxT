@@ -117,6 +117,8 @@ runSingleTraitGwas <- function (gData,
   if ((is.character(environments) && !all(environments %in% names(gData$pheno))) ||
       (is.numeric(environments) && any(environments > length(gData$pheno))))
     stop("environments should be list items in pheno.\n")
+  ## If environments is null set environments to all environments in pheno.
+  if (is.null(environments)) environments <- 1:length(gData$pheno)
   if (!is.null(traits) && !is.numeric(traits) && !is.character(traits))
     stop("traits should be a numeric or character vector.\n")
   for (environment in environments) {
@@ -124,8 +126,6 @@ runSingleTraitGwas <- function (gData,
         (is.numeric(traits) && (any(traits == 1) || any(traits > ncol(gData$pheno[[environment]])))))
       stop("traits should be columns in pheno.\n")
   }
-  ## If environments is null set environments to all environments in pheno.
-  if (is.null(environments)) environments <- 1:length(gData$pheno)
   if (!is.null(covar) && !is.numeric(covar) && !is.character(covar))
     stop("covar should be a numeric or character vector.\n")
   if ((is.character(covar) && !all(covar %in% colnames(gData$covar))) ||
@@ -199,8 +199,10 @@ runSingleTraitGwas <- function (gData,
       KChr <- K
     } else {
       ## Create list of zero matrices.
-      KChr <- replicate(length(chrs),
-        matrix(data = 0, nrow = nrow(gData$markers), ncol = nrow(gData$markers)), simplify = FALSE)
+      KChr <- setNames(replicate(n = length(chrs),
+        matrix(data = 0, nrow = nrow(gData$markers), ncol = nrow(gData$markers)),
+        simplify = FALSE),
+        paste0("KChr", chrs))
       ## Create vector of marker numbers per chromosome.
       nMrkChr <- setNames(numeric(length = length(chrs)), chrs)
       for (chr in chrs) {
@@ -229,7 +231,8 @@ runSingleTraitGwas <- function (gData,
     allFreqTot<- allFreqTot / 2
   }
   ## Define data.frames for total results.
-  GWATot <- signSnpTot <- vector(mode = "list", length = length(environments))
+  GWATot <- signSnpTot <- setNames(vector(mode = "list", length = length(environments)),
+    names(gData$pheno[[environments]]))
   for (environment in environments) {
     ## If traits is given as numeric convert to character.
     if (is.numeric(traits)) traits <- colnames(gData$pheno[[environment]])[traits]
@@ -267,6 +270,7 @@ runSingleTraitGwas <- function (gData,
     }
     GWATotEnvir <- signSnpTotEnvir <- NULL
     inflationFactor <- setNames(numeric(length = length(traits)), traits)
+    varComp <- setNames(vector(mode = "list", length = length(traits)), traits)
     ## Perform GWAS for all traits.
     for (trait in traits) {
       ## Select relevant columns only.
@@ -291,7 +295,7 @@ runSingleTraitGwas <- function (gData,
             remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment,
               covar = covarEnvir, K = kinshipRed)
             ## Compute varcov matrix using var components.
-            varComp <- remlObj[[1]]
+            varComp[[trait]] <- remlObj[[1]]
             vcovMatrix <- remlObj[[1]][1] * remlObj[[2]] +
               remlObj[[1]][2] * diag(nrow(remlObj[[2]]))
           } else if (remlAlgo == 2) {
@@ -306,17 +310,16 @@ runSingleTraitGwas <- function (gData,
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
               random = ~ sommer::g(genotype), G = list(genotype = kinshipRed), silent = TRUE)
             ## Compute varcov matrix using var components from model.
-            varComp <- sommerFit$var.comp[c(1, nrow(sommerFit$var.comp)), 1]
-            vcovMatrix <- sommerFit$var.comp[1, 1] * kinshipRed +
-              diag(sommerFit$var.comp[nrow(sommerFit$var.comp), 1], nrow = nrow(kinshipRed))
+            varComp[[trait]] <- sommerFit$var.comp[c(1, nrow(sommerFit$var.comp)), 1]
+            vcovMatrix <- solve(Matrix::forceSymmetric(sommerFit$V.inv, uplo = "U"))
           }
         } else {
           ## Kinship matrix is computationally identical to identity matrix.
           vcovMatrix <- diag(nrow(phenoEnvirTrait))
         }
       } else if (GLSMethod == 2) {
-        varComp <- vcovMatrix <- vector(mode = "list", length = length(chrs))
-        names(varComp) <- paste("chr", chrs)
+        varComp[[trait]] <- vcovMatrix <- vector(mode = "list", length = length(chrs))
+        names(varComp[[trait]]) <- paste("chr", chrs)
         ## emma algorithm takes covariates from gData.
         if (remlAlgo == 1) {
           gDataEmma <- createGData(pheno = gData$pheno,
@@ -328,7 +331,7 @@ runSingleTraitGwas <- function (gData,
             remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment,
               covar = covarEnvir, K = KinshipRedChr)
             ## Compute varcov matrix using var components.
-            varComp[[which(chrs == chr)]] <- remlObj[[1]]
+            varComp[[trait]][[which(chrs == chr)]] <- remlObj[[1]]
             vcovMatrix[[which(chrs == chr)]] <- remlObj[[1]][1] * remlObj[[2]] +
               remlObj[[1]][2] * diag(nrow(remlObj[[2]]))
           }
@@ -346,9 +349,8 @@ runSingleTraitGwas <- function (gData,
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
               random = ~ sommer::g(genotype), G = list(genotype = KinshipRedChr), silent = TRUE)
             ## Compute varcov matrix using var components from model.
-            varComp[[which(chrs == chr)]] <- sommerFit$var.comp[c(1, nrow(sommerFit$var.comp)), 1]
-            vcovMatrix[[which(chrs == chr)]] <- sommerFit$var.comp[1, 1] * KinshipRedChr +
-              diag(sommerFit$var.comp[nrow(sommerFit$var.comp), 1], nrow = nrow(KinshipRedChr))
+            varComp[[trait]][[which(chrs == chr)]] <- sommerFit$var.comp[c(1, nrow(sommerFit$var.comp)), 1]
+            vcovMatrix[[which(chrs == chr)]] <- solve(Matrix::forceSymmetric(sommerFit$V.inv, uplo = "U"))
           }
         }
       }

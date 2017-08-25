@@ -21,8 +21,8 @@ summary.GWAS <- function(object, ...) {
   if (as.numeric(GWASInfo$GLSMethod) == 1) {
     ## Print mixed model info.
     cat("Mixed model with only polygenic effects, and no marker effects:\n")
-    cat("Genetic variance: ", GWASInfo$varComp[1], "\n")
-    cat("Residual variance: ", GWASInfo$varComp[2], "\n\n")
+    cat("Genetic variance:", GWASInfo$varComp[[1]][1], "\n")
+    cat("Residual variance:", GWASInfo$varComp[[1]][2], "\n\n")
   }
   if (as.numeric(GWASInfo$thrType) %in% 1:3) {
     ## Print significant SNP info.
@@ -31,16 +31,17 @@ summary.GWAS <- function(object, ...) {
       cat("Number of significant SNPs:" , nrow(signSnp[signSnp$snpStatus == "significant snp", ]), "\n")
       cat("Smallest p-value among the significant SNPs:",
         min(signSnp[signSnp$snpStatus == "significant snp", "pValue"]), "\n")
-      cat("Largest  p-value among the significant SNPs:",
+      cat("Largest p-value among the significant SNPs: ",
         max(signSnp[signSnp$snpStatus == "significant snp", "pValue"]),
-        "(LOD-score:", min(signSnp[signSnp$snpStatus == "significant snp", "LOD"]), ")\n")
+        " (LOD-score: ", min(signSnp[signSnp$snpStatus == "significant snp", "LOD"]), ")\n", sep = "")
     } else {
       cat("No significant SNPs found.","\n")
     }
     if (GWASInfo$genomicControl) {
       ## Print genomic control.
       cat("\nGenomic control correction was applied\n")
-      cat("Genomic control inflation-factor = ", GWASInfo$inflationFactor, "\n\n")
+      cat("Genomic control inflation-factor:",
+        paste(round(GWASInfo$inflationFactor, 2), collapse = ", "), "\n\n")
     } else {
       cat("\nNo Genomic control correction was applied\n")
     }

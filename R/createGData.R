@@ -109,10 +109,29 @@ createGData <- function(gData = NULL,
       stop("pheno should be a data.frame or a list data.frames.\n")
     if (is.data.frame(pheno)) {
       ## If not a list already put data.frame/matrix in a list.
-      pheno <- list(pheno)
+      pheno <- setNames(list(pheno), deparse(substitute(pheno)))
+    } else {
+      if (is.null(names(pheno))) {
+        ## Add default names.
+        names(pheno) <- sapply(X = 1:length(pheno), FUN = function(x) {paste0("Environment", x)})
+        message("pheno contains no environment names. Default names added.\n")
+      } else {
+        if (!isTRUE(all(sapply(names(pheno), nchar) > 0))) {
+          ## Add default names for unnamed environments.
+          names(pheno) <- sapply(X = 1:length(pheno), FUN = function(x) {
+            if(!isTRUE(nchar(names(pheno)[x]) > 0)) {
+              paste0("Environment", x)
+            } else {
+              names(pheno)[x]
+            }
+          })
+          message("some data.frame in pheno contain no environment names. Default names added.\n")
+        }
+      }
     }
     if (!all(sapply(pheno, FUN = function(x) {colnames(x)[1] == "genotype"})))
       stop("First column in pheno should be genotype.\n")
+    ## Convert genotype to character.
     for (i in 1:length(pheno)) {
       pheno[[i]]$genotype <- as.character(pheno[[i]]$genotype)
     }

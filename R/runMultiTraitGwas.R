@@ -2,14 +2,18 @@
 #'
 #' @param gData an object of class \code{gData} containing at least \code{map}, \code{markers} and
 #' \code{pheno}.
-#' @param K an n x n kinship matrix.
-#' @param X an n x c covariate matrix, c being the number of covariates and n being the number
-#' of genotypes. c has to be at least one (typically an intercept). No missing values are allowed.
-#' If not provided a vector of 1s is used.
+#' @param environments a vector of environments on which to run GWAS. These can be either numeric indices or
+#' character names of list items in \code{pheno}. If \code{NULL} GWAS is run for all environments.
+#' @param K an optional kinship matrix. If \code{NULL} then matrix \code{kinship} in \code{gData}
+#' is used. If both \code{K} is provided and \code{gData} contains a matrix \code{kinship}
+#' then \code{K} is used.
+#' @param covar an optional vector of covariates taken into account when running GWAS. These can be either
+#' numeric indices or character names of columns in \code{covar} in \code{gData}. If \code{NULL} no
+#' covariates are used.
+#' @param snpCovariates an optional character vector of snps to be included as covariates.
 #' @param subsetMarkers should the marker data be subsetted?
 #' @param markerSubset numeric or character vector for subsetting the markers. Ignored if
 #' subsetMarkers = \code{FALSE}.
-#' @param snpCovariates a character vector of snps that are to be included as covariates.
 #' @param MAF a numeric value between 0 and 1. Snps with a minor allele frequency outside MAF
 #' and 1 - MAF are excluded from the GWAS analysis.
 #' @param fitVarComp should the variance components be fitted? If \code{FALSE} they should be supplied
@@ -82,11 +86,12 @@
 ## .. and GWAS is now only (re)run for markers with -log(p) larger than LOD.thr
 
 runMultiTraitGwas <- function(gData,
-  K,
-  X = NULL,
+  environments = NULL,
+  covar = NULL,
+  snpCovariates = NULL,
+  K = NULL,
   subsetMarkers = FALSE,
   markerSubset = "",
-  snpCovariates = "",
   MAF = 0.05,
   fitVarComp = TRUE,
   covModel = 1,
@@ -107,57 +112,107 @@ runMultiTraitGwas <- function(gData,
   ## Check input.
   if (missing(gData) || !is.gData(gData) || is.null(gData$markers) ||
       is.null(gData$map) || is.null(gData$pheno))
-    stop("gData should be a valid gData object containing at least map, markers and pheno")
+    stop("gData should be a valid gData object containing at least map, markers and pheno.\n")
+  if (!is.null(environments) && !is.numeric(environments) && !is.character(environments))
+    stop("environments should be a numeric or character vector.\n")
+  if ((is.character(environments) && !all(environments %in% names(gData$pheno))) ||
+      (is.numeric(environments) && any(environments > length(gData$pheno))))
+    stop("environments should be list items in pheno.\n")
+  ## If environments is null set environments to all environments in pheno.
+  if (is.null(environments)) environments <- 1:length(gData$pheno)
   markers <- gData$markers
   map <- gData$map
   ## Construct Y from pheno data in gData. Remove rownames first since column_to_rownames doesn't
   ## overwrite existing rownames.
-  Y <- as.matrix(tibble::column_to_rownames(tibble::remove_rownames(gData$pheno[[1]]),
-    var = "genotype"))
-  if (is.null(K) || !is.matrix(K)) stop("K should be a matrix")
-  if (!is.null(X) && !is.matrix(X)) stop("X should either be NULL or a matrix")
-  if (anyNA(X)) stop("No missing values allowed in X")
-  if (is.null(X)) X <- matrix(data = 1, nrow = nrow(Y), ncol = 1, dimnames = list(rownames(Y), NULL))
-  if (subsetMarkers && markerSubset == "") stop("If subsetting markers, markerSubset cannot be empty")
-  if(!snpCovariates == "" && !all(snpCovariates %in% colnames(markers)))
-    stop("All snpCovariates should be in markers")
+  if (!is.null(covar) && !is.numeric(covar) && !is.character(covar))
+    stop("covar should be a numeric or character vector.\n")
+  if ((is.character(covar) && !all(covar %in% colnames(gData$covar))) ||
+      (is.numeric(covar) && any(covar > ncol(gData$covar))))
+    stop("covar should be columns in covar.\n")
+  ## If covar is given as numeric convert to character.
+  if (is.numeric(covar)) covar <- colnames(gData$covar)[covar]
+  if (!is.null(snpCovariates) && !all(snpCovariates %in% colnames(gData$markers)))
+    stop("All snpCovariates should be in markers.\n")
+  if (!is.null(K) && !is.matrix(K))
+    stop("K should be a matrix")
+  if (is.null(K) && is.null(gData$kinship))
+    stop("gData contains no matrix kinship so K should be provided.\n")
+  if (subsetMarkers && markerSubset == "")
+    stop("If subsetting markers, markerSubset cannot be empty.\n")
   ## Check Vg and Ve if variance components are not fitted.
   if (!fitVarComp) {
-    if (is.null(Vg) || !is.matrix(Vg)) stop("Vg should be a matrix")
-    if (is.null(Ve) || !is.matrix(Ve)) stop("Ve should be a matrix")
+    if (is.null(Vg) || !is.matrix(Vg))
+      stop("Vg should be a matrix.\n")
+    if (is.null(Ve) || !is.matrix(Ve))
+      stop("Ve should be a matrix.\n")
     if (is.null(colnames(Vg)) || is.null(rownames(Vg)) ||
-        any(colnames(Vg) != rownames(Vg)) || !all(colnames(Vg) %in% colnames(Y)))
-      stop("Column names and rownames of Vg should be identical and included in column names of Y")
+        any(colnames(Vg) != rownames(Vg)) || !all(colnames(Vg) %in% colnames(gData$pheno[[1]])[-1]))
+      stop("Column names and rownames of Vg should be identical and included in column names of Y.\n")
     if (is.null(colnames(Ve)) || is.null(rownames(Ve)) ||
-        any(colnames(Ve) != rownames(Ve)) || !all(colnames(Ve) %in% colnames(Y)))
-      stop("Column names and rownames of Ve should be identical and included in column names of Y")
-    Vg <- Vg[colnames(Y), colnames(Y)]
-    Ve <- Ve[colnames(Y), colnames(Y)]
+        any(colnames(Ve) != rownames(Ve)) || !all(colnames(Ve) %in% colnames(gData$pheno[[1]])[-1]))
+      stop("Column names and rownames of Ve should be identical and included in column names of pheno.\n")
+    Vg <- Vg[colnames(gData$pheno[[1]]), colnames(gData$pheno[[1]])[-1]]
+    Ve <- Ve[colnames(gData$pheno[[1]]), colnames(gData$pheno[[1]])[-1]]
     colnames(Vg) <- rownames(Vg) <- NULL
     colnames(Ve) <- rownames(Ve) <- NULL
   } else {
     if (is.null(covModel))
-      stop("If variance components are computed, covModel cannot be NULL")
+      stop("If variance components are computed, covModel cannot be NULL.\n")
   }
   if (reduceK && is.null(nPca))
-    stop("If the kinship matrix is to be reduced, nPca cannot be NULL")
-  if (covModel %in% c(2, 4)) {stopifnot(snpCovariates=='')}
+    stop("If the kinship matrix is to be reduced, nPca cannot be NULL.\n")
+  if (is.null(K)) K <- gData$kinship
+  if (covModel %in% c(2, 4)) {stopifnot(snpCovariates == "")}
   ## Make sure that when subsetting markers snpCovariates are included in the subset
   if (subsetMarkers) {
-    if (snpCovariates != "") {
+    if (!is.null(snpCovariates)) {
       if (!all(length(which(colnames(markers) %in% snpCovariates) %in% markerSubset))) {
         markerSubset <- union(markerSubset,
           which(colnames(markers) %in% snpCovariates))
-        cat('Co-factors have been added to the marker-subset \n')
+        cat('snpCovariates have been added to the marker-subset \n')
       }
     }
-    K <- K[rownames(Y), rownames(Y)]
-    markers <- markers[, markerSubset]
-    map <- map[markerSubset, ]
+    markersRed <- markers[, markerSubset]
+    mapRed <- map[markerSubset, ]
+  } else {
+    markersRed <- markers
+    mapRed <- map
   }
+  environment <- 1
+  if (is.null(covar)) {
+    phenoEnvir <- gData$pheno[[environment]]
+    covarEnvir <- NULL
+  } else {
+    ## Append covariates to pheno data. Merge to remove values from pheno that are missing in covar.
+    phenoEnvir <- merge(gData$pheno[[environment]], gData$covar[covar], by.x = "genotype", by.y = "row.names")
+    ## Expand covariates that are a factor (i.e. dummy variables are created) using model.matrix
+    ## The new dummies are attached to phenoEnvir, and covar is changed accordingly
+    factorCovs <- which(sapply(gData$covar[covar], FUN = is.factor))
+    if (length(factorCovs) > 0) {
+      covFormula <- as.formula(paste("genotype ~ ", paste(covar[factorCovs], collapse = "+")))
+      ## Create dummy variables. Remove intercept.
+      extraCov <- as.data.frame(suppressWarnings(model.matrix(object = covFormula, data = phenoEnvir))[, -1])
+      ## Add dummy variables to pheno data.
+      phenoEnvir <- cbind(phenoEnvir[, -which(colnames(phenoEnvir) %in% names(factorCovs))], extraCov)
+      ## Modify covar to suit newly defined columns
+      covarEnvir <- c(covar[-factorCovs], colnames(extraCov))
+    }
+  }
+  if (!is.null(snpCovariates)) {
+    ## Add snp covariates to covar.
+    covarEnvir <- c(covarEnvir, snpCovariates)
+    ## Add snp covariates to pheno data.
+    phenoEnvir <- merge(phenoEnvir, gData$markers[, snpCovariates], by.x = "genotype",
+      by.y = "row.names")
+    colnames(phenoEnvir)[(ncol(phenoEnvir) - length(snpCovariates) + 1):ncol(phenoEnvir)] <- snpCovariates
+  }
+  X <- cbind(rep(1, nrow(phenoEnvir)), as.matrix(phenoEnvir[covarEnvir]))
+  rownames(X) <- phenoEnvir$genotype
+  Y <- as.matrix(tibble::column_to_rownames(tibble::remove_rownames(gData$pheno[[1]]),
+    var = "genotype"))
+  K <- K[rownames(Y), rownames(Y)]
   ## Add snpCovariates to X
-  if (snpCovariates[1] != "") {
-    X <- cbind(X, as.matrix(markers[rownames(X), snpCovariates]))
+  if (!is.null(snpCovariates)) {
     if (ncol(X) == length(snpCovariates)) {
       XRed <- matrix(nrow = nrow(X), ncol = 0, dimnames = list(rownames(X)))
     } else {
@@ -174,6 +229,11 @@ runMultiTraitGwas <- function(gData,
       varcomp <- covPairwise(Y = Y, K = K, fixDiag = FALSE, corMat = TRUE, VeDiag = FALSE)
       Vg <- varcomp$Vg
       Ve <- varcomp$Ve
+      if (!is.null(snpCovariates)) {
+        varcompRed <- covPairwise(Y = Y, K = K, X = X, fixDiag = FALSE, corMat = TRUE, VeDiag = FALSE)
+        VgRed <- varcomp$Vg
+        VeRed <- varcomp$Ve
+      }
     } else if (covModel == 3) {
       ## FA models
       ## Including snpCovariates.
@@ -193,7 +253,7 @@ runMultiTraitGwas <- function(gData,
       Ve <- solve(varcomp$Dm)
       colnames(Vg) <- rownames(Vg) <- colnames(Y)
       colnames(Ve) <- rownames(Ve) <- colnames(Y)
-      if (snpCovariates[1] != "") {
+      if (!is.null(snpCovariates)) {
         ## Without snpCovariates.
         varcompRed <- EMFA(Y = Y,
           K = K,
@@ -232,27 +292,26 @@ runMultiTraitGwas <- function(gData,
     Xt <- crossprod(X, Uk)
   }
   VInvArray <- makeVInvArray(Vg = Vg, Ve = Ve, Dk = Dk)
-  if (snpCovariates[1] != "") {
+  if (!is.null(snpCovariates)) {
     if (ncol(XRed) > 0) {
       XtRed <- crossprod(XRed, Uk)
     }
     VInvArrayRed <- makeVInvArray(Vg = VgRed, Ve = VeRed, Dk = Dk)
   }
-  nn <- nrow(map)
-  means <- colMeans(markers[rownames(Y), 1:nn])
-  means <- means / max(markers)
-  excludedMarkers <- which(means < MAF | means > 1 - MAF)
-  if (snpCovariates != "") {
-    snpCovariateNumbers <- which(colnames(markers) %in% snpCovariates)
+  nn <- nrow(mapRed)
+  allFreq <- colMeans(markersRed[rownames(Y), 1:nn]) / max(markersRed)
+  excludedMarkers <- which(allFreq < MAF | allFreq > 1 - MAF)
+  if (!is.null(snpCovariates)) {
+    snpCovariateNumbers <- which(colnames(markersRed) %in% snpCovariates)
     excludedMarkers <- c(excludedMarkers, snpCovariateNumbers)
     extraExcludedMarkers <- numeric()
     for (snp in snpCovariateNumbers) {
-      candidates <- which(means == means[snp])
+      candidates <- which(allFreq == allFreq[snp])
       ## Only the snp itself is not enough; there needs to be one other snp at least with
       ## the same maf, before proceding.
       if (length(candidates) > 1) {
-        snpInfo <- markers[rownames(Y), snp]
-        exclude <- apply(markers[rownames(Y), candidates], 2,
+        snpInfo <- markersRed[rownames(Y), snp]
+        exclude <- apply(markersRed[rownames(Y), candidates], 2,
           function(x) {identical(as.numeric(x), as.numeric(snpInfo))})
         extraExcludedMarkers <- c(extraExcludedMarkers, setdiff(candidates[exclude], snp))
       }
@@ -262,45 +321,67 @@ runMultiTraitGwas <- function(gData,
   }
   ## Scan
   p <- ncol(Y)
-  M <- TStat <- matrix(nrow = nn, ncol = p, dimnames = list(colnames(markers), colnames(Y)))
-  results <- resultsWald <- rep(NA, nn)
-  results[excludedMarkers] <- resultsWald[excludedMarkers] <- 1
-  markers <- markers[rownames(Y), ]
-  if (snpCovariates[1]!='') {
+  effects <- effectsSe <- matrix(nrow = nn, ncol = p, dimnames = list(colnames(markersRed), colnames(Y)))
+  markersRed <- markersRed[rownames(Y), ]
+  GWAResult <- data.frame(trait = NA,
+    snp = rownames(mapRed),
+    mapRed,
+    pValue = NA,
+    LOD = NA,
+    effect = NA,
+    effectSe = NA,
+    pValueWald = NA,
+    LODWald = NA,
+    allFreq = allFreq,
+    stringsAsFactors = FALSE)
+  if (!is.null(snpCovariates)) {
     est0Red <- estimateEffects(X = XtRed, Y = Yt, VInvArray = VInvArrayRed, returnAllEffects = TRUE)
     fittedMean0Red <- matrix(est0Red$effects.estimates,ncol = length(est0Red$effects.estimates) / p) %*% XtRed
     SS0Red <- LLQuadFormDiag(Y = Yt - fittedMean0Red, VInvArray = VInvArrayRed)
     for (mrk in snpCovariateNumbers) {
-      x <- matrix(as.numeric(markers[, mrk]))
+      x <- matrix(as.numeric(markersRed[, mrk]))
       xt <- crossprod(x, Uk)
       LRTRes <- LRTTest(X = XtRed, x = xt, Y = Yt, VInvArray = VInvArrayRed, SS0 = SS0Red)
-      results[mrk] <- LRTRes$pvalue
-      resultsWald[mrk] <- pchisq(sum((LRTRes$effects / LRTRes$effects.se) ^ 2),
+      GWAResult[mrk, "pValue"] <- LRTRes$pvalue
+      GWAResult[mrk, "pValueWald"] <- pchisq(sum((LRTRes$effects / LRTRes$effects.se) ^ 2),
         df = p, lower.tail = FALSE)
-      M[mrk, ] <- LRTRes$effects
-      TStat[mrk, ] <-  LRTRes$effects / LRTRes$effects.se
+      effects[mrk, ] <- LRTRes$effects
+      effectsSe[mrk, ] <- LRTRes$effects.se
     }
   }
   est0 <- estimateEffects(X = Xt, Y = Yt, VInvArray = VInvArray, returnAllEffects = TRUE)
   fittedMean0 <- matrix(est0$effects.estimates, ncol = length(est0$effects.estimates) / p) %*% Xt
   SS0 <- LLQuadFormDiag(Y = Yt - fittedMean0, VInvArray = VInvArray)
   for (mrk in setdiff(1:nn, excludedMarkers)) {
-    x <- matrix(as.numeric(markers[, mrk]))
+    x <- matrix(as.numeric(markersRed[, mrk]))
     xt <- crossprod(x, Uk)
     LRTRes <- LRTTest(X = Xt, x = xt, Y = Yt, VInvArray = VInvArray, SS0 = SS0)
-    results[mrk] <- LRTRes$pvalue
-    resultsWald[mrk] <- pchisq(q = sum((LRTRes$effects / LRTRes$effects.se) ^ 2),
+    GWAResult[mrk, "pValue"] <- LRTRes$pvalue
+    GWAResult[mrk, "pValueWald"] <- pchisq(sum((LRTRes$effects / LRTRes$effects.se) ^ 2),
       df = p, lower.tail = FALSE)
-    M[mrk, ] <- LRTRes$effects
-    TStat[mrk, ] <- LRTRes$effects / LRTRes$effects.se
+    effects[mrk, ] <- LRTRes$effects
+    effectsSe[mrk, ] <-  LRTRes$effects.se
     if (mrk %% 1000 == 0) {cat("Progress: ", (mrk / nn) * 100, " percent\n")}
   }
-  MExtended  <- data.frame(map[c("chr", "pos")], LOD_F = -log10(results),
-    LOD_Wald = -log10(resultsWald), M, row.names = rownames(M))
-  TStatExtended  <- data.frame(map[c("chr", "pos")], LOD_F = -log10(results),
-    LOD_Wald = -log10(resultsWald), TStat, row.names = rownames(TStat))
-  # }
-  return(list(Vg = Vg, Ve = Ve, M = M, TStat = TStat, results = results, resultsWald = resultsWald,
-    MExtended = MExtended, TStatExtended = TStatExtended))
+  ## Add LOD-scores to result
+  GWAResult$LOD <- -log10(GWAResult$pValue)
+  GWAResult$LODWald <- -log10(GWAResult$pValueWald)
+  ## Convert effects en effectsSe to long-format and merge.
+  effectsLong <- reshape2::melt(effects, measure.vars = 1:4)
+  effectsSeLong <- reshape2::melt(effectsSe, measure.vars = 1:4)
+  effectsTot <- merge(effectsLong, effectsSeLong, by = c("Var1", "Var2"))
+  ## Merge the effects and effectsSe to the results
+  GWAResult <- merge(GWAResult, effectsTot, by.x = "snp", by.y = "Var1", sort = FALSE)
+  GWAResult[c("trait", "effect", "effectSe")] <- GWAResult[c("Var2", "value.x", "value.y")]
+  ## Sort by trait, chr and pos and drop unneeded columns.
+  GWAResult <- GWAResult[order(GWAResult$trait, GWAResult$chr, GWAResult$pos),
+    !colnames(GWAResult) %in% c("Var2", "value.x", "value.y")]
+  ## Remove rownames.
+  rownames(GWAResult) <- NULL
+  ## Collect info.
+  GWASInfo <- list(call = match.call(),
+    MAF = MAF,
+    varComp = list(Vg = Vg, Ve = Ve))
+  return(createGWAS(GWAResult = GWAResult, signSnp = NULL, thr = NULL, GWASInfo = GWASInfo))
 }
 
