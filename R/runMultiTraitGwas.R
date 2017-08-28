@@ -151,8 +151,8 @@ runMultiTraitGwas <- function(gData,
     if (is.null(colnames(Ve)) || is.null(rownames(Ve)) ||
         any(colnames(Ve) != rownames(Ve)) || !all(colnames(Ve) %in% colnames(gData$pheno[[1]])[-1]))
       stop("Column names and rownames of Ve should be identical and included in column names of pheno.\n")
-    Vg <- Vg[colnames(gData$pheno[[1]]), colnames(gData$pheno[[1]])[-1]]
-    Ve <- Ve[colnames(gData$pheno[[1]]), colnames(gData$pheno[[1]])[-1]]
+    Vg <- Vg[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
+    Ve <- Ve[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
     colnames(Vg) <- rownames(Vg) <- NULL
     colnames(Ve) <- rownames(Ve) <- NULL
   } else {
@@ -228,7 +228,6 @@ runMultiTraitGwas <- function(gData,
   if (fitVarComp) {
     ## Unstructured (pairwise) models
     if (covModel == 2) {
-      return(list(Y, K))
       varcomp <- covPairwise(Y = Y, K = K, fixDiag = FALSE, corMat = TRUE, VeDiag = FALSE)
       Vg <- varcomp$Vg
       Ve <- varcomp$Ve
@@ -370,12 +369,14 @@ runMultiTraitGwas <- function(gData,
   GWAResult$LOD <- -log10(GWAResult$pValue)
   GWAResult$LODWald <- -log10(GWAResult$pValueWald)
   ## Convert effects en effectsSe to long-format and merge.
-  effectsLong <- reshape2::melt(effects, measure.vars = 1:4)
-  effectsSeLong <- reshape2::melt(effectsSe, measure.vars = 1:4)
+  effectsLong <- reshape2::melt(effects)
+  effectsSeLong <- reshape2::melt(effectsSe)
   effectsTot <- merge(effectsLong, effectsSeLong, by = c("Var1", "Var2"))
   ## Merge the effects and effectsSe to the results
   GWAResult <- merge(GWAResult, effectsTot, by.x = "snp", by.y = "Var1", sort = FALSE)
-  GWAResult[c("trait", "effect", "effectSe")] <- GWAResult[c("Var2", "value.x", "value.y")]
+  ## Melt creates factors. Reconvert trait to character
+  GWAResult$trait <- as.character(GWAResult$Var2)
+  GWAResult[c("effect", "effectSe")] <-  GWAResult[c("value.x", "value.y")]
   ## Sort by trait, chr and pos and drop unneeded columns.
   GWAResult <- GWAResult[order(GWAResult$trait, GWAResult$chr, GWAResult$pos),
     !colnames(GWAResult) %in% c("Var2", "value.x", "value.y")]

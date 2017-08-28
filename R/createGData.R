@@ -15,8 +15,11 @@
 #' be in basepair or centimorgan. They should not be cumulative over the chromosomes.
 #' Other columns are ignored. Marker names should be in the row names. These should match
 #' the marker names in \code{geno} (if supplied).
-#' @param kin a kinship matrix with genotype in rows and colums. These should be identical to the genotypes
-#' in \code{geno}
+#' @param kin a kinship matrix or list of kinship matrices with genotype in rows and colums.
+#' These should be identical to the genotypes in \code{geno}. If a list of kinship matrices is provided
+#' these are supposed to be chromosome specific matrices. In that case their names should match those
+#' of the namer of the chromosomes in \code{map} or in case no names are provided, the number of matrices
+#' should match the number of chromoses in \code{map} in which case default names are provided.
 #' @param pheno a data.frame or a list of data.frames with phenotypic data, with genotype in the
 #' first column \code{genotype} and traits in the following columns. A list of data.frames can be
 #' used for replications, i.e. different environments.
@@ -125,7 +128,7 @@ createGData <- function(gData = NULL,
               names(pheno)[x]
             }
           })
-          message("some data.frame in pheno contain no environment names. Default names added.\n")
+          message("Some data.frames in pheno contain no environment names. Default names added.\n")
         }
       }
     }
@@ -173,22 +176,51 @@ createGData <- function(gData = NULL,
   else markers <- NULL
   ## Modify kin
   if (!missing(kin)) {
-    if (!is.null(kin) && !is.matrix(kin))
-      stop("kin should be a matrix.\n")
-    if (!missing(geno) &&
-        (!all(rownames(kin) %in% rownames(markers)) ||
-            !all(colnames(kin) %in% rownames(markers))))
+    if (!is.null(kin) && !is.matrix(kin) && !(is.list(kin) && all(sapply(kin, is.matrix))))
+      stop("kin should be a matrix or a list of matrices.\n")
+    if (!is.null(map) && is.list(kin) && length(kin) != length(unique(map$chr)))
+      stop("kin should be the same length as the number of chromosomes in map.\n")
+    if ((!is.null(markers) && is.list(kin) &&
+        any(sapply(X = kin, FUN = function(x) {
+          !all(rownames(x) %in% rownames(markers)) ||
+            !all(colnames(x) %in% rownames(markers))
+        }))) ||
+        (!is.null(markers) && !is.list(kin) &&
+            (!all(rownames(kin) %in% rownames(markers)) ||
+                !all(colnames(kin) %in% rownames(markers)))))
       stop("row and column names of kin should be in row and column names of geno.\n")
     ## Order as in geno.
-    kin <- kin[order(match(rownames(kin), rownames(markers))), order(match(colnames(kin), rownames(markers)))]
-    if (!is.null(gData$kinship)) warning("existing kin will be overwritten.\n", call. = FALSE)
+    if (!is.null(names(kin)) && names(kin) != unique(map$chr))
+      stop("names of kin should correspond to names of chromosomes in map.\n")
+    if (is.list(kin)) {
+      kin <- lapply(X = kin, FUN = function(x) {
+        x[order(match(rownames(x), rownames(markers))),
+          order(match(colnames(x), rownames(markers)))]
+      })
+    } else {
+      kin <- kin[order(match(rownames(kin), rownames(markers))),
+        order(match(colnames(kin), rownames(markers)))]
+    }
+    ## Add default names.
+    if (is.list(kin) && is.null(names(kin)))
+      warning("kin contains no names. Default names added.\n")
+    names(kin) <- unique(map$chr)
+    if (!is.null(gData$kinship))
+      warning("existing kinship will be overwritten.\n", call. = FALSE)
   } else if (!is.null(gData$kinship)) kin <- gData$kinship
   else kin <- NULL
   ## Modify covar
   if (!missing(covar)) {
     if (!is.null(covar) && !is.data.frame(covar))
       stop("covar should be a data.frame.\n")
-    if (!is.null(gData$covar)) warning("existing covar will be overwritten.\n", call. = FALSE)
+    if (!all(sapply(X = covar, FUN = function(x) {
+      is.numeric(x) || is.character(x) || is.factor(x)})))
+      stop("all columns in covar should be numeric, character or factor columns.\n")
+    ## Convert character columns to factors.
+    covar[sapply(covar, is.character)] <-
+      lapply(covar[sapply(covar, is.character)], as.factor)
+    if (!is.null(gData$covar))
+      warning("existing covar will be overwritten.\n", call. = FALSE)
   } else if (!is.null(gData$covar)) covar <- gData$covar
   else covar <- NULL
   ## Create gData object.
