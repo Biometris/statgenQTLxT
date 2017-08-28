@@ -5,6 +5,8 @@
 #' @inheritParams runEmma
 #' @param X a q x n covariate matrix, q being the number of covariates and n being the number
 #' of genotypes. q has to be at least one (typically an intercept).
+#'
+#' @keywords internal
 
 emmaEigenR <- function(K,
   X) {
@@ -31,7 +33,6 @@ emmaEigenRZ <- function(Z,
   n <- nrow(Z)
   t <- ncol(Z)
   q <- ncol(X)
-
   SZ <- Z - X %*% solve(crossprod(X), crossprod(X, Z))
   eig <- eigen(K %*% tcrossprod(Z, SZ), symmetric = FALSE)
   if (is.complex(eig$values)) {

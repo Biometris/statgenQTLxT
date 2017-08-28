@@ -1,4 +1,4 @@
-#' Estimates for covariates.
+#' Estimates for covariates
 #'
 #' Compute the estimates and standard errors for the covariates in the input matrix X. Optionally an
 #' additional covariate x can be estimated.
@@ -77,7 +77,7 @@ estimateEffects <- function(X,
   } else {
     v <- rowSums(sapply(1:n, function(i) {kronecker(X[, i], VInvArray[i, , ] %*% Y[, i])}))
   }
-  wald  <- NA
+  wald <- NA
   if (returnAllEffects) {
     effectsEstimates <- as.numeric(M %*% v)
     effectsSd <- sqrt(diag(M))

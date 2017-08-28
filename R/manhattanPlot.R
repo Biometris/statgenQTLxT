@@ -1,4 +1,4 @@
-#' Create a manhattan plot.
+#' Create a manhattan plot
 #'
 #' Given vectors of marker positions and corresponding LOD-scores plot a LOD-profile.
 #' Significant markers can be highlighted with red dots. If there are previously known

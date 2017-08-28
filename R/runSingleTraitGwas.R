@@ -177,8 +177,8 @@ runSingleTraitGwas <- function (gData,
       stop("nSnpLOD should be a single numerical value.\n")
   }
   if (!(remlAlgo %in% 1:2)) {
-    remlAlgo <- 2
-    warning("Invalid value for remlAlgo. remlAlgo set to 2.\n")
+    remlAlgo <- 1
+    warning("Invalid value for remlAlgo. remlAlgo set to 1.\n")
   }
   if (!(GLSMethod %in% 1:2)) {
     GLSMethod <- 1
@@ -232,7 +232,7 @@ runSingleTraitGwas <- function (gData,
   }
   ## Define data.frames for total results.
   GWATot <- signSnpTot <- setNames(vector(mode = "list", length = length(environments)),
-    names(gData$pheno[[environments]]))
+    names(gData$pheno)[environments])
   for (environment in environments) {
     ## If traits is given as numeric convert to character.
     if (is.numeric(traits)) traits <- colnames(gData$pheno[[environment]])[traits]
@@ -246,7 +246,7 @@ runSingleTraitGwas <- function (gData,
       ## Append covariates to pheno data. Merge to remove values from pheno that are missing in covar.
       phenoEnvir <- merge(gData$pheno[[environment]], gData$covar[covar], by.x = "genotype", by.y = "row.names")
       ## Remove rows from phenoEnvir with missing covar check if there are missing values.
-      phenoEnvir <- phenoEnvir[!is.na(phenoEnvir[covar]), ]
+      phenoEnvir <- phenoEnvir[complete.cases(phenoEnvir[covar]), ]
       ## Expand covariates that are a factor (i.e. dummy variables are created) using model.matrix
       ## The new dummies are attached to phenoEnvir, and covar is changed accordingly
       factorCovs <- which(sapply(gData$covar[covar], FUN = is.factor))
@@ -258,6 +258,8 @@ runSingleTraitGwas <- function (gData,
         phenoEnvir <- cbind(phenoEnvir[, -which(colnames(phenoEnvir) %in% names(factorCovs))], extraCov)
         ## Modify covar to suit newly defined columns
         covarEnvir <- c(covar[-factorCovs], colnames(extraCov))
+      } else {
+        covarEnvir <- covar
       }
     }
     if (!is.null(snpCovariates)) {
@@ -310,7 +312,7 @@ runSingleTraitGwas <- function (gData,
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
               random = ~ sommer::g(genotype), G = list(genotype = kinshipRed), silent = TRUE)
             ## Compute varcov matrix using var components from model.
-            varComp[[trait]] <- sommerFit$var.comp[c(1, nrow(sommerFit$var.comp)), 1]
+            varComp[[trait]] <- unlist(sommerFit$var.comp)[c(1, length(unlist(sommerFit$var.comp)))]
             vcovMatrix <- solve(Matrix::forceSymmetric(sommerFit$V.inv, uplo = "U"))
           }
         } else {
@@ -349,7 +351,8 @@ runSingleTraitGwas <- function (gData,
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
               random = ~ sommer::g(genotype), G = list(genotype = KinshipRedChr), silent = TRUE)
             ## Compute varcov matrix using var components from model.
-            varComp[[trait]][[which(chrs == chr)]] <- sommerFit$var.comp[c(1, nrow(sommerFit$var.comp)), 1]
+            varComp[[trait]][[which(chrs == chr)]] <-
+              unlist(sommerFit$var.comp)[c(1, length(unlist(sommerFit$var.comp)))]
             vcovMatrix[[which(chrs == chr)]] <- solve(Matrix::forceSymmetric(sommerFit$V.inv, uplo = "U"))
           }
         }
@@ -466,12 +469,13 @@ runSingleTraitGwas <- function (gData,
       if (maxScore == 1) {
         GWAResult$effect <- 0.5 * GWAResult$effect
       }
-      ## Calculate the genomic inflation factor and rescale p-values.
+      ## Calculate the genomic inflation factor.
+      GC <- genomicControlPValues(pVals = GWAResult$pValue,
+        nObs = length(nonMissing),
+        nCov = length(covarEnvir))
+      inflationFactor[trait] <- GC$inflation
+      ## Rescale p-values.
       if (genomicControl) {
-        GC <- genomicControlPValues(pVals = GWAResult$pValue,
-          nObs = length(nonMissing),
-          nCov = length(covarEnvir))
-        inflationFactor[trait] <- GC$inflation
         GWAResult$pValue <- GC$pValues
       }
       ## Compute LOD score.
@@ -493,7 +497,7 @@ runSingleTraitGwas <- function (gData,
       signSnp <- which(!is.na(GWAResult$pValue) & -log10(GWAResult$pValue) >= LODThr)
       if (length(signSnp) > 0) {
         if (sizeInclRegion > 0) {
-          snpSelection <- unlist(sapply(signSnp,
+          snpSelection <- unlist(sapply(X = signSnp,
             FUN = getSNPsInRegionSufLD,
             ## Create new minimal gData object to match map and markers used for SNP selection.
             gData = createGData(map = mapRed, geno = markersRed),
@@ -527,14 +531,15 @@ runSingleTraitGwas <- function (gData,
           RLR2 = GWAResult$RLR2[snpSelection],
           propSnpVar = propSnpVar,
           stringsAsFactors = FALSE)
-        signSnpTotEnvir <- rbind(signSnpTotEnvir, data.frame(trait = trait, signSnp, stringsAsFactors = FALSE))
+        signSnpTotEnvir <- rbind(signSnpTotEnvir,
+          data.frame(trait = trait, signSnp, stringsAsFactors = FALSE))
       }
-      GWATotEnvir <- rbind(GWATotEnvir, data.frame(trait = trait, GWAResult, stringsAsFactors = FALSE))
+      GWATotEnvir <- rbind(GWATotEnvir,
+        data.frame(trait = trait, GWAResult, stringsAsFactors = FALSE))
     } # end for (trait in traits)
     GWATot[[match(environment, environments)]] <- GWATotEnvir
     signSnpTot[[match(environment, environments)]] <- signSnpTotEnvir
   } # end for (environment in environments)
-  names(GWATot) <- names(signSnpTot) <- names(gData$pheno[environments])
   ## Collect info
   GWASInfo <- list(call = match.call(),
     GLSMethod = factor(GLSMethod, levels = c(1, 2), labels = c("EMMA", "Newton-Raphson")),

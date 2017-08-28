@@ -43,7 +43,7 @@ plot.GWAS <- function(x, ..., type = "manhattan", trait = NULL) {
     ## Compute chromosome boundaries.
     chrBnd <- aggregate(GWAResult$pos, by = list(GWAResult$chr), FUN = max)
     ## Compute cumulative positions.
-    addPos <- data.frame(chr = chrBnd[, 1], add = c(0, cumsum(chrBnd[,2]))[1:nrow(chrBnd)])
+    addPos <- data.frame(chr = chrBnd[, 1], add = c(0, cumsum(chrBnd[, 2]))[1:nrow(chrBnd)])
     map <- merge(data.frame(chr = GWAResult$chr, pos = GWAResult$pos), addPos, by = "chr")
     map <- data.frame(snp = GWAResult$snp, chr = map$chr, cumPos = map$pos + map$add)
     ## Extract numbers of significant SNPs.

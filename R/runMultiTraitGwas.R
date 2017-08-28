@@ -196,6 +196,8 @@ runMultiTraitGwas <- function(gData,
       phenoEnvir <- cbind(phenoEnvir[, -which(colnames(phenoEnvir) %in% names(factorCovs))], extraCov)
       ## Modify covar to suit newly defined columns
       covarEnvir <- c(covar[-factorCovs], colnames(extraCov))
+    } else {
+      covarEnvir <- covar
     }
   }
   if (!is.null(snpCovariates)) {
@@ -226,6 +228,7 @@ runMultiTraitGwas <- function(gData,
   if (fitVarComp) {
     ## Unstructured (pairwise) models
     if (covModel == 2) {
+      return(list(Y, K))
       varcomp <- covPairwise(Y = Y, K = K, fixDiag = FALSE, corMat = TRUE, VeDiag = FALSE)
       Vg <- varcomp$Vg
       Ve <- varcomp$Ve

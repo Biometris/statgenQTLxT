@@ -7,18 +7,13 @@
 #'
 #' @return a matrix Y such that \eqn{Y^2 = X}.
 #'
-#' @examples
-#' Z <- matrix(c(2, -1, -1, 2), nrow = 2)
-#' matrixRoot(Z)
-#'
-#' @export
+#' @keywords internal
 
 matrixRoot <- function(X) {
   if (!is.matrix(X)) X <- as.matrix(X)
-#  stopifnot(isSymmetric(X))
-#  stopifnot(is.positive.definite(X))
-
+  if (!isSymmetric(X)) stop("X should be a symmetric matrix.")
   XEig <- eigen(X, symmetric = TRUE)
+  if(any(eigen$values < 0)) stop("X should be a positive definite matrix.")
   if (length(XEig$values) > 1) {
     XSqrt <- XEig$vectors %*% diag(sqrt(XEig$values)) %*% solve(XEig$vectors)
   } else {

@@ -9,6 +9,8 @@
 #' @param maxDiag a numerical value for the maximum value of sigma2.
 #'
 #' @return a list containing the new value for the matrices W and P.
+#'
+#' @keywords internal
 
 updateFAHomVar <- function(Y = NULL, S = NULL, m, maxDiag = 1e4) {
   if ((is.null(Y) && is.null(S)) || (!is.null(Y) && !is.null(S)))

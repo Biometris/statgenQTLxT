@@ -15,6 +15,8 @@
 #'
 #' @references Devlin, B. and Roeder K. (1999) Genomic control for association studies. Biometrics,
 #' December 1999, Vol. 55(4), p. 997-1004.
+#'
+#' @keywords internal
 
 genomicControlPValues <- function(pVals,
   nObs,

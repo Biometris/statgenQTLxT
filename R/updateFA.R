@@ -15,6 +15,8 @@
 #'
 #' @return a list containing the new matrices W and P after the iteration process and the number
 #' of iterations.
+#'
+#' @keywords internal
 
 ## TO DO: extension to Y- mu; now mu is assumed to be zero
 

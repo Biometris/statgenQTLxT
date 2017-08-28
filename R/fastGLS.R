@@ -1,4 +1,4 @@
-#' Fast Generalized Least Squares algoritm.
+#' Fast Generalized Least Squares algoritm
 #'
 #' Compute statistics for the Generalized Least Squares (GLS) F-test based on the algorithm proposed by
 #' Segura (2012). Also the \eqn{R_LR^2} statistics as in Sun (2010) is computed.
