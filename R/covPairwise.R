@@ -47,8 +47,6 @@ covPairwise <- function(Y,
   K <- K[unique(Y$genotype), unique(Y$genotype)]
   traits <- colnames(Y)[-1]
   nTrait <- length(traits)
-  convMat <- matrix(FALSE, nTrait, nTrait)
-  colnames(convMat) <- rownames(convMat) <- traits
   if (!is.null(X)) {
     ## Define formula for fixed part. ` needed to accommodate - in variable names.
     fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ `",
@@ -62,7 +60,6 @@ covPairwise <- function(Y,
   ## Extract components from fitted model.
   VgVec <- diag(sommerFit$var.comp[[1]])
   VeVec <- diag(sommerFit$var.comp[[2]])
-  convVec <- sapply(X = traits, FUN = function(x) {sommerFit[[x]]$converge})
   if (corMat) {
     ## Ones on the diagonal of resulting matrix.
     VgMat <- VeMat <- diag(x = 1, nrow = nTrait)

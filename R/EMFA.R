@@ -28,8 +28,8 @@
 #'
 #' @return A list containing results of the algoritm.
 #'
-#' @references Dahl et al. (2014). Network inference in matrix-variate Gaussian models with
-#' non-indenpent noise.
+#' @references Dahl et al. (2013). Network inference in matrix-variate Gaussian models with
+#' non-independent noise. arXiv preprint arXiv:1312.1622.
 #'
 #' @importFrom methods as
 
@@ -51,7 +51,7 @@ EMFA <- function(Y,
   prediction = TRUE,
   stopIfDecreasing = FALSE,
   computeLogLik = FALSE) {
-
+  ## Check input
   if (!is.matrix(Y)) Y <- as.matrix(Y)
   stopifnot(nrow(Y) == nrow(K))
   stopifnot(ncol(K) == nrow(K))
@@ -59,7 +59,6 @@ EMFA <- function(Y,
   if (nc > 0) {stopifnot(nrow(X) == nrow(K))}
   n <- ncol(K)
   p <- ncol(Y)
-
   ## check if mG and mE have sensible values
   if (mG != round(mG)) {stop("mG needs to be integer")}
   if (mE != round(mE)) {stop("mE needs to be integer")}
@@ -67,23 +66,20 @@ EMFA <- function(Y,
   if (mE < 0) {stop("mE cannot be negative")}
   if (mG >= p) {stop("mG needs to be smaller than the number of traits or environments")}
   if (mE >= p) {stop("mE needs to be smaller than the number of traits or environments")}
-
   if (nc > 0) {
     B <- matrix(0, nc, p) # the c x p matrix of coefficients (p traits)
-    XtXinvXt <- solve(t(X) %*% X, t(X))
+    XtXinvXt <- solve(crossprod(X), t(X))
   } else {
     B <- NULL
   }
-
   w <- eigen(solve(as(K, "symmetricMatrix")), symmetric = TRUE)
   Uk <- w$vectors
   Dk <- w$values
   lambdaR <- diag(w$values)
-
   ## Set starting values for Cm
   if (is.null(CmStart)) {
     if (mG == 0) {
-      Cm <- as(diag(x = 2, nrow = p), "symmetricMatrix")
+      Cm <- Matrix::Diagonal(n = p, x = 2)
     } else {
       Cm <- solve(as((cor(Y) + diag(p)) / 4, "symmetricMatrix"))
     }
@@ -93,7 +89,7 @@ EMFA <- function(Y,
   ## Set starting values for Dm
   if (is.null(DmStart)) {
     if (mE == 0) {
-      Dm <- as(diag(x = 2, nrow = p), "symmetricMatrix")
+      Dm <- Matrix::Diagonal(n = p, x = 2)
     } else {
       Dm <- solve(as((cor(Y) + diag(p)) / 4, "symmetricMatrix"))
     }
@@ -134,71 +130,51 @@ EMFA <- function(Y,
     We <- NULL
     Pe <- NULL
   }
-
   continue <- TRUE
   decreased <- FALSE
   iter <- 1
   ELogLikCm <- ELogLikDm <- -Inf
   mu <- matrix(rep(0, n * p), ncol = p)
-
   ## EM following Dahl et al.
   while (continue && iter < maxIter) {
-    ## Prevent that Cm, Dm become asymmetric because of numerical inaccuracies
-    Cm <- (Cm + t(Cm)) / 2
-    Dm <- (Dm + t(Dm)) / 2
-
     DmSqrtInv <- matrixRoot(solve(Dm))
     w1 <- eigen(DmSqrtInv %*% Cm %*% DmSqrtInv, symmetric = TRUE)
     Q1 <- w1$vectors
     lambda1 <- w1$values
-
     CmSqrtInv <- matrixRoot(solve(Cm))
     w2 <- eigen(CmSqrtInv %*% Dm %*% CmSqrtInv, symmetric = TRUE)
     Q2 <- w2$vectors
     lambda2 <- w2$values
-
     ## In the preprint of Dahl et al (arxiv, version 6 dec. 2013),
     # part1-part4 are the quantities, on the bottom part of p.6, in this order
     # Each time we compute the right hand side of the equation
     # In dahl_etal_2013_debug.r we checked the left hand side(s) as well
     # Also S1 and S2 correspond to p. 6 of their preprint
     if (nc > 0) {
-      tUYminXb <- t(Uk) %*% (Y - X %*% B)
-      S1 <- vecInvDiag(x = lambda1, y = w$values) * (tUYminXb %*% (matrixRoot(Dm) %*% Q1))
-      S2 <- vecInvDiag(x = lambda2, y = 1 / w$values) * (tUYminXb %*% (matrixRoot(Cm) %*% Q2))
+      tUYminXb <- crossprod(Uk, Y - X %*% B)
+      S1 <- vecInvDiag(x = lambda1, y = w$values) * (tUYminXb %*% matrixRoot(Dm) %*% Q1)
+      S2 <- vecInvDiag(x = lambda2, y = 1 / w$values) * (tUYminXb %*% matrixRoot(Cm) %*% Q2)
     } else {
-      S1 <- vecInvDiag(x = lambda1, y = w$values) * (t(Uk) %*% Y %*% matrixRoot(Dm) %*% Q1)
-      S2 <- vecInvDiag(x = lambda2, y = 1 / w$values) * (t(Uk) %*% Y %*% matrixRoot(Cm) %*% Q2)
+      S1 <- vecInvDiag(x = lambda1, y = w$values) * crossprod(Uk, Y %*% matrixRoot(Dm) %*% Q1)
+      S2 <- vecInvDiag(x = lambda2, y = 1 / w$values) * crossprod(Uk, Y %*% matrixRoot(Cm) %*% Q2)
     }
-
     trP1 <- tracePInvDiag(x = lambda1, y = w$values)
     trP2 <- tracePInvDiag(x = lambda2, y = 1 / w$values)
     if (p > 1) {
-      part1 <- DmSqrtInv %*% Q1 %*% (diag(trP1) %*% t(Q1) %*% DmSqrtInv)
-      part2 <- CmSqrtInv %*% Q2 %*% (diag(trP2) %*% t(Q2) %*% CmSqrtInv)
+      part1 <- DmSqrtInv %*% Q1 %*% diag(trP1) %*% crossprod(Q1, DmSqrtInv)
+      part2 <- CmSqrtInv %*% Q2 %*% diag(trP2) %*% crossprod(Q2, CmSqrtInv)
     } else {
-      part1 <- DmSqrtInv %*% Q1 %*% (matrix(trP1) %*% t(Q1) %*% DmSqrtInv)
-      part2 <- CmSqrtInv %*% Q2 %*% (matrix(trP2) %*% t(Q2) %*% CmSqrtInv)
+      part1 <- DmSqrtInv %*% Q1 %*% matrix(trP1) %*% crossprod(Q1, DmSqrtInv)
+      part2 <- CmSqrtInv %*% Q2 %*% matrix(trP2) %*% crossprod(Q2, CmSqrtInv)
     }
-    part3 <- CmSqrtInv %*% Q2 %*% t(S2) %*% t(CmSqrtInv %*% (Q2 %*% t(S2)))
-    part4 <- DmSqrtInv %*% Q1 %*% t(S1) %*% lambdaR %*% t(DmSqrtInv %*% (Q1 %*% t(S1)))
-
+    part3 <- tcrossprod(CmSqrtInv %*% Q2 %*% t(S2))
+    part4 <- tcrossprod(DmSqrtInv %*% Q1, S1) %*% lambdaR %*% t(tcrossprod(DmSqrtInv %*% Q1, S1))
     if (nc > 0) {
-      mu <- matrix(Uk %*% S1 %*% t(DmSqrtInv %*% Q1), ncol = p)
+      mu <- matrix(tcrossprod(Uk %*% S1, DmSqrtInv %*% Q1), ncol = p)
       B <- XtXinvXt %*% (Y - mu)
     }
-    Omega1 <- as.matrix((part1 + part3) / n)
-    Omega2 <- as.matrix((part2 + part4) / n)
-
-    ################
-    # Compare with the 'naive' expressions:
-    #Sigma <- ginv(kronecker(Dm,diag(n)) + kronecker(Cm,R)); M <- matrix(Sigma %*% (kronecker(Dm,diag(n))) %*% matrix(as.numeric(Y)),ncol=p)
-    #part1.check <- trace.p(Sigma,p,n); part2.check <-  trace.p(kronecker(diag(p),R) %*% Sigma,p,n)
-    #part3.check <- t(Y - M) %*% (Y - M); part4.check <- t(M) %*% R %*% M
-    #part1.check-part1;part2.check-part2;part3.check-part3;part4.check-part4
-    #part1;part2;part3;part4
-    ##############################
-
+    Omega1 <- Matrix::forceSymmetric(as.matrix((part1 + part3) / n))
+    Omega2 <- Matrix::forceSymmetric(as.matrix((part2 + part4) / n))
     ## Update C
     if (mG == 0) {
       ## Recall that the model is Cm^{-1} = P^{-1} + W W^t.
@@ -223,10 +199,10 @@ EMFA <- function(Y,
         CmNewOutput <- updateFAHomVar(S = Omega2, m = mG)
       } else {
         CmNewOutput <- updateFA(Y = A,
-          WStart= Wg,
-          PStart= Pg,
-          hetVar= CmHet,
-          maxDiag= maxDiag)
+          WStart = Wg,
+          PStart = Pg,
+          hetVar = CmHet,
+          maxDiag = maxDiag)
       }
       WgNew <- CmNewOutput$W
       PgNew <- CmNewOutput$P
@@ -267,10 +243,9 @@ EMFA <- function(Y,
     }
     ## Compute log-likelihood and check stopping criteria
     ELogLikOld <- ELogLikCm + ELogLikDm
-    ELogLikCm <- n * (determinant(Cm)[[1]][1] - sum(diag(Cm %*% Omega2)))
-    ELogLikDm <- n * (determinant(Dm)[[1]][1] - sum(diag(Dm %*% Omega1)))
+    ELogLikCm <- n * (Matrix::determinant(Cm)[[1]][1] - sum(Matrix::diag(Cm %*% Omega2)))
+    ELogLikDm <- n * (Matrix::determinant(Dm)[[1]][1] - sum(Matrix::diag(Dm %*% Omega1)))
     ELogLik <- ELogLikCm + ELogLikDm
-
     if (stopIfDecreasing && iter > 50) {
       if (ELogLik < ELogLikOld - 0.1) {
         continue <- FALSE
@@ -283,8 +258,10 @@ EMFA <- function(Y,
       cat("Iteration ", iter, " : ", CmDiff, "  ", DmDiff, "    ", ELogLik,"\n")
     }
     ## Update values for next iteration
-    Cm <- CmNew
-    Dm <- DmNew
+
+    ## Prevent that Cm, Dm become asymmetric because of numerical inaccuracies
+    Cm <- Matrix::forceSymmetric(CmNew)
+    Dm <- Matrix::forceSymmetric(DmNew)
     Wg <- WgNew
     We <- WeNew
     Pg <- PgNew
@@ -297,22 +274,19 @@ EMFA <- function(Y,
     VInvArray <- makeVInvArray(Vg <- solve(Cm), Ve <- solve(Dm), Dk = Dk)
     VArray <- makeVArray(Vg = Vg, Ve = Ve, Dk = Dk)
     if (nc > 0) {
-      XTransformed <- t(X) %*% Uk
+      XTransformed <- crossprod(X, Uk)
     } else {
-      XTransformed <- data.frame()}
-    logLik <- LLDiag(t(Y) %*% Uk, X = XTransformed, VArray = VArray, VInvArray = VInvArray)
+      XTransformed <- data.frame()
+    }
+    logLik <- LLDiag(crossprod(Y, Uk), X = XTransformed, VArray = VArray, VInvArray = VInvArray)
   } else {
     logLik <- NA
   }
-  ## prevent that Cm, Dm become asymmetric because of numerical inaccuracies
-  Cm <- (Cm + t(Cm)) / 2
-  Dm <- (Dm + t(Dm)) / 2
-
   if (is.null(rownames(Y))) {rownames(Y) <- paste0("genotype", 1:n)}
   if (is.null(colnames(Y))) {colnames(Y) <- paste0("trait", 1:p)}
 
   if (prediction & nc == 0) {
-    mu <- matrix(Uk %*% S1 %*% t(DmSqrtInv %*% Q1), ncol = p)
+    mu <- matrix(tcrossprod(Uk %*% S1, DmSqrtInv %*% Q1), ncol = p)
   }
 
   predFrame <- data.frame(trait = rep(colnames(Y), each = n),

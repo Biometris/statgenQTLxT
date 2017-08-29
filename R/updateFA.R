@@ -29,17 +29,15 @@ updateFA <- function(Y,
   tolerance = 1e-4,
   maxIter = 100L,
   printProgress = FALSE) {
-
+  ## Check input
   Y <- as.matrix(Y)
   if (anyNA(Y)) {stop('Y cannot contain missing values')}
   p <- ncol(Y)
   n <- nrow(Y)
-
   if (!is.null(PStart)) {
     stopifnot(class(PStart) %in% c('matrix','data.frame'))
     stopifnot(ncol(PStart) == p & nrow(PStart) == p)
   }
-
   if (!is.null(WStart)) {
     stopifnot(class(WStart) %in% c('matrix','data.frame'))
     stopifnot(nrow(WStart) == p)
@@ -50,62 +48,53 @@ updateFA <- function(Y,
     if (!is.null(PStart)) {stop('WStart and PStart should be either both NULL (default),
       or both have a sensible value')}
   }
-
   if (m != round(m) || m < 1) {stop("m needs to be a positive integer")}
   if (m >= p) {stop("m needs to be smaller than the number of variables")}
-
+  ## Set start values for P and W.
   if (is.null(WStart)) {
-    S <- t(Y) %*% Y / n
-    a <- eigen(S)
+    a <- eigen(crossprod(Y) / n, symmetric = TRUE)
     sigma2 <- mean(a$values[-(1:m)])
-    PStart <- diag(p) / sigma2
+    PStart <- diag(x = 1 / sigma2, nrow = p)
     WStart <- a$vectors[, 1:m] %*% diag(sqrt(a$values[1:m] - sigma2))
   }
-
-  ## Set start values
   W <- WStart
   P <- PStart
+  ## Set start values for iterations and difference.
   iter <- 1
   totalDiff <- Inf
-
   ## EM
   while (totalDiff > tolerance & iter < maxIter) {
     ## prevent that P become asymmetric because of numerical inaccuracies
     P <- (P + t(P)) / 2 # p x p
-
     if (hetVar) {
-      B <- t(W) %*% P %*% W # m x m
+      B <- crossprod(W, P %*% W) # m x m
       sigma <- MASS::ginv(diag(m) + B) # m x m
-      M1 <- sigma %*% t(W) %*% P %*% t(Y) # m x n
+      M1 <- sigma %*% crossprod(W, tcrossprod(P, Y)) # m x n
     } else {
-      B <- (P[1, 1]) * (t(W) %*% W) # m x m
+      B <- P[1, 1] * crossprod(W) # m x m
       sigma <- MASS::ginv(diag(m) + B) # m x m
-      M1 <- (P[1, 1]) * (sigma %*% t(W) %*% t(Y)) # m x n
+      M1 <- P[1, 1] * tcrossprod(tcrossprod(sigma, W), Y) # m x n
     }
-    A <- MASS::ginv(n * sigma + M1 %*% t(M1))  # m x m
-    WNew <- t(Y) %*% t(M1) %*% A  # p x m
-
+    A <- MASS::ginv(n * sigma + tcrossprod(M1))  # m x m
+    WNew <- crossprod(Y, crossprod(M1, A)) # p x m
     if (hetVar) {
       D1 <- colSums(Y ^ 2)
-      D2 <- diag(WNew %*% (n * sigma + M1 %*% t(M1)) %*% t(WNew))
-      D3 <- diag(t(Y) %*% t(M1) %*% t(WNew))
+      D2 <- diag(WNew %*% (n * sigma + tcrossprod(M1)) %*% t(WNew))
+      D3 <- diag(WNew %*% M1 %*% Y)
       DTot <-  D1 + D2 - 2 * D3
       PNew <- diag(n / DTot)
     } else {
       dataNew <- t(Y) - WNew %*% M1 # p x n
-      SNew    <- dataNew %*% t(dataNew) / n
-      PNew <- diag(1 / mean(diag(SNew), nrow = ncol(SNew)))
+      SNew <- tcrossprod(dataNew) / n
+      PNew <- diag(1 / mean(diag(SNew)), nrow = ncol(SNew))
     }
     diag(PNew)[diag(PNew) > maxDiag] <- maxDiag
-
     PDiff <- sum(abs(PNew - P))
     WDiff <- sum(abs(WNew - W))
     totalDiff <- PDiff + WDiff
-
     if (printProgress) {
-      cat("Iteration ",iter," : ",PDiff,"  ",WDiff,"\n")
+      cat("Iteration ", iter, " : ", PDiff, "  ", WDiff, "\n")
     }
-
     ## Set values for next iteration
     P <- PNew
     W <- WNew

@@ -1,4 +1,7 @@
-#' run multi trait GWAS
+#' Perform multi-trait GWAS
+#'
+#' \code{runMultiTraitGwas} performs a multi-trait Genome Wide Association Study (GWAS) on phenotypic and
+#' genotypic data contained in a \code{gData} object.
 #'
 #' @param gData an object of class \code{gData} containing at least \code{map}, \code{markers} and
 #' \code{pheno}.
@@ -12,7 +15,7 @@
 #' covariates are used.
 #' @param snpCovariates an optional character vector of snps to be included as covariates.
 #' @param subsetMarkers should the marker data be subsetted?
-#' @param markerSubset numeric or character vector for subsetting the markers. Ignored if
+#' @param markerSubset numeric or character vector used for subsetting the markers. Ignored if
 #' subsetMarkers = \code{FALSE}.
 #' @param MAF a numeric value between 0 and 1. Snps with a minor allele frequency outside MAF
 #' and 1 - MAF are excluded from the GWAS analysis.
@@ -20,10 +23,10 @@
 #' in Vg and Ve
 #' @param covModel an integer value for the model used when fitting the variance components.
 #' \enumerate{
-#' \item{unstructured for both Vg and Ve (as in Zhou and Stephens)}
-#' \item{unstructered for both Vg and Ve (pairwise, as in Furlotte and Eskin)}
+#' \item{unstructured for both Vg and Ve (as in Zhou and Stephens (2014))}
+#' \item{unstructered for both Vg and Ve (pairwise, as in Furlotte and Eskin (2013))}
 #' \item{factor-analytic for both Vg and Ve}
-#' \item{approximate ...}
+#' \item{approximate ...(as in Kruijer et al. (2015))}
 #' }
 #' Ignored if fitVarComp = \code{FALSE}
 #' @param VeDiag Should there be environmental correlations if covModel = 2? If traits are measured on
@@ -54,14 +57,19 @@
 #' which will be ignored. Ignored if fitVarComp = \code{TRUE}.
 #' @param reduceK if \code{TRUE} the kinship matrix is reduced. See \code{\link{reduceKinship}}
 #' @param nPca an integer giving the number of Pcas used whe reducing the kinship matrix.
-#' Ignored if reduceK = \code{FALSE}
+#' Ignored if reduceK = \code{FALSE}.
 #'
 #' @return an object of class \code{GWAS}.
 #'
-#' @references Dahl et al. (2014). Network inference in matrix-variate Gaussian models with
-#' non-indenpent noise.
+#' @references Dahl et al. (2013). Network inference in matrix-variate Gaussian models with
+#' non-independent noise. arXiv preprint arXiv:1312.1622.
 #' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
 #' genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
+#' @references Furlotte, N.A. and Eskin, E. (2015). Efficient multiple-trait association and
+#' estimation of genetic correlation using the matrix-variate linear mixed model. Genetics, May 2015,
+#' Vol.200-1, p. 59-68.
+#' @references Kruijer et al. (2015) Marker-based estimation of heritability in immortal populations.
+#' Genetics. February 2015, Vol. 199-2, p. 379-398.
 #'
 #' @export
 
@@ -147,11 +155,11 @@ runMultiTraitGwas <- function(gData,
   if (reduceK && is.null(nPca))
     stop("If the kinship matrix is to be reduced, nPca cannot be NULL.\n")
   if (is.null(K)) K <- gData$kinship
-  if (covModel %in% c(2, 4)) {stopifnot(snpCovariates == "")}
+  if (covModel %in% c(4)) {stopifnot(snpCovariates == "")}
   ## Make sure that when subsetting markers snpCovariates are included in the subset
   if (subsetMarkers) {
     if (!is.null(snpCovariates)) {
-      if (!all(length(which(colnames(markers) %in% snpCovariates) %in% markerSubset))) {
+      if (!all(which(colnames(markers) %in% snpCovariates) %in% markerSubset)) {
         markerSubset <- union(markerSubset,
           which(colnames(markers) %in% snpCovariates))
         cat('snpCovariates have been added to the marker-subset \n')
@@ -163,13 +171,15 @@ runMultiTraitGwas <- function(gData,
     markersRed <- markers
     mapRed <- map
   }
-  environment <- 1
+  environment <- environments
   if (is.null(covar)) {
     phenoEnvir <- gData$pheno[[environment]]
     covarEnvir <- NULL
   } else {
     ## Append covariates to pheno data. Merge to remove values from pheno that are missing in covar.
     phenoEnvir <- merge(gData$pheno[[environment]], gData$covar[covar], by.x = "genotype", by.y = "row.names")
+    ## Remove rows from phenoEnvir with missing covar check if there are missing values.
+    phenoEnvir <- phenoEnvir[complete.cases(phenoEnvir[covar]), ]
     ## Expand covariates that are a factor (i.e. dummy variables are created) using model.matrix
     ## The new dummies are attached to phenoEnvir, and covar is changed accordingly
     factorCovs <- which(sapply(gData$covar[covar], FUN = is.factor))
@@ -195,7 +205,8 @@ runMultiTraitGwas <- function(gData,
   }
   X <- cbind(rep(1, nrow(phenoEnvir)), as.matrix(phenoEnvir[covarEnvir]))
   rownames(X) <- phenoEnvir$genotype
-  Y <- as.matrix(tibble::column_to_rownames(tibble::remove_rownames(gData$pheno[[1]]),
+  Y <- as.matrix(tibble::column_to_rownames(
+    tibble::remove_rownames(phenoEnvir[, which(!colnames(phenoEnvir) %in% covarEnvir)]),
     var = "genotype"))
   K <- K[rownames(Y), rownames(Y)]
   ## Add snpCovariates to X
@@ -213,13 +224,17 @@ runMultiTraitGwas <- function(gData,
   if (fitVarComp) {
     ## Unstructured (pairwise) models
     if (covModel == 2) {
-      varcomp <- covPairwise(Y = Y, K = K, fixDiag = FALSE, corMat = TRUE, VeDiag = VeDiag)
+      ## Sommer always adds an intercept so remove it from X.
+      varcomp <- covPairwise(Y = Y, K = K, X = if (ncol(X) == 1) NULL else as.matrix(X[, -1]),
+        fixDiag = FALSE, corMat = TRUE, VeDiag = VeDiag)
       Vg <- varcomp$Vg
       Ve <- varcomp$Ve
       if (!is.null(snpCovariates)) {
-        varcompRed <- covPairwise(Y = Y, K = K, X = X, fixDiag = FALSE, corMat = TRUE, VeDiag = VeDiag)
-        VgRed <- varcomp$Vg
-        VeRed <- varcomp$Ve
+        ## Sommer always adds an intercept so remove it from XRed.
+        varcompRed <- covPairwise(Y = Y, K = K, X = if (ncol(XRed) == 1) NULL else as.matrix(XRed[, -1]),
+          fixDiag = FALSE, corMat = TRUE, VeDiag = VeDiag)
+        VgRed <- varcompRed$Vg
+        VeRed <- varcompRed$Ve
       }
     } else if (covModel == 3) {
       ## FA models
@@ -257,7 +272,7 @@ runMultiTraitGwas <- function(gData,
         VgRed <- solve(varcompRed$Cm)
         VeRed <- solve(varcompRed$Dm)
       }
-    } else if (covModel==4) {
+    } else if (covModel == 4) {
       ## ??
       p <- nrow(Y)
       geno <- rownames(Y)
@@ -323,7 +338,7 @@ runMultiTraitGwas <- function(gData,
     stringsAsFactors = FALSE)
   if (!is.null(snpCovariates)) {
     est0Red <- estimateEffects(X = XtRed, Y = Yt, VInvArray = VInvArrayRed, returnAllEffects = TRUE)
-    fittedMean0Red <- matrix(est0Red$effects.estimates,ncol = length(est0Red$effects.estimates) / p) %*% XtRed
+    fittedMean0Red <- matrix(est0Red$effects.estimates, ncol = length(est0Red$effects.estimates) / p) %*% XtRed
     SS0Red <- LLQuadFormDiag(Y = Yt - fittedMean0Red, VInvArray = VInvArrayRed)
     for (mrk in snpCovariateNumbers) {
       x <- matrix(as.numeric(markersRed[, mrk]))
@@ -348,7 +363,9 @@ runMultiTraitGwas <- function(gData,
       df = p, lower.tail = FALSE)
     effects[mrk, ] <- LRTRes$effects
     effectsSe[mrk, ] <-  LRTRes$effects.se
-    if (mrk %% 1000 == 0) {cat("Progress: ", (mrk / nn) * 100, " percent\n")}
+    if (mrk %% 1000 == 0) {
+      cat("Progress: ", (mrk / nn) * 100, " percent\n")
+    }
   }
   ## Add LOD-scores to result
   GWAResult$LOD <- -log10(GWAResult$pValue)
@@ -371,6 +388,10 @@ runMultiTraitGwas <- function(gData,
   GWASInfo <- list(call = match.call(),
     MAF = MAF,
     varComp = list(Vg = Vg, Ve = Ve))
-  return(createGWAS(GWAResult = GWAResult, signSnp = NULL, thr = NULL, GWASInfo = GWASInfo))
+  return(createGWAS(GWAResult = GWAResult,
+    signSnp = NULL,
+    kin = K,
+    thr = NULL,
+    GWASInfo = GWASInfo))
 }
 
