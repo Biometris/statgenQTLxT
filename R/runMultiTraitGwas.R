@@ -26,7 +26,7 @@
 #' \item{approximate ...}
 #' }
 #' Ignored if fitVarComp = \code{FALSE}
-#' @param vEDiag Should there be environmental correlations if covModel = 2? If traits are measured on
+#' @param VeDiag Should there be environmental correlations if covModel = 2? If traits are measured on
 #' the same individuals put \code{FALSE}.
 #' @param tolerance a numerical value. Used when fitting the factor analytical model if covModel = 3.
 #' See \code{\link{EMFA}}.
@@ -56,19 +56,7 @@
 #' @param nPca an integer giving the number of Pcas used whe reducing the kinship matrix.
 #' Ignored if reduceK = \code{FALSE}
 #'
-#' @return a list containing the following items:
-#' \itemize{
-#' \item{\code{Vg} a matrix with genotypic variance compontents.}
-#' \item{\code{Ve} a matrix with environmental variance compontents.}
-#' \item{\code{M} a matrix of effect size estimates.}
-#' \item{\code{TStat} a matrix of t-statistics.}
-#' \item{\code{results} a vector of p-values.}
-#' \item{\code{resultsWald} a vector of p-values for the wald test.}
-#' \item{\code{MExtended} a matrix of snp information, lod scores, lod scores for the Wald
-#' test and effect size estimates.}
-#' \item{\code{TStatExtended} a matrix of snp information, lod scores, lod scores for the Wald
-#' test and t-statistics.}
-#' }
+#' @return an object of class \code{GWAS}.
 #'
 #' @references Dahl et al. (2014). Network inference in matrix-variate Gaussian models with
 #' non-indenpent noise.
@@ -77,9 +65,6 @@
 #'
 #' @export
 
-# #snpCovariates.list <- list('AX-90548584')
-
-## TO DO: more error checking
 ## TO DO: MAX.DIAG SHOULD DEPEND ON THE SCALE OF THE DATA
 ## TO DO: the following option is still under construction; leave to zero
 ## LOD.thr <- 0 if larger than zero, it is assumed a GWAS was done previously with the same name
@@ -95,7 +80,7 @@ runMultiTraitGwas <- function(gData,
   MAF = 0.05,
   fitVarComp = TRUE,
   covModel = 1,
-  vEDiag = TRUE,
+  VeDiag = TRUE,
   tolerance = 1e-6,
   maxIter = 2e5,
   maxDiag = 1e4,
@@ -228,11 +213,11 @@ runMultiTraitGwas <- function(gData,
   if (fitVarComp) {
     ## Unstructured (pairwise) models
     if (covModel == 2) {
-      varcomp <- covPairwise(Y = Y, K = K, fixDiag = FALSE, corMat = TRUE, VeDiag = FALSE)
+      varcomp <- covPairwise(Y = Y, K = K, fixDiag = FALSE, corMat = TRUE, VeDiag = VeDiag)
       Vg <- varcomp$Vg
       Ve <- varcomp$Ve
       if (!is.null(snpCovariates)) {
-        varcompRed <- covPairwise(Y = Y, K = K, X = X, fixDiag = FALSE, corMat = TRUE, VeDiag = FALSE)
+        varcompRed <- covPairwise(Y = Y, K = K, X = X, fixDiag = FALSE, corMat = TRUE, VeDiag = VeDiag)
         VgRed <- varcomp$Vg
         VeRed <- varcomp$Ve
       }
