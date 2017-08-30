@@ -2,7 +2,7 @@
 #'
 #' \code{runSingleTraitGwas} performs a single-trait Genome Wide Association Study (GWAS) on phenotypic and
 #' genotypic data contained in a \code{gData} object. A covariance matrix is computed using the EMMA algorithm
-#' (Kang et al., 2008) or the Newton-Raphson algorithm (Tunnicliffe, 1989) of the \code{sommer}
+#' (Kang et al., 2008) or the Newton-Raphson algorithm (Tunnicliffe, 1989) in the \code{sommer}
 #' package. Then a Generalized Least Squares (GLS) method is used for estimating the marker effects and
 #' corresponding p-values. This is done using either one kinship matrix for all chromosomes or different
 #' chromosome specific kinship matrices for each chromosome. Significant SNPs are selected based on a user
@@ -68,24 +68,26 @@
 #' @param nSnpLOD a numerical value indicating the number of SNPs with the smallest p-values that
 #' are selected when \code{thrType} = 3.
 #'
-#' @return an object of class \code{GWAS}.
+#' @return an object of class \code{\link{GWAS}}.
 #'
-#' @references Kang et al. (2008) Efficient Control of Population Structure in Model Organism
-#' Association Mapping. Genetics, March 2008, Vol. 178, no. 3, p. 1709-1723
-#' @references Tunnicliffe W. (1989) On the use of marginal likelihood in time series model estimation.
-#' JRSS, Vol.51(1), p.15-27.
-#' @references Rincent et al. (2014) Recovering power in association mapping panels with variable
-#' levels of linkage disequilibrium. Genetics, May 2014. Vol. 197. p. 375–387.
+#' @references Astle W., Balding D. J. (2009) Population structure and cryptic relatedness in genetic
+#' association studies, Stat. Sci., November 2009, Vol. 24, no. 4, p. 451–471.
 #' @references Devlin, B. and Roeder K. (1999) Genomic control for association studies. Biometrics,
 #' December 1999, Vol. 55(4), p. 997-1004.
+#' @references Kang et al. (2008) Efficient Control of Population Structure in Model Organism
+#' Association Mapping. Genetics, March 2008, Vol. 178, no. 3, p. 1709-1723.
+#' @references Rincent et al. (2014) Recovering power in association mapping panels with variable
+#' levels of linkage disequilibrium. Genetics, May 2014. Vol. 197. p. 375–387.
 #' @references Segura et al. (2012) An efficient multi-locus mixed-model approach for genome-wide
 #' association studies in structured populations. Nature Genetics, June 2012, Vol. 44, p. 825–830.
 #' @references Sun et al. (2010) Variation explained in mixed-model association mapping.
 #' Heredity, February 2010, Vol. 105, p. 333–340.
-#' @references Astle W., Balding D. J. (2009) Population structure and cryptic relatedness in genetic
-#' association studies, Stat. Sci., November 2009, Vol. 24, no. 4, p. 451–471.L
+#' @references Tunnicliffe W. (1989) On the use of marginal likelihood in time series model estimation.
+#' JRSS, Vol.51(1), p.15-27.
 #' @references VanRaden P.M. (2008) Efficient methods to compute genomic predictions. J Dairy Sci,
 #' November 2008, Vol. 91 p. 4414–4423.
+#'
+#' @seealso \code{\link{GWAS}}, \code{\link{kinship}}
 #'
 #' @import stats
 
@@ -231,7 +233,8 @@ runSingleTraitGwas <- function (gData,
     allFreqTot<- allFreqTot / 2
   }
   ## Define data.frames for total results.
-  GWATot <- signSnpTot <- setNames(vector(mode = "list", length = length(environments)),
+  GWATot <- signSnpTot <- inflationFactorTot <-
+    setNames(vector(mode = "list", length = length(environments)),
     names(gData$pheno)[environments])
   for (environment in environments) {
     ## If traits is given as numeric convert to character.
@@ -249,7 +252,7 @@ runSingleTraitGwas <- function (gData,
       phenoEnvir <- phenoEnvir[complete.cases(phenoEnvir[covar]), ]
       ## Expand covariates that are a factor (i.e. dummy variables are created) using model.matrix
       ## The new dummies are attached to phenoEnvir, and covar is changed accordingly
-      factorCovs <- which(sapply(gData$covar[covar], FUN = is.factor))
+      factorCovs <- which(sapply(X = gData$covar[covar], FUN = is.factor))
       if (length(factorCovs) > 0) {
         covFormula <- as.formula(paste("genotype ~ ", paste(covar[factorCovs], collapse = "+")))
         ## Create dummy variables. Remove intercept.
@@ -271,7 +274,7 @@ runSingleTraitGwas <- function (gData,
       colnames(phenoEnvir)[(ncol(phenoEnvir) - length(snpCovariates) + 1):ncol(phenoEnvir)] <- snpCovariates
     }
     GWATotEnvir <- signSnpTotEnvir <- NULL
-    inflationFactor <- setNames(numeric(length = length(traits)), traits)
+    inflationFactorEnvir <- setNames(numeric(length = length(traits)), traits)
     varComp <- setNames(vector(mode = "list", length = length(traits)), traits)
     ## Perform GWAS for all traits.
     for (trait in traits) {
@@ -292,8 +295,9 @@ runSingleTraitGwas <- function (gData,
         if (!isTRUE(all.equal(kinshipRed, diag(nrow(kinshipRed)), check.names = FALSE))) {
           if (remlAlgo == 1) {
             ## emma algorithm takes covariates from gData.
-            gDataEmma <- createGData(pheno = gData$pheno,
-              covar = as.data.frame(phenoEnvir[covarEnvir], row.names = phenoEnvir$genotype))
+              gDataEmma <- createGData(pheno = gData$pheno,
+              covar = if(is.null(covarEnvir)) NULL else as.data.frame(phenoEnvir[covarEnvir],
+                row.names = phenoEnvir$genotype))
             remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment,
               covar = covarEnvir, K = kinshipRed)
             ## Compute varcov matrix using var components.
@@ -325,7 +329,8 @@ runSingleTraitGwas <- function (gData,
         ## emma algorithm takes covariates from gData.
         if (remlAlgo == 1) {
           gDataEmma <- createGData(pheno = gData$pheno,
-            covar = as.data.frame(phenoEnvir[covarEnvir], row.names = phenoEnvir$genotype))
+            covar = if(is.null(covarEnvir)) NULL else as.data.frame(phenoEnvir[covarEnvir],
+              row.names = phenoEnvir$genotype))
           for (chr in chrs) {
             ## Get chromosome specific kinship.
             KinshipRedChr <- KChr[[which(chrs == chr)]][nonMissing, nonMissing]
@@ -405,7 +410,7 @@ runSingleTraitGwas <- function (gData,
         GLSResult <- fastGLS(y = y, X = X, Sigma = vcovMatrix, covs = Z)
         GWAResult[setdiff(segMarkers, exclude),
           c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
-        ## Compute pvalues and effects for snpCovariates using fastGLS.
+        ## Compute p-values and effects for snpCovariates using fastGLS.
         for (snpCovariate in snpCovariates) {
           GLSResultSnpCov <- fastGLS(y = y,
             X = as.matrix(markersRed[nonMissingRepId, snpCovariate]),
@@ -473,7 +478,7 @@ runSingleTraitGwas <- function (gData,
       GC <- genomicControlPValues(pVals = GWAResult$pValue,
         nObs = length(nonMissing),
         nCov = length(covarEnvir))
-      inflationFactor[trait] <- GC$inflation
+      inflationFactorEnvir[trait] <- GC$inflation
       ## Rescale p-values.
       if (genomicControl) {
         GWAResult$pValue <- GC$pValues
@@ -539,6 +544,7 @@ runSingleTraitGwas <- function (gData,
     } # end for (trait in traits)
     GWATot[[match(environment, environments)]] <- GWATotEnvir
     signSnpTot[[match(environment, environments)]] <- signSnpTotEnvir
+    inflationFactorTot[[match(environment, environments)]] <- inflationFactorEnvir
   } # end for (environment in environments)
   ## Collect info
   GWASInfo <- list(call = match.call(),
@@ -548,7 +554,7 @@ runSingleTraitGwas <- function (gData,
     MAF = MAF,
     varComp = varComp,
     genomicControl = genomicControl)
-  if (genomicControl) GWASInfo$inflationFactor <- inflationFactor
+  if (genomicControl) GWASInfo$inflationFactor <- inflationFactorTot
   return(createGWAS(GWAResult = GWATot,
     signSnp = signSnpTot,
     kin = if (GLSMethod == 1) {if (is.null(K)) gData$kinship else K} else KChr,

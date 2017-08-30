@@ -7,6 +7,8 @@
 #' @param nPca an integer, the number of eigenvectors used for reducing the kinship matrix.
 #'
 #' @return the reduced kinship matrix
+#'
+#' @keywords internal
 
 reduceKinship <- function(K, nPca) {
   w <- eigen(K, symmetric = TRUE)

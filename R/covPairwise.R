@@ -13,13 +13,10 @@
 #'
 #' @return a list of two matrices \code{Vg} and \code{Ve} containing genotypic and environmental
 #' variance components respectively.
-
-
-## TO DO: univariate G-BLUPs; + correlations in case of non-convergence
-## diagonal Ve
-## p-values for correlations
-
+#'
 #' @import utils
+#'
+#' @keywords internal
 
 covPairwise <- function(Y,
   K,

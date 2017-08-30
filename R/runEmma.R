@@ -1,6 +1,6 @@
 #' Compute REML estimates of variance components using EMMA algorithm.
 #'
-#' Using the EMMA algorithm as is Kang et al. compute REML estimates of genetic and residual
+#' Using the EMMA algorithm as is Kang et al. (2008) compute REML estimates of genetic and residual
 #' variance components.
 #'
 #' @param gData an object of class gData containing at least a data.frame \code{pheno}. If \code{K} is
@@ -38,6 +38,8 @@
 #' Association Mapping. Genetics, March 2008, Vol. 178, no. 3, p. 1709-1723
 
 #' @import stats
+#'
+#' @keywords internal
 
 runEmma <- function(gData,
   trait,
@@ -86,7 +88,6 @@ runEmma <- function(gData,
     stop("lLim should be smaller than uLim.\n")
   if(!is.null(eps) && (length(eps) > 1 || !is.numeric(eps)))
     stop("eps should be a single numeric value.\n")
-
   ## Add column genotype to environment.
   phenoEnvir <- gData$pheno[[environment]]
   ## Remove data with missings in trait or any of the covars.
@@ -141,7 +142,8 @@ runEmma <- function(gData,
     lambdas <- matrix(eigR$values, nrow = n - q, ncol = m) +
       matrix(delta, nrow = n - q, ncol = m, byrow = TRUE)
     ## Compute derivative of LL as in eqn. 9 of Kang for all grid endpoints.
-    dLL <- 0.5 * delta * ((n - q) * colSums(etasQ / lambdas ^ 2) / colSums(etasQ / lambdas) - colSums(1 / lambdas))
+    dLL <- 0.5 * delta * ((n - q) * colSums(etasQ / lambdas ^ 2) /
+        colSums(etasQ / lambdas) - colSums(1 / lambdas))
   } else {
     ## Compute n-q non-zero eigenvalues and corresponding eigenvectors.
     eigR <- emmaEigenRZ(Z = Z, K = K, X = X)
@@ -194,6 +196,5 @@ runEmma <- function(gData,
     maxVg <- (sum(etas1 ^ 2 /(eigR$values + maxDelta)) + etas2 / maxDelta) / (n - q)
   }
   maxVe <- maxVg * maxDelta
-
   return(list(varcomp = c(Vg = maxVg, Ve = maxVe), K = K))
 }

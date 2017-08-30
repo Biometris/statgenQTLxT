@@ -63,13 +63,13 @@
 #'
 #' @references Dahl et al. (2013). Network inference in matrix-variate Gaussian models with
 #' non-independent noise. arXiv preprint arXiv:1312.1622.
-#' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
-#' genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
 #' @references Furlotte, N.A. and Eskin, E. (2015). Efficient multiple-trait association and
 #' estimation of genetic correlation using the matrix-variate linear mixed model. Genetics, May 2015,
 #' Vol.200-1, p. 59-68.
 #' @references Kruijer et al. (2015) Marker-based estimation of heritability in immortal populations.
 #' Genetics. February 2015, Vol. 199-2, p. 379-398.
+#' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
+#' genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409.
 #'
 #' @export
 
@@ -87,7 +87,7 @@ runMultiTraitGwas <- function(gData,
   markerSubset = "",
   MAF = 0.05,
   fitVarComp = TRUE,
-  covModel = 1,
+  covModel = 2,
   VeDiag = TRUE,
   tolerance = 1e-6,
   maxIter = 2e5,
@@ -225,13 +225,13 @@ runMultiTraitGwas <- function(gData,
     ## Unstructured (pairwise) models
     if (covModel == 2) {
       ## Sommer always adds an intercept so remove it from X.
-      varcomp <- covPairwise(Y = Y, K = K, X = if (ncol(X) == 1) NULL else as.matrix(X[, -1]),
+      varcomp <- covPairwise(Y = Y, K = K, X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
         fixDiag = FALSE, corMat = TRUE, VeDiag = VeDiag)
       Vg <- varcomp$Vg
       Ve <- varcomp$Ve
       if (!is.null(snpCovariates)) {
         ## Sommer always adds an intercept so remove it from XRed.
-        varcompRed <- covPairwise(Y = Y, K = K, X = if (ncol(XRed) == 1) NULL else as.matrix(XRed[, -1]),
+        varcompRed <- covPairwise(Y = Y, K = K, X = if (ncol(XRed) == 1) NULL else XRed[, -1, drop = FALSE],
           fixDiag = FALSE, corMat = TRUE, VeDiag = VeDiag)
         VgRed <- varcompRed$Vg
         VeRed <- varcompRed$Ve
@@ -338,31 +338,31 @@ runMultiTraitGwas <- function(gData,
     stringsAsFactors = FALSE)
   if (!is.null(snpCovariates)) {
     est0Red <- estimateEffects(X = XtRed, Y = Yt, VInvArray = VInvArrayRed, returnAllEffects = TRUE)
-    fittedMean0Red <- matrix(est0Red$effects.estimates, ncol = length(est0Red$effects.estimates) / p) %*% XtRed
+    fittedMean0Red <- matrix(est0Red$effectsEstimates, ncol = length(est0Red$effectsEstimates) / p) %*% XtRed
     SS0Red <- LLQuadFormDiag(Y = Yt - fittedMean0Red, VInvArray = VInvArrayRed)
     for (mrk in snpCovariateNumbers) {
       x <- matrix(as.numeric(markersRed[, mrk]))
       xt <- crossprod(x, Uk)
       LRTRes <- LRTTest(X = XtRed, x = xt, Y = Yt, VInvArray = VInvArrayRed, SS0 = SS0Red)
       GWAResult[mrk, "pValue"] <- LRTRes$pvalue
-      GWAResult[mrk, "pValueWald"] <- pchisq(sum((LRTRes$effects / LRTRes$effects.se) ^ 2),
+      GWAResult[mrk, "pValueWald"] <- pchisq(sum((LRTRes$effects / LRTRes$effectsSe) ^ 2),
         df = p, lower.tail = FALSE)
       effects[mrk, ] <- LRTRes$effects
-      effectsSe[mrk, ] <- LRTRes$effects.se
+      effectsSe[mrk, ] <- LRTRes$effectSse
     }
   }
   est0 <- estimateEffects(X = Xt, Y = Yt, VInvArray = VInvArray, returnAllEffects = TRUE)
-  fittedMean0 <- matrix(est0$effects.estimates, ncol = length(est0$effects.estimates) / p) %*% Xt
+  fittedMean0 <- matrix(est0$effectsEstimates, ncol = length(est0$effectsEstimates) / p) %*% Xt
   SS0 <- LLQuadFormDiag(Y = Yt - fittedMean0, VInvArray = VInvArray)
   for (mrk in setdiff(1:nn, excludedMarkers)) {
     x <- matrix(as.numeric(markersRed[, mrk]))
     xt <- crossprod(x, Uk)
     LRTRes <- LRTTest(X = Xt, x = xt, Y = Yt, VInvArray = VInvArray, SS0 = SS0)
     GWAResult[mrk, "pValue"] <- LRTRes$pvalue
-    GWAResult[mrk, "pValueWald"] <- pchisq(sum((LRTRes$effects / LRTRes$effects.se) ^ 2),
+    GWAResult[mrk, "pValueWald"] <- pchisq(sum((LRTRes$effects / LRTRes$effectsSe) ^ 2),
       df = p, lower.tail = FALSE)
     effects[mrk, ] <- LRTRes$effects
-    effectsSe[mrk, ] <-  LRTRes$effects.se
+    effectsSe[mrk, ] <-  LRTRes$effectsSe
     if (mrk %% 1000 == 0) {
       cat("Progress: ", (mrk / nn) * 100, " percent\n")
     }

@@ -18,7 +18,7 @@
 #' @return an n x n kinship matrix.
 #'
 #' @references Astle W., Balding D. J. (2009) Population structure and cryptic relatedness in genetic
-#' association studies, Stat. Sci., November 2009, Vol. 24, no. 4, p. 451–471.L
+#' association studies, Stat. Sci., November 2009, Vol. 24, no. 4, p. 451–471.
 #' @references VanRaden P.M. (2008) Efficient methods to compute genomic predictions. J Dairy Sci,
 #' November 2008, Vol. 91 p. 4414–4423.
 #'

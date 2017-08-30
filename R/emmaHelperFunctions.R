@@ -1,6 +1,7 @@
 #' emmaFunctions
 #'
-#' Helper functions for computing REML estimates of genetic and residual variance components.
+#' Helper functions for computing REML estimates of genetic and residual variance components
+#' using the EMMA algorithm.
 #'
 #' @inheritParams runEmma
 #' @param X a q x n covariate matrix, q being the number of covariates and n being the number

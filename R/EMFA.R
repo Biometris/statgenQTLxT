@@ -1,6 +1,6 @@
 #' Factor analytic variation of EM algoritm
 #'
-#' Implementation of the factor analytic variation of the EM algoritm as proposed by Dahl et al.
+#' Implementation of the factor analytic variation of the EM algoritm as proposed by Dahl et al. (2013).
 #'
 #' @param Y an n x p matrix of observed phenotypes, on p traits or environments for n individuals.
 #' No missing values are allowed.
@@ -8,9 +8,9 @@
 #' @param X an n x c covariate matrix, c being the number of covariates and n being the number
 #' of genotypes. c has to be at least one (typically an intercept). No missing values are allowed.
 #' If not provided a vector of 1s is used.
-#' @param CmHet should an extra diagonal part is added in the model for the
+#' @param CmHet should an extra diagonal part be added in the model for the
 #' precision matrix Cm?
-#' @param DmHet should an extra diagonal part is added in the model for the
+#' @param DmHet should an extra diagonal part be added in the model for the
 #' precision matrix Dm?
 #' @param tolerance a numerical value. The iterating process stops if the difference in conditional
 #' log-likelihood between two consecutive iterations drops below tolerance.
@@ -26,15 +26,26 @@
 #' log-likelihood decreases between two consecutive iterations?
 #' @param computeLogLik should the log-likelihood be returned?
 #'
-#' @return A list containing results of the algoritm.
+#' @return A list containing the following components
+#' \itemize{
+#' \item{\code{Cm} final value for the precision matrix Cm.}
+#' \item{\code{Dm} final value for the precision matrix Dm.}
+#' \item{\code{logLik} log-likelihood}
+#' \item{\code{logLik2} log-likelihood as in Zhou and Stephens (2014)}
+#' \item{\code{nIter} the number of iterations.}
+#' \item{\code{converged} did the algorithm converge?}
+#' \item{\code{decreased} did the algorithm stop because the log-likelihood decreased
+#' between iterations.}
+#' }
 #'
 #' @references Dahl et al. (2013). Network inference in matrix-variate Gaussian models with
 #' non-independent noise. arXiv preprint arXiv:1312.1622.
+#' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
+#' genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
 #'
 #' @importFrom methods as
-
-## TO DO: also check : missing data
-## TO DO: describe output. Everything needed?
+#'
+#' @keywords internal
 
 EMFA <- function(Y,
   K,
@@ -51,21 +62,23 @@ EMFA <- function(Y,
   prediction = TRUE,
   stopIfDecreasing = FALSE,
   computeLogLik = FALSE) {
-  ## Check input
-  if (!is.matrix(Y)) Y <- as.matrix(Y)
-  stopifnot(nrow(Y) == nrow(K))
-  stopifnot(ncol(K) == nrow(K))
+  ## Check input.
+  if (missing(Y) || !is.matrix(Y) || anyNA(Y))
+    stop("Y should be a matrix without missing values.")
+  if (missing(K) || !is.matrix(K) || nrow(K) != nrow(Y) || ncol(K) != nrow(Y) || anyNA(K))
+    stop("K should be a matrix without missing values with the same number of rows
+      and columns as the number of rows in Y.")
+  if(!is.matrix(X) || anyNA(X))
+    stop("X should be a matrix without missing values.")
   nc <- ncol(X)
-  if (nc > 0) {stopifnot(nrow(X) == nrow(K))}
+  if (nc > 0 && nrow(X) != nrow(K))
+    stop("X and K should have the same number of rows.")
   n <- ncol(K)
   p <- ncol(Y)
-  ## check if mG and mE have sensible values
-  if (mG != round(mG)) {stop("mG needs to be integer")}
-  if (mE != round(mE)) {stop("mE needs to be integer")}
-  if (mG < 0) {stop("mG cannot be negative")}
-  if (mE < 0) {stop("mE cannot be negative")}
-  if (mG >= p) {stop("mG needs to be smaller than the number of traits or environments")}
-  if (mE >= p) {stop("mE needs to be smaller than the number of traits or environments")}
+  if (!is.numeric(mG) || mG != round(mG) || mG < 0 || mG > p)
+    stop("mG should be a positive integer between 0 and the number of traits.")
+  if (!is.numeric(mE) || mE != round(mE) || mE < 0 || mE > p)
+    stop("mE should be a positive integer between 0 and the number of traits.")
   if (nc > 0) {
     B <- matrix(0, nc, p) # the c x p matrix of coefficients (p traits)
     XtXinvXt <- solve(crossprod(X), t(X))
@@ -130,12 +143,13 @@ EMFA <- function(Y,
     We <- NULL
     Pe <- NULL
   }
+  ## Set starting values.
   continue <- TRUE
   decreased <- FALSE
   iter <- 1
   ELogLikCm <- ELogLikDm <- -Inf
   mu <- matrix(rep(0, n * p), ncol = p)
-  ## EM following Dahl et al.
+  ## EM following the notation of Dahl et al.
   while (continue && iter < maxIter) {
     DmSqrtInv <- matrixRoot(solve(Dm))
     w1 <- eigen(DmSqrtInv %*% Cm %*% DmSqrtInv, symmetric = TRUE)
@@ -145,11 +159,6 @@ EMFA <- function(Y,
     w2 <- eigen(CmSqrtInv %*% Dm %*% CmSqrtInv, symmetric = TRUE)
     Q2 <- w2$vectors
     lambda2 <- w2$values
-    ## In the preprint of Dahl et al (arxiv, version 6 dec. 2013),
-    # part1-part4 are the quantities, on the bottom part of p.6, in this order
-    # Each time we compute the right hand side of the equation
-    # In dahl_etal_2013_debug.r we checked the left hand side(s) as well
-    # Also S1 and S2 correspond to p. 6 of their preprint
     if (nc > 0) {
       tUYminXb <- crossprod(Uk, Y - X %*% B)
       S1 <- vecInvDiag(x = lambda1, y = w$values) * (tUYminXb %*% matrixRoot(Dm) %*% Q1)
@@ -175,7 +184,7 @@ EMFA <- function(Y,
     }
     Omega1 <- Matrix::forceSymmetric(as.matrix((part1 + part3) / n))
     Omega2 <- Matrix::forceSymmetric(as.matrix((part2 + part4) / n))
-    ## Update C
+    ## Update Cm
     if (mG == 0) {
       ## Recall that the model is Cm^{-1} = P^{-1} + W W^t.
       ## when mG == 0, W = 0 and Cm = P
@@ -208,7 +217,7 @@ EMFA <- function(Y,
       PgNew <- CmNewOutput$P
       CmNew <- MASS::ginv(MASS::ginv(PgNew) + tcrossprod(WgNew))
     }
-    ## Update D
+    ## Update Dm
     if (mE == 0) {
       ## Recall that the model is Dm^{-1} = P^{-1} + W W^t.
       ## when mE == 0, W = 0 and Cm = P
@@ -258,7 +267,6 @@ EMFA <- function(Y,
       cat("Iteration ", iter, " : ", CmDiff, "  ", DmDiff, "    ", ELogLik,"\n")
     }
     ## Update values for next iteration
-
     ## Prevent that Cm, Dm become asymmetric because of numerical inaccuracies
     Cm <- Matrix::forceSymmetric(CmNew)
     Dm <- Matrix::forceSymmetric(DmNew)
@@ -282,21 +290,18 @@ EMFA <- function(Y,
   } else {
     logLik <- NA
   }
+  ## Add default names if needed.
   if (is.null(rownames(Y))) {rownames(Y) <- paste0("genotype", 1:n)}
   if (is.null(colnames(Y))) {colnames(Y) <- paste0("trait", 1:p)}
-
   if (prediction & nc == 0) {
     mu <- matrix(tcrossprod(Uk %*% S1, DmSqrtInv %*% Q1), ncol = p)
   }
-
   predFrame <- data.frame(trait = rep(colnames(Y), each = n),
     genotype = rep(rownames(Y), p),
     predicted = as.numeric(mu))
 
-  return(list(Cm = Cm, Dm = Dm, B = B, Wg = Wg, We = We,
-    Pg = Pg, Pe = Pe, pred = predFrame, logLik = ELogLik, logLik2 = logLik,
-    tolerance = tolerance, converged = (!continue),
-    n = n, p = p, nc = nc, n.iter = iter, decreased = decreased))
+  return(list(Cm = Cm, Dm = Dm, logLik = ELogLik, logLik2 = logLik, nIter = iter,
+    converged = (!continue), decreased = decreased))
 }
 
 

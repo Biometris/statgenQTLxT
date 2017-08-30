@@ -28,11 +28,8 @@
 #'
 #' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
 #' genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
-
-## to do: example
-## comment on missing values
-## partial update...
-## wald?
+#'
+#' @keywords internal
 
 estimateEffects <- function(X,
   x = NULL,
@@ -45,9 +42,9 @@ estimateEffects <- function(X,
   stopifnot(nrow(Y) == dim(VInvArray)[2])
   stopifnot(nrow(Y) == dim(VInvArray)[3])
   stopifnot(is.null(x) || length(x) == ncol(X))
-  if (anyNA(X)) stop("No missing values allowed in X")
-  if (anyNA(x)) stop("No missing values allowed in x")
-  if (anyNA(Y)) stop("No missing values allowed in Y")
+  if (anyNA(X)) stop("No missing values allowed in X.\n")
+  if (anyNA(x)) stop("No missing values allowed in x.\n")
+  if (anyNA(Y)) stop("No missing values allowed in Y.\n")
   nc <- nrow(X)
   n <- ncol(X)
   p <- nrow(Y)
@@ -57,8 +54,8 @@ estimateEffects <- function(X,
   } else {
     ncTot <- nc + 1
   }
-  ## the last p coefficients should be the marker-effects
-  ## the first p * nc should correspond to the other coefficients
+  ## the last p coefficients should be the marker effects.
+  ## the first p * nc should correspond to the other coefficients.
   if (!is.null(x)) {X <- rbind(X , t(matrix(as.numeric(x))))}
   if (p == 1 && ncTot == 1) {
     Vbeta <- sum(sapply(1:n, function(i) {
@@ -72,6 +69,7 @@ estimateEffects <- function(X,
   if (length(x) > 0) {
     MSub <- solve(Vbeta[-(1:(p * nc)), -(1:(p * nc))])
   }
+  ## Split cases for extra robustness.
   if (p == 1 && ncTot == 1) {
     v <- sum(sapply(1:n, function(i) {kronecker(X[, i], VInvArray[i, , ] %*% Y[, i])}))
   } else {
@@ -92,5 +90,5 @@ estimateEffects <- function(X,
       wald <- as.numeric(crossprod(effectsEstimates, MSub) %*% effectsEstimates)
     }
   }
-  return(list(effects.estimates = effectsEstimates, effects.sd = effectsSd, wald = wald))
+  return(list(effectsEstimates = effectsEstimates, effectsSd = effectsSd, wald = wald))
 }

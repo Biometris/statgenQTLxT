@@ -1,6 +1,7 @@
-#' updateFAHomVar
+#' Update W and P in EMFA algorithm for homogeneous variance.
 #'
-#' updateFAHomVar
+#' Updata W and P used in the iteration process in the EMFA algorithm in case the variance
+#' is homogeneous.
 #'
 #' @inheritParams EMFA
 #'
@@ -26,8 +27,10 @@ updateFAHomVar <- function(Y = NULL, S = NULL, m, maxDiag = 1e4) {
   }
   p <- ncol(S)
   a <- eigen(S, symmetric = TRUE)
-  if (m >= p) {stop("m needs to be smaller than the number of variables")}
+  if (m >= p)
+    stop("m needs to be smaller than the number of variables")
   sigma2 <- max(mean(a$values[-(1:m)]), 1 / maxDiag)
+  ## Split cases for extra robustness.
   if (m == 1) {
     W <- matrix(a$vectors[, 1] * sqrt(a$values[1] - sigma2))
   } else {

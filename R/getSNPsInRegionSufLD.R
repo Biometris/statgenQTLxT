@@ -15,12 +15,13 @@
 #' have a minimum LD with the reference SNP.
 #'
 #' @import stats
+#'
+#' @keywords internal
 
 getSNPsInRegionSufLD <- function(gData,
   snp,
   regionSize = 5000,
   minR2 = 0.5) {
-
   ## Check input.
   if (missing(gData) || !is.gData(gData) || is.null(gData$map) || is.null(gData$markers))
     stop("gData should be a valid gData object containing at least map and markers.\n")
@@ -31,7 +32,6 @@ getSNPsInRegionSufLD <- function(gData,
     stop("regionSize should be a single positive numeric value.\n")
   if (length(minR2) > 1 || !is.numeric(minR2) || minR2 < 0 || minR2 > 1)
     stop("minR2 should be a single numeric value between 0 and 1.")
-
   ## Get candidate SNPs based on position.
   crit1 <- abs(gData$map$pos[snp] - gData$map$pos) <= regionSize
   crit2 <- gData$map$chr == gData$map$chr[snp]

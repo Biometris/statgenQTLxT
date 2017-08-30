@@ -23,39 +23,35 @@
 #'
 #' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
 #' genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
-
-## TO DO: example
+#'
+#' @keywords internal
 
 LRTTest <- function(X,
   x,
   Y,
   VInvArray,
   SS0 = NULL) {
-
   nc <- nrow(X)
   n <- ncol(X)
   p <- nrow(Y)
   dfFull <- (n - (nc + 1)) * p
-
   ## Null model with the trait specific means only
   if (is.null(SS0)) {
     est0 <- estimateEffects(X = X, Y = Y, VInvArray = VInvArray, returnAllEffects = TRUE)
-    fittedMean0 <- matrix(est0$effects.estimates, ncol = length(est0$effects.estimates) / p) %*% X
+    fittedMean0 <- matrix(est0$effectsEstimates, ncol = length(est0$effectsEstimates) / p) %*% X
     SS0 <- LLQuadFormDiag(Y = Y - fittedMean0, VInvArray = VInvArray)
   }
-
   ## Alternative model, with additional trait specific marker effect
   est1 <- estimateEffects(X = X, x = x, Y = Y, VInvArray = VInvArray, returnAllEffects = TRUE)
-  fittedMean1 <- matrix(est1$effects.estimates, ncol = length(est1$effects.estimates) / p) %*% rbind(X, x)
+  fittedMean1 <- matrix(est1$effectsEstimates, ncol = length(est1$effectsEstimates) / p) %*% rbind(X, x)
   SS1 <- LLQuadFormDiag(Y = Y - fittedMean1, VInvArray = VInvArray)
-
+  ## Compute F-statistic and p-value using results from null and alternative model.
   FStat <- ((SS0 - SS1) / SS1) * dfFull / p
   pValue <- pf(q = FStat, df1 = p, df2 = dfFull, lower.tail = FALSE)
-
   return(list(pvalue = pValue, Fstat = FStat, df = p,
     SS1 = SS1, SS0 = SS0,
-    effects = est1$effects.estimates[-(1:(nc * p))],
-    effects.se = est1$effects.sd[-(1:(nc * p))],
+    effects = est1$effectsEstimates[-(1:(nc * p))],
+    effectsSe = est1$effectsSd[-(1:(nc * p))],
     wald = est1$wald
   ))
 }

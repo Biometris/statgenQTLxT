@@ -24,6 +24,8 @@
 #' Heredity, February 2010, Vol. 105, p. 333–340.
 #'
 #' @import stats
+#'
+#' @keywords internal
 
 fastGLS <-function(y,
   X,

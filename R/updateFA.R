@@ -1,6 +1,6 @@
-#' updateFA
+#' Update W and P in EMFA algorithm
 #'
-#' updateFA
+#' Updata W and P used in the iteration process in the EMFA algorithm.
 #'
 #' @param Y a n x p matrix or dataframe.
 #' @param WStart a p x p matrix or dataframe containing starting values for W.
@@ -17,8 +17,6 @@
 #' of iterations.
 #'
 #' @keywords internal
-
-## TO DO: extension to Y- mu; now mu is assumed to be zero
 
 updateFA <- function(Y,
   WStart = NULL,
