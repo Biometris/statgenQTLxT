@@ -52,15 +52,17 @@ fastGLS <-function(y,
   if (!is.null(covs) && nrow(covs) != n)
     stop("The number of elements in y should be identical to the number of rows in covs")
   m <- ncol(X)
+  ## Number of chunks should be smaller than m.
+  if (nChunks > m) nChunks <- ceiling(m / 2)
   fixCovs <- cbind(rep(1, n), covs)
   nCov <- ncol(fixCovs)
   M <- solve(chol(Sigma))
-  ## pre-multiply the phenotype (y) with t(M)
+  ## Pre-multiply the phenotype (y) with t(M).
   tMy <- crossprod(M, y)
-  ## pre-multiply the intercept and covariates with t(M)
+  ## pre-multiply the intercept and covariates with t(M).
   tMfixCovs <- crossprod(M, fixCovs)
-  ## pre-multiply the snp-matrix with t(M)
-  ## for extra robustness, distinguish
+  ## Pre-multiply the snp-matrix with t(M).
+  ## For extra robustness, distinguish.
   if (m == 1) {
     tMX <- crossprod(M, matrix(as.numeric(X)))
   } else {

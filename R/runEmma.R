@@ -164,13 +164,13 @@ runEmma <- function(gData,
   ## Find optimum of LL
   optLogDelta <- numeric(0)
   optLL <- numeric(0)
-  ## Check first item in dLL. If < eps include LL value as possible optima.
+  ## Check first item in dLL. If < eps include LL value as possible optimum.
   if (dLL[1] < eps) {
     optLogDelta <- c(optLogDelta, lLim)
     optLL <- c(optLL, emmaREMLLL(logDelta = lLim, lambda = eigR$values, etas1 = etas1,
       n = n, t = t, etas2 = etas2))
   }
-  ## Check last item in dLL. If > - eps include LL value as possible optima.
+  ## Check last item in dLL. If > - eps include LL value as possible optimum.
   if (dLL[m] > - eps) {
     optLogDelta <- c(optLogDelta, uLim)
     optLL <- c(optLL, emmaREMLLL(logDelta = uLim, lambda = eigR$values, etas1 = etas,

@@ -73,11 +73,6 @@
 #'
 #' @export
 
-## TO DO: MAX.DIAG SHOULD DEPEND ON THE SCALE OF THE DATA
-## TO DO: the following option is still under construction; leave to zero
-## LOD.thr <- 0 if larger than zero, it is assumed a GWAS was done previously with the same name
-## .. and GWAS is now only (re)run for markers with -log(p) larger than LOD.thr
-
 runMultiTraitGwas <- function(gData,
   environments = NULL,
   covar = NULL,
