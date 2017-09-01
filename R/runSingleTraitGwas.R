@@ -37,14 +37,6 @@
 #' \item{using one kinship matrix.}
 #' \item{using chromosome specific kinship matrices; similar to the approach of Rincent et al.}
 #' }
-#' @param sizeInclRegion an integer. Should the results for SNPs close to significant SNPs
-#' be included? If so, the size of the region in centimorgan or base pairs. Otherwise 0.
-#' @param minR2 A numerical value between 0 and 1. Restricts the SNPs included in the region close
-#' to significant SNPs to only those SNPs that are in sufficient Linkage Disequilibruim (LD) with
-#' the significant snp, where LD is measured in terms of r^2. If for example
-#' \code{sizeInclRegion} = 200000 and \code{minR2} = 0.5, then for every significant SNP
-#' also those SNPs whose LD (r^2) with the significant SNP is at least 0.5 AND which are
-#' at most 200kb away from this significant snp are included. Ignored if \code{sizeInclRegion} = 0.
 #' @param useMAF should the minor allele frequency be used for selecting SNPs for the analysis.
 #' If \code{FALSE} the minor allele count is used instead.
 #' @param MAF A numerical value between 0 and 1. SNPs with minor allele frequency below
@@ -67,6 +59,14 @@
 #' @param LODThr a numerical value used as a LOD-threshold when \code{thrType} = 2.
 #' @param nSnpLOD a numerical value indicating the number of SNPs with the smallest p-values that
 #' are selected when \code{thrType} = 3.
+#' @param sizeInclRegion an integer. Should the results for SNPs close to significant SNPs
+#' be included? If so, the size of the region in centimorgan or base pairs. Otherwise 0.
+#' @param minR2 A numerical value between 0 and 1. Restricts the SNPs included in the region close
+#' to significant SNPs to only those SNPs that are in sufficient Linkage Disequilibruim (LD) with
+#' the significant snp, where LD is measured in terms of r^2. If for example
+#' \code{sizeInclRegion} = 200000 and \code{minR2} = 0.5, then for every significant SNP
+#' also those SNPs whose LD (r^2) with the significant SNP is at least 0.5 AND which are
+#' at most 200kb away from this significant snp are included. Ignored if \code{sizeInclRegion} = 0.
 #'
 #' @return an object of class \code{\link{GWAS}}.
 #'
@@ -100,8 +100,6 @@ runSingleTraitGwas <- function (gData,
   kinshipMethod = "astle",
   remlAlgo = 1,
   GLSMethod = 1,
-  sizeInclRegion = 0,
-  minR2,
   useMAF = TRUE,
   MAF = 0.05,
   MAC = 10,
@@ -109,7 +107,9 @@ runSingleTraitGwas <- function (gData,
   thrType = 1,
   alpha = 0.05 ,
   LODThr = 4,
-  nSnpLOD = 10) {
+  nSnpLOD = 10,
+  sizeInclRegion = 0,
+  minR2) {
   ## Checks.
   if(missing(gData) || !is.gData(gData) || is.null(gData$map) || is.null(gData$markers) ||
       is.null(gData$pheno))
@@ -247,16 +247,18 @@ runSingleTraitGwas <- function (gData,
       covarEnvir <- NULL
     } else {
       ## Append covariates to pheno data. Merge to remove values from pheno that are missing in covar.
-      phenoEnvir <- merge(gData$pheno[[environment]], gData$covar[covar], by.x = "genotype", by.y = "row.names")
+      phenoEnvir <- merge(gData$pheno[[environment]], gData$covar[covar],
+        by.x = "genotype", by.y = "row.names")
       ## Remove rows from phenoEnvir with missing covar check if there are missing values.
       phenoEnvir <- phenoEnvir[complete.cases(phenoEnvir[covar]), ]
       ## Expand covariates that are a factor (i.e. dummy variables are created) using model.matrix
       ## The new dummies are attached to phenoEnvir, and covar is changed accordingly
       factorCovs <- which(sapply(X = gData$covar[covar], FUN = is.factor))
       if (length(factorCovs) > 0) {
+        ## Create dummy variables without intercept.
         covFormula <- as.formula(paste("genotype ~ ", paste(covar[factorCovs], collapse = "+")))
-        ## Create dummy variables. Remove intercept.
-        extraCov <- as.data.frame(suppressWarnings(model.matrix(object = covFormula, data = phenoEnvir))[, -1])
+        extraCov <- as.data.frame(suppressWarnings(model.matrix(object = covFormula,
+          data = droplevels(phenoEnvir))))[, -1]
         ## Add dummy variables to pheno data.
         phenoEnvir <- cbind(phenoEnvir[, -which(colnames(phenoEnvir) %in% names(factorCovs))], extraCov)
         ## Modify covar to suit newly defined columns
@@ -298,7 +300,7 @@ runSingleTraitGwas <- function (gData,
               gDataEmma <- createGData(pheno = gData$pheno,
               covar = if(is.null(covarEnvir)) NULL else as.data.frame(phenoEnvir[covarEnvir],
                 row.names = phenoEnvir$genotype))
-            remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment,
+              remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment,
               covar = covarEnvir, K = kinshipRed)
             ## Compute varcov matrix using var components.
             varComp[[trait]] <- remlObj[[1]]
@@ -385,6 +387,7 @@ runSingleTraitGwas <- function (gData,
       y <- phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing), trait]
       if (GLSMethod == 1) {
         ## Exclude snpCovariates from segregating markers.
+        exclude <- integer()
         if (!is.null(snpCovariates)) {
           snpCovariateNumbers <- which(colnames(markersRed) %in% snpCovariates)
           for (snp in snpCovariateNumbers) {
@@ -392,11 +395,9 @@ runSingleTraitGwas <- function (gData,
             candidates <- which(allFreq == allFreq[snp])
             ## Exclude all snps that are identical to snps in snpCovariates.
             snpInfo <- markersRed[, snp]
-            exclude <- candidates[apply(markersRed[, candidates], MARGIN = 2,
-              FUN = function(x) {identical(as.numeric(x), as.numeric(snpInfo))})]
+            exclude <- union(exclude, candidates[apply(markersRed[, candidates], MARGIN = 2,
+              FUN = function(x) {identical(as.numeric(x), as.numeric(snpInfo))})])
           }
-        } else {
-          exclude <- integer()
         }
         ## The following is based on the genotypes, not the replicates:
         X <- markersRed[nonMissingRepId, setdiff(segMarkers, exclude)]
@@ -433,6 +434,7 @@ runSingleTraitGwas <- function (gData,
           segMarkersChr <- which(allFreqChr >= maxScore * MAF &
               allFreqChr <= maxScore * (1 - MAF))
           ## Exclude snpCovariates from segregating markers.
+          exclude <- integer()
           if (any(snpCovariates %in% colnames(markersRedChr))) {
             snpCovariateNumbers <- which(colnames(markersRedChr) %in% snpCovariates)
             for (snp in snpCovariateNumbers) {
@@ -440,8 +442,8 @@ runSingleTraitGwas <- function (gData,
               candidates <- which(allFreqChr == allFreqChr[snp])
               ## Exclude all snps that are identical to snps in snpCovariates.
               snpInfo <- markersRedChr[, snp]
-              exclude <- candidates[apply(markersRedChr[, candidates], MARGIN = 2,
-                FUN = function(x) {identical(as.numeric(x), as.numeric(snpInfo))})]
+              exclude <- union(exclude, candidates[apply(markersRedChr[, candidates], MARGIN = 2,
+                FUN = function(x) {identical(as.numeric(x), as.numeric(snpInfo))})])
             }
           } else {
             exclude <- integer()
@@ -489,7 +491,7 @@ runSingleTraitGwas <- function (gData,
       if (!is.null(gData$genes)) {
         GWAResult <- cbind(GWAResult, gene1 = gData$genes$gene1, gene2 = gData$genes$gene2)
       }
-      ## When thrType is 1, 3 or 4, determine the LOD threshold.
+      ## When thrType is 1 or 3, determine the LOD threshold.
       if (thrType == 1) {
         ## Compute LOD threshold using Bonferroni correction.
         nEff <- sum(!is.na(GWAResult$pValue))
