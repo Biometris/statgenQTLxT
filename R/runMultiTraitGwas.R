@@ -5,8 +5,8 @@
 #'
 #' @param gData an object of class \code{gData} containing at least \code{map}, \code{markers} and
 #' \code{pheno}.
-#' @param environments a vector of environments on which to run GWAS. These can be either numeric indices or
-#' character names of list items in \code{pheno}. If \code{NULL} GWAS is run for all environments.
+#' @param environments a numeric index or character name of the environment on which to run GWAS.
+#' If \code{NULL} GWAS is run for all environments.
 #' @param K an optional kinship matrix. If \code{NULL} then matrix \code{kinship} in \code{gData}
 #' is used. If both \code{K} is provided and \code{gData} contains a matrix \code{kinship}
 #' then \code{K} is used.
@@ -101,13 +101,16 @@ runMultiTraitGwas <- function(gData,
   if (missing(gData) || !is.gData(gData) || is.null(gData$markers) ||
       is.null(gData$map) || is.null(gData$pheno))
     stop("gData should be a valid gData object containing at least map, markers and pheno.\n")
-  if (!is.null(environments) && !is.numeric(environments) && !is.character(environments))
-    stop("environments should be a numeric or character vector.\n")
+  if (!is.null(environments) && ((!is.numeric(environments) && !is.character(environments)) ||
+    length(environments) > 1))
+    stop("environments should be a single numeric or character value.\n")
   if ((is.character(environments) && !all(environments %in% names(gData$pheno))) ||
       (is.numeric(environments) && any(environments > length(gData$pheno))))
     stop("environments should be list items in pheno.\n")
-  ## If environments is null set environments to all environments in pheno.
-  if (is.null(environments)) environments <- 1:length(gData$pheno)
+  if (is.null(environments) && length(pheno) > 1)
+    stop("pheno contains multiple environments. Environment cannot be NULL.\n")
+  ## If environments is null set environments to only environment in pheno.
+  if (is.null(environments)) environments <- 1
   markers <- gData$markers
   map <- gData$map
   ## Construct Y from pheno data in gData. Remove rownames first since column_to_rownames doesn't
@@ -166,6 +169,7 @@ runMultiTraitGwas <- function(gData,
     markersRed <- markers
     mapRed <- map
   }
+  ## Keep option open for extension to multiple environments.
   environment <- environments
   if (is.null(covar)) {
     phenoEnvir <- gData$pheno[[environment]]
