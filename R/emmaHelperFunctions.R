@@ -1,4 +1,4 @@
-#' emmaFunctions
+#' EMMA helper functions
 #'
 #' Helper functions for computing REML estimates of genetic and residual variance components
 #' using the EMMA algorithm.

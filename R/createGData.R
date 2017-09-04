@@ -165,7 +165,7 @@ createGData <- function(gData = NULL,
     }
     if (is.null(colnames(markers))) {
       ## Check for column names in markers. If not available take them from map.
-      if (missing(map)) stop("geno contains no marker names. Map not available.\n")
+      if (is.null(map)) stop("geno contains no marker names. Map not available.\n")
       if (nrow(map) != ncol(markers))
         stop("geno contains no marker names. Dimensions between geno and map differ.\n")
       colnames(markers) <- rownames(map)
@@ -180,6 +180,8 @@ createGData <- function(gData = NULL,
       stop("kin should be a matrix or a list of matrices.\n")
     if (!is.null(map) && is.list(kin) && length(kin) != length(unique(map$chr)))
       stop("kin should be the same length as the number of chromosomes in map.\n")
+    if (is.null(rownames(kin)) || is.null(colnames(kin)))
+      stop("row and column names in kin cannot be NULL.\n")
     if ((!is.null(markers) && is.list(kin) &&
         any(sapply(X = kin, FUN = function(x) {
           !all(rownames(x) %in% rownames(markers)) ||
