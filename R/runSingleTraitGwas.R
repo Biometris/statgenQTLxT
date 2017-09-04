@@ -550,7 +550,7 @@ runSingleTraitGwas <- function (gData,
   } # end for (environment in environments)
   ## Collect info
   GWASInfo <- list(call = match.call(),
-    GLSMethod = factor(GLSMethod, levels = c(1, 2), labels = c("EMMA", "Newton-Raphson")),
+    remlAlgo = factor(remlAlgo, levels = c(1, 2), labels = c("EMMA", "Newton-Raphson")),
     thrType = factor(thrType, levels = c(1, 2, 3),
       labels = c("bonferroni", "self-chosen", "smallest p-values")),
     MAF = MAF,

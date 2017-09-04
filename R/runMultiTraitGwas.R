@@ -29,7 +29,7 @@
 #' \item{approximate ...(as in Kruijer et al. (2015))}
 #' }
 #' Ignored if fitVarComp = \code{FALSE}
-#' @param VeDiag Should there be environmental correlations if covModel = 2? If traits are measured on
+#' @param VeDiag Should there be environmental correlations if covModel = 1 or 2? If traits are measured on
 #' the same individuals put \code{FALSE}.
 #' @param tolerance a numerical value. Used when fitting the factor analytical model if covModel = 3.
 #' See \code{\link{EMFA}}.
@@ -59,7 +59,7 @@
 #' @param nPca an integer giving the number of Pcas used whe reducing the kinship matrix.
 #' Ignored if reduceK = \code{FALSE}.
 #'
-#' @return an object of class \code{GWAS}.
+#' @return an object of class \code{\link{GWAS}}.
 #'
 #' @references Dahl et al. (2013). Network inference in matrix-variate Gaussian models with
 #' non-independent noise. arXiv preprint arXiv:1312.1622.
@@ -107,7 +107,7 @@ runMultiTraitGwas <- function(gData,
   if ((is.character(environments) && !all(environments %in% names(gData$pheno))) ||
       (is.numeric(environments) && any(environments > length(gData$pheno))))
     stop("environments should be list items in pheno.\n")
-  if (is.null(environments) && length(pheno) > 1)
+  if (is.null(environments) && length(gData$pheno) > 1)
     stop("pheno contains multiple environments. Environment cannot be NULL.\n")
   ## If environments is null set environments to only environment in pheno.
   if (is.null(environments)) environments <- 1
@@ -221,8 +221,22 @@ runMultiTraitGwas <- function(gData,
   }
   ## fit variance components
   if (fitVarComp) {
-    ## Unstructured (pairwise) models
-    if (covModel == 2) {
+    if (covModel == 1) {
+      ## Unstructured models
+      ## Sommer always adds an intercept so remove it from X.
+      varcomp <- covUnstructured(Y = Y, K = K, X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
+        fixDiag = FALSE, corMat = FALSE, VeDiag = VeDiag)
+      Vg <- varcomp$Vg
+      Ve <- varcomp$Ve
+      if (!is.null(snpCovariates)) {
+        ## Sommer always adds an intercept so remove it from XRed.
+        varcompRed <- covUnstructured(Y = Y, K = K, X = if (ncol(XRed) == 1) NULL else XRed[, -1, drop = FALSE],
+          fixDiag = FALSE, corMat = FALSE, VeDiag = VeDiag)
+        VgRed <- varcompRed$Vg
+        VeRed <- varcompRed$Ve
+      }
+    } else if (covModel == 2) {
+      ## Unstructured (pairwise) models
       ## Sommer always adds an intercept so remove it from X.
       varcomp <- covPairwise(Y = Y, K = K, X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
         fixDiag = FALSE, corMat = TRUE, VeDiag = VeDiag)
@@ -347,7 +361,7 @@ runMultiTraitGwas <- function(gData,
       GWAResult[mrk, "pValueWald"] <- pchisq(sum((LRTRes$effects / LRTRes$effectsSe) ^ 2),
         df = p, lower.tail = FALSE)
       effects[mrk, ] <- LRTRes$effects
-      effectsSe[mrk, ] <- LRTRes$effectSse
+      effectsSe[mrk, ] <- LRTRes$effectsSe
     }
   }
   est0 <- estimateEffects(X = Xt, Y = Yt, VInvArray = VInvArray, returnAllEffects = TRUE)
