@@ -171,37 +171,12 @@ runMultiTraitGwas <- function(gData,
   }
   ## Keep option open for extension to multiple environments.
   environment <- environments
-  if (is.null(covar)) {
-    phenoEnvir <- gData$pheno[[environment]]
-    covarEnvir <- NULL
-  } else {
-    ## Append covariates to pheno data. Merge to remove values from pheno that are missing in covar.
-    phenoEnvir <- merge(gData$pheno[[environment]], gData$covar[covar], by.x = "genotype", by.y = "row.names")
-    ## Remove rows from phenoEnvir with missing covar check if there are missing values.
-    phenoEnvir <- phenoEnvir[complete.cases(phenoEnvir[covar]), ]
-    ## Expand covariates that are a factor (i.e. dummy variables are created) using model.matrix
-    ## The new dummies are attached to phenoEnvir, and covar is changed accordingly
-    factorCovs <- which(sapply(gData$covar[covar], FUN = is.factor))
-    if (length(factorCovs) > 0) {
-      covFormula <- as.formula(paste("genotype ~ ", paste(covar[factorCovs], collapse = "+")))
-      ## Create dummy variables. Remove intercept.
-      extraCov <- as.data.frame(suppressWarnings(model.matrix(object = covFormula, data = phenoEnvir))[, -1])
-      ## Add dummy variables to pheno data.
-      phenoEnvir <- cbind(phenoEnvir[, -which(colnames(phenoEnvir) %in% names(factorCovs))], extraCov)
-      ## Modify covar to suit newly defined columns
-      covarEnvir <- c(covar[-factorCovs], colnames(extraCov))
-    } else {
-      covarEnvir <- covar
-    }
-  }
-  if (!is.null(snpCovariates)) {
-    ## Add snp covariates to covar.
-    covarEnvir <- c(covarEnvir, snpCovariates)
-    ## Add snp covariates to pheno data.
-    phenoEnvir <- merge(phenoEnvir, gData$markers[, snpCovariates], by.x = "genotype",
-      by.y = "row.names")
-    colnames(phenoEnvir)[(ncol(phenoEnvir) - length(snpCovariates) + 1):ncol(phenoEnvir)] <- snpCovariates
-  }
+  ## Add covariates to phenotypic data.
+  phenoExp <- expandPheno(gData = gData, environment = environment,
+    covar = covar, snpCovariates = snpCovariates)
+  phenoEnvir <- phenoExp$phenoEnvir
+  covarEnvir <- phenoExp$covarEnvir
+  ## Convert pheno and covariates to format suitable for fitting variance components.
   X <- cbind(rep(1, nrow(phenoEnvir)), as.matrix(phenoEnvir[covarEnvir]))
   rownames(X) <- phenoEnvir$genotype
   Y <- as.matrix(tibble::column_to_rownames(
@@ -222,7 +197,7 @@ runMultiTraitGwas <- function(gData,
   ## fit variance components
   if (fitVarComp) {
     if (covModel == 1) {
-      ## Unstructured models
+      ## Unstructured models.
       ## Sommer always adds an intercept so remove it from X.
       varcomp <- covUnstructured(Y = Y, K = K, X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
         fixDiag = FALSE, corMat = FALSE, VeDiag = VeDiag)
@@ -236,21 +211,21 @@ runMultiTraitGwas <- function(gData,
         VeRed <- varcompRed$Ve
       }
     } else if (covModel == 2) {
-      ## Unstructured (pairwise) models
+      ## Unstructured (pairwise) models.
       ## Sommer always adds an intercept so remove it from X.
       varcomp <- covPairwise(Y = Y, K = K, X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
-        fixDiag = FALSE, corMat = TRUE, VeDiag = VeDiag)
+        fixDiag = FALSE, corMat = TRUE)
       Vg <- varcomp$Vg
       Ve <- varcomp$Ve
       if (!is.null(snpCovariates)) {
         ## Sommer always adds an intercept so remove it from XRed.
         varcompRed <- covPairwise(Y = Y, K = K, X = if (ncol(XRed) == 1) NULL else XRed[, -1, drop = FALSE],
-          fixDiag = FALSE, corMat = TRUE, VeDiag = VeDiag)
+          fixDiag = FALSE, corMat = TRUE)
         VgRed <- varcompRed$Vg
         VeRed <- varcompRed$Ve
       }
     } else if (covModel == 3) {
-      ## FA models
+      ## FA models.
       ## Including snpCovariates.
       varcomp <- EMFA(Y = Y,
         K = K,
@@ -287,12 +262,11 @@ runMultiTraitGwas <- function(gData,
       }
     } else if (covModel == 4) {
       ## ??
-      p <- nrow(Y)
       geno <- rownames(Y)
       GBLUP <- sapply(as.data.frame(Y), function(i) {
         outH2 <- heritability::marker_h2_means(data.vector = i, geno.vector = geno, K = K)
         delta <- outH2$va / outH2$ve
-        return(delta * K %*% solve((delta * K + diag(p)), matrix(i)))})
+        return(delta * K %*% solve((delta * K + diag(nrow(Y))), matrix(i)))})
       Vg <- cov(GBLUP)
       Ve <- cov(Y - GBLUP)
     }

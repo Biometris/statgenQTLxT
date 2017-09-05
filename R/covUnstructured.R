@@ -79,8 +79,7 @@ covPairwise <- function(Y,
   K,
   X = NULL,
   fixDiag = FALSE,
-  corMat = FALSE,
-  VeDiag = FALSE) {
+  corMat = FALSE) {
   ## Check input.
   if (missing(Y) || !is.matrix(Y))
     stop("Y should be a matrix")
@@ -122,11 +121,6 @@ covPairwise <- function(Y,
     VgMat <- diag(x = VgVec)
     VeMat <- diag(x = VeVec)
   }
-  if (VeDiag) {
-    rcov <- as.formula(~ diag(trait):units)
-  } else {
-    rcov <- as.formula(~ us(trait):units)
-  }
   ## For every combination of traits compute variance.
   pwVar <- combn(
     traits, 2,
@@ -139,7 +133,7 @@ covPairwise <- function(Y,
         fixed <- as.formula(paste0("cbind(", idx[[1]], ", ", idx[[2]], ") ~ 1"))
       }
       sommerFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
-        rcov = rcov, data = data,
+        rcov = ~ us(trait):units, data = data,
         G = list(genotype = K), silent = TRUE)
       ## Extract components from fitted model.
       return(sommerFit$var.comp)

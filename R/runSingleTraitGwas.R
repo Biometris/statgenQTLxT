@@ -1,4 +1,4 @@
-#' perform single-trait GWAS
+#' Perform single-trait GWAS
 #'
 #' \code{runSingleTraitGwas} performs a single-trait Genome Wide Association Study (GWAS) on phenotypic and
 #' genotypic data contained in a \code{gData} object. A covariance matrix is computed using the EMMA algorithm
@@ -26,8 +26,8 @@
 #' @param kinshipMethod an optional character indicating the method used for calculating the kinship
 #' matrix(ces). Currently "astle" (Astle and Balding, 2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008)
 #' are supported. If a kinship matrix is supplied either in \code{gData} or in parameter \code{K}
-#' \code{kinshipMatrix} is ignored.
-#' @param remlAlgo an integer indicating the algorithm used to estimate the variance components
+#' \code{kinshipMethod} is ignored.
+#' @param remlAlgo an integer indicating the algorithm used to estimate the variance components.
 #' \enumerate{
 #' \item{EMMA}
 #' \item{Newton-Raphson using sommer package}
@@ -65,7 +65,7 @@
 #' to significant SNPs to only those SNPs that are in sufficient Linkage Disequilibruim (LD) with
 #' the significant snp, where LD is measured in terms of r^2. If for example
 #' \code{sizeInclRegion} = 200000 and \code{minR2} = 0.5, then for every significant SNP
-#' also those SNPs whose LD (r^2) with the significant SNP is at least 0.5 AND which are
+#' also those SNPs whose LD (\eqn{r^2}) with the significant SNP is at least 0.5 AND which are
 #' at most 200kb away from this significant snp are included. Ignored if \code{sizeInclRegion} = 0.
 #'
 #' @return an object of class \code{\link{GWAS}}.
@@ -237,45 +237,16 @@ runSingleTraitGwas <- function (gData,
     setNames(vector(mode = "list", length = length(environments)),
       names(gData$pheno)[environments])
   for (environment in environments) {
+    ## Add covariates to phenotypic data.
+    phenoExp <- expandPheno(gData = gData, environment = environment,
+      covar = covar, snpCovariates = snpCovariates)
+    phenoEnvir <- phenoExp$phenoEnvir
+    covarEnvir <- phenoExp$covarEnvir
+    GWATotEnvir <- signSnpTotEnvir <- NULL
     ## If traits is given as numeric convert to character.
     if (is.numeric(traits)) traits <- colnames(gData$pheno[[environment]])[traits]
     ## If no traits supplied extract them from pheno data.
     if (is.null(traits)) traits <- colnames(gData$pheno[[environment]])[-1]
-    ## Add covariates to pheno data.
-    if (is.null(covar)) {
-      phenoEnvir <- gData$pheno[[environment]]
-      covarEnvir <- NULL
-    } else {
-      ## Append covariates to pheno data. Merge to remove values from pheno that are missing in covar.
-      phenoEnvir <- merge(gData$pheno[[environment]], gData$covar[covar],
-        by.x = "genotype", by.y = "row.names")
-      ## Remove rows from phenoEnvir with missing covar check if there are missing values.
-      phenoEnvir <- phenoEnvir[complete.cases(phenoEnvir[covar]), ]
-      ## Expand covariates that are a factor (i.e. dummy variables are created) using model.matrix
-      ## The new dummies are attached to phenoEnvir, and covar is changed accordingly
-      factorCovs <- which(sapply(X = gData$covar[covar], FUN = is.factor))
-      if (length(factorCovs) > 0) {
-        ## Create dummy variables without intercept.
-        covFormula <- as.formula(paste("genotype ~ ", paste(covar[factorCovs], collapse = "+")))
-        extraCov <- as.data.frame(suppressWarnings(model.matrix(object = covFormula,
-          data = droplevels(phenoEnvir))))[, -1]
-        ## Add dummy variables to pheno data.
-        phenoEnvir <- cbind(phenoEnvir[, -which(colnames(phenoEnvir) %in% names(factorCovs))], extraCov)
-        ## Modify covar to suit newly defined columns
-        covarEnvir <- c(covar[-factorCovs], colnames(extraCov))
-      } else {
-        covarEnvir <- covar
-      }
-    }
-    if (!is.null(snpCovariates)) {
-      ## Add snp covariates to covar.
-      covarEnvir <- c(covarEnvir, snpCovariates)
-      ## Add snp covariates to pheno data.
-      phenoEnvir <- merge(phenoEnvir, gData$markers[, snpCovariates], by.x = "genotype",
-        by.y = "row.names")
-      colnames(phenoEnvir)[(ncol(phenoEnvir) - length(snpCovariates) + 1):ncol(phenoEnvir)] <- snpCovariates
-    }
-    GWATotEnvir <- signSnpTotEnvir <- NULL
     inflationFactorEnvir <- setNames(numeric(length = length(traits)), traits)
     varComp <- setNames(vector(mode = "list", length = length(traits)), traits)
     ## Perform GWAS for all traits.
@@ -317,7 +288,7 @@ runSingleTraitGwas <- function (gData,
             }
             ## Fit mmer2 model.
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
-              random = ~ sommer::g(genotype), G = list(genotype = kinshipRed), silent = TRUE)
+              random = ~ g(genotype), G = list(genotype = kinshipRed), silent = TRUE)
             ## Compute varcov matrix using var components from model.
             sommerK <- kinshipRed[nonMissingRepId, nonMissingRepId]
             varComp[[trait]] <- unlist(sommerFit$var.comp)[c(1, length(unlist(sommerFit$var.comp)))]
@@ -361,7 +332,7 @@ runSingleTraitGwas <- function (gData,
             KinshipRedChr <- KChr[[which(chrs == chr)]][nonMissing, nonMissing]
             ## Fit mmer2 model using chromosome specific kinship.
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
-              random = ~ sommer::g(genotype), G = list(genotype = KinshipRedChr), silent = TRUE)
+              random = ~ g(genotype), G = list(genotype = KinshipRedChr), silent = TRUE)
             ## Compute varcov matrix using var components from model.
             sommerK <- KinshipRedChr[nonMissingRepId, nonMissingRepId]
             varComp[[trait]][[which(chrs == chr)]] <-
