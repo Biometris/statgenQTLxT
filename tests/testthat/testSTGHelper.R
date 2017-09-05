@@ -7,56 +7,57 @@ Sigma <- matrix(runif(n = 100), nrow = 10)
 Sigma <- Sigma %*% t(Sigma)
 covs <- matrix(runif(n = 20, max = 100), nrow = 10)
 pheno <- data.frame(genotype = paste0("G", 1:10), matrix(rnorm(50, mean = 10, sd = 2), nrow = 10))
+map <- data.frame(chr = c(1, 1, 2), pos = 1:3)
 rownames(X) <- rownames(Sigma) <- colnames(Sigma) <- rownames(covs) <- paste0("G", 1:10)
-colnames(X) <- paste0("M", 1:3)
-gDataEmma <- createGData(geno = X, kin = Sigma, pheno = pheno, covar = as.data.frame(covs))
+colnames(X) <- rownames(map) <- paste0("M", 1:3)
+gDataTest <- createGData(map = map, geno = X, kin = Sigma, pheno = pheno, covar = as.data.frame(covs))
 
 test_that("runEmma produces correct results with default settings", {
-  expect_equal(unname(runEmma(gData = gDataEmma, trait = 2, environment = 1)[[1]]),
+  expect_equal(unname(runEmma(gData = gDataTest, trait = 2, environment = 1)[[1]]),
     c(0.0214570264923801, 1.85343825287729))
-  expect_equal(unname(runEmma(gData = gDataEmma, trait = "X1", environment = 1)[[1]]),
+  expect_equal(unname(runEmma(gData = gDataTest, trait = "X1", environment = 1)[[1]]),
     c(0.0214570264923801, 1.85343825287729))
-  expect_equal(unname(runEmma(gData = gDataEmma, trait = "X1", environment = "pheno")[[1]]),
+  expect_equal(unname(runEmma(gData = gDataTest, trait = "X1", environment = "pheno")[[1]]),
     c(0.0214570264923801, 1.85343825287729))
-  expect_equal(unname(runEmma(gData = gDataEmma, trait = 2, environment = 1, K = Sigma)[[1]]),
+  expect_equal(unname(runEmma(gData = gDataTest, trait = 2, environment = 1, K = Sigma)[[1]]),
     c(0.0214570264923801, 1.85343825287729))
 })
 
 test_that("runEmma produces correct results with covariates", {
-  expect_equal(unname(runEmma(gData = gDataEmma, trait = 2, environment = 1, covar = 1)[[1]]),
+  expect_equal(unname(runEmma(gData = gDataTest, trait = 2, environment = 1, covar = 1)[[1]]),
     c(8.76962021955844e-05, 1.93163739799549))
-  expect_equal(unname(runEmma(gData = gDataEmma, trait = 2, environment = 1, covar = "V1")[[1]]),
+  expect_equal(unname(runEmma(gData = gDataTest, trait = 2, environment = 1, covar = "V1")[[1]]),
     c(8.76962021955844e-05, 1.93163739799549))
-  expect_equal(unname(runEmma(gData = gDataEmma, trait = 2, environment = 1, K = Sigma, covar = 1)[[1]]),
+  expect_equal(unname(runEmma(gData = gDataTest, trait = 2, environment = 1, K = Sigma, covar = 1)[[1]]),
     c(8.76962021955844e-05, 1.93163739799549))
-  expect_equal(unname(runEmma(gData = gDataEmma, trait = 2, environment = 1, snpName = "M1")[[1]]),
+  expect_equal(unname(runEmma(gData = gDataTest, trait = 2, environment = 1, snpName = "M1")[[1]]),
     c(0.199457967788946, 1.82420297857926))
-  expect_equal(unname(runEmma(gData = gDataEmma, trait = 2, environment = 1,
+  expect_equal(unname(runEmma(gData = gDataTest, trait = 2, environment = 1,
     K = Sigma, snpName = "M1")[[1]]), c(0.199457967788946, 1.82420297857926))
-  expect_equal(unname(runEmma(gData = gDataEmma, trait = 2, environment = 1,
+  expect_equal(unname(runEmma(gData = gDataTest, trait = 2, environment = 1,
     covar = 1, snpName = "M1")[[1]]), c(0.140158216807375, 1.71023973698722))
-  expect_equal(unname(runEmma(gData = gDataEmma, trait = 2, environment = 1,
+  expect_equal(unname(runEmma(gData = gDataTest, trait = 2, environment = 1,
     K = Sigma, covar = 1, snpName = "M1")[[1]]), c(0.140158216807375, 1.71023973698722))
 })
 
 test_that("extra options in runEmma don't significantly change results", {
   ## Compute base value
-  runEmma0 <- runEmma(gData = gDataEmma, trait = 2, environment = 1)[[1]]
-  expect_equal(runEmma(gData = gDataEmma, trait = 2, environment = 1, nGrids = 50)[[1]],
+  runEmma0 <- runEmma(gData = gDataTest, trait = 2, environment = 1)[[1]]
+  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1, nGrids = 50)[[1]],
     runEmma0, tolerance = 1e-6)
-  expect_equal(runEmma(gData = gDataEmma, trait = 2, environment = 1, nGrids = 500)[[1]],
+  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1, nGrids = 500)[[1]],
     runEmma0, tolerance = 1e-6)
-  expect_equal(runEmma(gData = gDataEmma, trait = 2, environment = 1, lLim = -100)[[1]],
+  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1, lLim = -100)[[1]],
     runEmma0, tolerance = 1e-6)
-  expect_equal(runEmma(gData = gDataEmma, trait = 2, environment = 1, lLim = -20)[[1]],
+  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1, lLim = -20)[[1]],
     runEmma0, tolerance = 1e-6)
-  expect_equal(runEmma(gData = gDataEmma, trait = 2, environment = 1, uLim = 20)[[1]],
+  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1, uLim = 20)[[1]],
     runEmma0, tolerance = 1e-6)
-  expect_equal(runEmma(gData = gDataEmma, trait = 2, environment = 1, uLim = 100)[[1]],
+  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1, uLim = 100)[[1]],
     runEmma0, tolerance = 1e-6)
-  expect_equal(runEmma(gData = gDataEmma, trait = 2, environment = 1, eps = 1e-5)[[1]],
+  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1, eps = 1e-5)[[1]],
     runEmma0, tolerance = 1e-6)
-  expect_equal(runEmma(gData = gDataEmma, trait = 2, environment = 1, nGrids = 500,
+  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1, nGrids = 500,
     lLim = -100, uLim = 100)[[1]], runEmma0, tolerance = 1e-6)
 })
 
