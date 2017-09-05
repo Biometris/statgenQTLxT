@@ -158,11 +158,11 @@ runSingleTraitGwas <- function (gData,
       stop("minR2 should be a single numerical value between 0 and 1.\n")
   }
   if (useMAF) {
-    if (missing(MAF) || length(MAF) > 1 || !is.numeric(MAF) || MAF < 0 || MAF > 1)
+    if (is.null(MAF) || length(MAF) > 1 || !is.numeric(MAF) || MAF < 0 || MAF > 1)
       stop("MAF should be a single numerical value between 0 and 1.\n")
     if (MAF == 0) {MAF <- 1e-6}
   } else {
-    if (missing(MAC) || length(MAC) > 1 || !is.numeric(MAC))
+    if (is.null(MAC) || length(MAC) > 1 || !is.numeric(MAC))
       stop("MAF should be a single numerical value.\n")
     if (MAC == 0) {MAC <- 1}
   }
@@ -211,9 +211,9 @@ runSingleTraitGwas <- function (gData,
         ## Extract markers for current chromosome.
         chrMrk <- which(colnames(gData$markers) %in% rownames(gData$map[gData$map$chr == chr, ]))
         ## Compute kinship for current chromosome only. Denominator = 1, division is done later.
-        K <- do.call(kinshipMethod, list(X = gData$markers[, chrMrk], denominator = 1))
+        K <- do.call(kinshipMethod, list(X = gData$markers[, chrMrk, drop = FALSE], denominator = 1))
         ## Compute number of markers for other chromosomes.
-        nMrkChr[which(chrs == chr)] <- ncol(gData$markers[, -chrMrk])
+        nMrkChr[which(chrs == chr)] <- ncol(gData$markers[, -chrMrk, drop = FALSE])
         ## Add computed kinship to all other matrices in KChr.
         for (i in setdiff(1:length(chrs), which(chr == chrs))) {
           KChr[[i]] <- KChr[[i]] + K
@@ -235,7 +235,7 @@ runSingleTraitGwas <- function (gData,
   ## Define data.frames for total results.
   GWATot <- signSnpTot <- inflationFactorTot <-
     setNames(vector(mode = "list", length = length(environments)),
-    names(gData$pheno)[environments])
+      names(gData$pheno)[environments])
   for (environment in environments) {
     ## If traits is given as numeric convert to character.
     if (is.numeric(traits)) traits <- colnames(gData$pheno[[environment]])[traits]
@@ -297,15 +297,16 @@ runSingleTraitGwas <- function (gData,
         if (!isTRUE(all.equal(kinshipRed, diag(nrow(kinshipRed)), check.names = FALSE))) {
           if (remlAlgo == 1) {
             ## emma algorithm takes covariates from gData.
-              gDataEmma <- createGData(pheno = gData$pheno,
+            gDataEmma <- createGData(pheno = gData$pheno,
               covar = if(is.null(covarEnvir)) NULL else as.data.frame(phenoEnvir[covarEnvir],
                 row.names = phenoEnvir$genotype))
-              remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment,
+            remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment,
               covar = covarEnvir, K = kinshipRed)
             ## Compute varcov matrix using var components.
             varComp[[trait]] <- remlObj[[1]]
             vcovMatrix <- remlObj[[1]][1] * remlObj[[2]] +
               remlObj[[1]][2] * diag(nrow(remlObj[[2]]))
+            vcovMatrix <- as.matrix(Matrix::nearPD(vcovMatrix[nonMissingRepId, nonMissingRepId])$mat)
           } else if (remlAlgo == 2) {
             ## Construct the formula for the fixed part of the model.
             if (!is.null(covarEnvir)) {
@@ -318,8 +319,10 @@ runSingleTraitGwas <- function (gData,
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
               random = ~ sommer::g(genotype), G = list(genotype = kinshipRed), silent = TRUE)
             ## Compute varcov matrix using var components from model.
+            sommerK <- kinshipRed[nonMissingRepId, nonMissingRepId]
             varComp[[trait]] <- unlist(sommerFit$var.comp)[c(1, length(unlist(sommerFit$var.comp)))]
-            vcovMatrix <- solve(Matrix::forceSymmetric(sommerFit$V.inv, uplo = "U"))
+            vcovMatrix <- unlist(sommerFit$var.comp)[1] * sommerK +
+              unlist(sommerFit$var.comp)[length(unlist(sommerFit$var.comp))] * diag(nrow(sommerK))
           }
         } else {
           ## Kinship matrix is computationally identical to identity matrix.
@@ -341,8 +344,10 @@ runSingleTraitGwas <- function (gData,
               covar = covarEnvir, K = KinshipRedChr)
             ## Compute varcov matrix using var components.
             varComp[[trait]][[which(chrs == chr)]] <- remlObj[[1]]
-            vcovMatrix[[which(chrs == chr)]] <- remlObj[[1]][1] * remlObj[[2]] +
+            vcovMatrixChr <- remlObj[[1]][1] * remlObj[[2]] +
               remlObj[[1]][2] * diag(nrow(remlObj[[2]]))
+            vcovMatrix[[which(chrs == chr)]] <-
+              as.matrix(Matrix::nearPD(vcovMatrixChr[nonMissingRepId, nonMissingRepId])$mat)
           }
         } else if (remlAlgo == 2) {
           if (!is.null(covarEnvir)) {
@@ -358,9 +363,11 @@ runSingleTraitGwas <- function (gData,
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
               random = ~ sommer::g(genotype), G = list(genotype = KinshipRedChr), silent = TRUE)
             ## Compute varcov matrix using var components from model.
+            sommerK <- KinshipRedChr[nonMissingRepId, nonMissingRepId]
             varComp[[trait]][[which(chrs == chr)]] <-
               unlist(sommerFit$var.comp)[c(1, length(unlist(sommerFit$var.comp)))]
-            vcovMatrix[[which(chrs == chr)]] <- solve(Matrix::forceSymmetric(sommerFit$V.inv, uplo = "U"))
+            vcovMatrix[[which(chrs == chr)]] <- unlist(sommerFit$var.comp)[1] * sommerK +
+              unlist(sommerFit$var.comp)[length(unlist(sommerFit$var.comp))] * diag(nrow(sommerK))
           }
         }
       }
@@ -425,7 +432,7 @@ runSingleTraitGwas <- function (gData,
         ## Similar to GLSMethod 1 except using chromosome specific kinship matrices.
         for (chr in chrs) {
           mapRedChr <- mapRed[which(mapRed$chr == chr), ]
-          markersRedChr <- markersRed[, which(colnames(markersRed) %in% rownames(mapRedChr))]
+          markersRedChr <- markersRed[, which(colnames(markersRed) %in% rownames(mapRedChr)), drop = FALSE]
           allFreqChr <- colMeans(markersRedChr)
           if (maxScore == 2) {
             allFreqChr <- allFreqChr / 2
@@ -450,7 +457,7 @@ runSingleTraitGwas <- function (gData,
           }
           ## Remove excluded snps from segregating markers for current chromosome.
           segMarkersChr <- setdiff(intersect(segMarkersChr, which(mapRedChr$chr == chr)), exclude)
-          X <- markersRedChr[nonMissingRepId, segMarkersChr]
+          X <- markersRedChr[nonMissingRepId, segMarkersChr, drop = FALSE]
           if (length(covarEnvir) == 0) {
             Z <- NULL
           } else {
@@ -545,7 +552,9 @@ runSingleTraitGwas <- function (gData,
         data.frame(trait = trait, GWAResult, stringsAsFactors = FALSE))
     } # end for (trait in traits)
     GWATot[[match(environment, environments)]] <- GWATotEnvir
-    signSnpTot[[match(environment, environments)]] <- signSnpTotEnvir
+    if (!is.null(signSnpTotEnvir)) {
+      signSnpTot[[match(environment, environments)]] <- signSnpTotEnvir
+    }
     inflationFactorTot[[match(environment, environments)]] <- inflationFactorEnvir
   } # end for (environment in environments)
   ## Collect info

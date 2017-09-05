@@ -52,7 +52,7 @@ createGWAS <- function(GWAResult = NULL,
       stop("GWAResult should contain columns trait, snp, chr, pos, pValue and LOD.\n")
   }
   ## Check signSnps
-  if (!is.null(signSnp)) {
+  if (!all(sapply(signSnp, FUN = is.null))) {
     if (!is.data.frame(signSnp) &&
         !(is.list(signSnp) && all(sapply(signSnp, FUN = is.data.frame))))
       stop("signSnp should be a data.frame or a list of data.frames.\n")
