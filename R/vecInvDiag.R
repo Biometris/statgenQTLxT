@@ -9,6 +9,8 @@
 #'
 #' @return for \code{vecInvDiag} a matrix defined by \eqn{(I + x \otimes y)^{-1}}, for
 #' \code{tracePInvDiag} a matrix containing the column sums of \eqn{(I + x \otimes y)^{-1}}.
+#'
+#' @keywords internal
 vecInvDiag <- function(x, y) {
   z <- sapply(x, function(x_i) {1 / (1 + x_i * y)})
   return(z)

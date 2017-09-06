@@ -14,15 +14,15 @@
 #'
 #' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
 #' genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409.
+#'
+#' @keywords internal
 
 makeVArray <- function(Vg, Ve, Dk) {
   stopifnot(ncol(Vg) == nrow(Vg))
   stopifnot(ncol(Ve) == nrow(Ve))
   stopifnot(ncol(Vg) == ncol(Ve))
-
   n <- length(Dk)
   p <- ncol(Vg)
-
   VArray <- array(dim = c(n, p, p))
   for (i in 1:n) {
     VArray[i, , ] <- Dk[i] * Vg + Ve
@@ -35,10 +35,8 @@ makeVInvArray <- function(Vg, Ve, Dk) {
   stopifnot(ncol(Vg) == nrow(Vg))
   stopifnot(ncol(Ve) == nrow(Ve))
   stopifnot(ncol(Vg) == ncol(Ve))
-
   n <- length(Dk)
   p <- ncol(Vg)
-
   VInvArray <- array(dim = c(n, p, p))
   for (i in 1:n) {
     VInvArray[i, , ] <- solve(Dk[i] * Vg + Ve)
