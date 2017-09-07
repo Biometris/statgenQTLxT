@@ -1,4 +1,6 @@
 #' @keywords internal
+
+### Add covariates and snpCovariates to phenotypic data and convert covariate factors to dummy varables.
 expandPheno <- function(gData,
   environment,
   covar,
@@ -39,3 +41,56 @@ expandPheno <- function(gData,
   }
   return(list(phenoEnvir = phenoEnvir, covarEnvir = covarEnvir))
 }
+
+## Compute chromosome specific kinship matrices.
+chrSpecKin <- function(gData, kinshipMethod) {
+  chrs <- unique(gData$map$chr[rownames(gData$map) %in% colnames(gData$markers)])
+  ## Create list of zero matrices.
+  KChr <- setNames(replicate(n = length(chrs),
+    matrix(data = 0, nrow = nrow(gData$markers), ncol = nrow(gData$markers)),
+    simplify = FALSE),
+    paste0("KChr", chrs))
+  ## Create vector of marker numbers per chromosome.
+  nMrkChr <- setNames(numeric(length = length(chrs)), chrs)
+  for (chr in chrs) {
+    ## Extract markers for current chromosome.
+    chrMrk <- which(colnames(gData$markers) %in% rownames(gData$map[gData$map$chr == chr, ]))
+    ## Compute kinship for current chromosome only. Denominator = 1, division is done later.
+    K <- do.call(kinshipMethod, list(X = gData$markers[, chrMrk, drop = FALSE], denominator = 1))
+    ## Compute number of markers for other chromosomes.
+    nMrkChr[which(chrs == chr)] <- ncol(gData$markers[, -chrMrk, drop = FALSE])
+    ## Add computed kinship to all other matrices in KChr.
+    for (i in setdiff(1:length(chrs), which(chr == chrs))) {
+      KChr[[i]] <- KChr[[i]] + K
+    }
+  }
+  ## Divide matrix for current chromosome by number of markers in other chromosomes.
+  for (i in 1:length(KChr)) {
+    KChr[[i]] <- KChr[[i]] / nMrkChr[i]
+  }
+  return(KChr)
+}
+
+
+
+fillGWAResult <- function(GWAResult, effects, effectsSe, Xt, Yt, VInvArray,
+  nn, excludedMarkers, markersRed, Uk) {
+  p <- ncol(effects)
+  est0 <- estimateEffects(X = Xt, Y = Yt, VInvArray = VInvArray, returnAllEffects = TRUE)
+  fittedMean0 <- matrix(est0$effectsEstimates, ncol = length(est0$effectsEstimates) / p) %*% Xt
+  SS0 <- LLQuadFormDiag(Y = Yt - fittedMean0, VInvArray = VInvArray)
+  for (mrk in setdiff(1:nn, excludedMarkers)) {
+    x <- matrix(as.numeric(markersRed[, mrk]))
+    xt <- crossprod(x, Uk)
+    LRTRes <- LRTTest(X = Xt, x = xt, Y = Yt, VInvArray = VInvArray, SS0 = SS0)
+    GWAResult[mrk, "pValue"] <- LRTRes$pvalue
+    GWAResult[mrk, "pValueWald"] <- pchisq(sum((LRTRes$effects / LRTRes$effectsSe) ^ 2),
+      df = p, lower.tail = FALSE)
+    effects[mrk, ] <- LRTRes$effects
+    effectsSe[mrk, ] <-  LRTRes$effectsSe
+  }
+  return(list(GWAResult = GWAResult, effects = effects, effectsSe = effectsSe))
+}
+
+
+

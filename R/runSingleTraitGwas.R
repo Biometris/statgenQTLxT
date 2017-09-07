@@ -101,7 +101,7 @@ runSingleTraitGwas <- function (gData,
   remlAlgo = 1,
   GLSMethod = 1,
   useMAF = TRUE,
-  MAF = 0.05,
+  MAF = 0.01,
   MAC = 10,
   genomicControl = FALSE,
   thrType = 1,
@@ -144,7 +144,7 @@ runSingleTraitGwas <- function (gData,
   if (GLSMethod == 1 && !is.null(K) && !is.matrix(K))
     stop("K should be a matrix.\n")
   if (GLSMethod == 2 && !is.null(K) && (!is.list(K) ||
-      !all(sapply(K, FUN = is.matrix)) || length(K) != length(unique(gData$map$chr))))
+      !all(sapply(K, FUN = is.matrix)) || length(K) != dplyr::n_distinct(gData$map$chr)))
     stop("K should be a list of matrices of length equal to the number of chromosomes
       in the map.\n")
   if ((GLSMethod == 1 && is.null(gData$kinship) && is.null(K)) ||
@@ -200,29 +200,8 @@ runSingleTraitGwas <- function (gData,
       ## K is supplied. Set KChr to K.
       KChr <- K
     } else {
-      ## Create list of zero matrices.
-      KChr <- setNames(replicate(n = length(chrs),
-        matrix(data = 0, nrow = nrow(gData$markers), ncol = nrow(gData$markers)),
-        simplify = FALSE),
-        paste0("KChr", chrs))
-      ## Create vector of marker numbers per chromosome.
-      nMrkChr <- setNames(numeric(length = length(chrs)), chrs)
-      for (chr in chrs) {
-        ## Extract markers for current chromosome.
-        chrMrk <- which(colnames(gData$markers) %in% rownames(gData$map[gData$map$chr == chr, ]))
-        ## Compute kinship for current chromosome only. Denominator = 1, division is done later.
-        K <- do.call(kinshipMethod, list(X = gData$markers[, chrMrk, drop = FALSE], denominator = 1))
-        ## Compute number of markers for other chromosomes.
-        nMrkChr[which(chrs == chr)] <- ncol(gData$markers[, -chrMrk, drop = FALSE])
-        ## Add computed kinship to all other matrices in KChr.
-        for (i in setdiff(1:length(chrs), which(chr == chrs))) {
-          KChr[[i]] <- KChr[[i]] + K
-        }
-      }
-      ## Divide matrix for current chromosome by number of markers in other chromosomes.
-      for (i in 1:length(KChr)) {
-        KChr[[i]] <- KChr[[i]] / nMrkChr[i]
-      }
+      ## Compute chromosome specific kinship matrices.
+      KChr <- chrSpecKin(gData = gData, kinshipMethod = kinshipMethod)
     }
   }
   ## Compute max value in markers
@@ -343,7 +322,7 @@ runSingleTraitGwas <- function (gData,
         }
       }
       ## Compute allele frequencies based on genotypes for which phenotypic data is available.
-      markersRed <- gData$markers[nonMissing, ]
+      markersRed <- gData$markers[nonMissing, colnames(gData$markers) %in% rownames(gData$map)]
       mapRed <- gData$map[rownames(gData$map) %in% colnames(markersRed), ]
       allFreq <- colMeans(markersRed)
       if (maxScore == 2) {
@@ -535,8 +514,8 @@ runSingleTraitGwas <- function (gData,
       labels = c("bonferroni", "self-chosen", "smallest p-values")),
     MAF = MAF,
     varComp = varComp,
-    genomicControl = genomicControl)
-  if (genomicControl) GWASInfo$inflationFactor <- inflationFactorTot
+    genomicControl = genomicControl,
+    inflationFactor = inflationFactorTot)
   return(createGWAS(GWAResult = GWATot,
     signSnp = signSnpTot,
     kin = if (GLSMethod == 1) {if (is.null(K)) gData$kinship else K} else KChr,
