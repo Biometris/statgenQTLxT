@@ -464,8 +464,10 @@ runSingleTraitGwas <- function (gData,
           propSnpVar <- snpVar / as.numeric(var(phenoEnvirTrait[trait]))
         }
         ## Create data.frame with significant snps.
-        signSnp <- data.frame(snp = colnames(markersRed)[snpSelection],
-          mapRed[snpSelection, ],
+        signSnp <- data.frame(trait = trait,
+          snp = GWAResult$snp[snpSelection],
+          chr = GWAResult$chr[snpSelection],
+          pos = GWAResult$pos[snpSelection],
           pValue = GWAResult$pValue[snpSelection],
           LOD = GWAResult$LOD[snpSelection],
           snpStatus = as.factor(snpStatus),
