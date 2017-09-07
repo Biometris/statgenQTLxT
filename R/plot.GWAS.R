@@ -39,12 +39,13 @@ plot.GWAS <- function(x, ..., type = "manhattan", environment = NULL, trait = NU
   ## Convert character input to numeric.
   if (is.character(environment)) environment <- which(names(x$GWAResult) == environment)
   ## If NULL then summary of all environment.
-  if (is.null(environment))
+  if (is.null(environment)) {
     if (length(x$GWAResult) != 1) {
       stop("Environment not supplied but multiple environments detected in data.")
     } else {
       environment <- 1
     }
+  }
   GWAResult <- x$GWAResult[[environment]]
   signSnp <- x$signSnp[[environment]]
   if (type != "qtl") {
@@ -60,21 +61,22 @@ plot.GWAS <- function(x, ..., type = "manhattan", environment = NULL, trait = NU
   }
   if (type == "manhattan") {
     ## Compute chromosome boundaries.
+    GWAResult <- GWAResult[!is.na(GWAResult$pos), ]
     chrBnd <- aggregate(GWAResult$pos, by = list(GWAResult$chr), FUN = max)
     ## Compute cumulative positions.
     addPos <- data.frame(chr = chrBnd[, 1], add = c(0, cumsum(chrBnd[, 2]))[1:nrow(chrBnd)])
     map <- merge(data.frame(chr = GWAResult$chr, pos = GWAResult$pos), addPos, by = "chr")
     map <- data.frame(snp = GWAResult$snp, chr = map$chr, cumPos = map$pos + map$add)
     ## Extract numbers of significant SNPs.
-    signSnpNr <- which(map$snp %in% signSnp$snp[signSnp$snpStatus == "significant snp"])
+    signSnpNr <- which(map$snp %in% signSnp$snp[as.numeric(signSnp$snpStatus) == 1])
     ## Create manhattan plot.
     manhattanPlot(xValues = map$cumPos, yValues = GWAResult$LOD, map = map,
-      plotType = "p", xSig = signSnpNr, chrBoundaries = chrBnd[ , 2], yThr = x$thr, ...)
+      plotType = "p", xSig = signSnpNr, chrBoundaries = chrBnd[, 2], yThr = x$thr, ...)
   } else if (type == "qq") {
     ## Create qq-plot
     qqPlot(pValues = na.omit(GWAResult$pValue), ...)
   } else if (type == "qtl") {
     qtlPlot(data = signSnp,
-      map = GWAResult[c("chr", "pos")])
+      map = GWAResult[!is.na(GWAResult$pos), c("chr", "pos")])
   }
 }

@@ -93,4 +93,20 @@ fillGWAResult <- function(GWAResult, effects, effectsSe, Xt, Yt, VInvArray,
 }
 
 
+computeExcludedMarkers <- function(snpCovariates, markersRed, allFreq) {
+  exclude <- integer()
+  if (any(snpCovariates %in% colnames(markersRed))) {
+    snpCovariateNumbers <- which(colnames(markersRed) %in% snpCovariates)
+    for (snp in snpCovariateNumbers) {
+      ## Rough selection based on allele frequency. Done for speed.
+      candidates <- which(allFreq == allFreq[snp])
+      ## Exclude all snps that are identical to snps in snpCovariates.
+      snpInfo <- markersRed[, snp]
+      exclude <- union(exclude, candidates[apply(markersRed[, candidates], MARGIN = 2,
+        FUN = function(x) {identical(as.numeric(x), as.numeric(snpInfo))})])
+    }
+  }
+  return(exclude)
+}
+
 

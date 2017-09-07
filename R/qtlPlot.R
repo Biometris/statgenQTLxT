@@ -127,7 +127,7 @@ qtlPlot <- function(data,
   plotData <- dplyr::select(data, trait = trait, chromosome = chromosome,
     snpEffect = snpEffect, snpPosition = snpPosition, sort, eff)
   ## Add a column with the allelic effect direction (for points color)
-  plotData$color <- ifelse(plotData$eff > 0, "pos", "neg")
+  plotData$color <- ifelse(plotData$eff != -Inf, ifelse(plotData$eff > 0, "pos", "neg"), NA)
   plotData <- droplevels(plotData)
   ## Create theme for plot
   qtlPlotTheme <-
@@ -169,7 +169,7 @@ qtlPlot <- function(data,
       linetype = 1,
       color = "white")   +
     ## Add the points with a slight transparency in case of overlap
-    ggplot2:: geom_point(alpha = I(0.7)) +
+    ggplot2:: geom_point(alpha = I(0.7), na.rm = TRUE) +
     ## Split of the plot according to the chromosomes on the x axis
     ggplot2::facet_grid(". ~ chromosome",
       ## Do not resize the x axise (otherwise every chromosome has the same size)
@@ -182,8 +182,6 @@ qtlPlot <- function(data,
     ggplot2::scale_color_manual("color",
       labels = c("neg", "pos"),
       values = c("darkblue", "green4"))
-  ## Plot the plot object on screen
-  #plot(qtlPlot)
   if (exportPptx) {
     ## Save figure in .pptx
     if (requireNamespace("ReporteRs", quietly = TRUE)) {
@@ -204,8 +202,9 @@ qtlPlot <- function(data,
       pptOut <- ReporteRs::addDate(doc = pptOut)
       ##Write .pptx
       ReporteRs::writeDoc(doc = pptOut, file = pptxName)
-    } else
-    {message("Package ReporteRs needs to be installed to be able to export to .pptx")}
+    } else {
+      message("Package ReporteRs needs to be installed to be able to export to .pptx")
+    }
   }
   return(qtlPlot)
 }
