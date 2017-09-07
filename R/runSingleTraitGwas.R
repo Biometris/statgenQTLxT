@@ -328,7 +328,9 @@ runSingleTraitGwas <- function (gData,
       if (maxScore == 2) {
         allFreq <- allFreq / 2
       }
-      if (!useMAF) {MAF <- MAC / length(nonMissing) - 1e-5}
+      if (!useMAF) {
+        MAF <- MAC / length(nonMissing) - 1e-5
+      }
       ## Determine segregating markers. Exclude snps used as covariates.
       segMarkers <- which(allFreq >= maxScore * MAF & allFreq <= maxScore * (1 - MAF))
       ## Define data.frame for results.
@@ -344,18 +346,8 @@ runSingleTraitGwas <- function (gData,
       y <- phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing), trait]
       if (GLSMethod == 1) {
         ## Exclude snpCovariates from segregating markers.
-        exclude <- integer()
-        if (!is.null(snpCovariates)) {
-          snpCovariateNumbers <- which(colnames(markersRed) %in% snpCovariates)
-          for (snp in snpCovariateNumbers) {
-            ## Rough selection based on allele frequency. Done for speed.
-            candidates <- which(allFreq == allFreq[snp])
-            ## Exclude all snps that are identical to snps in snpCovariates.
-            snpInfo <- markersRed[, snp]
-            exclude <- union(exclude, candidates[apply(markersRed[, candidates], MARGIN = 2,
-              FUN = function(x) {identical(as.numeric(x), as.numeric(snpInfo))})])
-          }
-        }
+        exclude <- computeExcludedMarkers(snpCovariates = snpCovariates,
+          markersRed = markersRed, allFreq = allFreq)
         ## The following is based on the genotypes, not the replicates:
         X <- markersRed[nonMissingRepId, setdiff(segMarkers, exclude)]
         if (length(covarEnvir) == 0) {
@@ -391,20 +383,8 @@ runSingleTraitGwas <- function (gData,
           segMarkersChr <- which(allFreqChr >= maxScore * MAF &
               allFreqChr <= maxScore * (1 - MAF))
           ## Exclude snpCovariates from segregating markers.
-          exclude <- integer()
-          if (any(snpCovariates %in% colnames(markersRedChr))) {
-            snpCovariateNumbers <- which(colnames(markersRedChr) %in% snpCovariates)
-            for (snp in snpCovariateNumbers) {
-              ## Rough selection based on allele frequency. Done for speed.
-              candidates <- which(allFreqChr == allFreqChr[snp])
-              ## Exclude all snps that are identical to snps in snpCovariates.
-              snpInfo <- markersRedChr[, snp]
-              exclude <- union(exclude, candidates[apply(markersRedChr[, candidates], MARGIN = 2,
-                FUN = function(x) {identical(as.numeric(x), as.numeric(snpInfo))})])
-            }
-          } else {
-            exclude <- integer()
-          }
+          exclude <- computeExcludedMarkers(snpCovariates = snpCovariates,
+            markersRed = markersRedChr, allFreq = allFreqChr)
           ## Remove excluded snps from segregating markers for current chromosome.
           segMarkersChr <- setdiff(intersect(segMarkersChr, which(mapRedChr$chr == chr)), exclude)
           X <- markersRedChr[nonMissingRepId, segMarkersChr, drop = FALSE]
@@ -451,29 +431,28 @@ runSingleTraitGwas <- function (gData,
       ## When thrType is 1 or 3, determine the LOD threshold.
       if (thrType == 1) {
         ## Compute LOD threshold using Bonferroni correction.
-        nEff <- sum(!is.na(GWAResult$pValue))
-        LODThr <- -log10(alpha / nEff)
+        LODThr <- -log10(alpha / sum(!is.na(GWAResult$pValue)))
       } else if (thrType == 3) {
         ## Compute LOD threshold by computing the 10log of the nSnpLOD item of ordered p values.
         LODThr <- -log10(sort(na.omit(GWAResult$pValue))[nSnpLOD])
       }
       ## Select the SNPs whose LOD-scores is above the threshold
-      signSnp <- which(!is.na(GWAResult$pValue) & -log10(GWAResult$pValue) >= LODThr)
-      if (length(signSnp) > 0) {
+      signSnpNr <- which(!is.na(GWAResult$pValue) & -log10(GWAResult$pValue) >= LODThr)
+      if (length(signSnpNr) > 0) {
         if (sizeInclRegion > 0) {
-          snpSelection <- unlist(sapply(X = signSnp,
+          snpSelection <- unlist(sapply(X = signSnpNr,
             FUN = getSNPsInRegionSufLD,
             ## Create new minimal gData object to match map and markers used for SNP selection.
             gData = createGData(map = mapRed, geno = markersRed),
             regionSize = sizeInclRegion,
             minR2 = minR2))
-          snpSelection <- sort(union(snpSelection, signSnp))
+          snpSelection <- sort(union(snpSelection, signSnpNr))
           snpStatus <- rep(paste("within", sizeInclRegion/1000 , "kb of a significant snp"),
             length(snpSelection))
-          snpStatus[snpSelection %in% signSnp] <- "significant snp"
+          snpStatus[snpSelection %in% signSnpNr] <- "significant snp"
         } else {
-          snpSelection <- signSnp
-          snpStatus <- rep("significant snp", length(signSnp))
+          snpSelection <- signSnpNr
+          snpStatus <- rep("significant snp", length(signSnpNr))
         }
         if (GLSMethod %in% 1:2) {
           effect <- GWAResult$effect[snpSelection]
@@ -485,8 +464,10 @@ runSingleTraitGwas <- function (gData,
           propSnpVar <- snpVar / as.numeric(var(phenoEnvirTrait[trait]))
         }
         ## Create data.frame with significant snps.
-        signSnp <- data.frame(snp = colnames(gData$markers)[snpSelection],
-          gData$map[snpSelection, ],
+        signSnp <- data.frame(trait = trait,
+          snp = GWAResult$snp[snpSelection],
+          chr = GWAResult$chr[snpSelection],
+          pos = GWAResult$pos[snpSelection],
           pValue = GWAResult$pValue[snpSelection],
           LOD = GWAResult$LOD[snpSelection],
           snpStatus = as.factor(snpStatus),
@@ -495,8 +476,7 @@ runSingleTraitGwas <- function (gData,
           RLR2 = GWAResult$RLR2[snpSelection],
           propSnpVar = propSnpVar,
           stringsAsFactors = FALSE)
-        signSnpTotEnvir <- rbind(signSnpTotEnvir,
-          data.frame(trait = trait, signSnp, stringsAsFactors = FALSE))
+        signSnpTotEnvir <- rbind(signSnpTotEnvir, signSnp)
       }
       GWATotEnvir <- rbind(GWATotEnvir,
         data.frame(trait = trait, GWAResult, stringsAsFactors = FALSE))

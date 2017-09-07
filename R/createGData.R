@@ -178,7 +178,7 @@ createGData <- function(gData = NULL,
   if (!missing(kin)) {
     if (!is.null(kin) && !is.matrix(kin) && !(is.list(kin) && all(sapply(kin, is.matrix))))
       stop("kin should be a matrix or a list of matrices.\n")
-    if (!is.null(map) && is.list(kin) && length(kin) != length(unique(map$chr)))
+    if (!is.null(map) && is.list(kin) && length(kin) != dplyr::n_distinct(map$chr))
       stop("kin should be the same length as the number of chromosomes in map.\n")
     if (is.null(rownames(kin)) || is.null(colnames(kin)))
       stop("row and column names in kin cannot be NULL.\n")
@@ -204,9 +204,10 @@ createGData <- function(gData = NULL,
         order(match(colnames(kin), rownames(markers)))]
     }
     ## Add default names.
-    if (is.list(kin) && is.null(names(kin)))
+    if (is.list(kin) && is.null(names(kin))) {
       warning("kin contains no names. Default names added.\n")
-    names(kin) <- unique(map$chr)
+      names(kin) <- unique(map$chr)
+    }
     if (!is.null(gData$kinship))
       warning("existing kinship will be overwritten.\n", call. = FALSE)
   } else if (!is.null(gData$kinship)) kin <- gData$kinship
