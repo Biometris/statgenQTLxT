@@ -11,11 +11,18 @@ load("./example_data_drops/testData.RData")
 #Y <- rownames_to_column(Y,var="genotype")
 names(map)[1:2] <- c("chr","pos")
 map <- map[map$chr>0,]
+load("/home/mille016/Documents/PhD-1A/GWAS/Pipelines_1M_SNP/161117_Delivrable_AmaizingDenteV3/Geno/2016-10-18_Geno012NAFiltered_50K-600K-GBS-GBS_NoLocDup_AmaizingDente_403I_978134L_All_.Rdata")
+
+map <- GenoGlob[[2]]
+row.names(map) <- map$SNP.name
+names(map)[2:3] <- c("chr","pos")
 
 # Genotyping
 load("/home/mille016/Documents/PostDoc/GWAS_multitrait/Matrix_ImputedBeagle012_600K_BGA_Amaizing_Dente_Chr_All_OneMatrix_MAF05drops.Rdata")
+load("/home/mille016/Documents/PhD-1A/GWAS/Pipelines_1M_SNP/161117_Delivrable_AmaizingDenteV3/Input/Results_Beagle/GenotypingSubset_50K_panzea.RData")
 dim(mat3)
 mat4 <- mat3[,which(colnames(mat3)%in%map$snp.name)]
+mat4 <- mat3[,which(colnames(mat3)%in%row.names(map))]
 
 unique(map$chr[which(map$snp.name%in%colnames(mat3))])
 
@@ -95,12 +102,13 @@ result <- merge(resultOrig, resultNw, by.x = "Marker_Name", by.y = "snp")
 
 jpeg(filename ="./example_data_drops/Comparison_gwasResults.jpg",width = 480, height = 480)
 plot(-log10(result$Pvalue) ~ result$LOD)
-
 abline(a = 0, b = 1, col = "red")
 abline(v = 4, h = 4, col = "green",lty = 2)
 dev.off()
 
-plot(GWAS)
+plot(GWASkin)
+save(GWASkin,file="./example_data_drops/GWAS_test_bis.RData")
+
 plot(GWAS,type="qq")
 
 
