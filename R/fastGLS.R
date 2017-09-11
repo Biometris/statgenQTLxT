@@ -104,7 +104,7 @@ fastGLS <-function(y,
   df2 <- n - 1 - nCov
   FVal <- (RSSEnv - RSSFull) / RSSFull * df2
   pVal <- pf(q = FVal, df1 = 1, df2 = df2, lower.tail = FALSE)
-  ## Compute R_LR^2 statistic from G. Sun et al 2010, heredity.
+  ## Compute R_LR^2 statistic from Sun et al 2010, heredity.
   RLR2  <- 1 - exp((RSSFull - RSSEnv) / n)
   ## Construct output data.frame.
   GLS <- data.frame(pValue = pVal,

@@ -28,6 +28,7 @@
 #' @seealso \code{\link{manhattanPlot}}, \code{\link{qqPlot}}, \code{\link{qtlPlot}}
 #'
 #' @export
+
 plot.GWAS <- function(x, ..., type = "manhattan", environment = NULL, trait = NULL) {
   type <- match.arg(type, choices = c("manhattan", "qq", "qtl"))
   ## Checks.
@@ -52,7 +53,12 @@ plot.GWAS <- function(x, ..., type = "manhattan", environment = NULL, trait = NU
     if (is.null(trait)) {
       trait <- unique(GWAResult$trait)
       if (length(trait) > 1) {
-        stop("Trait not supplied but multiple traits detected in data.")
+        if (substr(as.character(x$GWASInfo$call)[1], 1, 9) == "runSingle") {
+          stop("Trait not supplied but multiple traits detected in data.")
+        } else {
+          ## For multi trait GWAS p-values are the same for all traits.
+          trait <- trait[1]
+        }
       }
     } else {
       GWAResult <- GWAResult[GWAResult$trait == trait, ]

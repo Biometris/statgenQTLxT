@@ -299,9 +299,10 @@ EMFA <- function(Y,
   predFrame <- data.frame(trait = rep(colnames(Y), each = n),
     genotype = rep(rownames(Y), p),
     predicted = as.numeric(mu))
-
-  return(list(Cm = Cm, Dm = Dm, logLik = ELogLik, logLik2 = logLik, nIter = iter,
-    converged = (!continue), decreased = decreased))
+  Vg = solve(Cm)
+  Ve = solve(Dm)
+  colnames(Vg) <- rownames(Vg) <- colnames(Ve) <- rownames(Ve) <- colnames(Y)
+  return(list(Vg = Vg, Ve = Ve))
 }
 
 

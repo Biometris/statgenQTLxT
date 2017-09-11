@@ -17,7 +17,7 @@ summary.gData <- function(object, ...) {
   if (!is.null(map)) {
     cat("map\n")
     cat("\tNumber of markers:", nrow(map), "\n")
-    cat("\tNumber of chromosomes:", length(unique(map$chr)), "\n\n")
+    cat("\tNumber of chromosomes:", dplyr::n_distinct(map$chr), "\n\n")
   }
   if (!is.null(markers)) {
     cat("markers\n")
@@ -38,7 +38,7 @@ summary.gData <- function(object, ...) {
         cat("\tEnvironment ", i, ":\n", sep = "")
       }
       cat("\t\tNumber of traits:", ncol(pheno[[i]]) - 1, "\n")
-      cat("\t\tNumber of genotypes:", length(unique(pheno[[i]]$genotype)), "\n\n")
+      cat("\t\tNumber of genotypes:", dplyr::n_distinct(pheno[[i]]$genotype), "\n\n")
       print(summary(pheno[[i]][, -1]))
       cat("\n")
     }

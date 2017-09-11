@@ -28,10 +28,10 @@ summary.GWAS <- function(object, ..., environments = NULL) {
     ## Print traits.
     cat("\tTraits analysed:", paste(unique(GWAResult$trait), collapse = ", "), "\n\n")
     ## Print SNP numbers.
-    cat("\tData are available for", length(unique(GWAResult$snp)), "SNPs.\n")
+    cat("\tData are available for", dplyr::n_distinct(GWAResult$snp), "SNPs.\n")
     if (!is.null(GWASInfo$MAF)) {
-      cat("\t", length(unique(GWAResult$snp[is.na(GWAResult$pValue)])), "of them were not analyzed because their",
-        "minor allele frequency is below", GWASInfo$MAF, "\n\n")
+      cat("\t", dplyr::n_distinct(GWAResult$snp[is.na(GWAResult$pValue)]), "of them were not",
+        "analyzed because their minor allele frequency is below", GWASInfo$MAF, "\n\n")
     }
     if (!is.null(GWASInfo$GLSMethod) && as.numeric(GWASInfo$GLSMethod) == 1) {
       ## Print mixed model info.

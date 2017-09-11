@@ -23,7 +23,6 @@ covUnstructured <- function(Y,
   K,
   X = NULL,
   fixDiag = FALSE,
-  corMat = FALSE,
   VeDiag = FALSE) {
   ## Check input.
   if (missing(Y) || !is.matrix(Y))
@@ -63,11 +62,6 @@ covUnstructured <- function(Y,
   ## Extract components from fitted model.
   VgMat <- sommerFit$var.comp[[1]]
   VeMat <- sommerFit$var.comp[[2]]
-  if (corMat) {
-    ## Ones on the diagonal of resulting matrix.
-    VgMat <- cov2cor(VgMat) * VgMat
-    VeMat <- cov2cor(VeMat) * VeMat
-  }
   colnames(VgMat) <- rownames(VgMat) <- traits
   colnames(VeMat) <- rownames(VeMat) <- traits
   return(list(Vg = VgMat, Ve = VeMat))

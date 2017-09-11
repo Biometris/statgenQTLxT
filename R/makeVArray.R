@@ -25,7 +25,7 @@ makeVArray <- function(Vg, Ve, Dk) {
   p <- ncol(Vg)
   VArray <- array(dim = c(n, p, p))
   for (i in 1:n) {
-    VArray[i, , ] <- Dk[i] * Vg + Ve
+    VArray[i, , ] <- Matrix::forceSymmetric(Dk[i] * Vg + Ve)
   }
   return(VArray)
 }
@@ -39,7 +39,7 @@ makeVInvArray <- function(Vg, Ve, Dk) {
   p <- ncol(Vg)
   VInvArray <- array(dim = c(n, p, p))
   for (i in 1:n) {
-    VInvArray[i, , ] <- solve(Dk[i] * Vg + Ve)
+    VInvArray[i, , ] <- as.matrix(Matrix::solve(Matrix::forceSymmetric(Dk[i] * Vg + Ve)))
   }
   return(VInvArray)
 }
