@@ -74,6 +74,7 @@ chrSpecKin <- function(gData, kinshipMethod) {
   return(KChr)
 }
 
+## Select markers to be excluded from GWAS scan.
 computeExcludedMarkers <- function(snpCovariates, markersRed, allFreq) {
   exclude <- integer()
   if (any(snpCovariates %in% colnames(markersRed))) {
@@ -90,7 +91,7 @@ computeExcludedMarkers <- function(snpCovariates, markersRed, allFreq) {
   return(exclude)
 }
 
-
+## Fill GWAResult data.frame for (a selection of) markers
 fillGWAResult <- function(GWAResult, effects, effectsSe, Xt, Yt, VInvArray,
   excludedMarkers, markersRed, Uk) {
   p <- ncol(effects)

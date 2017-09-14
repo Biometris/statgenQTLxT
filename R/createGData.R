@@ -170,6 +170,10 @@ createGData <- function(gData = NULL,
         stop("geno contains no marker names. Dimensions between geno and map differ.\n")
       colnames(markers) <- rownames(map)
       warning("geno contains no marker names. Names taken from map.\n", call. = FALSE)
+    } else {
+      if (any(!colnames(markers) %in% rownames(map[rownames(map) %in% colnames(markers),])))
+        warning("not all markers in geno are in map. Extra markers are removed.\n", call. = FALSE)
+      markers <- markers[, colnames(markers) %in% rownames(map)]
     }
     if (!is.null(gData$markers)) warning("existing geno will be overwritten.\n", call. = FALSE)
   } else if (!is.null(gData$markers)) markers <- gData$markers

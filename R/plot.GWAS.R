@@ -31,6 +31,7 @@
 
 plot.GWAS <- function(x, ..., type = "manhattan", environment = NULL, trait = NULL) {
   type <- match.arg(type, choices = c("manhattan", "qq", "qtl"))
+  dotArgs <- list(...)
   ## Checks.
   if (!is.null(environment) && !is.character(environment) && !is.numeric(environment))
     stop("environment should be a character or numeric value.\n")
@@ -71,13 +72,27 @@ plot.GWAS <- function(x, ..., type = "manhattan", environment = NULL, trait = NU
     chrBnd <- aggregate(GWAResult$pos, by = list(GWAResult$chr), FUN = max)
     ## Compute cumulative positions.
     addPos <- data.frame(chr = chrBnd[, 1], add = c(0, cumsum(chrBnd[, 2]))[1:nrow(chrBnd)])
-    map <- merge(data.frame(chr = GWAResult$chr, pos = GWAResult$pos), addPos, by = "chr")
-    map <- data.frame(snp = GWAResult$snp, chr = map$chr, cumPos = map$pos + map$add)
+    map <- dplyr::select(GWAResult, .data$snp, .data$chr, .data$pos, .data$LOD) %>%
+    dplyr::inner_join(addPos, by = "chr") %>%
+    dplyr::mutate(cumPos = .data$pos + .data$add)
     ## Extract numbers of significant SNPs.
-    signSnpNr <- which(map$snp %in% signSnp$snp[as.numeric(signSnp$snpStatus) == 1])
+    if (is.null(dotArgs$yThr)) {
+      signSnpNr <- which(map$snp %in% signSnp$snp[as.numeric(signSnp$snpStatus) == 1])
+    } else {
+      signSnpNr <- which(map$LOD > dotArgs$yThr)
+    }
+    if (!is.null(dotArgs$plotType)) {
+      plotType = dotArgs$plotType
+    } else {
+      plotType = "p"
+    }
     ## Create manhattan plot.
-    manhattanPlot(xValues = map$cumPos, yValues = GWAResult$LOD, map = map,
-      plotType = "p", xSig = signSnpNr, chrBoundaries = chrBnd[, 2], yThr = x$thr, ...)
+    do.call(manhattanPlot, args = c(list(xValues = map$cumPos, yValues = map$LOD,
+      map = map[, -which(colnames(map) == "LOD")],
+      plotType = plotType, xSig = signSnpNr, chrBoundaries = chrBnd[, 2],
+      yThr = ifelse(is.null(dotArgs$yThr), x$thr, dotArgs$yThr)),
+      dotArgs[-which(names(dotArgs) %in% c("plotType", "yThr"))]
+      ))
   } else if (type == "qq") {
     ## Create qq-plot
     qqPlot(pValues = na.omit(GWAResult$pValue), ...)

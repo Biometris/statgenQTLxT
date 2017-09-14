@@ -271,8 +271,9 @@ runSingleTraitGwas <- function (gData,
             ## Compute varcov matrix using var components from model.
             sommerK <- kinshipRed[nonMissingRepId, nonMissingRepId]
             varComp[[trait]] <- unlist(sommerFit$var.comp)[c(1, length(unlist(sommerFit$var.comp)))]
-            vcovMatrix <- unlist(sommerFit$var.comp)[1] * sommerK +
-              unlist(sommerFit$var.comp)[length(unlist(sommerFit$var.comp))] * diag(nrow(sommerK))
+            vcovMatrix <- as.matrix(Matrix::nearPD(
+              unlist(sommerFit$var.comp)[1] * sommerK +
+                unlist(sommerFit$var.comp)[length(unlist(sommerFit$var.comp))] * diag(nrow(sommerK)))$mat)
           }
         } else {
           ## Kinship matrix is computationally identical to identity matrix.
@@ -316,8 +317,9 @@ runSingleTraitGwas <- function (gData,
             sommerK <- KinshipRedChr[nonMissingRepId, nonMissingRepId]
             varComp[[trait]][[which(chrs == chr)]] <-
               unlist(sommerFit$var.comp)[c(1, length(unlist(sommerFit$var.comp)))]
-            vcovMatrix[[which(chrs == chr)]] <- unlist(sommerFit$var.comp)[1] * sommerK +
-              unlist(sommerFit$var.comp)[length(unlist(sommerFit$var.comp))] * diag(nrow(sommerK))
+            vcovMatrix[[which(chrs == chr)]] <- as.matrix(Matrix::nearPD(
+              unlist(sommerFit$var.comp)[1] * sommerK +
+              unlist(sommerFit$var.comp)[length(unlist(sommerFit$var.comp))] * diag(nrow(sommerK)))$mat)
           }
         }
       }

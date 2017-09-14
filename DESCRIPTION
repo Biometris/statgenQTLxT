@@ -6,7 +6,7 @@ Author: Who wrote it
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
-License: GPL-2
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
@@ -19,9 +19,9 @@ Imports: dplyr (>= 0.7.2),
     reshape2 (>= 1.4.2),
     sommer (>= 3.0),
     tibble (>= 1.3.3),
-    rlang
-Suggests: knitr (>= 1.17),
-    rmarkdown (>= 1.6),
-    ReporteRs (>= 0.8.8),
-    testthat (>= 1.0.2)
+    rlang (>= 0.1.2)
+Suggests: knitr,
+    rmarkdown,
+    ReporteRs,
+    testthat
 VignetteBuilder: knitr

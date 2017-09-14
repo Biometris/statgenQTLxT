@@ -56,10 +56,10 @@ summary.GWAS <- function(object, ..., environments = NULL) {
     if (!is.null(GWASInfo$genomicControl) && GWASInfo$genomicControl) {
       ## Print genomic control.
       cat("\tGenomic control correction was applied\n")
-      cat("\tGenomic control inflation-factor:",
-        paste(round(GWASInfo$inflationFactor[[environment]], 3), collapse = ", "), "\n\n")
     } else {
       cat("\tNo Genomic control correction was applied\n")
     }
+    cat("\tGenomic control inflation-factor:",
+      paste(round(GWASInfo$inflationFactor[[environment]], 3), collapse = ", "), "\n\n")
   }
 }

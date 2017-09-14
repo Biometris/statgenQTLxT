@@ -326,8 +326,8 @@ runMultiTraitGwas <- function(gData,
           return(delta * K %*% solve((delta * K + diag(nrow(Y))), matrix(i)))})
         varComp <- list(Vg = cov(GBLUP), Ve = cov(Y - GBLUP))
       }
-      Vg <- lapply(X = varComp, FUN = function(x) {x[[1]]})
-      Ve <- lapply(X = varComp, FUN = function(x) {x[[2]]})
+      Vg <- setNames(lapply(X = varComp, FUN = function(x) {x[[1]]}), paste("chr", chrs))
+      Ve <- setNames(lapply(X = varComp, FUN = function(x) {x[[2]]}), paste("chr", chrs))
       if (!is.null(snpCovariates)) {
         VgRed <- lapply(X = varCompRed, FUN = function(x) {x[[1]]})
         VeRed <- lapply(X = varCompRed, FUN = function(x) {x[[2]]})
@@ -448,7 +448,7 @@ runMultiTraitGwas <- function(gData,
   GWASInfo <- list(call = match.call(),
     MAF = MAF,
     varComp = list(Vg = Vg, Ve = Ve))
-  return(createGWAS(GWAResult = GWAResult,
+  return(createGWAS(GWAResult = setNames(list(GWAResult), names(gData$pheno)[environment]),
     signSnp = NULL,
     kin = if (GLSMethod == 1) {if (is.null(K)) gData$kinship else K} else KChr,
     thr = NULL,
