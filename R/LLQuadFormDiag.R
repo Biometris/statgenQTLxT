@@ -24,20 +24,23 @@
 LLQuadFormDiag <- function(Y,
   X = data.frame(),
   VInvArray) {
-  stopifnot(nrow(Y) == dim(VInvArray)[2])
-  stopifnot(nrow(Y) == dim(VInvArray)[3])
+  #stopifnot(nrow(Y) == dim(VInvArray)[2])
+  #stopifnot(nrow(Y) == dim(VInvArray)[3])
   if (anyNA(Y)) stop("No missing values allowed in Y")
   if (!(is.data.frame(X) && nrow(X) == 0)) {
-    stopifnot(ncol(X) == dim(VInvArray)[1])
+    #stopifnot(ncol(X) == dim(VInvArray)[1])
     if (anyNA(X)) stop("No missing values allowed in X")
   }
   nc <- nrow(X)
   n <- ncol(Y)
   p <- nrow(Y)
   ## Define functions for faster computation of scalair part, q and Q.
-  scalFunc <- function(i) {crossprod(Y[, i], VInvArray[i, , ]) %*% Y[, i]}
-  qVecFunc <- function(i) {kronecker(X[, i], VInvArray[i, , ] %*% Y[, i])}
-  qMatFunc <- function(i) {kronecker(tcrossprod(X[, i]), VInvArray[i, , ])}
+  scalFunc <- function(i) {
+    as.numeric(Matrix::crossprod(Y[, i, drop = FALSE], VInvArray[[i]]) %*% Y[, i, drop = FALSE])}
+  qVecFunc <- function(i) {
+    kronecker(X[, i], VInvArray[[i]] %*% Y[, i])}
+  qMatFunc <- function(i) {
+    kronecker(tcrossprod(X[, i]), VInvArray[[i]])}
   ## Compute scalair part.
   qScal <- sum(sapply(1:n, scalFunc))
   if (nc > 0) {
@@ -50,7 +53,7 @@ LLQuadFormDiag <- function(Y,
       QMatrix <- matrix(rowSums(sapply(1:n, qMatFunc)), ncol = p * nc)
     }
     ## Compute quadratic part.
-    quadFormPart <- qScal - as.numeric(t(qVec) %*% solve(QMatrix) %*% qVec)
+    quadFormPart <- qScal - as.numeric(crossprod(qVec %*% solve(QMatrix, qVec)))
   } else {
     quadFormPart <- qScal
   }

@@ -38,12 +38,13 @@ LRTTest <- function(X,
   ## Null model with the trait specific means only
   if (is.null(SS0)) {
     est0 <- estimateEffects(X = X, Y = Y, VInvArray = VInvArray, returnAllEffects = TRUE)
-    fittedMean0 <- matrix(est0$effectsEstimates, ncol = length(est0$effectsEstimates) / p) %*% X
+    fittedMean0 <- Matrix::Matrix(est0$effectsEstimates, nrow = p) %*% X
     SS0 <- LLQuadFormDiag(Y = Y - fittedMean0, VInvArray = VInvArray)
   }
   ## Alternative model, with additional trait specific marker effect
   est1 <- estimateEffects(X = X, x = x, Y = Y, VInvArray = VInvArray, returnAllEffects = TRUE)
-  fittedMean1 <- matrix(est1$effectsEstimates, ncol = length(est1$effectsEstimates) / p) %*% rbind(X, x)
+  fittedMean1 <- Matrix::Matrix(est1$effectsEstimates, nrow = p) %*%
+    Matrix::rbind2(X, x)
   SS1 <- LLQuadFormDiag(Y = Y - fittedMean1, VInvArray = VInvArray)
   ## Compute F-statistic and p-value using results from null and alternative model.
   FStat <- ((SS0 - SS1) / SS1) * dfFull / p

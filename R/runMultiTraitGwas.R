@@ -199,19 +199,19 @@ runMultiTraitGwas <- function(gData,
   phenoEnvir <- phenoExp$phenoEnvir
   covarEnvir <- phenoExp$covarEnvir
   ## Convert pheno and covariates to format suitable for fitting variance components.
-  X <- cbind(rep(1, nrow(phenoEnvir)), as.matrix(phenoEnvir[covarEnvir]))
+  X <- Matrix::cbind2(Matrix::Matrix(rep(1, nrow(phenoEnvir))), as(phenoEnvir[covarEnvir], "Matrix"))
   rownames(X) <- phenoEnvir$genotype
   ## Add snpCovariates to X
   if (!is.null(snpCovariates)) {
     if (ncol(X) == length(snpCovariates)) {
-      XRed <- matrix(nrow = nrow(X), ncol = 0, dimnames = list(rownames(X)))
+      XRed <- Matrix::Matrix(nrow = nrow(X), ncol = 0, dimnames = list(rownames(X)))
     } else {
-      XRed <- as.matrix(X[, 1:(ncol(X) - length(snpCovariates))])
+      XRed <- as(X[, 1:(ncol(X) - length(snpCovariates))], "Matrix")
     }
   }
-  Y <- as.matrix(tibble::column_to_rownames(
+  Y <- as(tibble::column_to_rownames(
     tibble::remove_rownames(phenoEnvir[, which(!colnames(phenoEnvir) %in% covarEnvir)]),
-    var = "genotype"))
+    var = "genotype"), "Matrix")
   if (GLSMethod == 1) {
     K <- K[rownames(Y), rownames(Y)]
   } else if (GLSMethod == 2) {
@@ -260,7 +260,7 @@ runMultiTraitGwas <- function(gData,
       } else if (covModel == 4) {
         ## ??
         geno <- rownames(Y)
-        GBLUP <- sapply(as.data.frame(Y), function(i) {
+        GBLUP <- sapply(as.matrix(Y), function(i) {
           outH2 <- heritability::marker_h2_means(data.vector = i, geno.vector = geno, K = K)
           delta <- outH2$va / outH2$ve
           return(delta * K %*% solve((delta * K + diag(nrow(Y))), matrix(i)))})
@@ -336,7 +336,7 @@ runMultiTraitGwas <- function(gData,
   }
   ## Create data.frame and matrices for storing GWAS Results.
   nn <- nrow(mapRed)
-  allFreq <- colMeans(markersRed[rownames(Y), rownames(mapRed)]) / max(markersRed)
+  allFreq <- Matrix::colMeans(markersRed[rownames(Y), rownames(mapRed)]) / max(markersRed)
   effects <- effectsSe <- matrix(nrow = nn, ncol = ncol(Y),
     dimnames = list(colnames(markersRed), colnames(Y)))
   markersRed <- markersRed[rownames(Y), ]
@@ -357,15 +357,15 @@ runMultiTraitGwas <- function(gData,
     w <- eigen(K, symmetric = TRUE)
     Dk <- w$values
     Uk <- w$vectors
-    Yt <- crossprod(Y, Uk)
+    Yt <- Matrix::crossprod(Y, Uk)
     colnames(Yt) <- rownames(Y)
     if (ncol(X) > 0) {
-      Xt <- crossprod(X, Uk)
+      Xt <- Matrix::crossprod(X, Uk)
     }
     VInvArray <- makeVInvArray(Vg = Vg, Ve = Ve, Dk = Dk)
     if (!is.null(snpCovariates)) {
       if (ncol(XRed) > 0) {
-        XtRed <- crossprod(XRed, Uk)
+        XtRed <- Matrix::crossprod(XRed, Uk)
       }
       VInvArrayRed <- makeVInvArray(Vg = VgRed, Ve = VeRed, Dk = Dk)
     }
@@ -393,23 +393,23 @@ runMultiTraitGwas <- function(gData,
       w <- eigen(KChr[[which(chrs == chr)]], symmetric = TRUE)
       Dk <- w$values
       Uk <- w$vectors
-      Yt <- crossprod(Y, Uk)
+      Yt <- Matrix::crossprod(Y, Uk)
       colnames(Yt) <- rownames(Y)
       if (ncol(X) > 0) {
-        Xt <- crossprod(X, Uk)
+        Xt <- Matrix::crossprod(X, Uk)
       }
       VInvArray <- makeVInvArray(Vg = Vg[[which(chrs == chr)]], Ve = Ve[[which(chrs == chr)]],
         Dk = Dk)
       if (!is.null(snpCovariates)) {
         if (ncol(XRed) > 0) {
-          XtRed <- crossprod(XRed, Uk)
+          XtRed <- Matrix::crossprod(XRed, Uk)
         }
         VInvArrayRed <- makeVInvArray(Vg = VgRed[[which(chrs == chr)]],
           Ve = VeRed[[which(chrs == chr)]], Dk = Dk)
       }
       mapRedChr <- mapRed[which(mapRed$chr == chr), ]
       markersRedChr <- markersRed[, which(colnames(markersRed) %in% rownames(mapRedChr)), drop = FALSE]
-      allFreqChr <- colMeans(markersRedChr) / max(markersRedChr)
+      allFreqChr <- Matrix::colMeans(markersRedChr) / max(markersRedChr)
       excludedMarkers <- which(allFreqChr < MAF | allFreqChr > 1 - MAF)
       ## Add snpCovariates to segregating markers.
       excludedMarkers <- union(excludedMarkers, computeExcludedMarkers(snpCovariates = snpCovariates,

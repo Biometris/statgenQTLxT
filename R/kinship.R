@@ -43,7 +43,7 @@ astle <- function(X,
   Z <- scale(X, center = 2 * p, scale = sqrt(2 * p * (1 - p)))
   ## Compute denominator.
   if (is.null(denominator)) denominator <- ncol(Z)
-  return(tcrossprod(Z) / denominator)
+  return(Matrix::tcrossprod(as(Z, "Matrix")) / denominator)
 }
 
 #' @rdname kinship
@@ -57,7 +57,7 @@ GRM <- function(X,
   Z <- scale(X)
   ## Compute denominator.
   if (is.null(denominator)) denominator <- ncol(Z)
-  return(tcrossprod(X) / denominator)
+  return(Matrix::tcrossprod(as(X, "Matrix")) / denominator)
 }
 
 #' @rdname kinship
@@ -69,7 +69,8 @@ IBS <- function(X,
   X <- X[, apply(X, 2, var) != 0, drop = FALSE]
   ## Compute denominator.
   if (is.null(denominator)) denominator <- ncol(X)
-  return((tcrossprod(X) + tcrossprod(1 - X)) / denominator)
+  X <- as(X, "Matrix")
+  return((Matrix::tcrossprod(X) + Matrix::tcrossprod(1 - X)) / denominator)
 }
 
 #' @rdname kinship
@@ -84,7 +85,7 @@ vanRaden <- function(X,
   Z <- scale(X, center = 2 * p, scale = FALSE)
   ## Compute denominator.
   if (is.null(denominator)) denominator <- 2 * sum(p * (1 - p))
-  return(tcrossprod(Z) / denominator)
+  return(Matrix::tcrossprod(as(Z, "Matrix")) / denominator)
 }
 
 

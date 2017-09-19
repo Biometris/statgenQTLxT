@@ -141,7 +141,7 @@ runSingleTraitGwas <- function (gData,
     stop("remlAlgo should be a single numeric value.\n")
   if (is.null(GLSMethod) || length(GLSMethod) > 1 || !is.numeric(GLSMethod))
     stop("GLSMethod should be a single numeric value.\n")
-  if (GLSMethod == 1 && !is.null(K) && !is.matrix(K))
+  if (GLSMethod == 1 && !is.null(K) && !(inherits(K, "Matrix") || is.matrix(K)))
     stop("K should be a matrix.\n")
   if (GLSMethod == 2 && !is.null(K) && (!is.list(K) ||
       !all(sapply(K, FUN = is.matrix)) || length(K) != dplyr::n_distinct(gData$map$chr)))
@@ -207,7 +207,7 @@ runSingleTraitGwas <- function (gData,
   ## Compute max value in markers
   maxScore <- max(gData$markers, na.rm = TRUE)
   # allele frequencies based on all genotypes (trait-independent)
-  allFreqTot <- colMeans(gData$markers, na.rm = TRUE)
+  allFreqTot <- Matrix::colMeans(gData$markers, na.rm = TRUE)
   if (maxScore == 2) {
     allFreqTot<- allFreqTot / 2
   }
@@ -244,7 +244,7 @@ runSingleTraitGwas <- function (gData,
       nonMissingRepId <- phenoEnvirTrait$genotype
       ## Estimate variance components.
       if (GLSMethod == 1) {
-        if (!isTRUE(all.equal(kinshipRed, diag(nrow(kinshipRed)), check.names = FALSE))) {
+        if (!isTRUE(all.equal(kinshipRed, Matrix::Diagonal(nrow(kinshipRed)), check.names = FALSE))) {
           if (remlAlgo == 1) {
             ## emma algorithm takes covariates from gData.
             gDataEmma <- createGData(pheno = gData$pheno,
@@ -255,8 +255,8 @@ runSingleTraitGwas <- function (gData,
             ## Compute varcov matrix using var components.
             varComp[[trait]] <- remlObj[[1]]
             vcovMatrix <- remlObj[[1]][1] * remlObj[[2]] +
-              remlObj[[1]][2] * diag(nrow(remlObj[[2]]))
-            vcovMatrix <- as.matrix(Matrix::nearPD(vcovMatrix[nonMissingRepId, nonMissingRepId])$mat)
+              remlObj[[1]][2] * Matrix::Diagonal(nrow(remlObj[[2]]))
+            vcovMatrix <- Matrix::nearPD(vcovMatrix[nonMissingRepId, nonMissingRepId])$mat
           } else if (remlAlgo == 2) {
             ## Construct the formula for the fixed part of the model.
             if (!is.null(covarEnvir)) {
@@ -267,17 +267,18 @@ runSingleTraitGwas <- function (gData,
             }
             ## Fit mmer2 model.
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
-              random = ~ g(genotype), G = list(genotype = kinshipRed), silent = TRUE)
+              random = ~ g(genotype), G = list(genotype = as.matrix(kinshipRed)), silent = TRUE)
             ## Compute varcov matrix using var components from model.
             sommerK <- kinshipRed[nonMissingRepId, nonMissingRepId]
             varComp[[trait]] <- unlist(sommerFit$var.comp)[c(1, length(unlist(sommerFit$var.comp)))]
-            vcovMatrix <- as.matrix(Matrix::nearPD(
+            vcovMatrix <- Matrix::nearPD(
               unlist(sommerFit$var.comp)[1] * sommerK +
-                unlist(sommerFit$var.comp)[length(unlist(sommerFit$var.comp))] * diag(nrow(sommerK)))$mat)
+                unlist(sommerFit$var.comp)[length(unlist(sommerFit$var.comp))] *
+                Matrix::Diagonal(nrow(sommerK)))$mat
           }
         } else {
           ## Kinship matrix is computationally identical to identity matrix.
-          vcovMatrix <- diag(nrow(phenoEnvirTrait))
+          vcovMatrix <- Matrix::Diagonal(nrow(phenoEnvirTrait))
         }
       } else if (GLSMethod == 2) {
         varComp[[trait]] <- vcovMatrix <- vector(mode = "list", length = length(chrs))
@@ -296,9 +297,9 @@ runSingleTraitGwas <- function (gData,
             ## Compute varcov matrix using var components.
             varComp[[trait]][[which(chrs == chr)]] <- remlObj[[1]]
             vcovMatrixChr <- remlObj[[1]][1] * remlObj[[2]] +
-              remlObj[[1]][2] * diag(nrow(remlObj[[2]]))
+              remlObj[[1]][2] * Matrix::Diagonal(nrow(remlObj[[2]]))
             vcovMatrix[[which(chrs == chr)]] <-
-              as.matrix(Matrix::nearPD(vcovMatrixChr[nonMissingRepId, nonMissingRepId])$mat)
+              Matrix::nearPD(vcovMatrixChr[nonMissingRepId, nonMissingRepId])$mat
           }
         } else if (remlAlgo == 2) {
           if (!is.null(covarEnvir)) {
@@ -312,21 +313,22 @@ runSingleTraitGwas <- function (gData,
             KinshipRedChr <- KChr[[which(chrs == chr)]][nonMissing, nonMissing]
             ## Fit mmer2 model using chromosome specific kinship.
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
-              random = ~ g(genotype), G = list(genotype = KinshipRedChr), silent = TRUE)
+              random = ~ g(genotype), G = list(genotype = as.matrix(KinshipRedChr)), silent = TRUE)
             ## Compute varcov matrix using var components from model.
             sommerK <- KinshipRedChr[nonMissingRepId, nonMissingRepId]
             varComp[[trait]][[which(chrs == chr)]] <-
               unlist(sommerFit$var.comp)[c(1, length(unlist(sommerFit$var.comp)))]
-            vcovMatrix[[which(chrs == chr)]] <- as.matrix(Matrix::nearPD(
+            vcovMatrix[[which(chrs == chr)]] <- Matrix::nearPD(
               unlist(sommerFit$var.comp)[1] * sommerK +
-              unlist(sommerFit$var.comp)[length(unlist(sommerFit$var.comp))] * diag(nrow(sommerK)))$mat)
+              unlist(sommerFit$var.comp)[length(unlist(sommerFit$var.comp))] *
+                Matrix::Diagonal(nrow(sommerK)))$mat
           }
         }
       }
       ## Compute allele frequencies based on genotypes for which phenotypic data is available.
       markersRed <- gData$markers[nonMissing, colnames(gData$markers) %in% rownames(gData$map)]
       mapRed <- gData$map[rownames(gData$map) %in% colnames(markersRed), ]
-      allFreq <- colMeans(markersRed)
+      allFreq <- Matrix::colMeans(markersRed)
       if (maxScore == 2) {
         allFreq <- allFreq / 2
       }
@@ -345,7 +347,7 @@ runSingleTraitGwas <- function (gData,
         RLR2 = NA,
         allFreq = allFreq,
         stringsAsFactors = FALSE)
-      y <- phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing), trait]
+      y <- as(phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing), trait], "Matrix")
       if (GLSMethod == 1) {
         ## Exclude snpCovariates from segregating markers.
         exclude <- computeExcludedMarkers(snpCovariates = snpCovariates,
@@ -356,7 +358,7 @@ runSingleTraitGwas <- function (gData,
           Z <- NULL
         } else {
           ## Define covariate matrix Z.
-          Z <- as.matrix(phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing), covarEnvir])
+          Z <- as(phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing), covarEnvir], "Matrix")
         }
         ## Compute pvalues and effects using fastGLS.
         GLSResult <- fastGLS(y = y, X = X, Sigma = vcovMatrix, covs = Z)
@@ -365,9 +367,9 @@ runSingleTraitGwas <- function (gData,
         ## Compute p-values and effects for snpCovariates using fastGLS.
         for (snpCovariate in snpCovariates) {
           GLSResultSnpCov <- fastGLS(y = y,
-            X = as.matrix(markersRed[nonMissingRepId, snpCovariate]),
+            X = markersRed[nonMissingRepId, snpCovariate, drop = FALSE],
             Sigma = vcovMatrix,
-            covs = as.matrix(Z[, which(colnames(Z) != snpCovariate)]),
+            covs = Z[, which(colnames(Z) != snpCovariate)],
             nChunks = 1)
           GWAResult[snpCovariate,
             c("pValue", "effect", "effectSe", "RLR2")] <- GLSResultSnpCov
@@ -377,7 +379,7 @@ runSingleTraitGwas <- function (gData,
         for (chr in chrs) {
           mapRedChr <- mapRed[which(mapRed$chr == chr), ]
           markersRedChr <- markersRed[, which(colnames(markersRed) %in% rownames(mapRedChr)), drop = FALSE]
-          allFreqChr <- colMeans(markersRedChr)
+          allFreqChr <- Matrix::colMeans(markersRedChr)
           if (maxScore == 2) {
             allFreqChr <- allFreqChr / 2
           }
@@ -394,7 +396,7 @@ runSingleTraitGwas <- function (gData,
             Z <- NULL
           } else {
             ## Define covariate matrix Z.
-            Z <- as.matrix(phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing), covarEnvir])
+            Z <- as(phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing), covarEnvir], "Matrix")
           }
           GLSResult <- fastGLS(y = y, X = X, Sigma = vcovMatrix[[which(chrs == chr)]], covs = Z)
           GWAResult[colnames(markersRedChr)[segMarkersChr],
@@ -402,9 +404,9 @@ runSingleTraitGwas <- function (gData,
           ## Compute pvalues and effects for snpCovariates using fastGLS.
           for (snpCovariate in intersect(snpCovariates, colnames(markersRedChr))) {
             GLSResultSnpCov <- fastGLS(y = y,
-              X = as.matrix(markersRed[nonMissingRepId, snpCovariate]),
+              X = markersRed[nonMissingRepId, snpCovariate, drop = FALSE],
               Sigma = vcovMatrix[[which(chrs == chr)]],
-              covs = as.matrix(Z[, which(colnames(Z) != snpCovariate)]),
+              covs = Z[, which(colnames(Z) != snpCovariate)],
               nChunks = 1)
             GWAResult[snpCovariate,
               c("pValue", "effect", "effectSe", "RLR2")] <- GLSResultSnpCov
@@ -462,7 +464,7 @@ runSingleTraitGwas <- function (gData,
           ## for inbreeders, this depends on maxScore. It is therefore scaled to marker scores 0, 1
           ## (or 0, 0.5, 1 if there are heterozygotes)
           snpVar <- 4 * effect ^ 2 *
-            apply(as.matrix(markersRed[, snpSelection]), MARGIN = 2, FUN = var) / maxScore ^ 2
+            apply(markersRed[, snpSelection, drop = FALSE], MARGIN = 2, FUN = var) / maxScore ^ 2
           propSnpVar <- snpVar / as.numeric(var(phenoEnvirTrait[trait]))
         }
         ## Create data.frame with significant snps.

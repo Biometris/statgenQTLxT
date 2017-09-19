@@ -143,8 +143,13 @@ createGData <- function(gData = NULL,
   else pheno <- NULL
   ## Modify geno
   if (!missing(geno)) {
-    if (!is.data.frame(geno) && !is.matrix(geno)) stop("geno should be a matrix or a data.frame.\n")
-    if (is.data.frame(geno)) markers <- as.matrix(geno) else markers <- geno
+    if (!is.data.frame(geno) && !inherits(geno, "Matrix") && !is.matrix(geno))
+      stop("geno should be a matrix or a data.frame.\n")
+    if (is.data.frame(geno) || is.matrix(geno)) {
+      markers <- as(geno, "Matrix")
+      } else {
+        markers <- geno
+      }
     ## Check for row names in markers. If not available take them from pheno or use default names.
     if (all(rownames(markers) == as.character(1:nrow(markers)))) {
       if (missing(pheno)) {
@@ -180,7 +185,9 @@ createGData <- function(gData = NULL,
   else markers <- NULL
   ## Modify kin
   if (!missing(kin)) {
-    if (!is.null(kin) && !is.matrix(kin) && !(is.list(kin) && all(sapply(kin, is.matrix))))
+    if (!is.null(kin) && !inherits(kin, "Matrix") && !is.matrix(kin) &&
+        !(is.list(kin) && all(sapply(kin, FUN = function(x) {
+        inherits(x, "Matrix") || is.matrix(x)}))))
       stop("kin should be a matrix or a list of matrices.\n")
     if (!is.null(map) && is.list(kin) && length(kin) != dplyr::n_distinct(map$chr))
       stop("kin should be the same length as the number of chromosomes in map.\n")
@@ -200,10 +207,11 @@ createGData <- function(gData = NULL,
       stop("names of kin should correspond to names of chromosomes in map.\n")
     if (is.list(kin)) {
       kin <- lapply(X = kin, FUN = function(x) {
-        x[order(match(rownames(x), rownames(markers))),
-          order(match(colnames(x), rownames(markers)))]
+        as(x[order(match(rownames(x), rownames(markers))),
+          order(match(colnames(x), rownames(markers)))], "Matrix")
       })
     } else {
+      if (is.matrix(kin)) kin <- as(kin, "Matrix")
       kin <- kin[order(match(rownames(kin), rownames(markers))),
         order(match(colnames(kin), rownames(markers)))]
     }

@@ -65,7 +65,7 @@ runEmma <- function(gData,
   if ((is.character(trait) && !trait %in% colnames(gData$pheno[[environment]])) ||
       (is.numeric(trait) && trait > ncol(gData$pheno[[environment]])))
     stop("trait should be a column in pheno.\n")
-  if (!is.null(K) && !is.matrix(K))
+  if (!is.null(K) && !(inherits(K, "Matrix") || is.matrix(K)))
     stop("K should be a matrix.\n")
   if (is.null(K) && is.null(gData$kinship))
     stop("gData contains no matrix kinship so K should be provided.\n")
@@ -103,20 +103,19 @@ runEmma <- function(gData,
   } else {
     K <- K[nonMissing, nonMissing]
   }
-  y <- phenoEnvir[nonMissingId, trait]
+  y <- as(phenoEnvir[nonMissingId, trait], "Matrix")
   ## Define intercept.
-  X <- rep(1, length(nonMissing))
+  X <- Matrix::Matrix(rep(1, length(nonMissing)), ncol = 1)
   if (!is.null(covar)) {
     ## Add covars to intercept.
-    X <- cbind(X, gData$covar[nonMissing, covar])
+    X <- Matrix::cbind2(X, as(gData$covar[nonMissing, covar], "Matrix"))
   }
   if (!is.null(snpName)) {
     ## Add extra snp to intercept + covars.
-    X <- cbind(X, as.numeric(gData$markers[phenoEnvir$genotype, snpName][nonMissing]))
+    X <- Matrix::cbind2(X, as.numeric(gData$markers[phenoEnvir$genotype, snpName][nonMissing]))
   }
-  X <- as.matrix(X)
   ## Check resulting X for singularity.
-  if (class(try(solve(crossprod(X)), silent = TRUE)) != "matrix") {
+  if (!inherits(try(Matrix::solve(Matrix::crossprod(X)), silent = TRUE), "Matrix")) {
     warning("X is singular.")
     return(list(varcomp = c(0, 0), K = K))
   }
@@ -132,34 +131,34 @@ runEmma <- function(gData,
     ## Compute n-q non-zero eigenvalues and corresponding eigenvectors.
     eigR <- emmaEigenR(K = K, X = X)
     ## Define eta as in eqn. 7 of Kang.
-    etas <- crossprod(eigR$vectors, y)
+    etas <- Matrix::crossprod(eigR$vectors, y)
     ## Define etas1 and etas2 to use same optimisating as for Z not NULL.
     etas1 <- etas
     etas2 <- 0
     ## Compute square of eta for usage in vectorised form.
-    etasQ <- matrix(etas ^ 2 , nrow = n - q, ncol = m)
+    etasQ <- etas ^ 2
     ## Define lambda as in eqn. 7 of Kang for usage in vectorised form.
-    lambdas <- matrix(eigR$values, nrow = n - q, ncol = m) +
-      matrix(delta, nrow = n - q, ncol = m, byrow = TRUE)
+    lambdas <- Matrix::Matrix(eigR$values, nrow = n - q, ncol = m) +
+      Matrix::Matrix(delta, nrow = n - q, ncol = m, byrow = TRUE)
     ## Compute derivative of LL as in eqn. 9 of Kang for all grid endpoints.
-    dLL <- 0.5 * delta * ((n - q) * colSums(etasQ / lambdas ^ 2) /
-        colSums(etasQ / lambdas) - colSums(1 / lambdas))
+    dLL <- 0.5 * delta * ((n - q) * Matrix::colSums(etasQ / lambdas ^ 2) /
+        Matrix::colSums(etasQ / lambdas) - Matrix::colSums(1 / lambdas))
   } else {
     ## Compute n-q non-zero eigenvalues and corresponding eigenvectors.
     eigR <- emmaEigenRZ(Z = Z, K = K, X = X)
     ## Define eta as in eqn. 7 of Kang.
-    etas <- crossprod(eigR$vectors, y)
+    etas <- Matrix::crossprod(eigR$vectors, y)
     ## Split etas
     etas1 <- etas[1:(t - q)]
     etas2 <- sum(etas[(t - q + 1):(n - q)] ^ 2)
     ## Compute square of eta for usage in vectorised form.
-    etasQ <- matrix(etas1 ^ 2, nrow = t - q, ncol = m)
+    etasQ <- Matrix::Matrix(etas1 ^ 2, nrow = t - q, ncol = m)
     ## Define lambda as in eqn. 7 of Kang for usage in vectorised form.
-    lambdas <- matrix(eigR$values, nrow = t - q, ncol = m) +
-      matrix(delta, nrow = t - q, ncol = m, byrow = TRUE)
+    lambdas <- Matrix::Matrix(eigR$values, nrow = t - q, ncol = m) +
+      Matrix::Matrix(delta, nrow = t - q, ncol = m, byrow = TRUE)
     ## Compute derivative of LL as in eqn. 9 of Kang for all grid endpoints.
-    dLL <- 0.5 * delta * ((n - q) * (colSums(etasQ / (lambdas ^ 2)) + etas2 / (delta ^ 2)) /
-        (colSums(etasQ / lambdas) + etas2 / delta) - (colSums(1 / lambdas) + (n - t) / delta))
+    dLL <- 0.5 * delta * ((n - q) * (Matrix::colSums(etasQ / (lambdas ^ 2)) + etas2 / (delta ^ 2)) /
+        (Matrix::colSums(etasQ / lambdas) + etas2 / delta) - (Matrix::colSums(1 / lambdas) + (n - t) / delta))
   }
   ## Find optimum of LL
   optLogDelta <- numeric(0)

@@ -42,17 +42,17 @@ LLDiag <- function(Y,
   p <- nrow(Y)
   ## Compute scalair part.
   qScal <- sum(sapply(1:n, function(i) {
-    t(Y[, i]) %*% VInvArray[i, , ] %*% Y[, i]}))
+    as.numeric(Matrix::crossprod(Y[, i, drop = FALSE], VInvArray[[i]] %*% Y[, i, drop = FALSE]))}))
   quadFormPart <- -0.5 * qScal
   if (nc > 0) {
     ## Compute q, Q and quadratic part.
-    qVec <- matrix(rowSums(sapply(1:n, function(i)
-      {kronecker(X[, i], VInvArray[i, , ] %*% Y[, i])})))
-    QMatrix <- matrix(rowSums(sapply(1:n, function(i)
-      {kronecker(tcrossprod(X[, i]), VInvArray[i, , ])})), ncol = p * nc)
-    quadFormPart <- quadFormPart + 0.5 * as.numeric(crossprod(qVec, solve(QMatrix) %*% qVec))
+    qVec <- rowSums(sapply(1:n, function(i) {
+      kronecker(X[, i], VInvArray[[i]] %*% Y[, i])}))
+    QMatrix <- matrix(rowSums(sapply(1:n, function(i) {
+      kronecker(tcrossprod(X[, i]), VInvArray[[i]])})), ncol = p * nc)
+    quadFormPart <- quadFormPart + 0.5 * as.numeric(crossprod(qVec, solve(QMatrix, qVec)))
   }
   ## Compute determinant part.
-  detPart <- -0.5 * sum(sapply(1:n, function(i) {determinant(VArray[i, , ])[[1]][1]}))
+  detPart <- -0.5 * sum(sapply(1:n, function(i) {Matrix::determinant(VArray[[i]])[[1]][1]}))
   return(quadFormPart + detPart)
 }

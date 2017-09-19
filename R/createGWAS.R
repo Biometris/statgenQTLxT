@@ -66,8 +66,9 @@ createGWAS <- function(GWAResult = NULL,
   }
   ## Check kin
   if (!is.null(kin)) {
-    if (!is.matrix(kin) &&
-        !(is.list(kin) && all(sapply(kin, FUN = is.matrix))))
+    if (!(inherits(kin, "Matrix") || is.matrix(kin)) &&
+        !(is.list(kin) && all(sapply(kin, FUN = function(x) {
+          inherits(x, "Matrix") || is.matrix(x)}))))
       stop("kin should be a matrix or a list of matrices.\n")
   }
   ## Create GWAS object.

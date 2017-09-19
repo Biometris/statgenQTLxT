@@ -49,7 +49,7 @@
 
 EMFA <- function(Y,
   K,
-  X = matrix(rep(1, nrow(K))),
+  X = Matrix::Matrix(rep(1, nrow(K))),
   CmHet = FALSE,
   DmHet = FALSE,
   tolerance = 1e-4,
@@ -63,12 +63,13 @@ EMFA <- function(Y,
   stopIfDecreasing = FALSE,
   computeLogLik = FALSE) {
   ## Check input.
-  if (missing(Y) || !is.matrix(Y) || anyNA(Y))
+  if (missing(Y) || !(is.matrix(Y) || inherits(Y, "Matrix")) || anyNA(Y))
     stop("Y should be a matrix without missing values.")
-  if (missing(K) || !is.matrix(K) || nrow(K) != nrow(Y) || ncol(K) != nrow(Y) || anyNA(K))
+  if (missing(K) || !(is.matrix(K) || inherits(K, "Matrix")) ||
+      nrow(K) != nrow(Y) || ncol(K) != nrow(Y) || anyNA(K))
     stop("K should be a matrix without missing values with the same number of rows
       and columns as the number of rows in Y.")
-  if(!is.matrix(X) || anyNA(X))
+  if(!(is.matrix(X) || inherits(X, "Matrix")) || anyNA(X))
     stop("X should be a matrix without missing values.")
   nc <- ncol(X)
   if (nc > 0 && nrow(X) != nrow(K))
@@ -80,21 +81,21 @@ EMFA <- function(Y,
   if (!is.numeric(mE) || mE != round(mE) || mE < 0 || mE > p)
     stop("mE should be a positive integer between 0 and the number of traits.")
   if (nc > 0) {
-    B <- matrix(0, nc, p) # the c x p matrix of coefficients (p traits)
-    XtXinvXt <- solve(crossprod(X), t(X))
+    B <- Matrix::Matrix(0, nc, p) # the c x p matrix of coefficients (p traits)
+    XtXinvXt <- Matrix::solve(Matrix::crossprod(X), Matrix::t(X))
   } else {
     B <- NULL
   }
-  w <- eigen(solve(as(K, "symmetricMatrix")), symmetric = TRUE)
+  w <- eigen(Matrix::solve(K), symmetric = TRUE)
   Uk <- w$vectors
   Dk <- w$values
-  lambdaR <- diag(w$values)
+  lambdaR <- Matrix::Diagonal(x = w$values)
   ## Set starting values for Cm
   if (is.null(CmStart)) {
     if (mG == 0) {
       Cm <- Matrix::Diagonal(n = p, x = 2)
     } else {
-      Cm <- solve(as((cor(Y) + diag(p)) / 4, "symmetricMatrix"))
+      Cm <- Matrix::solve(cor(as.matrix(Y)) + Matrix::Diagonal(p) / 4)
     }
   } else {
     Cm <- CmStart
@@ -104,7 +105,7 @@ EMFA <- function(Y,
     if (mE == 0) {
       Dm <- Matrix::Diagonal(n = p, x = 2)
     } else {
-      Dm <- solve(as((cor(Y) + diag(p)) / 4, "symmetricMatrix"))
+      Dm <- Matrix::solve(cor(as.matrix(Y)) + Matrix::Diagonal(p) / 4)
     }
   } else {
     Dm <- DmStart
@@ -112,16 +113,16 @@ EMFA <- function(Y,
   ## The model is Cm^{-1} = P^{-1} + W W^t
   ## Given a starting value for Cm, set starting values for P and W
   if (mG > 0) {
-    eigenC <- eigen(solve(Cm), symmetric = TRUE)
-    Ug <- as.matrix(eigenC$vectors[, 1:mG])
+    eigenC <- eigen(Matrix::solve(Cm), symmetric = TRUE)
+    Ug <- as(eigenC$vectors[, 1:mG], "Matrix")
     psiG <- mean(eigenC$values[-(1:mG)])
     if (mG > 1) {
-      rootLambdaG <- matrixRoot(diag(eigenC$values[1:mG] - psiG))
+      rootLambdaG <- matrixRoot(Matrix::Diagonal(eigenC$values[1:mG] - psiG))
     } else {
-      rootLambdaG <- matrix(sqrt(eigenC$values[1:mG] - psiG))
+      rootLambdaG <- Matrix::Matrix(sqrt(eigenC$values[1:mG] - psiG))
     }
     Wg <- Ug %*% rootLambdaG
-    Pg <- diag(x = 1 / psiG, nrow = p)
+    Pg <- Matrix::Diagonal(n = p, x = 1 / psiG)
   } else {
     Wg <- NULL
     Pg <- NULL
@@ -129,16 +130,16 @@ EMFA <- function(Y,
   ## The model is Dm^{-1} = P^{-1} + W W^t
   ## Given a starting value for Dm, set starting values for P and W
   if (mE > 0) {
-    eigenD <- eigen(solve(Dm), symmetric = TRUE)
-    Ue <- as.matrix(eigenD$vectors[, 1:mE])
+    eigenD <- eigen(Matrix::solve(Dm), symmetric = TRUE)
+    Ue <- as(eigenD$vectors[, 1:mE], "Matrix")
     psiE <- mean(eigenD$values[-(1:mE)])
     if (mE > 1) {
-      rootLambdaE <- matrixRoot(diag(eigenD$values[1:mE] - psiE))
+      rootLambdaE <- matrixRoot(Matrix::Diagonal(eigenD$values[1:mE] - psiE))
     } else {
-      rootLambdaE <- matrix(sqrt(eigenD$values[1:mE] - psiE))
+      rootLambdaE <- Matrix::Matrix(sqrt(eigenD$values[1:mE] - psiE))
     }
     We <- Ue %*% rootLambdaE
-    Pe <- diag(x = 1 / psiE, nrow = p)
+    Pe <- Matrix::Diagonal(n = p, x = 1 / psiE)
   } else {
     We <- NULL
     Pe <- NULL
@@ -148,55 +149,56 @@ EMFA <- function(Y,
   decreased <- FALSE
   iter <- 1
   ELogLikCm <- ELogLikDm <- -Inf
-  mu <- matrix(rep(0, n * p), ncol = p)
+  mu <- Matrix::Matrix(rep(0, n * p), ncol = p)
   ## EM following the notation of Dahl et al.
   while (continue && iter < maxIter) {
-    DmSqrtInv <- matrixRoot(solve(Dm))
+    DmSqrtInv <- matrixRoot(Matrix::solve(Dm))
     w1 <- eigen(DmSqrtInv %*% Cm %*% DmSqrtInv, symmetric = TRUE)
     Q1 <- w1$vectors
     lambda1 <- w1$values
-    CmSqrtInv <- matrixRoot(solve(Cm))
+    CmSqrtInv <- matrixRoot(Matrix::solve(Cm))
     w2 <- eigen(CmSqrtInv %*% Dm %*% CmSqrtInv, symmetric = TRUE)
     Q2 <- w2$vectors
     lambda2 <- w2$values
     if (nc > 0) {
-      tUYminXb <- crossprod(Uk, Y - X %*% B)
+      tUYminXb <- Matrix::crossprod(Uk, Y - X %*% B)
       S1 <- vecInvDiag(x = lambda1, y = w$values) * (tUYminXb %*% matrixRoot(Dm) %*% Q1)
       S2 <- vecInvDiag(x = lambda2, y = 1 / w$values) * (tUYminXb %*% matrixRoot(Cm) %*% Q2)
     } else {
-      S1 <- vecInvDiag(x = lambda1, y = w$values) * crossprod(Uk, Y %*% matrixRoot(Dm) %*% Q1)
-      S2 <- vecInvDiag(x = lambda2, y = 1 / w$values) * crossprod(Uk, Y %*% matrixRoot(Cm) %*% Q2)
+      S1 <- vecInvDiag(x = lambda1, y = w$values) * Matrix::crossprod(Uk, Y %*% matrixRoot(Dm) %*% Q1)
+      S2 <- vecInvDiag(x = lambda2, y = 1 / w$values) * Matrix::crossprod(Uk, Y %*% matrixRoot(Cm) %*% Q2)
     }
     trP1 <- tracePInvDiag(x = lambda1, y = w$values)
     trP2 <- tracePInvDiag(x = lambda2, y = 1 / w$values)
     if (p > 1) {
-      part1 <- DmSqrtInv %*% Q1 %*% diag(trP1) %*% crossprod(Q1, DmSqrtInv)
-      part2 <- CmSqrtInv %*% Q2 %*% diag(trP2) %*% crossprod(Q2, CmSqrtInv)
+      part1 <- DmSqrtInv %*% Q1 %*% diag(trP1) %*% Matrix::crossprod(Q1, DmSqrtInv)
+      part2 <- CmSqrtInv %*% Q2 %*% diag(trP2) %*% Matrix::crossprod(Q2, CmSqrtInv)
     } else {
-      part1 <- DmSqrtInv %*% Q1 %*% matrix(trP1) %*% crossprod(Q1, DmSqrtInv)
-      part2 <- CmSqrtInv %*% Q2 %*% matrix(trP2) %*% crossprod(Q2, CmSqrtInv)
+      part1 <- DmSqrtInv %*% Q1 %*% Matrix::Matrix(trP1) %*% Matrix::crossprod(Q1, DmSqrtInv)
+      part2 <- CmSqrtInv %*% Q2 %*% Matrix::Matrix(trP2) %*% Matrix::crossprod(Q2, CmSqrtInv)
     }
-    part3 <- tcrossprod(CmSqrtInv %*% Q2 %*% t(S2))
-    part4 <- tcrossprod(DmSqrtInv %*% Q1, S1) %*% lambdaR %*% t(tcrossprod(DmSqrtInv %*% Q1, S1))
+    part3 <- Matrix::tcrossprod(CmSqrtInv %*% Q2 %*% Matrix::t(S2))
+    part4 <- Matrix::tcrossprod(DmSqrtInv %*% Q1, S1) %*% lambdaR %*%
+      Matrix::t(Matrix::tcrossprod(DmSqrtInv %*% Q1, S1))
     if (nc > 0) {
-      mu <- matrix(tcrossprod(Uk %*% S1, DmSqrtInv %*% Q1), ncol = p)
+      mu <- Matrix::tcrossprod(Uk %*% S1, DmSqrtInv %*% Q1)
       B <- XtXinvXt %*% (Y - mu)
     }
-    Omega1 <- Matrix::forceSymmetric(as.matrix((part1 + part3) / n))
-    Omega2 <- Matrix::forceSymmetric(as.matrix((part2 + part4) / n))
+    Omega1 <- Matrix::forceSymmetric(as((part1 + part3) / n, "Matrix"))
+    Omega2 <- Matrix::forceSymmetric(as((part2 + part4) / n, "Matrix"))
     ## Update Cm
     if (mG == 0) {
       ## Recall that the model is Cm^{-1} = P^{-1} + W W^t.
       ## when mG == 0, W = 0 and Cm = P
       if (p > 1) {
         if (CmHet) {
-          PgNew <- diag(pmin(maxDiag, 1 / diag(Omega2)))
+          PgNew <- Matrix::Diagonal(pmin(maxDiag, 1 / Matrix::diag(Omega2)))
         } else {
-          tau <- min(maxDiag, p / sum(diag(Omega2)))
-          PgNew <- diag(x = tau, nrow = p)
+          tau <- min(maxDiag, p / sum(Matrix::diag(Omega2)))
+          PgNew <- Matrix::Diagonal(n = p, x = tau)
         }
       } else {
-        PgNew <- matrix(1 / as.numeric(Omega2))
+        PgNew <- Matrix::Matrix(1 / as.numeric(Omega2))
       }
       WgNew <- NULL
       CmNew  <- PgNew
@@ -215,7 +217,7 @@ EMFA <- function(Y,
       }
       WgNew <- CmNewOutput$W
       PgNew <- CmNewOutput$P
-      CmNew <- MASS::ginv(MASS::ginv(PgNew) + tcrossprod(WgNew))
+      CmNew <- Matrix::solve(Matrix::solve(PgNew) + Matrix::tcrossprod(WgNew))
     }
     ## Update Dm
     if (mE == 0) {
@@ -223,13 +225,13 @@ EMFA <- function(Y,
       ## when mE == 0, W = 0 and Cm = P
       if (p > 1) {
         if (DmHet) {
-          PeNew <- diag(pmin(maxDiag, 1 / diag(Omega1)))
+          PeNew <- Matrix::Diagonal(pmin(maxDiag, 1 / diag(Omega1)))
         } else {
-          tau <- min(maxDiag, p / sum(diag(Omega1)))
-          PeNew <- diag(x = tau, nrow = p)
+          tau <- min(maxDiag, p / sum(Matrix::diag(Omega1)))
+          PeNew <- Matrix::Diagonal(n = p, x = tau)
         }
       } else {
-        PeNew <- matrix(1 / as.numeric(Omega1))
+        PeNew <- Matrix::Matrix(1 / as.numeric(Omega1))
       }
       WeNew <- NULL
       DmNew  <- PeNew
@@ -248,7 +250,7 @@ EMFA <- function(Y,
       }
       WeNew <- DmNewOutput$W
       PeNew <- DmNewOutput$P
-      DmNew <- MASS::ginv(MASS::ginv(PeNew) + tcrossprod(WeNew))
+      DmNew <- Matrix::solve(Matrix::solve(PeNew) + Matrix::tcrossprod(WeNew))
     }
     ## Compute log-likelihood and check stopping criteria
     ELogLikOld <- ELogLikCm + ELogLikDm
@@ -279,14 +281,14 @@ EMFA <- function(Y,
   }
   ## Compute log-likelihood
   if (computeLogLik) {
-    VInvArray <- makeVInvArray(Vg <- solve(Cm), Ve <- solve(Dm), Dk = Dk)
+    VInvArray <- makeVInvArray(Vg <- Matrix::solve(Cm), Ve <- Matrix::solve(Dm), Dk = Dk)
     VArray <- makeVArray(Vg = Vg, Ve = Ve, Dk = Dk)
     if (nc > 0) {
-      XTransformed <- crossprod(X, Uk)
+      XTransformed <- Matrix::crossprod(X, Uk)
     } else {
       XTransformed <- data.frame()
     }
-    logLik <- LLDiag(crossprod(Y, Uk), X = XTransformed, VArray = VArray, VInvArray = VInvArray)
+    logLik <- LLDiag(Matrix::crossprod(Y, Uk), X = XTransformed, VArray = VArray, VInvArray = VInvArray)
   } else {
     logLik <- NA
   }
@@ -294,13 +296,13 @@ EMFA <- function(Y,
   if (is.null(rownames(Y))) {rownames(Y) <- paste0("genotype", 1:n)}
   if (is.null(colnames(Y))) {colnames(Y) <- paste0("trait", 1:p)}
   if (prediction & nc == 0) {
-    mu <- matrix(tcrossprod(Uk %*% S1, DmSqrtInv %*% Q1), ncol = p)
+    mu <- Matrix::tcrossprod(Uk %*% S1, DmSqrtInv %*% Q1)
   }
   predFrame <- data.frame(trait = rep(colnames(Y), each = n),
     genotype = rep(rownames(Y), p),
     predicted = as.numeric(mu))
-  Vg = solve(Cm)
-  Ve = solve(Dm)
+  Vg = Matrix::solve(Cm)
+  Ve = Matrix::solve(Dm)
   colnames(Vg) <- rownames(Vg) <- colnames(Ve) <- rownames(Ve) <- colnames(Y)
   return(list(Vg = Vg, Ve = Ve))
 }

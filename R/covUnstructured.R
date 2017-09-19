@@ -25,17 +25,17 @@ covUnstructured <- function(Y,
   fixDiag = FALSE,
   VeDiag = FALSE) {
   ## Check input.
-  if (missing(Y) || !is.matrix(Y))
+  if (missing(Y) || !(is.matrix(Y) || inherits(Y, "Matrix")))
     stop("Y should be a matrix")
-  if (missing(K) || !is.matrix(K))
+  if (missing(K) || !(is.matrix(K) || inherits(K, "Matrix")))
     stop("K should be a matrix")
   if (fixDiag) {
     warning("fixDiag = TRUE not implemented yet. Value set to FALSE")
     fixDiag <- FALSE
   }
-  Y <- tibble::rownames_to_column(as.data.frame(Y), var = "genotype")
+  Y <- tibble::rownames_to_column(as.data.frame(as.matrix(Y)), var = "genotype")
   if (!is.null(X)) {
-    X <- tibble::rownames_to_column(as.data.frame(X), var = "genotype")
+    X <- tibble::rownames_to_column(as.data.frame(as.matrix(X)), var = "genotype")
     data <- merge(Y, X, by = "genotype")
   } else {
     data <- Y
@@ -58,7 +58,7 @@ covUnstructured <- function(Y,
   }
   ## Fit model.
   sommerFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
-    rcov = rcov, data = data, G = list(genotype = K), silent = TRUE)
+    rcov = rcov, data = data, G = list(genotype = as.matrix(K)), silent = TRUE)
   ## Extract components from fitted model.
   VgMat <- sommerFit$var.comp[[1]]
   VeMat <- sommerFit$var.comp[[2]]
@@ -75,17 +75,17 @@ covPairwise <- function(Y,
   fixDiag = FALSE,
   corMat = FALSE) {
   ## Check input.
-  if (missing(Y) || !is.matrix(Y))
+  if (missing(Y) || !(is.matrix(Y) || inherits(Y, "Matrix")))
     stop("Y should be a matrix")
-  if (missing(K) || !is.matrix(K))
+  if (missing(K) || !(is.matrix(K) || inherits(K, "Matrix")))
     stop("K should be a matrix")
   if (fixDiag) {
     warning("fixDiag = TRUE not implemented yet. Value set to FALSE")
     fixDiag <- FALSE
   }
-  Y <- tibble::rownames_to_column(as.data.frame(Y), var = "genotype")
+  Y <- tibble::rownames_to_column(as.data.frame(as.matrix(Y)), var = "genotype")
   if (!is.null(X)) {
-    X <- tibble::rownames_to_column(as.data.frame(X), var = "genotype")
+    X <- tibble::rownames_to_column(as.data.frame(as.matrix(X)), var = "genotype")
     data <- merge(Y, X, by = "genotype")
   } else {
     data <- Y
@@ -103,7 +103,7 @@ covPairwise <- function(Y,
   }
   ## Fit model.
   sommerFit <- sommer::mmer2(fixed = fixed, random = ~ g(genotype),
-    data = data, G = list(genotype = K), silent = TRUE)
+    data = data, G = list(genotype = as.matrix(K)), silent = TRUE)
   ## Extract components from fitted model.
   VgVec <- diag(sommerFit$var.comp[[1]])
   VeVec <- diag(sommerFit$var.comp[[2]])
@@ -128,7 +128,7 @@ covPairwise <- function(Y,
       }
       sommerFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
         rcov = ~ us(trait):units, data = data,
-        G = list(genotype = K), silent = TRUE)
+        G = list(genotype = as.matrix(K)), silent = TRUE)
       ## Extract components from fitted model.
       return(sommerFit$var.comp)
     }, simplify = FALSE)
@@ -143,11 +143,11 @@ covPairwise <- function(Y,
   })
   VeMat[upper.tri(VeMat)] <- t(VeMat)[upper.tri(VeMat)]
   ## Make positive definite.
-  VgMat <- as.matrix(Matrix::nearPD(VgMat, corr = corMat)$mat)
-  VeMat <- as.matrix(Matrix::nearPD(VeMat, corr = corMat)$mat)
+  VgMat <- Matrix::nearPD(VgMat, corr = corMat)$mat
+  VeMat <- Matrix::nearPD(VeMat, corr = corMat)$mat
   ## Multiply by results from univariate analysis.
-  VgMat <- tcrossprod(matrix(sqrt(VgVec))) * VgMat
-  VeMat <- tcrossprod(matrix(sqrt(VeVec))) * VeMat
+  VgMat <- Matrix::tcrossprod(sqrt(VgVec)) * VgMat
+  VeMat <- Matrix::tcrossprod(sqrt(VeVec)) * VeMat
   ## Add row- and column names.
   colnames(VgMat) <- rownames(VgMat) <- traits
   colnames(VeMat) <- rownames(VeMat) <- traits

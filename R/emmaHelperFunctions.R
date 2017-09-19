@@ -14,8 +14,8 @@ emmaEigenR <- function(K,
   n <- nrow(X)
   q <- ncol(X)
   ## Compute n-q non-zero eigenvalues of SHS as defined in eqn. 5 of Kang.
-  S <- diag(n) - X %*% solve(crossprod(X), t(X))
-  eig <- eigen(S %*% (K + diag(n)) %*% S, symmetric = TRUE)
+  S <- Matrix::Diagonal(n) - X %*% Matrix::solve(Matrix::crossprod(X), Matrix::t(X))
+  eig <- eigen(S %*% (K + Matrix::Diagonal(n)) %*% S, symmetric = TRUE)
   if(is.complex(eig$values))
     stop("Complex eigen values found.\n")
   return(list(values = eig$values[1:(n - q)] - 1,

@@ -38,9 +38,9 @@ estimateEffects <- function(X,
   returnAllEffects = TRUE) {
   ## Checks.
   stopifnot(ncol(X) == ncol(Y))
-  stopifnot(ncol(X) == dim(VInvArray)[1])
-  stopifnot(nrow(Y) == dim(VInvArray)[2])
-  stopifnot(nrow(Y) == dim(VInvArray)[3])
+  #stopifnot(ncol(X) == dim(VInvArray)[1])
+  #stopifnot(nrow(Y) == dim(VInvArray)[2])
+  #stopifnot(nrow(Y) == dim(VInvArray)[3])
   stopifnot(is.null(x) || length(x) == ncol(X))
   if (anyNA(X)) stop("No missing values allowed in X.\n")
   if (anyNA(x)) stop("No missing values allowed in x.\n")
@@ -56,39 +56,43 @@ estimateEffects <- function(X,
   }
   ## the last p coefficients should be the marker effects.
   ## the first p * nc should correspond to the other coefficients.
-  if (!is.null(x)) {X <- rbind(X , t(matrix(as.numeric(x))))}
-  if (p == 1 && ncTot == 1) {
-    Vbeta <- sum(sapply(1:n, function(i) {
-      kronecker(tcrossprod(X[, i]), VInvArray[i, , ])}))
-  } else {
-    Vbeta <- matrix(rowSums(sapply(1:n, function(i) {
-      kronecker(tcrossprod(X[, i]), VInvArray[i, , ])})),
-      ncol = p * ncTot)
+  if (!is.null(x)) {
+    X <- Matrix::rbind2(X, x)
   }
-  M <- solve(Vbeta)
+  ## Define functions for faster computation of Vbeta and v.
+  VbetaFunc <- function(i) {
+    kronecker(tcrossprod(X[, i]), VInvArray[[i]])}
+  vFunc <- function(i) {
+    kronecker(X[, i], VInvArray[[i]] %*% Y[, i])}
+  if (p == 1 && ncTot == 1) {
+    Vbeta <- sum(sapply(1:n, VbetaFunc))
+  } else {
+    Vbeta <- Matrix::Matrix(rowSums(sapply(1:n, VbetaFunc)), ncol = p * ncTot)
+  }
+  M <- Matrix::solve(Vbeta)
   if (length(x) > 0) {
-    MSub <- solve(Vbeta[-(1:(p * nc)), -(1:(p * nc))])
+    MSub <- Matrix::solve(Vbeta[-(1:(p * nc)), -(1:(p * nc))])
   }
   ## Split cases for extra robustness.
   if (p == 1 && ncTot == 1) {
-    v <- sum(sapply(1:n, function(i) {kronecker(X[, i], VInvArray[i, , ] %*% Y[, i])}))
+    v <- sum(sapply(1:n, vFunc))
   } else {
-    v <- rowSums(sapply(1:n, function(i) {kronecker(X[, i], VInvArray[i, , ] %*% Y[, i])}))
+    v <- rowSums(sapply(1:n, vFunc))
   }
   wald <- NA
   if (returnAllEffects) {
-    effectsEstimates <- as.numeric(M %*% v)
-    effectsSd <- sqrt(diag(M))
+    effectsEstimates <- M %*% v
+    effectsSd <- sqrt(Matrix::diag(M))
     if (length(x) > 0) {
-      wald <- as.numeric(crossprod(effectsEstimates[-(1:(p * nc))], MSub) %*%
-          effectsEstimates[-(1:(p * nc))])
+      wald <- as.numeric(Matrix::crossprod(effectsEstimates[-(1:(p * nc))], MSub %*%
+          effectsEstimates[-(1:(p * nc))]))
     }
   } else {
-    effectsEstimates <- as.numeric(M %*% v)[-(1:(p * nc))]
-    effectsSd <- sqrt(diag(M))[-(1:(p * nc))]
+    effectsEstimates <- M %*% v[-(1:(p * nc))]
+    effectsSd <- sqrt(Matrix::diag(M)[-(1:(p * nc))])
     if (length(x) > 0) {
-      wald <- as.numeric(crossprod(effectsEstimates, MSub) %*% effectsEstimates)
+      wald <- as.numeric(Matrix::crossprod(effectsEstimates, MSub %*% effectsEstimates))
     }
   }
-  return(list(effectsEstimates = effectsEstimates, effectsSd = effectsSd, wald = wald))
+  return(list(effectsEstimates = as.numeric(effectsEstimates), effectsSd = effectsSd, wald = wald))
 }

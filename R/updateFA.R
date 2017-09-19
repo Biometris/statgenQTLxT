@@ -33,11 +33,11 @@ updateFA <- function(Y,
   p <- ncol(Y)
   n <- nrow(Y)
   if (!is.null(PStart)) {
-    stopifnot(class(PStart) %in% c('matrix','data.frame'))
+    #stopifnot(class(PStart) %in% c('matrix','data.frame'))
     stopifnot(ncol(PStart) == p & nrow(PStart) == p)
   }
   if (!is.null(WStart)) {
-    stopifnot(class(WStart) %in% c('matrix','data.frame'))
+    #stopifnot(class(WStart) %in% c('matrix','data.frame'))
     stopifnot(nrow(WStart) == p)
     if (ncol(WStart) != m) {stop('m needs to be equal to the number of columns of WStart')}
     if (is.null(PStart)) {stop('WStart and PStart should be either both NULL (default),
@@ -50,10 +50,10 @@ updateFA <- function(Y,
   if (m >= p) {stop("m needs to be smaller than the number of variables")}
   ## Set start values for P and W.
   if (is.null(WStart)) {
-    a <- eigen(crossprod(Y) / n, symmetric = TRUE)
+    a <- eigen(Matrix::crossprod(Y) / n, symmetric = TRUE)
     sigma2 <- mean(a$values[-(1:m)])
-    PStart <- diag(x = 1 / sigma2, nrow = p)
-    WStart <- a$vectors[, 1:m] %*% diag(sqrt(a$values[1:m] - sigma2))
+    PStart <- Matrix::Diagonal(n = p, x = 1 / sigma2)
+    WStart <- a$vectors[, 1:m] %*% Matrix::Diagonal(x = sqrt(a$values[1:m] - sigma2))
   }
   W <- WStart
   P <- PStart
@@ -63,30 +63,29 @@ updateFA <- function(Y,
   ## EM
   while (totalDiff > tolerance & iter < maxIter) {
     ## prevent that P become asymmetric because of numerical inaccuracies
-    P <- (P + t(P)) / 2 # p x p
     if (hetVar) {
-      B <- crossprod(W, P %*% W) # m x m
-      sigma <- MASS::ginv(diag(m) + B) # m x m
-      M1 <- sigma %*% crossprod(W, tcrossprod(P, Y)) # m x n
+      B <- Matrix::crossprod(W, P %*% W) # m x m
+      Sigma <- Matrix::solve(Matrix::Diagonal(n = m) + B) # m x m
+      M1 <- Sigma %*% Matrix::crossprod(W, Matrix::tcrossprod(P, Y)) # m x n
     } else {
-      B <- P[1, 1] * crossprod(W) # m x m
-      sigma <- MASS::ginv(diag(m) + B) # m x m
-      M1 <- P[1, 1] * tcrossprod(tcrossprod(sigma, W), Y) # m x n
+      B <- P[1, 1] * Matrix::crossprod(W) # m x m
+      Sigma <- Matrix::solve(Matrix::Diagonal(n = m) + B) # m x m
+      M1 <- P[1, 1] * Matrix::tcrossprod(Matrix::tcrossprod(Sigma, W), Y) # m x n
     }
-    A <- MASS::ginv(n * sigma + tcrossprod(M1))  # m x m
-    WNew <- crossprod(Y, crossprod(M1, A)) # p x m
+    A <- Matrix::solve(n * Sigma + Matrix::tcrossprod(M1))  # m x m
+    WNew <- Matrix::crossprod(Y, Matrix::crossprod(M1, A)) # p x m
     if (hetVar) {
-      D1 <- colSums(Y ^ 2)
-      D2 <- diag(WNew %*% (n * sigma + tcrossprod(M1)) %*% t(WNew))
-      D3 <- diag(WNew %*% M1 %*% Y)
+      D1 <- Matrix::colSums(Y ^ 2)
+      D2 <- Matrix::diag(Matrix::tcrossprod(WNew %*% (n * Sigma + Matrix::tcrossprod(M1)), WNew))
+      D3 <- Matrix::diag(WNew %*% M1 %*% Y)
       DTot <-  D1 + D2 - 2 * D3
-      PNew <- diag(n / DTot)
+      PNew <- Matrix::Diagonal(x = n / DTot)
     } else {
-      dataNew <- t(Y) - WNew %*% M1 # p x n
-      SNew <- tcrossprod(dataNew) / n
-      PNew <- diag(1 / mean(diag(SNew)), nrow = ncol(SNew))
+      dataNew <- Matrix::t(Y) - WNew %*% M1 # p x n
+      SNew <- Matrix::tcrossprod(dataNew) / n
+      PNew <- Matrix::Diagonal(n = ncol(SNew), x = 1 / mean(Matrix::diag(SNew)))
     }
-    diag(PNew)[diag(PNew) > maxDiag] <- maxDiag
+    Matrix::diag(PNew)[Matrix::diag(PNew) > maxDiag] <- maxDiag
     PDiff <- sum(abs(PNew - P))
     WDiff <- sum(abs(WNew - W))
     totalDiff <- PDiff + WDiff

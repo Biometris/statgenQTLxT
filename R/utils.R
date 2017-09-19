@@ -35,8 +35,8 @@ expandPheno <- function(gData,
     ## Add snp covariates to covar.
     covarEnvir <- c(covarEnvir, snpCovariates)
     ## Add snp covariates to pheno data.
-    phenoEnvir <- merge(phenoEnvir, gData$markers[, snpCovariates], by.x = "genotype",
-      by.y = "row.names")
+    phenoEnvir <- merge(phenoEnvir, as.matrix(gData$markers[, snpCovariates, drop = FALSE]),
+      by.x = "genotype", by.y = "row.names")
     colnames(phenoEnvir)[(ncol(phenoEnvir) - length(snpCovariates) + 1):ncol(phenoEnvir)] <- snpCovariates
   }
   return(list(phenoEnvir = phenoEnvir, covarEnvir = covarEnvir))
@@ -50,7 +50,8 @@ chrSpecKin <- function(gData, kinshipMethod) {
       only 1 chromosome.\n")
   ## Create list of zero matrices.
   KChr <- setNames(replicate(n = length(chrs),
-    matrix(data = 0, nrow = nrow(gData$markers), ncol = nrow(gData$markers)),
+    Matrix::Matrix(data = 0, nrow = nrow(gData$markers), ncol = nrow(gData$markers),
+      dimnames = list(rownames(gData$markers), rownames(gData$markers))),
     simplify = FALSE),
     paste0("KChr", chrs))
   ## Create vector of marker numbers per chromosome.
@@ -96,12 +97,12 @@ fillGWAResult <- function(GWAResult, effects, effectsSe, Xt, Yt, VInvArray,
   excludedMarkers, markersRed, Uk) {
   p <- ncol(effects)
   est0 <- estimateEffects(X = Xt, Y = Yt, VInvArray = VInvArray, returnAllEffects = TRUE)
-  fittedMean0 <- matrix(est0$effectsEstimates, ncol = length(est0$effectsEstimates) / p) %*% Xt
+  fittedMean0 <- Matrix::Matrix(est0$effectsEstimates, ncol = length(est0$effectsEstimates) / p) %*% Xt
   SS0 <- LLQuadFormDiag(Y = Yt - fittedMean0, VInvArray = VInvArray)
   for (mrk in setdiff(1:ncol(markersRed), excludedMarkers)) {
     mrkName <- colnames(markersRed)[mrk]
     x <- markersRed[, mrk, drop = FALSE]
-    xt <- crossprod(x, Uk)
+    xt <- Matrix::crossprod(x, Uk)
     LRTRes <- LRTTest(X = Xt, x = xt, Y = Yt, VInvArray = VInvArray, SS0 = SS0)
     GWAResult[mrkName, "pValue"] <- LRTRes$pvalue
     GWAResult[mrkName, "pValueWald"] <- pchisq(sum((LRTRes$effects / LRTRes$effectsSe) ^ 2),

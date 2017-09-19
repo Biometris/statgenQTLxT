@@ -33,13 +33,13 @@ fastGLS <-function(y,
   covs = NULL,
   nChunks = 10) {
   ## Check class and missing values.
-  if (missing(y) || !is.numeric(y) || anyNA(y))
+  if (missing(y) || !(inherits(y, "Matrix") || is.numeric(y)) || anyNA(y))
     stop("y should be a numeric vector without missing values.")
-  if (missing(X) || !is.matrix(X) || !is.numeric(X) || anyNA(X))
+  if (missing(X) || !(inherits(X, "Matrix") || is.matrix(X)) || anyNA(X))
     stop("X should be a matrix without missing values.")
-  if (missing(Sigma) || !is.matrix(Sigma) || !is.numeric(Sigma) || anyNA(Sigma))
+  if (missing(Sigma) || !(inherits(Sigma, "Matrix") || is.matrix(Sigma)) ||anyNA(Sigma))
     stop("Sigma should be a matrix without missing values.")
-  if (!is.null(covs) && (!is.numeric(covs) || anyNA(covs)))
+  if (!is.null(covs) && (!(inherits(covs, "Matrix") || is.matrix(covs)) || anyNA(covs)))
     stop("covs should be a numeric vector without missing values.")
   if (!is.numeric(nChunks) || length(nChunks) > 1 || nChunks != round(nChunks))
     stop("nChunks should be an integer")
@@ -52,52 +52,52 @@ fastGLS <-function(y,
   if (!is.null(covs) && nrow(covs) != n)
     stop("The number of elements in y should be identical to the number of rows in covs")
   m <- ncol(X)
+  ## If necessary convert input to Matrix
+  if (is.matrix(X)) X <- as(X, "Matrix")
+  if (is.matrix(Sigma)) Sigma <- as(Sigma, "Matrix")
+  if (is.matrix(covs)) covs <- as(covs, "Matrix")
   ## Number of chunks should be smaller than m.
   if (nChunks > m) nChunks <- ceiling(m / 2)
-  fixCovs <- cbind(rep(1, n), covs)
+  fixCovs <- Matrix::cbind2(rep(1, n), covs)
   nCov <- ncol(fixCovs)
-  M <- solve(chol(Sigma))
+  M <- Matrix::solve(Matrix::chol(Sigma))
   ## Pre-multiply the phenotype (y) with t(M).
-  tMy <- crossprod(M, y)
+  tMy <- Matrix::crossprod(M, y)
   ## pre-multiply the intercept and covariates with t(M).
-  tMfixCovs <- crossprod(M, fixCovs)
+  tMfixCovs <- Matrix::crossprod(M, fixCovs)
   ## Pre-multiply the snp-matrix with t(M).
-  ## For extra robustness, distinguish.
-  if (m == 1) {
-    tMX <- crossprod(M, matrix(as.numeric(X)))
-  } else {
-    tMX <- crossprod(M, X)
-  }
+  tMX <- Matrix::crossprod(M, X)
   ## Matrix cookbook, 3.2.6 Rank-1 update of inverse of inner product.
-  A <- solve(crossprod(tMfixCovs))
-  vv <- colSums(tMX ^ 2)
-  vX <- crossprod(tMfixCovs, tMX)
-  nn <- 1 / (vv - colSums(vX * (A %*% vX)))
-  XtXinvLastRows <- cbind(- nn * crossprod(vX, A), nn)
-  Xty <- cbind(matrix(rep(as.numeric(crossprod(tMfixCovs, tMy)), length(nn)), byrow = TRUE, ncol= nCov)
-    , as.numeric(crossprod(tMy, tMX)))
-  betaVec <- rowSums(XtXinvLastRows[, 1:nCov, drop = FALSE] * Xty[, 1:nCov, drop = FALSE]) +
+  A <- Matrix::solve(Matrix::crossprod(tMfixCovs))
+  vv <- Matrix::colSums(tMX ^ 2)
+  vX <- Matrix::crossprod(tMfixCovs, tMX)
+  nn <- 1 / (vv - Matrix::colSums(vX * (A %*% vX)))
+  XtXinvLastRows <- Matrix::cbind2(- nn * Matrix::crossprod(vX, A), nn)
+  Xty <- Matrix::cbind2(Matrix::Matrix(rep(as.numeric(Matrix::crossprod(tMfixCovs, tMy)),
+    length(nn)), byrow = TRUE, ncol = nCov), Matrix::crossprod(tMX, tMy))
+  betaVec <- Matrix::rowSums(XtXinvLastRows[, 1:nCov, drop = FALSE] * Xty[, 1:nCov, drop = FALSE]) +
     XtXinvLastRows[, 1 + nCov] * Xty[, 1 + nCov]
   ## Compute residuals and RSS over all markers.
   ResEnv <- lsfit(x = tMfixCovs, y = tMy, intercept = FALSE)$residuals
   RSSEnv <- sum(ResEnv ^ 2)
   ## QR decomposition of covariates.
-  Q <- qr.Q(qr(tMfixCovs))
-  tMQtQ <- t(M %*% (diag(n) - tcrossprod(Q)))
+  Q <- Matrix::qr.Q(Matrix::qr(tMfixCovs))
+  tMQtQ <- as.matrix(Matrix::t(M %*% (Matrix::Diagonal(n  = n) - Matrix::tcrossprod(Q))))
   ## Compute RSS per marker, breaking up X for speed.
   RSSFull <- vector(mode = "list", length = nChunks)
   ## In case nChunks = 1 everything can be done in a single step. Otherwise loop over the chunks.
   if (nChunks > 1) {
+    chunkSize <- round(m / nChunks)
     for (j in 1:(nChunks - 1)) {
-      tX <- tMQtQ %*% X[, ((j - 1) * round(m / nChunks) + 1):(j * round(m / nChunks))]
-      RSSFull[[j]] <- apply(tX, 2, function(x){
+      tX <- tMQtQ %*% X[, ((j - 1) * chunkSize + 1):(j * chunkSize)]
+      RSSFull[[j]] <- apply(tX, 2, function(x) {
         sum(lsfit(x = x, y = ResEnv, intercept = FALSE)$residuals ^ 2)})
     }
-    tX <- tMQtQ %*% X[ , -(1:(j * round(m / nChunks)))]
+    tX <- tMQtQ %*% X[ , -(1:(j * chunkSize))]
   } else {
     tX <- tMQtQ %*% X
   }
-  RSSFull[[nChunks]] <- apply(tX, 2, function(x){
+  RSSFull[[nChunks]] <- apply(tX, 2, function(x) {
     sum(lsfit(x = x, y = ResEnv, intercept = FALSE)$residuals ^ 2)})
   RSSFull <- unlist(RSSFull)
   ## Compute F and p values.
@@ -113,3 +113,4 @@ fastGLS <-function(y,
     RLR2 = RLR2)
   return(GLS)
 }
+
