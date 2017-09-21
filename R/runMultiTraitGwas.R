@@ -5,15 +5,9 @@
 #'
 #' @inheritParams runSingleTraitGwas
 #'
-#' @param gData an object of class \code{gData} containing at least \code{map}, \code{markers} and
-#' \code{pheno}.
-#' @param environments a numeric index or character name of the environment on which to run GWAS.
-#' If \code{NULL} GWAS is run for all environments.
 #' @param subsetMarkers should the marker data be subsetted?
 #' @param markerSubset numeric or character vector used for subsetting the markers. Ignored if
 #' subsetMarkers = \code{FALSE}.
-#' @param MAF a numeric value between 0 and 1. Snps with a minor allele frequency outside MAF
-#' and 1 - MAF are excluded from the GWAS analysis.
 #' @param fitVarComp should the variance components be fitted? If \code{FALSE} they should be supplied
 #' in Vg and Ve
 #' @param covModel an integer value for the model used when fitting the variance components.
@@ -173,18 +167,24 @@ runMultiTraitGwas <- function(gData,
     mapRed <- map
   }
   ## Compute kinship matrix.
-  if (GLSMethod == 1 && is.null(K)) {
-    if (!is.null(gData$kinship)) {
-      K <- gData$kinship
-    } else {
-    K <- do.call(kinshipMethod, list(X = gData$markers))
+  if (GLSMethod == 1) {
+    if (is.null(K)) {
+      if (!is.null(gData$kinship)) {
+        K <- gData$kinship
+      } else {
+        K <- do.call(kinshipMethod, list(X = gData$markers))
+      }
+    } else if (is.matrix(K)) {
+      K <- as(K, "dsyMatrix")
     }
   } else if (GLSMethod == 2) {
-  ## Compute kinship matrices per chromosome. Only needs to be done once.
+    ## Compute kinship matrices per chromosome. Only needs to be done once.
     chrs <- unique(mapRed$chr[rownames(mapRed) %in% colnames(markersRed)])
     if (!is.null(K)) {
       ## K is supplied. Set KChr to K.
-      KChr <- K
+      KChr <- lapply(K, FUN = function(k) {
+        if(is.matrix(k)) as(k, "dsyMatrix") else k
+      })
     } else {
       ## Compute chromosome specific kinship matrices.
       KChr <- chrSpecKin(gData = createGData(geno = markersRed, map = mapRed),
@@ -199,19 +199,19 @@ runMultiTraitGwas <- function(gData,
   phenoEnvir <- phenoExp$phenoEnvir
   covarEnvir <- phenoExp$covarEnvir
   ## Convert pheno and covariates to format suitable for fitting variance components.
-  X <- Matrix::cbind2(Matrix::Matrix(rep(1, nrow(phenoEnvir))), as(phenoEnvir[covarEnvir], "Matrix"))
+  X <- Matrix::cbind2(rep(1, nrow(phenoEnvir)), as(as.matrix(phenoEnvir[covarEnvir]), "dgeMatrix"))
   rownames(X) <- phenoEnvir$genotype
   ## Add snpCovariates to X
   if (!is.null(snpCovariates)) {
     if (ncol(X) == length(snpCovariates)) {
       XRed <- Matrix::Matrix(nrow = nrow(X), ncol = 0, dimnames = list(rownames(X)))
     } else {
-      XRed <- as(X[, 1:(ncol(X) - length(snpCovariates))], "Matrix")
+      XRed <- X[, 1:(ncol(X) - length(snpCovariates)), drop = FALSE]
     }
   }
-  Y <- as(tibble::column_to_rownames(
+  Y <- as(as.matrix(tibble::column_to_rownames(
     tibble::remove_rownames(phenoEnvir[, which(!colnames(phenoEnvir) %in% covarEnvir)]),
-    var = "genotype"), "Matrix")
+    var = "genotype")), "dgeMatrix")
   if (GLSMethod == 1) {
     K <- K[rownames(Y), rownames(Y)]
   } else if (GLSMethod == 2) {

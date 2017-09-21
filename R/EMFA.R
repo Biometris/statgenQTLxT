@@ -87,7 +87,7 @@ EMFA <- function(Y,
     B <- NULL
   }
   w <- eigen(Matrix::solve(K), symmetric = TRUE)
-  Uk <- w$vectors
+  Uk <- as(w$vectors, "dgeMatrix")
   Dk <- w$values
   lambdaR <- Matrix::Diagonal(x = w$values)
   ## Set starting values for Cm
@@ -114,12 +114,12 @@ EMFA <- function(Y,
   ## Given a starting value for Cm, set starting values for P and W
   if (mG > 0) {
     eigenC <- eigen(Matrix::solve(Cm), symmetric = TRUE)
-    Ug <- as(eigenC$vectors[, 1:mG], "Matrix")
+    Ug <- as(eigenC$vectors[, 1:mG], "dgeMatrix")
     psiG <- mean(eigenC$values[-(1:mG)])
     if (mG > 1) {
-      rootLambdaG <- matrixRoot(Matrix::Diagonal(eigenC$values[1:mG] - psiG))
+      rootLambdaG <- matrixRoot(Matrix::Diagonal(x = eigenC$values[1:mG] - psiG))
     } else {
-      rootLambdaG <- Matrix::Matrix(sqrt(eigenC$values[1:mG] - psiG))
+      rootLambdaG <- as(sqrt(eigenC$values[1:mG] - psiG), "dgeMatrix")
     }
     Wg <- Ug %*% rootLambdaG
     Pg <- Matrix::Diagonal(n = p, x = 1 / psiG)
@@ -131,12 +131,12 @@ EMFA <- function(Y,
   ## Given a starting value for Dm, set starting values for P and W
   if (mE > 0) {
     eigenD <- eigen(Matrix::solve(Dm), symmetric = TRUE)
-    Ue <- as(eigenD$vectors[, 1:mE], "Matrix")
+    Ue <- as(eigenD$vectors[, 1:mE], "dgeMatrix")
     psiE <- mean(eigenD$values[-(1:mE)])
     if (mE > 1) {
-      rootLambdaE <- matrixRoot(Matrix::Diagonal(eigenD$values[1:mE] - psiE))
+      rootLambdaE <- matrixRoot(Matrix::Diagonal(x = eigenD$values[1:mE] - psiE))
     } else {
-      rootLambdaE <- Matrix::Matrix(sqrt(eigenD$values[1:mE] - psiE))
+      rootLambdaE <- as(sqrt(eigenD$values[1:mE] - psiE), "dgeMatrix")
     }
     We <- Ue %*% rootLambdaE
     Pe <- Matrix::Diagonal(n = p, x = 1 / psiE)
@@ -149,16 +149,16 @@ EMFA <- function(Y,
   decreased <- FALSE
   iter <- 1
   ELogLikCm <- ELogLikDm <- -Inf
-  mu <- Matrix::Matrix(rep(0, n * p), ncol = p)
+  mu <- Matrix::Matrix(data = 0, nrow = n, ncol = p)
   ## EM following the notation of Dahl et al.
   while (continue && iter < maxIter) {
     DmSqrtInv <- matrixRoot(Matrix::solve(Dm))
     w1 <- eigen(DmSqrtInv %*% Cm %*% DmSqrtInv, symmetric = TRUE)
-    Q1 <- w1$vectors
+    Q1 <- as(w1$vectors, "dgeMatrix")
     lambda1 <- w1$values
     CmSqrtInv <- matrixRoot(Matrix::solve(Cm))
     w2 <- eigen(CmSqrtInv %*% Dm %*% CmSqrtInv, symmetric = TRUE)
-    Q2 <- w2$vectors
+    Q2 <- as(w2$vectors, "dgeMatrix")
     lambda2 <- w2$values
     if (nc > 0) {
       tUYminXb <- Matrix::crossprod(Uk, Y - X %*% B)
@@ -171,28 +171,28 @@ EMFA <- function(Y,
     trP1 <- tracePInvDiag(x = lambda1, y = w$values)
     trP2 <- tracePInvDiag(x = lambda2, y = 1 / w$values)
     if (p > 1) {
-      part1 <- DmSqrtInv %*% Q1 %*% diag(trP1) %*% Matrix::crossprod(Q1, DmSqrtInv)
-      part2 <- CmSqrtInv %*% Q2 %*% diag(trP2) %*% Matrix::crossprod(Q2, CmSqrtInv)
+      part1 <- DmSqrtInv %*% Q1 %*% Matrix::Diagonal(x = trP1) %*% Matrix::crossprod(Q1, DmSqrtInv)
+      part2 <- CmSqrtInv %*% Q2 %*% Matrix::Diagonal(x = trP2) %*% Matrix::crossprod(Q2, CmSqrtInv)
     } else {
       part1 <- DmSqrtInv %*% Q1 %*% Matrix::Matrix(trP1) %*% Matrix::crossprod(Q1, DmSqrtInv)
       part2 <- CmSqrtInv %*% Q2 %*% Matrix::Matrix(trP2) %*% Matrix::crossprod(Q2, CmSqrtInv)
     }
-    part3 <- Matrix::tcrossprod(CmSqrtInv %*% Q2 %*% Matrix::t(S2))
+    part3 <- Matrix::tcrossprod(CmSqrtInv %*% Matrix::tcrossprod(Q2, S2))
     part4 <- Matrix::tcrossprod(DmSqrtInv %*% Q1, S1) %*% lambdaR %*%
-      Matrix::t(Matrix::tcrossprod(DmSqrtInv %*% Q1, S1))
+      Matrix::tcrossprod(S1, DmSqrtInv %*% Q1)
     if (nc > 0) {
       mu <- Matrix::tcrossprod(Uk %*% S1, DmSqrtInv %*% Q1)
       B <- XtXinvXt %*% (Y - mu)
     }
-    Omega1 <- Matrix::forceSymmetric(as((part1 + part3) / n, "Matrix"))
-    Omega2 <- Matrix::forceSymmetric(as((part2 + part4) / n, "Matrix"))
+    Omega1 <- Matrix::forceSymmetric((part1 + part3) / n)
+    Omega2 <- Matrix::forceSymmetric((part2 + part4) / n)
     ## Update Cm
     if (mG == 0) {
       ## Recall that the model is Cm^{-1} = P^{-1} + W W^t.
       ## when mG == 0, W = 0 and Cm = P
       if (p > 1) {
         if (CmHet) {
-          PgNew <- Matrix::Diagonal(pmin(maxDiag, 1 / Matrix::diag(Omega2)))
+          PgNew <- Matrix::Diagonal(x = pmin(maxDiag, 1 / Matrix::diag(Omega2)))
         } else {
           tau <- min(maxDiag, p / sum(Matrix::diag(Omega2)))
           PgNew <- Matrix::Diagonal(n = p, x = tau)
@@ -225,7 +225,7 @@ EMFA <- function(Y,
       ## when mE == 0, W = 0 and Cm = P
       if (p > 1) {
         if (DmHet) {
-          PeNew <- Matrix::Diagonal(pmin(maxDiag, 1 / diag(Omega1)))
+          PeNew <- Matrix::Diagonal(x = pmin(maxDiag, 1 / diag(Omega1)))
         } else {
           tau <- min(maxDiag, p / sum(Matrix::diag(Omega1)))
           PeNew <- Matrix::Diagonal(n = p, x = tau)

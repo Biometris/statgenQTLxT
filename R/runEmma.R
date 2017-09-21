@@ -103,12 +103,12 @@ runEmma <- function(gData,
   } else {
     K <- K[nonMissing, nonMissing]
   }
-  y <- as(phenoEnvir[nonMissingId, trait], "Matrix")
+  y <- as(phenoEnvir[nonMissingId, trait], "dgeMatrix")
   ## Define intercept.
-  X <- Matrix::Matrix(rep(1, length(nonMissing)), ncol = 1)
+  X <- Matrix::Matrix(data = 1, nrow = length(nonMissing), ncol = 1)
   if (!is.null(covar)) {
     ## Add covars to intercept.
-    X <- Matrix::cbind2(X, as(gData$covar[nonMissing, covar], "Matrix"))
+    X <- Matrix::cbind2(X, as(as.matrix(gData$covar[nonMissing, covar]), "dgeMatrix"))
   }
   if (!is.null(snpName)) {
     ## Add extra snp to intercept + covars.

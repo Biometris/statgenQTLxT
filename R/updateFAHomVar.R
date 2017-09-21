@@ -21,7 +21,7 @@ updateFAHomVar <- function(Y = NULL, S = NULL, m, maxDiag = 1e4) {
   if (!is.null(Y)) {
     if (anyNA(Y)) {stop('Y cannot contain missing values')}
     n <- nrow(Y)
-    Y <- Matrix::Matrix(scale(Y, scale = FALSE))
+    Y <- as(scale(Y, scale = FALSE), "dgeMatrix")
     S <- Matrix::crossprod(Y) / n
   }
   p <- ncol(S)
@@ -31,7 +31,7 @@ updateFAHomVar <- function(Y = NULL, S = NULL, m, maxDiag = 1e4) {
   sigma2 <- max(mean(a$values[-(1:m)]), 1 / maxDiag)
   ## Split cases for extra robustness.
   if (m == 1) {
-    W <- Matrix::Matrix(a$vectors[, 1] * sqrt(a$values[1] - sigma2))
+    W <- as(a$vectors[, 1] * sqrt(a$values[1] - sigma2), "dgeMatrix")
   } else {
     W <- a$vectors[, 1:m] %*% Matrix::Diagonal(x = sqrt(a$values[1:m] - sigma2))
   }

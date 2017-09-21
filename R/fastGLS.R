@@ -53,9 +53,9 @@ fastGLS <-function(y,
     stop("The number of elements in y should be identical to the number of rows in covs")
   m <- ncol(X)
   ## If necessary convert input to Matrix
-  if (is.matrix(X)) X <- as(X, "Matrix")
-  if (is.matrix(Sigma)) Sigma <- as(Sigma, "Matrix")
-  if (is.matrix(covs)) covs <- as(covs, "Matrix")
+  if (is.matrix(X)) X <- as(X, "dgeMatrix")
+  if (is.matrix(Sigma)) Sigma <- as(Sigma, "dsyMatrix")
+  if (is.matrix(covs)) covs <- as(covs, "dgeMatrix")
   ## Number of chunks should be smaller than m.
   if (nChunks > m) nChunks <- ceiling(m / 2)
   fixCovs <- Matrix::cbind2(rep(1, n), covs)
@@ -82,7 +82,7 @@ fastGLS <-function(y,
   RSSEnv <- sum(ResEnv ^ 2)
   ## QR decomposition of covariates.
   Q <- Matrix::qr.Q(Matrix::qr(tMfixCovs))
-  tMQtQ <- as.matrix(Matrix::t(M %*% (Matrix::Diagonal(n  = n) - Matrix::tcrossprod(Q))))
+  tMQtQ <- Matrix::t(M %*% (Matrix::Diagonal(n = n) - Matrix::tcrossprod(Q)))
   ## Compute RSS per marker, breaking up X for speed.
   RSSFull <- vector(mode = "list", length = nChunks)
   ## In case nChunks = 1 everything can be done in a single step. Otherwise loop over the chunks.

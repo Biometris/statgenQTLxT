@@ -7,7 +7,8 @@
 #' \code{is.gData} tests if an \code{R} object is of class \code{gData}.
 #'
 #' @param gData an optional gData object to be modified. If \code{NULL} a new gData object is created.
-#' @param geno matrix or data.frame with genotypes in the rows and markers in the columns.
+#' @param geno matrix or data.frame with genotypes in the rows and markers in the columns. A matrix from
+#' the \code{matrix} in the base package may be provided as well as as matrix from the Matrix package. \cr
 #' If no row names are used they are taken from \code{pheno} (if supplied and dimension matches).
 #' If no column names are used the row names are taken from \code{map}
 #' (if supplied and dimension matches).
@@ -16,10 +17,13 @@
 #' Other columns are ignored. Marker names should be in the row names. These should match
 #' the marker names in \code{geno} (if supplied).
 #' @param kin a kinship matrix or list of kinship matrices with genotype in rows and colums.
-#' These should be identical to the genotypes in \code{geno}. If a list of kinship matrices is provided
-#' these are supposed to be chromosome specific matrices. In that case their names should match those
-#' of the namer of the chromosomes in \code{map} or in case no names are provided, the number of matrices
-#' should match the number of chromoses in \code{map} in which case default names are provided.
+#' These matrices can be from the \code{matrix} class as defined in the base package or
+#' from the \code{dsyMatrix} class, the class of symmetric matrices in the Matrix package.\cr
+#' The genotypes should be identical to the genotypes in \code{geno}.\cr
+#' If a list of kinship matrices is provided these are supposed to be chromosome specific matrices.
+#' In that case their names should match those of the names of the chromosomes in \code{map} or in
+#' case no names are provided, the number of matrices should match the number of chromoses
+#' in \code{map} in which case default names are provided.
 #' @param pheno a data.frame or a list of data.frames with phenotypic data, with genotype in the
 #' first column \code{genotype} and traits in the following columns. A list of data.frames can be
 #' used for replications, i.e. different environments.
@@ -29,10 +33,10 @@
 #' @return \code{createGData} returns an object of class \code{gData} with the following components:
 #' \itemize{
 #' \item{\code{map} a data.frame containing map data. Map is sorted by chromosome and position.}
-#' \item{\code{markers} a matrix containing marker information}
+#' \item{\code{markers} a sparse matrix from the Matrix package containing marker information.}
 #' \item{\code{pheno} a list of matrices containing phenotypic data}
-#' \item{\code{kinship} a kinship matrix}
-#' \item{\code{covar} a data.frame with extra covariates}
+#' \item{\code{kinship} a kinship matrix of class \code{dsyMatrix} from the Matrix package.}
+#' \item{\code{covar} a data.frame with extra covariates.}
 #' } \cr
 #' \code{is.gData} returns \code{TRUE} or \code{FALSE} depending on whether its argument is a \code{gData}
 #' object.
@@ -208,10 +212,10 @@ createGData <- function(gData = NULL,
     if (is.list(kin)) {
       kin <- lapply(X = kin, FUN = function(x) {
         as(x[order(match(rownames(x), rownames(markers))),
-          order(match(colnames(x), rownames(markers)))], "Matrix")
+          order(match(colnames(x), rownames(markers)))], "dsyMatrix")
       })
     } else {
-      if (is.matrix(kin)) kin <- as(kin, "Matrix")
+      if (is.matrix(kin)) kin <- as(kin, "dsyMatrix")
       kin <- kin[order(match(rownames(kin), rownames(markers))),
         order(match(colnames(kin), rownames(markers)))]
     }

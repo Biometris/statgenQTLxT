@@ -28,7 +28,7 @@ updateFA <- function(Y,
   maxIter = 100L,
   printProgress = FALSE) {
   ## Check input
-  Y <- as.matrix(Y)
+  #Y <- as.matrix(Y)
   if (anyNA(Y)) {stop('Y cannot contain missing values')}
   p <- ncol(Y)
   n <- nrow(Y)
@@ -46,8 +46,10 @@ updateFA <- function(Y,
     if (!is.null(PStart)) {stop('WStart and PStart should be either both NULL (default),
       or both have a sensible value')}
   }
-  if (m != round(m) || m < 1) {stop("m needs to be a positive integer")}
-  if (m >= p) {stop("m needs to be smaller than the number of variables")}
+  if (m != round(m) || m < 1)
+    stop("m needs to be a positive integer")
+  if (m >= p)
+    stop("m needs to be smaller than the number of variables")
   ## Set start values for P and W.
   if (is.null(WStart)) {
     a <- eigen(Matrix::crossprod(Y) / n, symmetric = TRUE)
@@ -62,32 +64,60 @@ updateFA <- function(Y,
   totalDiff <- Inf
   ## EM
   while (totalDiff > tolerance & iter < maxIter) {
-    ## prevent that P become asymmetric because of numerical inaccuracies
-    if (hetVar) {
-      B <- Matrix::crossprod(W, P %*% W) # m x m
-      Sigma <- Matrix::solve(Matrix::Diagonal(n = m) + B) # m x m
-      M1 <- Sigma %*% Matrix::crossprod(W, Matrix::tcrossprod(P, Y)) # m x n
+    if (m == 1) {
+      if (hetVar) {
+        B <- as.numeric(Matrix::crossprod(W, P %*% W)) # m x m
+        Sigma <- 1 / (1 + B) # m x m
+        M1 <- Sigma * as.numeric(Matrix::crossprod(W, Matrix::tcrossprod(P, Y))) # m x n
+      } else {
+        B <- P[1, 1] * as.numeric(Matrix::crossprod(W)) # m x m
+        Sigma <- 1 / (1 + B) # m x m
+        M1 <- P[1, 1] * Sigma * as.numeric(Matrix::t(Y %*% W)) # m x n
+      }
+      A <- 1 / (n * Sigma + sum(M1 ^ 2))  # m x m
+      WNew <- A * Matrix::crossprod(Y, M1) # p x m
+      if (hetVar) {
+        D1 <- Matrix::colSums(Y ^ 2)
+        D2 <- (n * Sigma + sum(M1 ^ 2)) * as.numeric(WNew) ^ 2
+        D3 <- Matrix::diag(WNew %*% M1 %*% Y)
+        DTot <-  D1 + D2 - 2 * D3
+        PNew <- P
+        Matrix::diag(PNew) <- n / DTot
+      } else {
+        dataNew <- Matrix::t(Y) - WNew %*% M1 # p x n
+        SNew <- Matrix::tcrossprod(dataNew) / n
+        PNew <- P
+        Matrix::diag(PNew) <- 1 / mean(Matrix::diag(SNew))
+      }
     } else {
-      B <- P[1, 1] * Matrix::crossprod(W) # m x m
-      Sigma <- Matrix::solve(Matrix::Diagonal(n = m) + B) # m x m
-      M1 <- P[1, 1] * Matrix::tcrossprod(Matrix::tcrossprod(Sigma, W), Y) # m x n
-    }
-    A <- Matrix::solve(n * Sigma + Matrix::tcrossprod(M1))  # m x m
-    WNew <- Matrix::crossprod(Y, Matrix::crossprod(M1, A)) # p x m
-    if (hetVar) {
-      D1 <- Matrix::colSums(Y ^ 2)
-      D2 <- Matrix::diag(Matrix::tcrossprod(WNew %*% (n * Sigma + Matrix::tcrossprod(M1)), WNew))
-      D3 <- Matrix::diag(WNew %*% M1 %*% Y)
-      DTot <-  D1 + D2 - 2 * D3
-      PNew <- Matrix::Diagonal(x = n / DTot)
-    } else {
-      dataNew <- Matrix::t(Y) - WNew %*% M1 # p x n
-      SNew <- Matrix::tcrossprod(dataNew) / n
-      PNew <- Matrix::Diagonal(n = ncol(SNew), x = 1 / mean(Matrix::diag(SNew)))
+      if (hetVar) {
+        B <- Matrix::crossprod(W, P %*% W) # m x m
+        Sigma <- Matrix::solve(Matrix::Diagonal(n = m) + B) # m x m
+        M1 <- Sigma %*% Matrix::crossprod(W, Matrix::tcrossprod(P, Y)) # m x n
+      } else {
+        B <- P[1, 1] * Matrix::crossprod(W) # m x m
+        Sigma <- Matrix::solve(Matrix::Diagonal(n = m) + B) # m x m
+        M1 <- P[1, 1] * Matrix::tcrossprod(Matrix::tcrossprod(Sigma, W), Y) # m x n
+      }
+      A <- Matrix::solve(n * Sigma + Matrix::tcrossprod(M1))  # m x m
+      WNew <- Matrix::crossprod(Y, Matrix::crossprod(M1, A)) # p x m
+      if (hetVar) {
+        D1 <- Matrix::colSums(Y ^ 2)
+        D2 <- Matrix::diag(Matrix::tcrossprod(WNew %*% (n * Sigma + Matrix::tcrossprod(M1)), WNew))
+        D3 <- Matrix::diag(WNew %*% M1 %*% Y)
+        DTot <-  D1 + D2 - 2 * D3
+        PNew <- P
+        Matrix::diag(PNew) <- n / DTot
+      } else {
+        dataNew <- Matrix::t(Y) - WNew %*% M1 # p x n
+        SNew <- Matrix::tcrossprod(dataNew) / n
+        PNew <- P
+        Matrix::diag(PNew) <- 1 / mean(Matrix::diag(SNew))
+      }
     }
     Matrix::diag(PNew)[Matrix::diag(PNew) > maxDiag] <- maxDiag
-    PDiff <- sum(abs(PNew - P))
-    WDiff <- sum(abs(WNew - W))
+    PDiff <- sum(abs(as.numeric(PNew) - as.numeric(P)))
+    WDiff <- sum(abs(as.numeric(WNew) - as.numeric(W)))
     totalDiff <- PDiff + WDiff
     if (printProgress) {
       cat("Iteration ", iter, " : ", PDiff, "  ", WDiff, "\n")

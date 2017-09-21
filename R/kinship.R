@@ -43,7 +43,7 @@ astle <- function(X,
   Z <- scale(X, center = 2 * p, scale = sqrt(2 * p * (1 - p)))
   ## Compute denominator.
   if (is.null(denominator)) denominator <- ncol(Z)
-  return(Matrix::tcrossprod(as(Z, "Matrix")) / denominator)
+  return(Matrix::tcrossprod(as(Z, "dgeMatrix")) / denominator)
 }
 
 #' @rdname kinship
@@ -57,19 +57,17 @@ GRM <- function(X,
   Z <- scale(X)
   ## Compute denominator.
   if (is.null(denominator)) denominator <- ncol(Z)
-  return(Matrix::tcrossprod(as(X, "Matrix")) / denominator)
+  return(Matrix::tcrossprod(as(Z, "dgeMatrix")) / denominator)
 }
 
 #' @rdname kinship
 #' @export
 IBS <- function(X,
   denominator = NULL) {
-  if (!is.matrix(X)) X <- as.matrix(X)
   ## Remove markers with variance 0.
-  X <- X[, apply(X, 2, var) != 0, drop = FALSE]
+  X <- as(X[, apply(X, 2, var) != 0, drop = FALSE], "dgCMatrix")
   ## Compute denominator.
   if (is.null(denominator)) denominator <- ncol(X)
-  X <- as(X, "Matrix")
   return((Matrix::tcrossprod(X) + Matrix::tcrossprod(1 - X)) / denominator)
 }
 
@@ -85,7 +83,7 @@ vanRaden <- function(X,
   Z <- scale(X, center = 2 * p, scale = FALSE)
   ## Compute denominator.
   if (is.null(denominator)) denominator <- 2 * sum(p * (1 - p))
-  return(Matrix::tcrossprod(as(Z, "Matrix")) / denominator)
+  return(Matrix::tcrossprod(as(Z, "dgeMatrix")) / denominator)
 }
 
 

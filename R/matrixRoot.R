@@ -15,9 +15,11 @@ matrixRoot <- function(X) {
   XEig <- eigen(X, symmetric = TRUE)
   if(any(XEig$values < 0)) stop("X should be a positive definite matrix.")
   if (length(XEig$values) > 1) {
-    XSqrt <- XEig$vectors %*% Matrix::Diagonal(x = sqrt(XEig$values)) %*% Matrix::solve(XEig$vectors)
+    XSqrt <- as(XEig$vectors, "dgeMatrix") %*% Matrix::Diagonal(x = sqrt(XEig$values)) %*%
+      Matrix::solve(XEig$vectors)
   } else {
-    XSqrt <- XEig$vectors %*% Matrix::Matrix(sqrt(XEig$values)) %*% Matrix::solve(XEig$vectors)
+    XSqrt <-  as(XEig$vectors, "dgeMatrix") %*% Matrix::Matrix(sqrt(XEig$values)) %*%
+      Matrix::solve(XEig$vectors)
   }
   return(XSqrt)
 }
