@@ -84,22 +84,21 @@ fastGLS <-function(y,
   Q <- Matrix::qr.Q(Matrix::qr(tMfixCovs))
   tMQtQ <- Matrix::t(M %*% (Matrix::Diagonal(n = n) - Matrix::tcrossprod(Q)))
   ## Compute RSS per marker, breaking up X for speed.
-  RSSFull <- vector(mode = "list", length = nChunks)
   ## In case nChunks = 1 everything can be done in a single step. Otherwise loop over the chunks.
-  if (nChunks > 1) {
-    chunkSize <- round(m / nChunks)
-    for (j in 1:(nChunks - 1)) {
-      tX <- tMQtQ %*% X[, ((j - 1) * chunkSize + 1):(j * chunkSize)]
-      RSSFull[[j]] <- apply(tX, 2, function(x) {
+ if (nChunks > 1) {
+    chunks <- split(1:m, c(rep(1:nChunks, each = m %/% nChunks),
+      rep(nChunks, each = m %% nChunks)))
+    ## In case nChunks = 1 everything can be done in a single step. Otherwise loop over the chunks.
+    RSSFull <- unlist(lapply(seq_along(chunks), FUN = function(i) {
+      tX <- tMQtQ %*% X[, chunks[[i]]]
+      apply(tX, 2, function(x) {
         sum(lsfit(x = x, y = ResEnv, intercept = FALSE)$residuals ^ 2)})
-    }
-    tX <- tMQtQ %*% X[ , -(1:(j * chunkSize))]
+    }))
   } else {
     tX <- tMQtQ %*% X
+    RSSFull <- apply(tX, 2, function(x) {
+      sum(lsfit(x = x, y = ResEnv, intercept = FALSE)$residuals ^ 2)})
   }
-  RSSFull[[nChunks]] <- apply(tX, 2, function(x) {
-    sum(lsfit(x = x, y = ResEnv, intercept = FALSE)$residuals ^ 2)})
-  RSSFull <- unlist(RSSFull)
   ## Compute F and p values.
   df2 <- n - 1 - nCov
   FVal <- (RSSEnv - RSSFull) / RSSFull * df2

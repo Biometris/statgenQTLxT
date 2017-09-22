@@ -218,7 +218,7 @@ runSingleTraitGwas <- function (gData,
     allFreqTot<- allFreqTot / 2
   }
   ## Define data.frames for total results.
-  GWATot <- signSnpTot <- inflationFactorTot <-
+  GWATot <- signSnpTot <- varCompTot <- LODThrTot <- inflationFactorTot <-
     setNames(vector(mode = "list", length = length(environments)),
       names(gData$pheno)[environments])
   for (environment in environments) {
@@ -231,8 +231,8 @@ runSingleTraitGwas <- function (gData,
     if (is.numeric(traits)) traits <- colnames(gData$pheno[[environment]])[traits]
     ## If no traits supplied extract them from pheno data.
     if (is.null(traits)) traits <- colnames(gData$pheno[[environment]])[-1]
-    inflationFactorEnvir <- setNames(numeric(length = length(traits)), traits)
-    GWATotEnvir <- signSnpTotEnvir <- varComp <-
+    LODThrEnvir <- inflationFactorEnvir <- setNames(numeric(length = length(traits)), traits)
+    GWATotEnvir <- signSnpTotEnvir <- varCompEnvir <-
       setNames(vector(mode = "list", length = length(traits)), traits)
     ## Perform GWAS for all traits.
     for (trait in traits) {
@@ -262,7 +262,7 @@ runSingleTraitGwas <- function (gData,
             remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment,
               covar = covarEnvir, K = kinshipRed)
             ## Compute varcov matrix using var components.
-            varComp[[trait]] <- remlObj[[1]]
+            varCompEnvir[[trait]] <- remlObj[[1]]
             vcovMatrix <- remlObj[[1]][1] * remlObj[[2]] +
               Matrix::Diagonal(n = nrow(remlObj[[2]]), x = remlObj[[1]][2])
             vcovMatrix <- vcovMatrix[nonMissingRepId, nonMissingRepId]
@@ -279,7 +279,7 @@ runSingleTraitGwas <- function (gData,
               random = ~ g(genotype), G = list(genotype = as.matrix(kinshipRed)), silent = TRUE)
             ## Compute varcov matrix using var components from model.
             sommerK <- kinshipRed[nonMissingRepId, nonMissingRepId]
-            varComp[[trait]] <- setNames(
+            varCompEnvir[[trait]] <- setNames(
               unlist(sommerFit$var.comp)[c(1, length(unlist(sommerFit$var.comp)))],
               c("Vg", "Ve"))
             vcovMatrix <- unlist(sommerFit$var.comp)[1] * sommerK +
@@ -293,8 +293,8 @@ runSingleTraitGwas <- function (gData,
           vcovMatrix <- Matrix::Diagonal(nrow(phenoEnvirTrait))
         }
       } else if (GLSMethod == 2) {
-        varComp[[trait]] <- vcovMatrix <- vector(mode = "list", length = length(chrs))
-        names(varComp[[trait]]) <- paste("chr", chrs)
+        varCompEnvir[[trait]] <- vcovMatrix <- vector(mode = "list", length = length(chrs))
+        names(varCompEnvir[[trait]]) <- paste("chr", chrs)
         ## emma algorithm takes covariates from gData.
         if (remlAlgo == 1) {
           gDataEmma <- createGData(pheno = gData$pheno,
@@ -307,7 +307,7 @@ runSingleTraitGwas <- function (gData,
             remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment,
               covar = covarEnvir, K = KinshipRedChr)
             ## Compute varcov matrix using var components.
-            varComp[[trait]][[which(chrs == chr)]] <- remlObj[[1]]
+            varCompEnvir[[trait]][[which(chrs == chr)]] <- remlObj[[1]]
             vcovMatrixChr <- remlObj[[1]][1] * remlObj[[2]] +
               remlObj[[1]][2] * Matrix::Diagonal(nrow(remlObj[[2]]))
             vcovMatrix[[which(chrs == chr)]] <- vcovMatrixChr[nonMissingRepId, nonMissingRepId]
@@ -327,7 +327,7 @@ runSingleTraitGwas <- function (gData,
               random = ~ g(genotype), G = list(genotype = as.matrix(KinshipRedChr)), silent = TRUE)
             ## Compute varcov matrix using var components from model.
             sommerK <- KinshipRedChr[nonMissingRepId, nonMissingRepId]
-            varComp[[trait]][[which(chrs == chr)]] <- setNames(
+            varCompEnvir[[trait]][[which(chrs == chr)]] <- setNames(
               unlist(sommerFit$var.comp)[c(1, length(unlist(sommerFit$var.comp)))],
               c("Vg", "Ve"))
             vcovMatrix[[which(chrs == chr)]] <- unlist(sommerFit$var.comp)[1] * sommerK +
@@ -460,6 +460,7 @@ runSingleTraitGwas <- function (gData,
         ## Compute LOD threshold by computing the 10log of the nSnpLOD item of ordered p values.
         LODThr <- sort(na.omit(GWAResult$LOD), decreasing = TRUE)[nSnpLOD]
       }
+      LODThrEnvir[trait] <- LODThr
       ## Select the SNPs whose LOD-scores is above the threshold
       signSnpNr <- which(!is.na(GWAResult$LOD) & GWAResult$LOD >= LODThr)
       if (length(signSnpNr) > 0) {
@@ -512,20 +513,24 @@ runSingleTraitGwas <- function (gData,
     signSnpTot <- lapply(signSnpTot, FUN = function(x) {
       if (is.null(x) || nrow(x) == 0) NULL else x
     })
+    varCompTot[[match(environment, environments)]] <- varCompEnvir
+    LODThrTot[[match(environment, environments)]] <- LODThrEnvir
     inflationFactorTot[[match(environment, environments)]] <- inflationFactorEnvir
   } # end for (environment in environments)
-  ## Collect info
+  ## Collect info.
   GWASInfo <- list(call = match.call(),
     remlAlgo = factor(remlAlgo, levels = c(1, 2), labels = c("EMMA", "Newton-Raphson")),
     thrType = factor(thrType, levels = c(1, 2, 3),
       labels = c("bonferroni", "self-chosen", "smallest p-values")),
     MAF = MAF,
-    varComp = varComp,
+    GLSMethod = factor(GLSMethod, levels = c(1, 2),
+      labels = c("single kinship matrix", "chromosome specific kinship matrices")),
+    varComp = varCompTot,
     genomicControl = genomicControl,
     inflationFactor = inflationFactorTot)
   return(createGWAS(GWAResult = GWATot,
     signSnp = signSnpTot,
     kin = if (GLSMethod == 1) {if (is.null(K)) gData$kinship else K} else KChr,
-    thr = LODThr,
+    thr = LODThrTot,
     GWASInfo = GWASInfo))
 }

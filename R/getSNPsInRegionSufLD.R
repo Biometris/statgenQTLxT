@@ -37,7 +37,7 @@ getSNPsInRegionSufLD <- function(gData,
   crit2 <- gData$map$chr == gData$map$chr[snp]
   candidateSnps <- setdiff(which(crit1 & crit2), snp)
   ## Compute R2 for candidate SNPs.
-  R2 <- suppressWarnings(cor(as.matrix(gData$markers[, candidateSnps]), as.matrix(gData$markers[, snp])) ^ 2)
+  R2 <- suppressWarnings(cor(as.matrix(gData$markers[, candidateSnps]), gData$markers[, snp]) ^ 2)
   ## Select SNPs based on R2.
   candidateSnpsNames <- names(which(R2[, 1] > minR2))
   return(which(rownames(gData$map) %in% candidateSnpsNames))

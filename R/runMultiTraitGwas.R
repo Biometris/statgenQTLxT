@@ -447,6 +447,8 @@ runMultiTraitGwas <- function(gData,
   ## Collect info.
   GWASInfo <- list(call = match.call(),
     MAF = MAF,
+    GLSMethod = factor(GLSMethod, levels = c(1, 2),
+      labels = c("single kinship matrix", "chromosome specific kinship matrices")),
     varComp = list(Vg = Vg, Ve = Ve))
   return(createGWAS(GWAResult = setNames(list(GWAResult), names(gData$pheno)[environment]),
     signSnp = NULL,

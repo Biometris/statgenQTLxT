@@ -65,7 +65,7 @@ GRM <- function(X,
 IBS <- function(X,
   denominator = NULL) {
   ## Remove markers with variance 0.
-  X <- as(X[, apply(X, 2, var) != 0, drop = FALSE], "dgCMatrix")
+  X <- X[, apply(X, 2, var) != 0, drop = FALSE]
   ## Compute denominator.
   if (is.null(denominator)) denominator <- ncol(X)
   return((Matrix::tcrossprod(X) + Matrix::tcrossprod(1 - X)) / denominator)
