@@ -2,9 +2,12 @@
 % Please edit documentation in R/vecInvDiag.R
 \name{vecInvDiag}
 \alias{vecInvDiag}
-\title{vecInvDiag}
+\alias{tracePInvDiag}
+\title{Helper functions for the penalized EM algorithm}
 \usage{
 vecInvDiag(x, y)
+
+tracePInvDiag(x, y)
 }
 \arguments{
 \item{x}{a numeric vector}
@@ -12,12 +15,12 @@ vecInvDiag(x, y)
 \item{y}{a numeric vector}
 }
 \value{
-a matrix defined by \eqn{(I + x \otimes y)^{-1}}
+for \code{vecInvDiag} a matrix defined by \eqn{(I + x \otimes y)^{-1}}, for
+\code{tracePInvDiag} a matrix containing the column sums of \eqn{(I + x \otimes y)^{-1}}.
 }
 \description{
-Helper function for quickly computing \eqn{(I + x \otimes y)^{-1}}. Used in the penalized EM algorith.
+\code{vecInvDiag} is a helper function for quickly computing \eqn{(I + x \otimes y)^{-1}},
+\code{tracePInvDiag} for quickly computing column sums of \eqn{(I + x \otimes y)^{-1}}. Both are used
+in the penalized EM algorithm.
 }
-\examples{
-vecInvDiag(1:2, 1:3)
-
-}
+\keyword{internal}

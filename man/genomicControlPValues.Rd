@@ -29,3 +29,4 @@ assumed that the p-values come from an F-test with df1 = 1 and df2 = nObs - nCov
 Devlin, B. and Roeder K. (1999) Genomic control for association studies. Biometrics,
 December 1999, Vol. 55(4), p. 997-1004.
 }
+\keyword{internal}

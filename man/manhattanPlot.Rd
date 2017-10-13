@@ -2,22 +2,22 @@
 % Please edit documentation in R/manhattanPlot.R
 \name{manhattanPlot}
 \alias{manhattanPlot}
-\title{Create a manhattan plot.}
+\title{Create a manhattan plot}
 \usage{
 manhattanPlot(xValues, yValues, map, fileName = "", jpegPlot = TRUE,
   xLab = "Chromosomes", yLab = expression(-log[10](p)), title = "",
   plotType = "l", xSig = integer(), xEffects = integer(),
   colPalette = rep(c("royalblue", "maroon"),
-  50)[1:length(levels(factor(map$chromosome)))], chrBoundaries = 0,
-  yThr = NULL, signPointsThickness = 0.6)
+  50)[1:length(levels(factor(map$chr)))], chrBoundaries = 0, yThr = NULL,
+  signPointsThickness = 0.6)
 }
 \arguments{
 \item{xValues}{a vector of cumulative marker positions.}
 
 \item{yValues}{a vector of LOD-scores.}
 
-\item{map}{a dataframe with at least the columns chromosome, the number of the chromosome
-and cum.position, the cumulative position of the snp the cumulative position of the snp
+\item{map}{a dataframe with at least the columns chr, the number of the chromosome
+and cumPos, the cumulative position of the snp the cumulative position of the snp
 starting from the first chromosome.}
 
 \item{fileName}{name of the outputfile that is created. If left empty the plot is written

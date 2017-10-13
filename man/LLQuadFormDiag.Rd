@@ -2,7 +2,7 @@
 % Please edit documentation in R/LLQuadFormDiag.R
 \name{LLQuadFormDiag}
 \alias{LLQuadFormDiag}
-\title{LLQuadFormDiag}
+\title{Compute tYPY as in Zhou and Stephens eqn. 50.}
 \usage{
 LLQuadFormDiag(Y, X = data.frame(), VInvArray)
 }
@@ -11,7 +11,7 @@ LLQuadFormDiag(Y, X = data.frame(), VInvArray)
 See details.}
 
 \item{X}{an optional c x n covariate matrix, c being the number of covariates and n being the number
-of genotypes. c has to be at least one (typically an intercept). See details.}
+of genotypes. c has to be at least one (typically an intercept). No missing values are allowed.}
 
 \item{VInvArray}{an n x p x p dimensional array obtained as an output from the function
 \code{\link{makeVInvArray}}. It contains for each genotype l the p x p matrix \eqn{v_l ^ {-1}} (in
@@ -25,14 +25,14 @@ Compute \eqn{t(y) * P * y}, part of the log-likelihood functions from equation 2
 Stephens using equation 50. Equation 56, 57 and 58 are used to do the actual computations.
 }
 \details{
-No missing values are allowed in X and Y.\cr
 It is assumed that X and Y have already been rotated by Uk, where Uk is such that
 the kinship matrix K equals \eqn{K = Uk * Dk * t(Uk)}.\cr
 The original X and Y are right multiplied by Uk, e.g. \code{Y <- Y * Uk}. See Zhou
-and Stephens 2014, supplement.\cr
+and Stephens (2014), supplement.\cr
 It is these rotated versions that are the input of this function.
 }
 \references{
 Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
 genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
 }
+\keyword{internal}

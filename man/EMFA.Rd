@@ -4,9 +4,9 @@
 \alias{EMFA}
 \title{Factor analytic variation of EM algoritm}
 \usage{
-EMFA(Y, K, X = matrix(rep(1, nrow(K))), CmHet = FALSE, DmHet = FALSE,
-  tolerance = 1e-04, maxIter = 300L, CmStart = NULL, DmStart = NULL,
-  mG = 1, mE = 1, maxDiag = 10000, prediction = TRUE,
+EMFA(Y, K, X = Matrix::Matrix(rep(1, nrow(K))), CmHet = FALSE,
+  DmHet = FALSE, tolerance = 1e-04, maxIter = 300L, CmStart = NULL,
+  DmStart = NULL, mG = 1, mE = 1, maxDiag = 10000, prediction = TRUE,
   stopIfDecreasing = FALSE, computeLogLik = FALSE)
 }
 \arguments{
@@ -19,10 +19,10 @@ No missing values are allowed.}
 of genotypes. c has to be at least one (typically an intercept). No missing values are allowed.
 If not provided a vector of 1s is used.}
 
-\item{CmHet}{should an extra diagonal part is added in the model for the
+\item{CmHet}{should an extra diagonal part be added in the model for the
 precision matrix Cm?}
 
-\item{DmHet}{should an extra diagonal part is added in the model for the
+\item{DmHet}{should an extra diagonal part be added in the model for the
 precision matrix Dm?}
 
 \item{tolerance}{a numerical value. The iterating process stops if the difference in conditional
@@ -49,12 +49,26 @@ log-likelihood decreases between two consecutive iterations?}
 \item{computeLogLik}{should the log-likelihood be returned?}
 }
 \value{
-A list containing results of the algoritm.
+A list containing the following components
+\itemize{
+\item{\code{Cm} final value for the precision matrix Cm.}
+\item{\code{Dm} final value for the precision matrix Dm.}
+\item{\code{logLik} log-likelihood}
+\item{\code{logLik2} log-likelihood as in Zhou and Stephens (2014)}
+\item{\code{nIter} the number of iterations.}
+\item{\code{converged} did the algorithm converge?}
+\item{\code{decreased} did the algorithm stop because the log-likelihood decreased
+between iterations.}
+}
 }
 \description{
-Implementation of the factor analytic variation of the EM algoritm as proposed by Dahl et al.
+Implementation of the factor analytic variation of the EM algoritm as proposed by Dahl et al. (2013).
 }
 \references{
-Dahl et al. (2014). Network inference in matrix-variate Gaussian models with
-non-indenpent noise.
+Dahl et al. (2013). Network inference in matrix-variate Gaussian models with
+non-independent noise. arXiv preprint arXiv:1312.1622.
+
+Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
+genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
 }
+\keyword{internal}

@@ -2,12 +2,9 @@
 % Please edit documentation in R/fastGLS.R
 \name{fastGLS}
 \alias{fastGLS}
-\alias{fastGLSCov}
-\title{fastGLS}
+\title{Fast Generalized Least Squares algoritm}
 \usage{
-fastGLS(y, X, Sigma)
-
-fastGLSCov(y, X, Sigma, covs, nChunks = 10)
+fastGLS(y, X, Sigma, covs = NULL, nChunks = 10)
 }
 \arguments{
 \item{y}{a numeric vector of length n of phenotypic scores. No missing values allowed.}
@@ -31,13 +28,14 @@ a data.frame with the following columns:
 }
 }
 \description{
-compute p-values for the GLS F-test as in emma-x, Fast-LMM or scan_GLS. \code{fastGLS} can be used when
-there are no further covariates, otherwise use \code{fastGLSCov}.
+Compute statistics for the Generalized Least Squares (GLS) F-test based on the algorithm proposed by
+Segura (2012). Also the \eqn{R_LR^2} statistics as in Sun (2010) is computed.
 }
 \references{
-Segura et al. (2012) An efficient multi-locus mixed-model approach for genome-wide association
-studies in structured populations. Nature Genetics, June 2012, Vol. 44, p. 825–830
+Segura et al. (2012) An efficient multi-locus mixed-model approach for genome-wide
+association studies in structured populations. Nature Genetics, June 2012, Vol. 44, p. 825–830.
 
 Sun et al. (2010) Variation explained in mixed-model association mapping.
-Heredity, February 2010, Vol. 105, p. 333–340
+Heredity, February 2010, Vol. 105, p. 333–340.
 }
+\keyword{internal}

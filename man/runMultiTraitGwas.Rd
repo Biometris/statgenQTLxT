@@ -2,55 +2,71 @@
 % Please edit documentation in R/runMultiTraitGwas.R
 \name{runMultiTraitGwas}
 \alias{runMultiTraitGwas}
-\title{run multi trait GWAS}
+\title{Perform multi-trait GWAS}
 \usage{
-runMultiTraitGwas(markers, map, Y, K, X = NULL, subsetMarkers = FALSE,
-  markerSubset = "", snpCovariates = "", MAF = 0.05, fitVarComp = TRUE,
-  covModel = 1, vEDiag = TRUE, tolerance = 1e-06, maxIter = 2e+05,
-  maxDiag = 10000, mG = 1, mE = 1, CmHet = TRUE, DmHet = TRUE,
-  stopIfDecreasing = TRUE, computeLogLik = TRUE, Vg = NULL, Ve = NULL,
-  reduceK = FALSE, nPca = NULL)
+runMultiTraitGwas(gData, environments = NULL, covar = NULL,
+  snpCovariates = NULL, K = NULL, kinshipMethod = "astle",
+  GLSMethod = 1, subsetMarkers = FALSE, markerSubset = "", MAF = 0.01,
+  fitVarComp = TRUE, covModel = 1, VeDiag = TRUE, tolerance = 1e-06,
+  maxIter = 2e+05, maxDiag = 10000, mG = 1, mE = 1, CmHet = TRUE,
+  DmHet = TRUE, stopIfDecreasing = TRUE, computeLogLik = TRUE,
+  Vg = NULL, Ve = NULL, reduceK = FALSE, nPca = NULL)
 }
 \arguments{
-\item{markers}{A dataframe with marker information. Row names should be chromosomes, column names
-genotypes.}
+\item{gData}{an object of class \code{gData} containing at least \code{map}, \code{markers} and
+\code{pheno}.}
 
-\item{map}{A dataframe with four columns; chromosome, the number of the chromosome,
-position, the position of the snp on the chromosome, snp.name, the name of the snp and
-cum.position, the cumulative position of the snp starting from the first chromosome.}
+\item{environments}{a vector of environments on which to run GWAS. These can be either numeric indices or
+character names of list items in \code{pheno}. If \code{NULL} GWAS is run for all environments.}
 
-\item{Y}{an n x p matrix or dataframe of observed phenotypes, on p traits or environments for n
-individuals. Missing values are allowed.}
+\item{covar}{an optional vector of covariates taken into account when running GWAS. These can be either
+numeric indices or character names of columns in \code{covar} in \code{gData}. If \code{NULL} no
+covariates are used.}
 
-\item{K}{an n x n kinship matrix.}
+\item{snpCovariates}{an optional character vector of snps to be included as covariates.}
 
-\item{X}{an n x c covariate matrix, c being the number of covariates and n being the number
-of genotypes. c has to be at least one (typically an intercept). No missing values are allowed.
-If not provided a vector of 1s is used.}
+\item{K}{an optional kinship matrix or list of kinship matrices. These matrices can be from the
+\code{matrix} class as defined in the base package or from the \code{dsyMatrix} class, the
+class of symmetric matrices in the Matrix package.\cr
+If \code{GLSMethod} = 1 then one matrix should be provided, if \code{GLSMethod} = 2 a list of
+chromosome specific matrices of lenght equal to the number of chromosomes in \code{map}
+in \code{gData}.\cr
+If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
+If both \code{K} is provided and \code{gData} contains a matrix \code{kinship} then \code{K} is used.}
+
+\item{kinshipMethod}{an optional character indicating the method used for calculating the kinship
+matrix(ces). Currently "astle" (Astle and Balding, 2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008)
+are supported. If a kinship matrix is supplied either in \code{gData} or in parameter \code{K}
+\code{kinshipMethod} is ignored.}
+
+\item{GLSMethod}{an integer indicating the method used to estimate the marker effects.
+\enumerate{
+\item{using one kinship matrix.}
+\item{using chromosome specific kinship matrices.}
+}}
 
 \item{subsetMarkers}{should the marker data be subsetted?}
 
-\item{markerSubset}{numeric or character vector for subsetting the markers. Ignored if
+\item{markerSubset}{numeric or character vector used for subsetting the markers. Ignored if
 subsetMarkers = \code{FALSE}.}
 
-\item{snpCovariates}{a character vacter of snps that are to be included as covariates.}
-
-\item{MAF}{a numeric value between 0 and 1. Snps with a minor allele frequency outside MAF
-and 1 - MAF are excluded from the GWAS analysis.}
+\item{MAF}{A numerical value between 0 and 1. SNPs with minor allele frequency below
+this value are not taken into account for the analysis, i.e. p-values and effect sizes are
+put to missing (NA). Ignored if \code{useMAF} is \code{FALSE}.}
 
 \item{fitVarComp}{should the variance components be fitted? If \code{FALSE} they should be supplied
 in Vg and Ve}
 
 \item{covModel}{an integer value for the model used when fitting the variance components.
 \enumerate{
-\item{unstructured for both Vg and Ve (as in Zhou and Stephens)}
-\item{unstructered for both Vg and Ve (pairwise, as in Furlotte and Eskin)}
+\item{unstructured for both Vg and Ve (as in Zhou and Stephens (2014))}
+\item{unstructered for both Vg and Ve (pairwise, as in Furlotte and Eskin (2013))}
 \item{factor-analytic for both Vg and Ve}
-\item{approximate ...}
+\item{approximate ...(as in Kruijer et al. (2015))}
 }
 Ignored if fitVarComp = \code{FALSE}}
 
-\item{vEDiag}{Should there be environmental correlations if covModel = 2? If traits are measured on
+\item{VeDiag}{Should there be environmental correlations if covModel = 1 or 2? If traits are measured on
 the same individuals put \code{FALSE}.}
 
 \item{tolerance}{a numerical value. Used when fitting the factor analytical model if covModel = 3.
@@ -91,30 +107,26 @@ which will be ignored. Ignored if fitVarComp = \code{TRUE}.}
 \item{reduceK}{if \code{TRUE} the kinship matrix is reduced. See \code{\link{reduceKinship}}}
 
 \item{nPca}{an integer giving the number of Pcas used whe reducing the kinship matrix.
-Ignored if reduceK = \code{FALSE}}
+Ignored if reduceK = \code{FALSE}.}
 }
 \value{
-a list containing the following items:
-\itemize{
-\item{\code{Vg} a matrix with genotypic variance compontents.}
-\item{\code{Ve} a matrix with environmental variance compontents.}
-\item{\code{M} a matrix of effect size estimates.}
-\item{\code{TStat} a matrix of t-statistics.}
-\item{\code{results} a vector of p-values.}
-\item{\code{resultsWald} a vector of p-values for the wald test.}
-\item{\code{MExtended} a matrix of snp information, lod scores, lod scores for the Wald
-test and effect size estimates.}
-\item{\code{TStatExtended} a matrix of snp information, lod scores, lod scores for the Wald
-test and t-statistics.}
-}
+an object of class \code{\link{GWAS}}.
 }
 \description{
-run multi trait GWAS
+\code{runMultiTraitGwas} performs a multi-trait Genome Wide Association Study (GWAS) on phenotypic and
+genotypic data contained in a \code{gData} object.
 }
 \references{
-Dahl et al. (2014). Network inference in matrix-variate Gaussian models with
-non-indenpent noise.
+Dahl et al. (2013). Network inference in matrix-variate Gaussian models with
+non-independent noise. arXiv preprint arXiv:1312.1622.
+
+Furlotte, N.A. and Eskin, E. (2015). Efficient multiple-trait association and
+estimation of genetic correlation using the matrix-variate linear mixed model. Genetics, May 2015,
+Vol.200-1, p. 59-68.
+
+Kruijer et al. (2015) Marker-based estimation of heritability in immortal populations.
+Genetics. February 2015, Vol. 199-2, p. 379-398.
 
 Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
-genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
+genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409.
 }
