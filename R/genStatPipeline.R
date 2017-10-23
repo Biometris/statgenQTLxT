@@ -4,5 +4,6 @@
 #'
 #' @docType package
 #' @name genStatPipeline
-#' @importFrom dplyr %>%
+#' @importFrom magrittr %>%
+#' @importClassesFrom Matrix Matrix
 NULL
