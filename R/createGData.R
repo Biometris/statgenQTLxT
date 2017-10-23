@@ -150,7 +150,7 @@ createGData <- function(gData = NULL,
     if (!is.data.frame(geno) && !inherits(geno, "Matrix") && !is.matrix(geno))
       stop("geno should be a matrix or a data.frame.\n")
     if (is.data.frame(geno) || is.matrix(geno)) {
-      markers <- as(geno, "Matrix")
+      markers <- as(geno, "matrix")
       } else {
         markers <- geno
       }

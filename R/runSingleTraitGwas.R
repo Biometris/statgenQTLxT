@@ -93,7 +93,8 @@
 #' @seealso \code{\link{GWAS}}, \code{\link{kinship}}
 #'
 #' @import stats
-
+#' 
+#' @export
 runSingleTraitGwas <- function (gData,
   traits = NULL,
   environments = NULL,
