@@ -41,6 +41,8 @@
 #' \code{is.gData} returns \code{TRUE} or \code{FALSE} depending on whether its argument is a \code{gData}
 #' object.
 #'
+#' @author Bart-Jan van Rossum
+#'
 #' @seealso \code{\link{summary.gData}}
 #'
 #' @examples set.seed(1234)
@@ -78,22 +80,30 @@ NULL
 #' @rdname gData
 #' @export
 createGData <- function(gData = NULL,
-  geno,
-  map,
-  kin,
-  pheno,
-  covar) {
+                        geno,
+                        map,
+                        kin,
+                        pheno,
+                        covar) {
   ## Check gData
-  if (!is.null(gData) && !is.gData(gData))
-    stop("gData should be a gData object.\n")
-  ## Check that at least one input is provided.
-  if (missing(geno) && missing(map) && missing(kin) && missing(pheno) && missing(covar))
+  if (!is.null(gData) && !is.gData(gData)) {
+    stop("Provided gData object should be of class gData.\n")
+  }
+  ## Check that at least one input argument, other than gData, is provided.
+  if (missing(geno) && missing(map) && missing(kin) && missing(pheno) && missing(covar)) {
     stop("At least one of geno, map, kin, pheno and covar should be provided.\n")
+  }
   ## Modify map
   if (!missing(map)) {
-    if (!is.data.frame(map)) stop("map should be a data.frame.\n")
-    if (!all(c("chr", "pos") %in% colnames(map))) stop("chr and pos should be columns in map.\n")
-    if (!is.null(gData$map)) warning("existing map will be overwritten.\n", call. = FALSE)
+    if (!is.data.frame(map)) {
+      stop("map should be a data.frame.\n")
+    }
+    if (!all(c("chr", "pos") %in% colnames(map))) {
+      stop("chr and pos should be columns in map.\n")
+    }
+    if (!is.null(gData$map)) {
+      warning("existing map will be overwritten.\n", call. = FALSE)
+    }
     ## Extract columns and order
     map <- map[c("chr", "pos")]
     map <- map[order(map$chr, map$pos), ]
@@ -102,18 +112,30 @@ createGData <- function(gData = NULL,
       ## Names are made unique if necessary by adding a suffix _1, _2, etc.
       replicates <- dplyr::count(map, map$chr, map$pos)$n
       suffix <- unlist(sapply(replicates, FUN = function(n) {
-        if (n == 1) return("") else return(paste0("_", seq(1:n)))}))
+        if (n == 1) {
+          return("")
+        } else {
+          return(paste0("_", seq(1:n)))
+        }
+      }))
       rownames(map) <- paste0("chr", map$chr, "_", map$pos, suffix)
       warning("map contains no marker names. Names constructed from chromosome and position.\n",
-        call. = FALSE)
+              call. = FALSE)
     }
-  } else if (!is.null(gData$map)) map <- gData$map
-  else map <- NULL
+  } else {
+    if (!is.null(gData$map)) {
+      map <- gData$map
+    } else {
+      map <- NULL
+    }
+  }
   ## Modify pheno
   if (!missing(pheno)) {
     if (!is.data.frame(pheno) &&
-        !(is.list(pheno) && all(sapply(pheno, FUN = is.data.frame))))
+        !(is.list(pheno) &&
+          all(sapply(pheno, FUN = is.data.frame)))) {
       stop("pheno should be a data.frame or a list data.frames.\n")
+    }
     if (is.data.frame(pheno)) {
       ## If not a list already put data.frame/matrix in a list.
       pheno <- setNames(list(pheno), deparse(substitute(pheno)))
@@ -123,7 +145,7 @@ createGData <- function(gData = NULL,
         names(pheno) <- sapply(X = 1:length(pheno), FUN = function(x) {paste0("Environment", x)})
         message("pheno contains no environment names. Default names added.\n")
       } else {
-        if (!isTRUE(all(sapply(names(pheno), nchar) > 0))) {
+        if (!isTRUE(all(sapply(X = names(pheno), FUN = nchar) > 0))) {
           ## Add default names for unnamed environments.
           names(pheno) <- sapply(X = 1:length(pheno), FUN = function(x) {
             if(!isTRUE(nchar(names(pheno)[x]) > 0)) {
@@ -136,38 +158,52 @@ createGData <- function(gData = NULL,
         }
       }
     }
-    if (!all(sapply(pheno, FUN = function(x) {colnames(x)[1] == "genotype"})))
+    if (!all(sapply(pheno, FUN = function(x) {colnames(x)[1] == "genotype"}))) {
       stop("First column in pheno should be genotype.\n")
+    }
     ## Convert genotype to character.
     for (i in 1:length(pheno)) {
       pheno[[i]]$genotype <- as.character(pheno[[i]]$genotype)
     }
-    if (!is.null(gData$pheno)) warning("existing pheno will be overwritten.\n", call. = FALSE)
-  } else if (!is.null(gData$pheno)) pheno <- gData$pheno
-  else pheno <- NULL
+    if (!is.null(gData$pheno)) {
+      warning("existing pheno will be overwritten.\n", call. = FALSE)
+    }
+  } else {
+    if (!is.null(gData$pheno)) {
+      pheno <- gData$pheno
+    } else {
+      pheno <- NULL
+    }
+  }
   ## Modify geno
   if (!missing(geno)) {
-    if (!is.data.frame(geno) && !inherits(geno, "Matrix") && !is.matrix(geno))
+    if (!is.data.frame(geno) && !inherits(geno, "Matrix") && !is.matrix(geno)) {
       stop("geno should be a matrix or a data.frame.\n")
+    }
     if (is.data.frame(geno) || is.matrix(geno)) {
-      ## Convert geno to matrix of class Matrix.
+      ## Convert geno to Matrix of class Matrix.
       markers <- as(geno, "Matrix")
-      } else {
-        markers <- geno
-      }
+    } else {
+      markers <- geno
+    }
     ## Check for row names in markers. If not available take them from pheno or use default names.
     if (all(rownames(markers) == as.character(1:nrow(markers)))) {
       if (missing(pheno)) {
         ## Default names are constructed as g001, g002, etc. with the number of 0 dependent on the
         ## number of rows.
-        rownames(markers) <- paste0("g", formatC(1:nrow(markers),
-          width = ceiling(log10(nrow(markers))), flag = "0"))
+        rownames(markers) <- paste0("g",
+                                    formatC(1:nrow(markers),
+                                            width = ceiling(log10(nrow(markers))),
+                                            flag = "0")
+                                    )
         warning("geno contains no genotype names. Default names used.\n", call. = FALSE)
-      } else if (nrow(pheno[[1]]) == nrow(markers)) {
-        rownames(markers) <- rownames(pheno[[1]])
-        warning("geno contains no genotype names. Names taken from pheno.\n", call. = FALSE)
       } else {
-        stop("geno contains no genotype names. Dimensions between geno and pheno differ.\n")
+        if (nrow(pheno[[1]]) == nrow(markers)) {
+          rownames(markers) <- rownames(pheno[[1]])
+          warning("geno contains no genotype names. Names taken from pheno.\n", call. = FALSE)
+        } else {
+          stop("geno contains no genotype names. Dimensions between geno and pheno differ.\n")
+        }
       }
     } else {
       ## Sort rownames alphabetically.
@@ -175,81 +211,119 @@ createGData <- function(gData = NULL,
     }
     if (is.null(colnames(markers))) {
       ## Check for column names in markers. If not available take them from map.
-      if (is.null(map)) stop("geno contains no marker names. Map not available.\n")
-      if (nrow(map) != ncol(markers))
+      if (is.null(map)) {
+        stop("geno contains no marker names. Map not available.\n")
+      }
+      if (nrow(map) != ncol(markers)) {
         stop("geno contains no marker names. Dimensions between geno and map differ.\n")
+      }
       colnames(markers) <- rownames(map)
       warning("geno contains no marker names. Names taken from map.\n", call. = FALSE)
     } else {
-      if (any(!colnames(markers) %in% rownames(map[rownames(map) %in% colnames(markers),])))
+      if (any(!colnames(markers) %in% rownames(map[rownames(map) %in% colnames(markers), ]))) {
         warning("not all markers in geno are in map. Extra markers are removed.\n", call. = FALSE)
+      }
       markers <- markers[, colnames(markers) %in% rownames(map)]
     }
-    if (!is.null(gData$markers)) warning("existing geno will be overwritten.\n", call. = FALSE)
-  } else if (!is.null(gData$markers)) markers <- gData$markers
-  else markers <- NULL
+    if (!is.null(gData$markers)) {
+      warning("existing geno will be overwritten.\n", call. = FALSE)
+    }
+  } else {
+    if (!is.null(gData$markers)) {
+    markers <- gData$markers
+    } else {
+      markers <- NULL
+    }
+  }
   ## Modify kin
   if (!missing(kin)) {
-    if (!is.null(kin) && !inherits(kin, "Matrix") && !is.matrix(kin) &&
-        !(is.list(kin) && all(sapply(kin, FUN = function(x) {
-        inherits(x, "Matrix") || is.matrix(x)}))))
+    if (!is.null(kin) &&
+        !inherits(kin, "Matrix") &&
+        !is.matrix(kin) &&
+        !(is.list(kin) &&
+          all(sapply(X = kin, FUN = function(x) {
+          inherits(x, "Matrix") || is.matrix(x)
+        })))) {
       stop("kin should be a matrix or a list of matrices.\n")
-    if (!is.null(map) && is.list(kin) && length(kin) != dplyr::n_distinct(map$chr))
+    }
+    if (!is.null(map) && is.list(kin) && length(kin) != dplyr::n_distinct(map$chr)) {
       stop("kin should be the same length as the number of chromosomes in map.\n")
-    if (is.null(rownames(kin)) || is.null(colnames(kin)))
+    }
+    if (is.null(rownames(kin)) || is.null(colnames(kin))) {
       stop("row and column names in kin cannot be NULL.\n")
+    }
     if ((!is.null(markers) && is.list(kin) &&
         any(sapply(X = kin, FUN = function(x) {
-          !all(rownames(x) %in% rownames(markers)) ||
-            !all(colnames(x) %in% rownames(markers))
+          !all(rownames(x) %in% rownames(markers)) || !all(colnames(x) %in% rownames(markers))
         }))) ||
         (!is.null(markers) && !is.list(kin) &&
-            (!all(rownames(kin) %in% rownames(markers)) ||
-                !all(colnames(kin) %in% rownames(markers)))))
+         (!all(rownames(kin) %in% rownames(markers)) ||
+          !all(colnames(kin) %in% rownames(markers))))) {
       stop("row and column names of kin should be in row and column names of geno.\n")
+    }
     ## Order as in geno.
-    if (!is.null(names(kin)) && names(kin) != unique(map$chr))
+    if (!is.null(names(kin)) && names(kin) != unique(map$chr)) {
       stop("names of kin should correspond to names of chromosomes in map.\n")
+    }
     if (is.list(kin)) {
-      kin <- lapply(X = kin, FUN = function(x) {
-        as(x[order(match(rownames(x), rownames(markers))),
-          order(match(colnames(x), rownames(markers)))], "dsyMatrix")
-      })
+      kin <- lapply(X = kin,
+                    FUN = function(x) {
+                      as(x[order(match(rownames(x), rownames(markers))),
+                           order(match(colnames(x), rownames(markers)))],
+                         "dsyMatrix")
+                    })
     } else {
-      if (is.matrix(kin)) kin <- as(kin, "dsyMatrix")
+      if (is.matrix(kin)) {
+        kin <- as(kin, "dsyMatrix")
+      }
       kin <- kin[order(match(rownames(kin), rownames(markers))),
-        order(match(colnames(kin), rownames(markers)))]
+                 order(match(colnames(kin), rownames(markers)))]
     }
     ## Add default names.
     if (is.list(kin) && is.null(names(kin))) {
       warning("kin contains no names. Default names added.\n")
       names(kin) <- unique(map$chr)
     }
-    if (!is.null(gData$kinship))
+    if (!is.null(gData$kinship)) {
       warning("existing kinship will be overwritten.\n", call. = FALSE)
-  } else if (!is.null(gData$kinship)) kin <- gData$kinship
-  else kin <- NULL
+    }
+  } else {
+    if (!is.null(gData$kinship)) {
+      kin <- gData$kinship
+    } else {
+      kin <- NULL
+    }
+  }
   ## Modify covar
   if (!missing(covar)) {
-    if (!is.null(covar) && !is.data.frame(covar))
+    if (!is.null(covar) && !is.data.frame(covar)) {
       stop("covar should be a data.frame.\n")
+    }
     if (!all(sapply(X = covar, FUN = function(x) {
-      is.numeric(x) || is.character(x) || is.factor(x)})))
+      is.numeric(x) || is.character(x) || is.factor(x)}))) {
       stop("all columns in covar should be numeric, character or factor columns.\n")
+    }
     ## Convert character columns to factors.
-    covar[sapply(covar, is.character)] <-
-      lapply(covar[sapply(covar, is.character)], as.factor)
-    if (!is.null(gData$covar))
+    covar[sapply(covar, is.character)] <- lapply(X = covar[sapply(X = covar,
+                                                                  FUN = is.character)],
+                                                 FUN = as.factor)
+    if (!is.null(gData$covar)) {
       warning("existing covar will be overwritten.\n", call. = FALSE)
-  } else if (!is.null(gData$covar)) covar <- gData$covar
-  else covar <- NULL
+    }
+  } else {
+    if (!is.null(gData$covar)) {
+      covar <- gData$covar
+    } else {
+      covar <- NULL
+    }
+  }
   ## Create gData object.
   gData <- structure(list(map = map,
-    markers = markers,
-    pheno = pheno,
-    kinship = kin,
-    covar = covar),
-    class = "gData")
+                          markers = markers,
+                          pheno = pheno,
+                          kinship = kin,
+                          covar = covar),
+                     class = "gData")
   return(gData)
 }
 
@@ -258,6 +332,4 @@ createGData <- function(gData = NULL,
 is.gData <- function(x) {
   inherits(x, "gData")
 }
-
-
 
