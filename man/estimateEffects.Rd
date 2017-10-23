@@ -2,7 +2,7 @@
 % Please edit documentation in R/estimateEffects.R
 \name{estimateEffects}
 \alias{estimateEffects}
-\title{Estimates for covariates.}
+\title{Estimates for covariates}
 \usage{
 estimateEffects(X, x = NULL, Y, VInvArray, returnAllEffects = TRUE)
 }
@@ -44,3 +44,4 @@ It is these rotated versions that are the input of this function.
 Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
 genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
 }
+\keyword{internal}

@@ -66,8 +66,8 @@ test_that("emmaEigenR produces correct results", {
   expect_equal(emmaEigenR(K = Sigma[1:3, 1:3], X = covs[1:3, ])[[1]], 1.96517890694063)
   expect_equal(emmaEigenR(K = Sigma[1:3, 1:3], X = covs[1:3, ])[[2]],
     c(0.118208501113814, -0.364967722967346, 0.923485414858543))
-  expect_error(emmaEigenR(K = Sigma, X = covs[1:3, ]), "non-conformable arrays")
-  expect_error(emmaEigenR(K = Sigma[1:3, ], X = covs), "non-conformable arrays")
+  expect_error(emmaEigenR(K = Sigma, X = covs[1:3, ]))
+  expect_error(emmaEigenR(K = Sigma[1:3, ], X = covs))
 })
 
 test_that("EMMAREMLLL produces correct output", {

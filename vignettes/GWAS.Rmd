@@ -36,11 +36,11 @@ Further covariates that can be used in the analyses can be stored in the data.fr
 
 ****
 
-## Single trait GWAS
+## Single Trait GWAS
 
 stG
         
-## Multi trait GWAS        
+## Multi Trait GWAS        
 
 mtG
 

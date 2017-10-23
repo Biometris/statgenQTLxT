@@ -2,7 +2,7 @@
 % Please edit documentation in R/updateFA.R
 \name{updateFA}
 \alias{updateFA}
-\title{updateFA}
+\title{Update W and P in EMFA algorithm}
 \usage{
 updateFA(Y, WStart = NULL, m = ifelse(is.null(WStart), 2, ncol(WStart)),
   PStart = NULL, hetVar = FALSE, maxDiag = 10000, tolerance = 1e-04,
@@ -33,5 +33,6 @@ a list containing the new matrices W and P after the iteration process and the n
 of iterations.
 }
 \description{
-updateFA
+Updata W and P used in the iteration process in the EMFA algorithm.
 }
+\keyword{internal}

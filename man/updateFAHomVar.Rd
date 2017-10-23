@@ -2,7 +2,7 @@
 % Please edit documentation in R/updateFAHomVar.R
 \name{updateFAHomVar}
 \alias{updateFAHomVar}
-\title{updateFAHomVar}
+\title{Update W and P in EMFA algorithm for homogeneous variance.}
 \usage{
 updateFAHomVar(Y = NULL, S = NULL, m, maxDiag = 10000)
 }
@@ -20,5 +20,7 @@ No missing values are allowed.}
 a list containing the new value for the matrices W and P.
 }
 \description{
-updateFAHomVar
+Updata W and P used in the iteration process in the EMFA algorithm in case the variance
+is homogeneous.
 }
+\keyword{internal}

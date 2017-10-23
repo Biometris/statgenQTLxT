@@ -103,7 +103,7 @@ r.image <- './example_data_DROPS/drops_600k.RData'
 
 MAF <- 0.05
 
-take.a.subset.of.markers <- T
+take.a.subset.of.markers <- F
 
 # If take.a.subset.of.markers==TRUE, the following is used:
 marker.subset <- 94001:96000#sort(sample(1:330000,5000)) #sort(c(94831,sample(1:214051,100)))
@@ -112,7 +112,7 @@ marker.subset <- 94001:96000#sort(sample(1:330000,5000)) #sort(c(94831,sample(1:
 # default :
 snp.covariates.list <- list(); for (i in 1:length(pheno.files)) {snp.covariates.list[[i]] <- ''}
 
-#snp.covariates.list <- list('AX-90548584')
+snp.covariates.list <- list('AX-90548584')
 
 # COVARIATES:
 #   THE SAME COVARIATES ARE USED FOR ALL files in pheno.files  !
@@ -264,7 +264,6 @@ for (pheno.file in pheno.files) {
     GWAS.obj <- TransformGwasObject(gwas.obj=GWAS.obj,
                                     marker.selection=marker.subset,
                                     modify.external=F)
-
   }
 
   ###

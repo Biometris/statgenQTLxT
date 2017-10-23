@@ -12,6 +12,7 @@ rownames(covar) <- data$Seedname
 gDataSes <- createGData(map = map, geno = markers, pheno = pheno, covar = covar)
 rm(list = setdiff(ls(), "gDataSes"))
 
+
 GWASes <- runSingleTraitGwas(gData = gDataSes,
   traits = NULL,
   environments =  NULL,

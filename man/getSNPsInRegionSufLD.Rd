@@ -26,3 +26,4 @@ have a minimum LD with the reference SNP.
 of a reference SNP (on either side). Only those SNPs that are in sufficient linkage disequilibrium
 (LD) with the reference SNP are returned.
 }
+\keyword{internal}
