@@ -33,7 +33,8 @@
 #' @return \code{createGData} returns an object of class \code{gData} with the following components:
 #' \itemize{
 #' \item{\code{map} a data.frame containing map data. Map is sorted by chromosome and position.}
-#' \item{\code{markers} a sparse matrix from the Matrix package containing marker information.}
+#' \item{\code{markers} a sparse matrix from the Matrix package containing marker information in case
+#' of numerical genotypic data, a standard matrix otherwise.}
 #' \item{\code{pheno} a list of matrices containing phenotypic data}
 #' \item{\code{kinship} a kinship matrix of class \code{dsyMatrix} from the Matrix package.}
 #' \item{\code{covar} a data.frame with extra covariates.}
@@ -111,11 +112,11 @@ createGData <- function(gData = NULL,
       ## If no marker name in input compute them from chromosome and position.
       ## Names are made unique if necessary by adding a suffix _1, _2, etc.
       replicates <- dplyr::count(map, map$chr, map$pos)$n
-      suffix <- unlist(sapply(replicates, FUN = function(n) {
+      suffix <- unlist(sapply(X = replicates, FUN = function(n) {
         if (n == 1) {
           return("")
         } else {
-          return(paste0("_", seq(1:n)))
+          return(paste0("_", 1:n))
         }
       }))
       rownames(map) <- paste0("chr", map$chr, "_", map$pos, suffix)
@@ -133,7 +134,7 @@ createGData <- function(gData = NULL,
   if (!missing(pheno)) {
     if (!is.data.frame(pheno) &&
         !(is.list(pheno) &&
-          all(sapply(pheno, FUN = is.data.frame)))) {
+          all(sapply(X = pheno, FUN = is.data.frame)))) {
       stop("pheno should be a data.frame or a list data.frames.\n")
     }
     if (is.data.frame(pheno)) {
@@ -142,7 +143,9 @@ createGData <- function(gData = NULL,
     } else {
       if (is.null(names(pheno))) {
         ## Add default names.
-        names(pheno) <- sapply(X = 1:length(pheno), FUN = function(x) {paste0("Environment", x)})
+        names(pheno) <- sapply(X = 1:length(pheno), FUN = function(x) {
+          paste0("Environment", x)
+          })
         message("pheno contains no environment names. Default names added.\n")
       } else {
         if (!isTRUE(all(sapply(X = names(pheno), FUN = nchar) > 0))) {
@@ -158,7 +161,9 @@ createGData <- function(gData = NULL,
         }
       }
     }
-    if (!all(sapply(pheno, FUN = function(x) {colnames(x)[1] == "genotype"}))) {
+    if (!all(sapply(X = pheno, FUN = function(x) {
+      colnames(x)[1] == "genotype"
+      }))) {
       stop("First column in pheno should be genotype.\n")
     }
     ## Convert genotype to character.
@@ -181,14 +186,18 @@ createGData <- function(gData = NULL,
       stop("geno should be a matrix or a data.frame.\n")
     }
     if (is.data.frame(geno) || is.matrix(geno)) {
+      if (is.numeric(unlist(geno))) {
       ## Convert geno to Matrix of class Matrix.
       markers <- as(geno, "Matrix")
+      } else {
+        markers <- as.matrix(geno)
+      }
     } else {
       markers <- geno
     }
     ## Check for row names in markers. If not available take them from pheno or use default names.
     if (all(rownames(markers) == as.character(1:nrow(markers)))) {
-      if (missing(pheno)) {
+      if (missing(pheno) || is.null(pheno)) {
         ## Default names are constructed as g001, g002, etc. with the number of 0 dependent on the
         ## number of rows.
         rownames(markers) <- paste0("g",
@@ -219,7 +228,7 @@ createGData <- function(gData = NULL,
       }
       colnames(markers) <- rownames(map)
       warning("geno contains no marker names. Names taken from map.\n", call. = FALSE)
-    } else {
+    } else if (!is.null(map)) {
       if (any(!colnames(markers) %in% rownames(map[rownames(map) %in% colnames(markers), ]))) {
         warning("not all markers in geno are in map. Extra markers are removed.\n", call. = FALSE)
       }
