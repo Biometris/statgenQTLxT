@@ -42,52 +42,70 @@
 #' @keywords internal
 
 runEmma <- function(gData,
-  trait,
-  environment,
-  K = NULL,
-  covar = NULL,
-  snpName = NULL,
-  Z = NULL,
-  nGrids = 100,
-  lLim = - 10,
-  uLim = 10,
-  eps = 1e-10) {
+                    trait,
+                    environment,
+                    K = NULL,
+                    covar = NULL,
+                    snpName = NULL,
+                    Z = NULL,
+                    nGrids = 100,
+                    lLim = - 10,
+                    uLim = 10,
+                    eps = 1e-10) {
   ## Check input
-  if(missing(gData) || !is.gData(gData) || is.null(gData$pheno))
+  if(missing(gData) || !is.gData(gData) || is.null(gData$pheno)) {
     stop("gData should be a valid gData object with at least pheno included.\n")
-  if(missing(environment) || length(environment) > 1 || !(is.numeric(environment) || is.character(environment)))
+  }
+  if(missing(environment) || length(environment) > 1 || !(is.numeric(environment)
+                                                          || is.character(environment))) {
     stop("environment should be a single numeric or character.\n")
+  }
   if ((is.character(environment) && !environment %in% names(gData$pheno)) ||
-      (is.numeric(environment) && environment > length(gData$pheno)))
+      (is.numeric(environment) && environment > length(gData$pheno))) {
     stop("environment should be a list item in pheno.\n")
-  if(missing(trait) || length(trait) > 1 || !(is.numeric(trait) || is.character(trait)))
+  }
+  if(missing(trait) || length(trait) > 1 || !(is.numeric(trait) || is.character(trait))) {
     stop("trait should be a single numeric or character.\n")
+  }
   if ((is.character(trait) && !trait %in% colnames(gData$pheno[[environment]])) ||
-      (is.numeric(trait) && trait > ncol(gData$pheno[[environment]])))
+      (is.numeric(trait) && trait > ncol(gData$pheno[[environment]]))) {
     stop("trait should be a column in pheno.\n")
-  if (!is.null(K) && !(inherits(K, "Matrix") || is.matrix(K)))
+  }
+  if (!is.null(K) && !(inherits(K, "Matrix") || is.matrix(K))) {
     stop("K should be a matrix.\n")
-  if (is.null(K) && is.null(gData$kinship))
+  }
+  if (is.null(K) && is.null(gData$kinship)) {
     stop("gData contains no matrix kinship so K should be provided.\n")
-  if(!is.null(covar) && !is.numeric(covar) && !is.character(covar))
+  }
+  if(!is.null(covar) && !is.numeric(covar) && !is.character(covar)) {
     stop("covar should be a numeric or character.\n")
+  }
   if ((is.character(covar) && !all(covar %in% colnames(gData$covar))) ||
-      (is.numeric(covar) && any(covar > ncol(gData$covar))))
+      (is.numeric(covar) && any(covar > ncol(gData$covar)))) {
     stop("covar should be columns in covar in gData.\n")
-  if(!is.null(snpName) && (length(snpName) > 1 || !is.character(snpName)))
+  }
+  if(!is.null(snpName) && (length(snpName) > 1 || !is.character(snpName))) {
     stop("snpName should be a single character.\n")
-  if(!is.null(Z) && !is.matrix(Z))
+  }
+  if(!is.null(Z) && !is.matrix(Z)) {
     stop("Z should be a matrix.\n")
-  if(!is.null(nGrids) && (length(nGrids) > 1 || !is.numeric(nGrids) || nGrids != round(nGrids)))
+  }
+  if(!is.null(nGrids) && (length(nGrids) > 1 || !is.numeric(nGrids) ||
+                          nGrids != round(nGrids))) {
     stop("nGrids should be a single integer.\n")
-  if(!is.null(lLim) && (length(lLim) > 1 || !is.numeric(lLim)))
+  }
+  if(!is.null(lLim) && (length(lLim) > 1 || !is.numeric(lLim))) {
     stop("lLim should be a single numeric value.\n")
-  if(!is.null(uLim) && (length(uLim) > 1 || !is.numeric(uLim)))
+  }
+  if(!is.null(uLim) && (length(uLim) > 1 || !is.numeric(uLim))) {
     stop("uLim should be a single numeric value.\n")
-  if (lLim >= uLim)
+  }
+  if (lLim >= uLim) {
     stop("lLim should be smaller than uLim.\n")
-  if(!is.null(eps) && (length(eps) > 1 || !is.numeric(eps)))
+  }
+  if(!is.null(eps) && (length(eps) > 1 || !is.numeric(eps))) {
     stop("eps should be a single numeric value.\n")
+  }
   ## Add column genotype to environment.
   phenoEnvir <- gData$pheno[[environment]]
   ## Remove data with missings in trait or any of the covars.
@@ -142,7 +160,7 @@ runEmma <- function(gData,
       Matrix::Matrix(delta, nrow = n - q, ncol = m, byrow = TRUE)
     ## Compute derivative of LL as in eqn. 9 of Kang for all grid endpoints.
     dLL <- 0.5 * delta * ((n - q) * Matrix::colSums(etasQ / lambdas ^ 2) /
-        Matrix::colSums(etasQ / lambdas) - Matrix::colSums(1 / lambdas))
+                            Matrix::colSums(etasQ / lambdas) - Matrix::colSums(1 / lambdas))
   } else {
     ## Compute n-q non-zero eigenvalues and corresponding eigenvectors.
     eigR <- emmaEigenRZ(Z = Z, K = K, X = X)
@@ -157,8 +175,10 @@ runEmma <- function(gData,
     lambdas <- Matrix::Matrix(eigR$values, nrow = t - q, ncol = m) +
       Matrix::Matrix(delta, nrow = t - q, ncol = m, byrow = TRUE)
     ## Compute derivative of LL as in eqn. 9 of Kang for all grid endpoints.
-    dLL <- 0.5 * delta * ((n - q) * (Matrix::colSums(etasQ / (lambdas ^ 2)) + etas2 / (delta ^ 2)) /
-        (Matrix::colSums(etasQ / lambdas) + etas2 / delta) - (Matrix::colSums(1 / lambdas) + (n - t) / delta))
+    dLL <- 0.5 * delta * ((n - q) *
+                            (Matrix::colSums(etasQ / (lambdas ^ 2)) + etas2 / (delta ^ 2)) /
+                            (Matrix::colSums(etasQ / lambdas) + etas2 / delta) -
+                            (Matrix::colSums(1 / lambdas) + (n - t) / delta))
   }
   ## Find optimum of LL
   optLogDelta <- numeric(0)
@@ -167,20 +187,20 @@ runEmma <- function(gData,
   if (dLL[1] < eps) {
     optLogDelta <- c(optLogDelta, lLim)
     optLL <- c(optLL, emmaREMLLL(logDelta = lLim, lambda = eigR$values, etas1 = etas1,
-      n = n, t = t, etas2 = etas2))
+                                 n = n, t = t, etas2 = etas2))
   }
   ## Check last item in dLL. If > - eps include LL value as possible optimum.
   if (dLL[m] > - eps) {
     optLogDelta <- c(optLogDelta, uLim)
     optLL <- c(optLL, emmaREMLLL(logDelta = uLim, lambda = eigR$values, etas1 = etas,
-      n = 0, t = 0, etas2 = 0))
+                                 n = 0, t = 0, etas2 = 0))
   }
   ## If derivative changes sign on an interval, compute local optimum for LL on that
   ## interval and add it to possible optima.
   for(i in 1:(m - 1)) {
     if (dLL[i] > 0 && dLL[i + 1] < 0 && dLL[i] * dLL[i + 1] < - eps ^ 2) {
-      r <- optimise(emmaREMLLL, lower = logDelta[i], upper = logDelta[i + 1],
-        lambda = eigR$values, etas1 = etas, n = 0, t = 0, etas2 = 0, maximum = TRUE)
+      r <- optimise(f = emmaREMLLL, lower = logDelta[i], upper = logDelta[i + 1],
+                    lambda = eigR$values, etas1 = etas, n = 0, t = 0, etas2 = 0, maximum = TRUE)
       optLogDelta <- c(optLogDelta, r$maximum)
       optLL <- c(optLL, r$objective)
     }

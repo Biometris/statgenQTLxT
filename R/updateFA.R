@@ -19,14 +19,14 @@
 #' @keywords internal
 
 updateFA <- function(Y,
-  WStart = NULL,
-  m = ifelse(is.null(WStart), 2, ncol(WStart)),
-  PStart = NULL,
-  hetVar = FALSE,
-  maxDiag = 1e4,
-  tolerance = 1e-4,
-  maxIter = 100L,
-  printProgress = FALSE) {
+                     WStart = NULL,
+                     m = ifelse(is.null(WStart), 2, ncol(WStart)),
+                     PStart = NULL,
+                     hetVar = FALSE,
+                     maxDiag = 1e4,
+                     tolerance = 1e-4,
+                     maxIter = 100L,
+                     printProgress = FALSE) {
   ## Check input
   #Y <- as.matrix(Y)
   if (anyNA(Y)) {stop('Y cannot contain missing values')}
@@ -39,17 +39,23 @@ updateFA <- function(Y,
   if (!is.null(WStart)) {
     #stopifnot(class(WStart) %in% c('matrix','data.frame'))
     stopifnot(nrow(WStart) == p)
-    if (ncol(WStart) != m) {stop('m needs to be equal to the number of columns of WStart')}
-    if (is.null(PStart)) {stop('WStart and PStart should be either both NULL (default),
-      or both have a sensible value')}
+    if (ncol(WStart) != m) {
+      stop('m needs to be equal to the number of columns of WStart.')
+    }
+    if (is.null(PStart)) {
+      stop('WStart and PStart should be either both NULL (default), or both have a sensible value.')
+    }
   } else {
-    if (!is.null(PStart)) {stop('WStart and PStart should be either both NULL (default),
-      or both have a sensible value')}
+    if (!is.null(PStart)) {
+      stop('WStart and PStart should be either both NULL (default), or both have a sensible value.')
+    }
   }
-  if (m != round(m) || m < 1)
-    stop("m needs to be a positive integer")
-  if (m >= p)
-    stop("m needs to be smaller than the number of variables")
+  if (m != round(m) || m < 1) {
+    stop("m needs to be a positive integer.")
+  }
+  if (m >= p) {
+    stop("m needs to be smaller than the number of variables.")
+  }
   ## Set start values for P and W.
   if (is.null(WStart)) {
     a <- eigen(Matrix::crossprod(Y) / n, symmetric = TRUE)

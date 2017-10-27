@@ -32,19 +32,25 @@
 #' @keywords internal
 
 estimateEffects <- function(X,
-  x = NULL,
-  Y,
-  VInvArray,
-  returnAllEffects = TRUE) {
+                            x = NULL,
+                            Y,
+                            VInvArray,
+                            returnAllEffects = TRUE) {
   ## Checks.
   stopifnot(ncol(X) == ncol(Y))
   #stopifnot(ncol(X) == dim(VInvArray)[1])
   #stopifnot(nrow(Y) == dim(VInvArray)[2])
   #stopifnot(nrow(Y) == dim(VInvArray)[3])
   stopifnot(is.null(x) || length(x) == ncol(X))
-  if (anyNA(X)) stop("No missing values allowed in X.\n")
-  if (anyNA(x)) stop("No missing values allowed in x.\n")
-  if (anyNA(Y)) stop("No missing values allowed in Y.\n")
+  if (anyNA(X)) {
+    stop("No missing values allowed in X.\n")
+  }
+  if (anyNA(x)) {
+    stop("No missing values allowed in x.\n")
+  }
+  if (anyNA(Y)) {
+    stop("No missing values allowed in Y.\n")
+  }
   nc <- nrow(X)
   n <- ncol(X)
   p <- nrow(Y)
@@ -65,9 +71,9 @@ estimateEffects <- function(X,
   vFunc <- function(i) {
     kronecker(X[, i], VInvArray[[i]] %*% Y[, i])}
   if (p == 1 && ncTot == 1) {
-    Vbeta <- sum(sapply(1:n, VbetaFunc))
+    Vbeta <- sum(sapply(X = 1:n, FUN = VbetaFunc))
   } else {
-    Vbeta <- Matrix::Matrix(rowSums(sapply(1:n, VbetaFunc)), ncol = p * ncTot)
+    Vbeta <- Matrix::Matrix(rowSums(sapply(X = 1:n, FUN = VbetaFunc)), ncol = p * ncTot)
   }
   M <- Matrix::solve(Vbeta)
   if (length(x) > 0) {
@@ -75,9 +81,9 @@ estimateEffects <- function(X,
   }
   ## Split cases for extra robustness.
   if (p == 1 && ncTot == 1) {
-    v <- sum(sapply(1:n, vFunc))
+    v <- sum(sapply(X = 1:n, FUN = vFunc))
   } else {
-    v <- rowSums(sapply(1:n, vFunc))
+    v <- rowSums(sapply(X = 1:n, FUN = vFunc))
   }
   wald <- NA
   if (returnAllEffects) {
@@ -85,7 +91,7 @@ estimateEffects <- function(X,
     effectsSd <- sqrt(Matrix::diag(M))
     if (length(x) > 0) {
       wald <- as.numeric(Matrix::crossprod(effectsEstimates[-(1:(p * nc))], MSub %*%
-          effectsEstimates[-(1:(p * nc))]))
+                                             effectsEstimates[-(1:(p * nc))]))
     }
   } else {
     effectsEstimates <- M %*% v[-(1:(p * nc))]

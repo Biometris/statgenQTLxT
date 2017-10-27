@@ -93,95 +93,126 @@
 #' @seealso \code{\link{GWAS}}, \code{\link{kinship}}
 #'
 #' @import stats
-#' 
+#'
 #' @export
 runSingleTraitGwas <- function (gData,
-  traits = NULL,
-  environments = NULL,
-  covar = NULL,
-  snpCovariates = NULL,
-  K = NULL,
-  kinshipMethod = "astle",
-  remlAlgo = 1,
-  GLSMethod = 1,
-  useMAF = TRUE,
-  MAF = 0.01,
-  MAC = 10,
-  genomicControl = FALSE,
-  thrType = 1,
-  alpha = 0.05 ,
-  LODThr = 4,
-  nSnpLOD = 10,
-  sizeInclRegion = 0,
-  minR2) {
+                                traits = NULL,
+                                environments = NULL,
+                                covar = NULL,
+                                snpCovariates = NULL,
+                                K = NULL,
+                                kinshipMethod = "astle",
+                                remlAlgo = 1,
+                                GLSMethod = 1,
+                                useMAF = TRUE,
+                                MAF = 0.01,
+                                MAC = 10,
+                                genomicControl = FALSE,
+                                thrType = 1,
+                                alpha = 0.05 ,
+                                LODThr = 4,
+                                nSnpLOD = 10,
+                                sizeInclRegion = 0,
+                                minR2) {
   ## Checks.
-  if(missing(gData) || !is.gData(gData) || is.null(gData$map) || is.null(gData$markers) ||
-      is.null(gData$pheno))
+  if (missing(gData) || !is.gData(gData) || is.null(gData$map) || is.null(gData$markers) ||
+     is.null(gData$pheno)) {
     stop("gData should be a valid gData object with at least map, markers and pheno included.\n")
-  if (!is.null(environments) && !is.numeric(environments) && !is.character(environments))
+  }
+  if (!inherits(gData$markers, "Matrix")) {
+    stop("markers in gData should be a numerical matrix. Use recodeMarkers first for recoding.")
+  }
+  if (!is.null(environments) && !is.numeric(environments) && !is.character(environments)) {
     stop("environments should be a numeric or character vector.\n")
+  }
   if ((is.character(environments) && !all(environments %in% names(gData$pheno))) ||
-      (is.numeric(environments) && any(environments > length(gData$pheno))))
+      (is.numeric(environments) && any(environments > length(gData$pheno)))) {
     stop("environments should be list items in pheno.\n")
+  }
   ## If environments is null set environments to all environments in pheno.
-  if (is.null(environments)) environments <- 1:length(gData$pheno)
-  if (!is.null(traits) && !is.numeric(traits) && !is.character(traits))
+  if (is.null(environments)) {
+    environments <- 1:length(gData$pheno)
+  }
+  if (!is.null(traits) && !is.numeric(traits) && !is.character(traits)) {
     stop("traits should be a numeric or character vector.\n")
+  }
   for (environment in environments) {
     if ((is.character(traits) && !all(traits %in% colnames(gData$pheno[[environment]]))) ||
-        (is.numeric(traits) && (any(traits == 1) || any(traits > ncol(gData$pheno[[environment]])))))
+        (is.numeric(traits) && (any(traits == 1) || any(traits > ncol(gData$pheno[[environment]]))))) {
       stop("traits should be columns in pheno.\n")
+    }
   }
-  if (!is.null(covar) && !is.numeric(covar) && !is.character(covar))
+  if (!is.null(covar) && !is.numeric(covar) && !is.character(covar)) {
     stop("covar should be a numeric or character vector.\n")
+  }
   if ((is.character(covar) && !all(covar %in% colnames(gData$covar))) ||
-      (is.numeric(covar) && any(covar > ncol(gData$covar))))
+      (is.numeric(covar) && any(covar > ncol(gData$covar)))) {
     stop("covar should be columns in covar.\n")
+  }
   ## If covar is given as numeric convert to character.
-  if (is.numeric(covar)) covar <- colnames(gData$covar)[covar]
-  if (!is.null(snpCovariates) && !all(snpCovariates %in% colnames(gData$markers)))
+  if (is.numeric(covar)) {
+    covar <- colnames(gData$covar)[covar]
+  }
+  if (!is.null(snpCovariates) && !all(snpCovariates %in% colnames(gData$markers))) {
     stop("All snpCovariates should be in markers.\n")
-  if (is.null(remlAlgo) || length(remlAlgo) > 1 || !is.numeric(remlAlgo))
+  }
+  if (is.null(remlAlgo) || length(remlAlgo) > 1 || !is.numeric(remlAlgo)) {
     stop("remlAlgo should be a single numeric value.\n")
-  if (is.null(GLSMethod) || length(GLSMethod) > 1 || !is.numeric(GLSMethod))
+  }
+  if (is.null(GLSMethod) || length(GLSMethod) > 1 || !is.numeric(GLSMethod)) {
     stop("GLSMethod should be a single numeric value.\n")
-  if (GLSMethod == 1 && !is.null(K) && !(inherits(K, "Matrix") || is.matrix(K)))
+  }
+  if (GLSMethod == 1 && !is.null(K) && !(inherits(K, "Matrix") || is.matrix(K))) {
     stop("K should be a matrix.\n")
+  }
   if (GLSMethod == 2 && !is.null(K) && (!is.list(K) ||
-      !all(sapply(K, FUN = function(k) {is.matrix(k) || inherits(k, "Matrix")})) ||
-      length(K) != dplyr::n_distinct(gData$map$chr)))
+                                        !all(sapply(K, FUN = function(k) {is.matrix(k) ||
+                                            inherits(k, "Matrix")})) ||
+                                        length(K) != dplyr::n_distinct(gData$map$chr))) {
     stop("K should be a list of matrices of length equal to the number of chromosomes
       in the map.\n")
+  }
   if ((GLSMethod == 1 && is.null(gData$kinship) && is.null(K)) ||
-      GLSMethod == 2 && is.null(K))
+      GLSMethod == 2 && is.null(K)) {
     kinshipMethod <- match.arg(kinshipMethod, choices = c("astle", "GRM", "IBS", "vanRaden"))
+  }
   if (is.null(sizeInclRegion) || length(sizeInclRegion) > 1 || !is.numeric(sizeInclRegion) ||
-      round(sizeInclRegion) != sizeInclRegion)
+      round(sizeInclRegion) != sizeInclRegion) {
     stop("sizeInclRegion should be a single integer\n")
+  }
   if (sizeInclRegion > 0) {
-    if (missing(minR2) || length(minR2) > 1 || !is.numeric(minR2) || minR2 < 0 || minR2 > 1)
+    if (missing(minR2) || length(minR2) > 1 || !is.numeric(minR2) || minR2 < 0 || minR2 > 1) {
       stop("minR2 should be a single numerical value between 0 and 1.\n")
+    }
   }
   if (useMAF) {
-    if (is.null(MAF) || length(MAF) > 1 || !is.numeric(MAF) || MAF < 0 || MAF > 1)
+    if (is.null(MAF) || length(MAF) > 1 || !is.numeric(MAF) || MAF < 0 || MAF > 1) {
       stop("MAF should be a single numerical value between 0 and 1.\n")
+    }
     if (MAF == 0) {MAF <- 1e-6}
   } else {
-    if (is.null(MAC) || length(MAC) > 1 || !is.numeric(MAC))
+    if (is.null(MAC) || length(MAC) > 1 || !is.numeric(MAC)) {
       stop("MAF should be a single numerical value.\n")
-    if (MAC == 0) {MAC <- 1}
+    }
+    if (MAC == 0) {
+      MAC <- 1
+    }
   }
-  if (is.null(thrType) || length(thrType) > 1 || !is.numeric(thrType))
+  if (is.null(thrType) || length(thrType) > 1 || !is.numeric(thrType)) {
     stop("thrType should be a single numeric value.\n")
+  }
   if (thrType == 1) {
-    if (is.null(alpha) || length(alpha) > 1 || !is.numeric(alpha))
+    if (is.null(alpha) || length(alpha) > 1 || !is.numeric(alpha)) {
       stop("alpha should be a single numerical value.\n")
-  } else if (thrType == 2) {
-    if (is.null(LODThr) || length(LODThr) > 1 || !is.numeric(LODThr))
-      stop("LODThr should be a single numerical value.\n")
-  } else if (thrType == 3) {
-    if (is.null(nSnpLOD) || length(nSnpLOD) > 1 || !is.numeric(nSnpLOD))
-      stop("nSnpLOD should be a single numerical value.\n")
+    } else if (thrType == 2) {
+      if (is.null(LODThr) || length(LODThr) > 1 || !is.numeric(LODThr)) {
+        stop("LODThr should be a single numerical value.\n")
+      }
+    } else if (thrType == 3) {
+      if (is.null(nSnpLOD) || length(nSnpLOD) > 1 || !is.numeric(nSnpLOD)) {
+        stop("nSnpLOD should be a single numerical value.\n")
+      }
+    }
   }
   if (!(remlAlgo %in% 1:2)) {
     remlAlgo <- 1
@@ -196,14 +227,15 @@ runSingleTraitGwas <- function (gData,
     warning("Invalid value for thrType. thrType set to 1.\n")
   }
   ## Compute kinship matrix.
-  if (GLSMethod == 1 && is.null(gData$kinship) && is.null(K))
+  if (GLSMethod == 1 && is.null(gData$kinship) && is.null(K)) {
     K <- do.call(kinshipMethod, list(X = gData$markers))
+  }
   ## Compute kinship matrices per chromosome. Only needs to be done once.
   if (GLSMethod == 2) {
     chrs <- unique(gData$map$chr[rownames(gData$map) %in% colnames(gData$markers)])
     if (!is.null(K)) {
       ## K is supplied. Set KChr to K.
-      KChr <- lapply(K, FUN = function(k) {
+      KChr <- lapply(X = K, FUN = function(k) {
         if(is.matrix(k)) as(k, "dsyMatrix") else k
       })
     } else {
@@ -221,11 +253,11 @@ runSingleTraitGwas <- function (gData,
   ## Define data.frames for total results.
   GWATot <- signSnpTot <- varCompTot <- LODThrTot <- inflationFactorTot <-
     setNames(vector(mode = "list", length = length(environments)),
-      names(gData$pheno)[environments])
+             names(gData$pheno)[environments])
   for (environment in environments) {
     ## Add covariates to phenotypic data.
     phenoExp <- expandPheno(gData = gData, environment = environment,
-      covar = covar, snpCovariates = snpCovariates)
+                            covar = covar, snpCovariates = snpCovariates)
     phenoEnvir <- phenoExp$phenoEnvir
     covarEnvir <- phenoExp$covarEnvir
     ## If traits is given as numeric convert to character.
@@ -258,10 +290,14 @@ runSingleTraitGwas <- function (gData,
           if (remlAlgo == 1) {
             ## emma algorithm takes covariates from gData.
             gDataEmma <- createGData(pheno = gData$pheno,
-              covar = if(is.null(covarEnvir)) NULL else as.data.frame(phenoEnvir[covarEnvir],
-                row.names = phenoEnvir$genotype))
+                                     covar = if (is.null(covarEnvir)) {
+                                       NULL
+                                     } else {
+                                       as.data.frame(phenoEnvir[covarEnvir],
+                                                     row.names = phenoEnvir$genotype)
+                                     })
             remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment,
-              covar = covarEnvir, K = kinshipRed)
+                               covar = covarEnvir, K = kinshipRed)
             ## Compute varcov matrix using var components.
             varCompEnvir[[trait]] <- remlObj[[1]]
             vcovMatrix <- remlObj[[1]][1] * remlObj[[2]] +
@@ -277,7 +313,8 @@ runSingleTraitGwas <- function (gData,
             }
             ## Fit mmer2 model.
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
-              random = ~ g(genotype), G = list(genotype = as.matrix(kinshipRed)), silent = TRUE)
+                                       random = ~ g(genotype),
+                                       G = list(genotype = as.matrix(kinshipRed)), silent = TRUE)
             ## Compute varcov matrix using var components from model.
             sommerK <- kinshipRed[nonMissingRepId, nonMissingRepId]
             varCompEnvir[[trait]] <- setNames(
@@ -285,7 +322,7 @@ runSingleTraitGwas <- function (gData,
               c("Vg", "Ve"))
             vcovMatrix <- unlist(sommerFit$var.comp)[1] * sommerK +
               Matrix::Diagonal(n = nrow(sommerK),
-                x = unlist(sommerFit$var.comp)[length(unlist(sommerFit$var.comp))])
+                               x = unlist(sommerFit$var.comp)[length(unlist(sommerFit$var.comp))])
           }
           if (any(eigen(vcovMatrix, symmetric = TRUE, only.values = TRUE)$values <= 1e-8))
             vcovMatrix <- Matrix::nearPD(vcovMatrix)$mat
@@ -299,14 +336,18 @@ runSingleTraitGwas <- function (gData,
         ## emma algorithm takes covariates from gData.
         if (remlAlgo == 1) {
           gDataEmma <- createGData(pheno = gData$pheno,
-            covar = if(is.null(covarEnvir)) NULL else as.data.frame(phenoEnvir[covarEnvir],
-              row.names = phenoEnvir$genotype))
+                                   covar = if (is.null(covarEnvir)) {
+                                     NULL
+                                   } else {
+                                     as.data.frame(phenoEnvir[covarEnvir],
+                                                   row.names = phenoEnvir$genotype)
+                                   })
           for (chr in chrs) {
             ## Get chromosome specific kinship.
             KinshipRedChr <- KChr[[which(chrs == chr)]][nonMissing, nonMissing]
             ## Compute variance components using chromosome specific kinship.
             remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment,
-              covar = covarEnvir, K = KinshipRedChr)
+                               covar = covarEnvir, K = KinshipRedChr)
             ## Compute varcov matrix using var components.
             varCompEnvir[[trait]][[which(chrs == chr)]] <- remlObj[[1]]
             vcovMatrixChr <- remlObj[[1]][1] * remlObj[[2]] +
@@ -325,7 +366,9 @@ runSingleTraitGwas <- function (gData,
             KinshipRedChr <- KChr[[which(chrs == chr)]][nonMissing, nonMissing]
             ## Fit mmer2 model using chromosome specific kinship.
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
-              random = ~ g(genotype), G = list(genotype = as.matrix(KinshipRedChr)), silent = TRUE)
+                                       random = ~ g(genotype),
+                                       G = list(genotype = as.matrix(KinshipRedChr)),
+                                       silent = TRUE)
             ## Compute varcov matrix using var components from model.
             sommerK <- KinshipRedChr[nonMissingRepId, nonMissingRepId]
             varCompEnvir[[trait]][[which(chrs == chr)]] <- setNames(
@@ -347,7 +390,7 @@ runSingleTraitGwas <- function (gData,
       ## Compute allele frequencies based on genotypes for which phenotypic data is available.
       markersRed <- gData$markers[nonMissing, colnames(gData$markers) %in% rownames(gData$map)]
       mapRed <- gData$map[rownames(gData$map) %in% colnames(markersRed), ]
-      allFreq <- Matrix::colMeans(markersRed)
+      allFreq <- Matrix::colMeans(markersRed, na.rm = TRUE)
       if (maxScore == 2) {
         allFreq <- allFreq / 2
       }
@@ -358,19 +401,19 @@ runSingleTraitGwas <- function (gData,
       segMarkers <- which(allFreq >= maxScore * MAF & allFreq <= maxScore * (1 - MAF))
       ## Define data.frame for results.
       GWAResult <- data.frame(snp = rownames(mapRed),
-        mapRed,
-        pValue = NA,
-        LOD = NA,
-        effect = NA,
-        effectSe = NA,
-        RLR2 = NA,
-        allFreq = allFreq,
-        stringsAsFactors = FALSE)
+                              mapRed,
+                              pValue = NA,
+                              LOD = NA,
+                              effect = NA,
+                              effectSe = NA,
+                              RLR2 = NA,
+                              allFreq = allFreq,
+                              stringsAsFactors = FALSE)
       y <- as(phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing), trait], "dgeMatrix")
       if (GLSMethod == 1) {
         ## Exclude snpCovariates from segregating markers.
         exclude <- computeExcludedMarkers(snpCovariates = snpCovariates,
-          markersRed = markersRed, allFreq = allFreq)
+                                          markersRed = markersRed, allFreq = allFreq)
         ## The following is based on the genotypes, not the replicates:
         X <- markersRed[nonMissingRepId, setdiff(segMarkers, exclude)]
         if (length(covarEnvir) == 0) {
@@ -378,37 +421,37 @@ runSingleTraitGwas <- function (gData,
         } else {
           ## Define covariate matrix Z.
           Z <- as(as.matrix(phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing),
-            covarEnvir]), "dgeMatrix")
+                                            covarEnvir]), "dgeMatrix")
         }
         ## Compute pvalues and effects using fastGLS.
         GLSResult <- fastGLS(y = y, X = X, Sigma = vcovMatrix, covs = Z)
         GWAResult[setdiff(segMarkers, exclude),
-          c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
+                  c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
         ## Compute p-values and effects for snpCovariates using fastGLS.
         for (snpCovariate in snpCovariates) {
           GLSResultSnpCov <- fastGLS(y = y,
-            X = markersRed[nonMissingRepId, snpCovariate, drop = FALSE],
-            Sigma = vcovMatrix,
-            covs = Z[, which(colnames(Z) != snpCovariate), drop = FALSE],
-            nChunks = 1)
+                                     X = markersRed[nonMissingRepId, snpCovariate, drop = FALSE],
+                                     Sigma = vcovMatrix,
+                                     covs = Z[, which(colnames(Z) != snpCovariate), drop = FALSE],
+                                     nChunks = 1)
           GWAResult[snpCovariate,
-            c("pValue", "effect", "effectSe", "RLR2")] <- GLSResultSnpCov
+                    c("pValue", "effect", "effectSe", "RLR2")] <- GLSResultSnpCov
         }
       } else if (GLSMethod == 2) {
         ## Similar to GLSMethod 1 except using chromosome specific kinship matrices.
         for (chr in chrs) {
           mapRedChr <- mapRed[which(mapRed$chr == chr), ]
           markersRedChr <- markersRed[, which(colnames(markersRed) %in% rownames(mapRedChr)), drop = FALSE]
-          allFreqChr <- Matrix::colMeans(markersRedChr)
+          allFreqChr <- Matrix::colMeans(markersRedChr, na.rm = TRUE)
           if (maxScore == 2) {
             allFreqChr <- allFreqChr / 2
           }
           ## Determine segregating markers. Exclude snps used as covariates.
           segMarkersChr <- which(allFreqChr >= maxScore * MAF &
-              allFreqChr <= maxScore * (1 - MAF))
+                                   allFreqChr <= maxScore * (1 - MAF))
           ## Exclude snpCovariates from segregating markers.
           exclude <- computeExcludedMarkers(snpCovariates = snpCovariates,
-            markersRed = markersRedChr, allFreq = allFreqChr)
+                                            markersRed = markersRedChr, allFreq = allFreqChr)
           ## Remove excluded snps from segregating markers for current chromosome.
           segMarkersChr <- setdiff(intersect(segMarkersChr, which(mapRedChr$chr == chr)), exclude)
           X <- markersRedChr[nonMissingRepId, segMarkersChr, drop = FALSE]
@@ -417,20 +460,20 @@ runSingleTraitGwas <- function (gData,
           } else {
             ## Define covariate matrix Z.
             Z <- as(as.matrix(phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing),
-              covarEnvir]), "dgeMatrix")
+                                              covarEnvir]), "dgeMatrix")
           }
           GLSResult <- fastGLS(y = y, X = X, Sigma = vcovMatrix[[which(chrs == chr)]], covs = Z)
           GWAResult[colnames(markersRedChr)[segMarkersChr],
-            c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
+                    c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
           ## Compute pvalues and effects for snpCovariates using fastGLS.
           for (snpCovariate in intersect(snpCovariates, colnames(markersRedChr))) {
             GLSResultSnpCov <- fastGLS(y = y,
-              X = markersRed[nonMissingRepId, snpCovariate, drop = FALSE],
-              Sigma = vcovMatrix[[which(chrs == chr)]],
-              covs = Z[, which(colnames(Z) != snpCovariate), drop = FALSE],
-              nChunks = 1)
+                                       X = markersRed[nonMissingRepId, snpCovariate, drop = FALSE],
+                                       Sigma = vcovMatrix[[which(chrs == chr)]],
+                                       covs = Z[, which(colnames(Z) != snpCovariate), drop = FALSE],
+                                       nChunks = 1)
             GWAResult[snpCovariate,
-              c("pValue", "effect", "effectSe", "RLR2")] <- GLSResultSnpCov
+                      c("pValue", "effect", "effectSe", "RLR2")] <- GLSResultSnpCov
           }
         }
       }
@@ -440,8 +483,8 @@ runSingleTraitGwas <- function (gData,
       }
       ## Calculate the genomic inflation factor.
       GC <- genomicControlPValues(pVals = GWAResult$pValue,
-        nObs = length(nonMissing),
-        nCov = length(covarEnvir))
+                                  nObs = length(nonMissing),
+                                  nCov = length(covarEnvir))
       inflationFactorEnvir[trait] <- GC$inflation
       ## Rescale p-values.
       if (genomicControl) {
@@ -467,14 +510,15 @@ runSingleTraitGwas <- function (gData,
       if (length(signSnpNr) > 0) {
         if (sizeInclRegion > 0) {
           snpSelection <- unlist(sapply(X = signSnpNr,
-            FUN = getSNPsInRegionSufLD,
-            ## Create new minimal gData object to match map and markers used for SNP selection.
-            gData = createGData(map = mapRed, geno = markersRed),
-            regionSize = sizeInclRegion,
-            minR2 = minR2))
+                                        FUN = getSNPsInRegionSufLD,
+                                        ## Create new minimal gData object to match map and markers
+                                        ## used for SNP selection.
+                                        gData = createGData(map = mapRed, geno = markersRed),
+                                        regionSize = sizeInclRegion,
+                                        minR2 = minR2))
           snpSelection <- sort(union(snpSelection, signSnpNr))
-          snpStatus <- rep(paste("within", sizeInclRegion/1000 , "kb of a significant snp"),
-            length(snpSelection))
+          snpStatus <- rep(paste("within", sizeInclRegion / 1000 , "kb of a significant snp"),
+                           length(snpSelection))
           snpStatus[snpSelection %in% signSnpNr] <- "significant snp"
         } else {
           snpSelection <- signSnpNr
@@ -486,7 +530,7 @@ runSingleTraitGwas <- function (gData,
           ## for inbreeders, this depends on maxScore. It is therefore scaled to marker scores 0, 1
           ## (or 0, 0.5, 1 if there are heterozygotes)
           snpVar <- 4 * effect ^ 2 *
-            apply(markersRed[, snpSelection, drop = FALSE], MARGIN = 2, FUN = var) / maxScore ^ 2
+            apply(X = markersRed[, snpSelection, drop = FALSE], MARGIN = 2, FUN = var) / maxScore ^ 2
           propSnpVar <- snpVar / as.numeric(var(phenoEnvirTrait[trait]))
         }
         ## Create data.frame with significant snps.
@@ -520,18 +564,26 @@ runSingleTraitGwas <- function (gData,
   } # end for (environment in environments)
   ## Collect info.
   GWASInfo <- list(call = match.call(),
-    remlAlgo = factor(remlAlgo, levels = c(1, 2), labels = c("EMMA", "Newton-Raphson")),
-    thrType = factor(thrType, levels = c(1, 2, 3),
-      labels = c("bonferroni", "self-chosen", "smallest p-values")),
-    MAF = MAF,
-    GLSMethod = factor(GLSMethod, levels = c(1, 2),
-      labels = c("single kinship matrix", "chromosome specific kinship matrices")),
-    varComp = varCompTot,
-    genomicControl = genomicControl,
-    inflationFactor = inflationFactorTot)
+                   remlAlgo = factor(remlAlgo, levels = c(1, 2), labels = c("EMMA", "Newton-Raphson")),
+                   thrType = factor(thrType, levels = c(1, 2, 3),
+                                    labels = c("bonferroni", "self-chosen", "smallest p-values")),
+                   MAF = MAF,
+                   GLSMethod = factor(GLSMethod, levels = c(1, 2),
+                                      labels = c("single kinship matrix",
+                                                 "chromosome specific kinship matrices")),
+                   varComp = varCompTot,
+                   genomicControl = genomicControl,
+                   inflationFactor = inflationFactorTot)
   return(createGWAS(GWAResult = GWATot,
-    signSnp = signSnpTot,
-    kin = if (GLSMethod == 1) {if (is.null(K)) gData$kinship else K} else KChr,
-    thr = LODThrTot,
-    GWASInfo = GWASInfo))
+                    signSnp = signSnpTot,
+                    kin = if (GLSMethod == 1) {
+                      if (is.null(K)) {
+                        gData$kinship} else {
+                          K
+                        }
+                    } else {
+                      KChr
+                    },
+                    thr = LODThrTot,
+                    GWASInfo = GWASInfo))
 }

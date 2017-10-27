@@ -13,7 +13,6 @@ summary.gData <- function(object, ...) {
   pheno <-  object$pheno
   kinship <- object$kinship
   covar <- object$covar
-
   if (!is.null(map)) {
     cat("map\n")
     cat("\tNumber of markers:", nrow(map), "\n")

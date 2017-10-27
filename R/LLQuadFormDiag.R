@@ -22,8 +22,8 @@
 #' @keywords internal
 
 LLQuadFormDiag <- function(Y,
-  X = data.frame(),
-  VInvArray) {
+                           X = data.frame(),
+                           VInvArray) {
   #stopifnot(nrow(Y) == dim(VInvArray)[2])
   #stopifnot(nrow(Y) == dim(VInvArray)[3])
   if (anyNA(Y)) stop("No missing values allowed in Y")
@@ -36,21 +36,24 @@ LLQuadFormDiag <- function(Y,
   p <- nrow(Y)
   ## Define functions for faster computation of scalair part, q and Q.
   scalFunc <- function(i) {
-    as.numeric(Matrix::crossprod(Y[, i, drop = FALSE], VInvArray[[i]]) %*% Y[, i, drop = FALSE])}
+    as.numeric(Matrix::crossprod(Y[, i, drop = FALSE], VInvArray[[i]]) %*% Y[, i, drop = FALSE])
+  }
   qVecFunc <- function(i) {
-    kronecker(X[, i], VInvArray[[i]] %*% Y[, i])}
+    kronecker(X[, i], VInvArray[[i]] %*% Y[, i])
+  }
   qMatFunc <- function(i) {
-    kronecker(tcrossprod(X[, i]), VInvArray[[i]])}
+    kronecker(tcrossprod(X[, i]), VInvArray[[i]])
+  }
   ## Compute scalair part.
-  qScal <- sum(sapply(1:n, scalFunc))
+  qScal <- sum(sapply(X = 1:n, FUN = scalFunc))
   if (nc > 0) {
     ## Compute q and Q.
     if (p == 1 & nc == 1) {
-      qVec <- sum(sapply(1:n, qVecFunc))
-      QMatrix <- sum(sapply(1:n, qMatFunc))
+      qVec <- sum(sapply(X = 1:n, FUN = qVecFunc))
+      QMatrix <- sum(sapply(X = 1:n, FUN = qMatFunc))
     } else {
-      qVec  <- rowSums(sapply(1:n, qVecFunc))
-      QMatrix <- matrix(rowSums(sapply(1:n, qMatFunc)), ncol = p * nc)
+      qVec  <- rowSums(sapply(X = 1:n, FUN = qVecFunc))
+      QMatrix <- matrix(rowSums(sapply(X = 1:n, FUN = qMatFunc)), ncol = p * nc)
     }
     ## Compute quadratic part.
     quadFormPart <- qScal - as.numeric(crossprod(qVec %*% solve(QMatrix, qVec)))

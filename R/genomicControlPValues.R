@@ -19,16 +19,19 @@
 #' @keywords internal
 
 genomicControlPValues <- function(pVals,
-  nObs,
-  nCov = 0) {
+                                  nObs,
+                                  nCov = 0) {
   ## Check input.
-  if (missing(pVals) || !is.numeric(pVals) || any(pVals < 0, na.rm = TRUE) || any(pVals > 1, na.rm = TRUE))
+  if (missing(pVals) || !is.numeric(pVals) || any(pVals < 0, na.rm = TRUE) ||
+      any(pVals > 1, na.rm = TRUE)) {
     stop("pVals should be a numeric vector with values between 0 and 1.\n")
-  if (missing(nObs) || length(nObs) > 1 || !is.numeric(nObs) || nObs != round(nObs) || nObs < 1)
+  }
+  if (missing(nObs) || length(nObs) > 1 || !is.numeric(nObs) || nObs != round(nObs) || nObs < 1) {
     stop("nObs should be a single integer > 0.\n")
-  if (length(nCov) > 1 || !is.numeric(nCov) || nCov != round(nCov) || nCov < 0)
+  }
+  if (length(nCov) > 1 || !is.numeric(nCov) || nCov != round(nCov) || nCov < 0) {
     stop("nCov should be a single positive integer.\n")
-
+  }
   ## Compute degree of freedom.
   df2 <- nObs - nCov - 2
   pValsNew <- pVals

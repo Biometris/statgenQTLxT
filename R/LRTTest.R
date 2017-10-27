@@ -27,10 +27,10 @@
 #' @keywords internal
 
 LRTTest <- function(X,
-  x,
-  Y,
-  VInvArray,
-  SS0 = NULL) {
+                    x,
+                    Y,
+                    VInvArray,
+                    SS0 = NULL) {
   nc <- nrow(X)
   n <- ncol(X)
   p <- nrow(Y)
@@ -50,9 +50,9 @@ LRTTest <- function(X,
   FStat <- ((SS0 - SS1) / SS1) * dfFull / p
   pValue <- pf(q = FStat, df1 = p, df2 = dfFull, lower.tail = FALSE)
   return(list(pvalue = pValue, Fstat = FStat, df = p,
-    SS1 = SS1, SS0 = SS0,
-    effects = est1$effectsEstimates[-(1:(nc * p))],
-    effectsSe = est1$effectsSd[-(1:(nc * p))],
-    wald = est1$wald
+              SS1 = SS1, SS0 = SS0,
+              effects = est1$effectsEstimates[-(1:(nc * p))],
+              effectsSe = est1$effectsSd[-(1:(nc * p))],
+              wald = est1$wald
   ))
 }

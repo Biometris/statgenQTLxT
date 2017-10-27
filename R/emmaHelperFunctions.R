@@ -10,26 +10,26 @@
 #' @keywords internal
 
 emmaEigenR <- function(K,
-  X) {
+                       X) {
   n <- nrow(X)
   q <- ncol(X)
   ## Compute n-q non-zero eigenvalues of SHS as defined in eqn. 5 of Kang.
   if (q == 1) {
-    S <- Matrix::Diagonal(n) - 1 / n
+    S <- Matrix::Diagonal(n = n) - 1 / n
   } else {
-    S <- Matrix::Diagonal(n) - X %*% Matrix::solve(Matrix::crossprod(X), Matrix::t(X))
+    S <- Matrix::Diagonal(n = n) - X %*% Matrix::solve(Matrix::crossprod(X), Matrix::t(X))
   }
-  eig <- eigen(S %*% (K + Matrix::Diagonal(n)) %*% S, symmetric = TRUE)
+  eig <- eigen(S %*% (K + Matrix::Diagonal(n = n)) %*% S, symmetric = TRUE)
   if(is.complex(eig$values))
     stop("Complex eigen values found.\n")
   return(list(values = eig$values[1:(n - q)] - 1,
-    vectors = eig$vectors[, 1:(n - q)]))
+              vectors = eig$vectors[, 1:(n - q)]))
 }
 
 emmaEigenRZ <- function(Z,
-  K,
-  X,
-  complete = TRUE) {
+                        K,
+                        X,
+                        complete = TRUE) {
   if (!complete) {
     vIds <- colSums(Z) > 0
     Z <- Z[, vIds]
@@ -46,7 +46,8 @@ emmaEigenRZ <- function(Z,
   }
   qrX <- qr.Q(qr(X))
   return(list(values = eig$values[1:(t - q)],
-    vectors = qr.Q(qr(cbind(SZ %*% eig$vectors[, 1:(t - q)], qrX)), complete = TRUE)[, c(1:(t - q), (t + 1):n)]))
+              vectors = qr.Q(qr(cbind(SZ %*% eig$vectors[, 1:(t - q)], qrX)),
+                             complete = TRUE)[, c(1:(t - q), (t + 1):n)]))
 }
 
 emmaREMLLL <- function(logDelta, lambda, etas1, n, t, etas2) {
@@ -55,6 +56,6 @@ emmaREMLLL <- function(logDelta, lambda, etas1, n, t, etas2) {
   delta <- exp(logDelta)
   lDelta <- lambda + delta
   return(0.5 * (nq * (log(nq / (2 * pi)) - 1 - log(sum(etas1 ^ 2 / (lDelta)) + etas2 / delta)) -
-      (sum(log(lDelta)) + (n - t) * logDelta)))
+                  (sum(log(lDelta)) + (n - t) * logDelta)))
 }
 

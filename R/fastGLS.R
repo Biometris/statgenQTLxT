@@ -28,36 +28,51 @@
 #' @keywords internal
 
 fastGLS <-function(y,
-  X,
-  Sigma,
-  covs = NULL,
-  nChunks = 10) {
+                   X,
+                   Sigma,
+                   covs = NULL,
+                   nChunks = 10) {
   ## Check class and missing values.
-  if (missing(y) || !(inherits(y, "Matrix") || is.numeric(y)) || anyNA(y))
+  if (missing(y) || !(inherits(y, "Matrix") || is.numeric(y)) || anyNA(y)) {
     stop("y should be a numeric vector without missing values.")
-  if (missing(X) || !(inherits(X, "Matrix") || is.matrix(X)) || anyNA(X))
-    stop("X should be a matrix without missing values.")
-  if (missing(Sigma) || !(inherits(Sigma, "Matrix") || is.matrix(Sigma)) ||anyNA(Sigma))
+  }
+  #  if (missing(X) || !(inherits(X, "Matrix") || is.matrix(X)) || anyNA(X))
+  #    stop("X should be a matrix without missing values.")
+  if (missing(Sigma) || !(inherits(Sigma, "Matrix") || is.matrix(Sigma)) ||anyNA(Sigma)) {
     stop("Sigma should be a matrix without missing values.")
-  if (!is.null(covs) && (!(inherits(covs, "Matrix") || is.matrix(covs)) || anyNA(covs)))
+  }
+  if (!is.null(covs) && (!(inherits(covs, "Matrix") || is.matrix(covs)) || anyNA(covs))) {
     stop("covs should be a numeric vector without missing values.")
-  if (!is.numeric(nChunks) || length(nChunks) > 1 || nChunks != round(nChunks))
+  }
+  if (!is.numeric(nChunks) || length(nChunks) > 1 || nChunks != round(nChunks)) {
     stop("nChunks should be an integer")
+  }
   n <- length(y)
   ## Check dimensions.
-  if (nrow(X) != n)
+  if (nrow(X) != n) {
     stop("The number of elements in y should be identical to the number of rows in X")
-  if (nrow(Sigma) != n || ncol(Sigma) != n)
+  }
+  if (nrow(Sigma) != n || ncol(Sigma) != n) {
     stop("The number of elements in y should be identical to the number of rows and columns in Sigma")
-  if (!is.null(covs) && nrow(covs) != n)
+  }
+  if (!is.null(covs) && nrow(covs) != n) {
     stop("The number of elements in y should be identical to the number of rows in covs")
+  }
   m <- ncol(X)
   ## If necessary convert input to Matrix
-  if (is.matrix(X)) X <- as(X, "dgeMatrix")
-  if (is.matrix(Sigma)) Sigma <- as(Sigma, "dsyMatrix")
-  if (is.matrix(covs)) covs <- as(covs, "dgeMatrix")
+  if (is.matrix(X)) {
+    X <- as(X, "dgeMatrix")
+  }
+  if (is.matrix(Sigma)) {
+    Sigma <- as(Sigma, "dsyMatrix")
+  }
+  if (is.matrix(covs)) {
+    covs <- as(covs, "dgeMatrix")
+  }
   ## Number of chunks should be smaller than m.
-  if (nChunks > m) nChunks <- ceiling(m / 2)
+  if (nChunks > m) {
+    nChunks <- ceiling(m / 2)
+  }
   fixCovs <- Matrix::cbind2(rep(1, n), covs)
   nCov <- ncol(fixCovs)
   M <- Matrix::solve(Matrix::chol(Sigma))
@@ -74,7 +89,8 @@ fastGLS <-function(y,
   nn <- 1 / (vv - Matrix::colSums(vX * (A %*% vX)))
   XtXinvLastRows <- Matrix::cbind2(- nn * Matrix::crossprod(vX, A), nn)
   Xty <- Matrix::cbind2(Matrix::Matrix(rep(as.numeric(Matrix::crossprod(tMfixCovs, tMy)),
-    length(nn)), byrow = TRUE, ncol = nCov), Matrix::crossprod(tMX, tMy))
+                                           length(nn)), byrow = TRUE, ncol = nCov),
+                        Matrix::crossprod(tMX, tMy))
   betaVec <- Matrix::rowSums(XtXinvLastRows[, 1:nCov, drop = FALSE] * Xty[, 1:nCov, drop = FALSE]) +
     XtXinvLastRows[, 1 + nCov] * Xty[, 1 + nCov]
   ## Compute residuals and RSS over all markers.
@@ -85,18 +101,18 @@ fastGLS <-function(y,
   tMQtQ <- Matrix::t(M %*% (Matrix::Diagonal(n = n) - Matrix::tcrossprod(Q)))
   ## Compute RSS per marker, breaking up X for speed.
   ## In case nChunks = 1 everything can be done in a single step. Otherwise loop over the chunks.
- if (nChunks > 1) {
+  if (nChunks > 1) {
     chunks <- split(1:m, c(rep(1:nChunks, each = m %/% nChunks),
-      rep(nChunks, each = m %% nChunks)))
+                           rep(nChunks, each = m %% nChunks)))
     ## In case nChunks = 1 everything can be done in a single step. Otherwise loop over the chunks.
-    RSSFull <- unlist(lapply(seq_along(chunks), FUN = function(i) {
-      tX <- tMQtQ %*% X[, chunks[[i]]]
-      apply(tX, 2, function(x) {
+    RSSFull <- unlist(lapply(X = seq_along(chunks), FUN = function(i) {
+      tX <- tMQtQ %*% X[, chunks[[i]], drop = FALSE]
+      apply(X = tX, MARGIN = 2, FUN = function(x) {
         sum(lsfit(x = x, y = ResEnv, intercept = FALSE)$residuals ^ 2)})
     }))
   } else {
     tX <- tMQtQ %*% X
-    RSSFull <- apply(tX, 2, function(x) {
+    RSSFull <- apply(X = tX, MARGIN = 2, FUN = function(x) {
       sum(lsfit(x = x, y = ResEnv, intercept = FALSE)$residuals ^ 2)})
   }
   ## Compute F and p values.
@@ -107,9 +123,9 @@ fastGLS <-function(y,
   RLR2  <- 1 - exp((RSSFull - RSSEnv) / n)
   ## Construct output data.frame.
   GLS <- data.frame(pValue = pVal,
-    beta = betaVec,
-    betaSe = sqrt(XtXinvLastRows[, 1 + nCov]),
-    RLR2 = RLR2)
+                    beta = betaVec,
+                    betaSe = sqrt(XtXinvLastRows[, 1 + nCov]),
+                    RLR2 = RLR2)
   return(GLS)
 }
 

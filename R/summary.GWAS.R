@@ -10,15 +10,21 @@
 #' @export
 summary.GWAS <- function(object, ..., environments = NULL) {
   ## Checks.
-  if (!is.null(environments) && !is.character(environments) && !is.numeric(environments))
+  if (!is.null(environments) && !is.character(environments) && !is.numeric(environments)) {
     stop("environments should be a character or numeric vector.\n")
+  }
   if ((is.character(environments) && !all(environments %in% names(object$GWAResult))) ||
-      (is.numeric(environments) && !all(environments %in% 1:length(object$GWAResult))))
+      (is.numeric(environments) && !all(environments %in% 1:length(object$GWAResult)))) {
     stop("all environments should be in object.\n")
+  }
   ## Convert character input to numeric.
-  if (is.character(environments)) environments <- which(names(object$GWAResult) == environments)
+  if (is.character(environments)) {
+    environments <- which(names(object$GWAResult) == environments)
+  }
   ## If NULL then summary of all environments.
-  if (is.null(environments)) environments <- 1:length(object$GWAResult)
+  if (is.null(environments)) {
+    environments <- 1:length(object$GWAResult)
+  }
   for (environment in environments) {
     GWAResult <- object$GWAResult[[environment]]
     signSnp <- object$signSnp[[environment]]
@@ -32,7 +38,7 @@ summary.GWAS <- function(object, ..., environments = NULL) {
     cat("\tData are available for", dplyr::n_distinct(GWAResult$snp), "SNPs.\n")
     if (!is.null(GWASInfo$MAF)) {
       cat("\t", dplyr::n_distinct(GWAResult$snp[is.na(GWAResult$pValue)]), "of them were not",
-        "analyzed because their minor allele frequency is below", GWASInfo$MAF, "\n\n")
+          "analyzed because their minor allele frequency is below", GWASInfo$MAF, "\n\n")
     }
     for (trait in traits) {
       cat("\tTrait:", trait, "\n\n")
@@ -49,13 +55,13 @@ summary.GWAS <- function(object, ..., environments = NULL) {
         signSnpTrait <- signSnp[signSnp$trait == trait, ]
         if (!is.null(signSnpTrait)) {
           cat("\t\tNumber of significant SNPs:" ,
-            nrow(signSnpTrait[signSnpTrait$snpStatus == "significant snp", ]), "\n")
+              nrow(signSnpTrait[signSnpTrait$snpStatus == "significant snp", ]), "\n")
           cat("\t\tSmallest p-value among the significant SNPs:",
-            min(signSnpTrait[signSnpTrait$snpStatus == "significant snp", "pValue"]), "\n")
+              min(signSnpTrait[signSnpTrait$snpStatus == "significant snp", "pValue"]), "\n")
           cat("\t\tLargest p-value among the significant SNPs: ",
-            max(signSnpTrait[signSnpTrait$snpStatus == "significant snp", "pValue"]),
-            " (LOD-score: ", min(signSnpTrait[signSnpTrait$snpStatus == "significant snp", "LOD"]),
-            ")\n\n", sep = "")
+              max(signSnpTrait[signSnpTrait$snpStatus == "significant snp", "pValue"]),
+              " (LOD-score: ", min(signSnpTrait[signSnpTrait$snpStatus == "significant snp", "LOD"]),
+              ")\n\n", sep = "")
         } else {
           cat("\t\tNo significant SNPs found.","\n\n")
         }
@@ -68,7 +74,7 @@ summary.GWAS <- function(object, ..., environments = NULL) {
       }
       if (!is.null(GWASInfo$inflationFactor)) {
         cat("\t\tGenomic control inflation-factor:",
-          round(GWASInfo$inflationFactor[[environment]][trait], 3), "\n\n")
+            round(GWASInfo$inflationFactor[[environment]][trait], 3), "\n\n")
       }
     }
   }

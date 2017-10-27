@@ -17,7 +17,9 @@
 #'
 #' @keywords internal
 
-makeVArray <- function(Vg, Ve, Dk) {
+makeVArray <- function(Vg,
+                       Ve,
+                       Dk) {
   stopifnot(ncol(Vg) == nrow(Vg))
   stopifnot(ncol(Ve) == nrow(Ve))
   stopifnot(ncol(Vg) == ncol(Ve))
@@ -31,7 +33,9 @@ makeVArray <- function(Vg, Ve, Dk) {
 }
 
 #' @rdname makeVArray
-makeVInvArray <- function(Vg, Ve, Dk) {
+makeVInvArray <- function(Vg,
+                          Ve,
+                          Dk) {
   stopifnot(ncol(Vg) == nrow(Vg))
   stopifnot(ncol(Ve) == nrow(Ve))
   stopifnot(ncol(Vg) == ncol(Ve))

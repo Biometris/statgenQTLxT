@@ -31,53 +31,59 @@ NULL
 #' @rdname GWAS
 #' @export
 createGWAS <- function(GWAResult = NULL,
-  signSnp = NULL,
-  kin = NULL,
-  thr = NULL,
-  GWASInfo = NULL) {
+                       signSnp = NULL,
+                       kin = NULL,
+                       thr = NULL,
+                       GWASInfo = NULL) {
   ## Check that at least one input is provided.
-  if (is.null(GWAResult) && is.null(signSnp))
+  if (is.null(GWAResult) && is.null(signSnp)) {
     stop("At least one of GWAResult and signSnp should be provided.\n")
+  }
   ## Check GWAResults
   if (!is.null(GWAResult)) {
     if (!is.data.frame(GWAResult) &&
-        !(is.list(GWAResult) && all(sapply(GWAResult, FUN = is.data.frame))))
+        !(is.list(GWAResult) && all(sapply(X = GWAResult, FUN = is.data.frame)))) {
       stop("GWAResult should be a data.frame or a list data.frames.\n")
+    }
     if (is.data.frame(GWAResult)) {
       ## If not a list already put data.frame in a list.
       GWAResult <- list(GWAResult)
     }
     if (!all(sapply(GWAResult, FUN = function(x) {
-      all(c("trait", "snp", "chr", "pos", "pValue", "LOD") %in% colnames(x))})))
+      all(c("trait", "snp", "chr", "pos", "pValue", "LOD") %in% colnames(x))}))) {
       stop("GWAResult should contain columns trait, snp, chr, pos, pValue and LOD.\n")
+    }
   }
   ## Check signSnps
   if (!all(sapply(signSnp, FUN = is.null))) {
     if (!is.data.frame(signSnp) &&
-        !(is.list(signSnp) && all(sapply(signSnp, FUN = is.data.frame))))
+        !(is.list(signSnp) && all(sapply(X = signSnp, FUN = is.data.frame)))) {
       stop("signSnp should be a data.frame or a list of data.frames.\n")
+    }
     if (is.data.frame(signSnp)) {
       ## If not a list already put data.frame in a list.
       signSnp <- list(signSnp)
     }
     if (!all(sapply(signSnp, FUN = function(x) {
-      all(c("trait", "snp", "snpStatus", "pValue", "LOD") %in% colnames(x))})))
+      all(c("trait", "snp", "snpStatus", "pValue", "LOD") %in% colnames(x))}))) {
       stop("signSnp should contain columns trait, snp, snpStatus, pValue and LOD.\n")
+    }
   }
   ## Check kin
   if (!is.null(kin)) {
     if (!(inherits(kin, "Matrix") || is.matrix(kin)) &&
-        !(is.list(kin) && all(sapply(kin, FUN = function(x) {
-          inherits(x, "Matrix") || is.matrix(x)}))))
+        !(is.list(kin) && all(sapply(X = kin, FUN = function(x) {
+          inherits(x, "Matrix") || is.matrix(x)})))) {
       stop("kin should be a matrix or a list of matrices.\n")
+    }
   }
   ## Create GWAS object.
   GWAS <- structure(list(GWAResult = GWAResult,
-    signSnp = signSnp,
-    kinship = kin,
-    thr = thr,
-    GWASInfo = GWASInfo),
-    class = "GWAS")
+                         signSnp = signSnp,
+                         kinship = kin,
+                         thr = thr,
+                         GWASInfo = GWASInfo),
+                    class = "GWAS")
   return(GWAS)
 }
 

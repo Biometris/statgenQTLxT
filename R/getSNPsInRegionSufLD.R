@@ -19,19 +19,23 @@
 #' @keywords internal
 
 getSNPsInRegionSufLD <- function(gData,
-  snp,
-  regionSize = 5000,
-  minR2 = 0.5) {
+                                 snp,
+                                 regionSize = 5000,
+                                 minR2 = 0.5) {
   ## Check input.
-  if (missing(gData) || !is.gData(gData) || is.null(gData$map) || is.null(gData$markers))
+  if (missing(gData) || !is.gData(gData) || is.null(gData$map) || is.null(gData$markers)) {
     stop("gData should be a valid gData object containing at least map and markers.\n")
+  }
   if (missing(snp) || length(snp) > 1 || !is.numeric(snp) || snp != round(snp) ||
-      !snp %in% 1:nrow(gData$map))
+      !snp %in% 1:nrow(gData$map)) {
     stop("snp should be a single integer indicating a row in the map in gData.\n")
-  if (length(regionSize) > 1 || !is.numeric(regionSize) || regionSize < 0)
+  }
+  if (length(regionSize) > 1 || !is.numeric(regionSize) || regionSize < 0) {
     stop("regionSize should be a single positive numeric value.\n")
-  if (length(minR2) > 1 || !is.numeric(minR2) || minR2 < 0 || minR2 > 1)
+  }
+  if (length(minR2) > 1 || !is.numeric(minR2) || minR2 < 0 || minR2 > 1) {
     stop("minR2 should be a single numeric value between 0 and 1.")
+  }
   ## Get candidate SNPs based on position.
   crit1 <- abs(gData$map$pos[snp] - gData$map$pos) <= regionSize
   crit2 <- gData$map$chr == gData$map$chr[snp]

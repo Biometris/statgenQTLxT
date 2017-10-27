@@ -20,15 +20,17 @@
 #' @keywords internal
 
 covUnstructured <- function(Y,
-  K,
-  X = NULL,
-  fixDiag = FALSE,
-  VeDiag = FALSE) {
+                            K,
+                            X = NULL,
+                            fixDiag = FALSE,
+                            VeDiag = FALSE) {
   ## Check input.
-  if (missing(Y) || !(is.matrix(Y) || inherits(Y, "Matrix")))
+  if (missing(Y) || !(is.matrix(Y) || inherits(Y, "Matrix"))) {
     stop("Y should be a matrix")
-  if (missing(K) || !(is.matrix(K) || inherits(K, "Matrix")))
+  }
+  if (missing(K) || !(is.matrix(K) || inherits(K, "Matrix"))) {
     stop("K should be a matrix")
+  }
   if (fixDiag) {
     warning("fixDiag = TRUE not implemented yet. Value set to FALSE")
     fixDiag <- FALSE
@@ -47,7 +49,7 @@ covUnstructured <- function(Y,
   if (!is.null(X)) {
     ## Define formula for fixed part. ` needed to accommodate - in variable names.
     fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ `",
-      paste(colnames(X)[-1], collapse ='` + `'), "`"))
+                               paste(colnames(X)[-1], collapse ='` + `'), "`"))
   } else {
     fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ 1"))
   }
@@ -58,7 +60,8 @@ covUnstructured <- function(Y,
   }
   ## Fit model.
   sommerFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
-    rcov = rcov, data = data, G = list(genotype = as.matrix(K)), silent = TRUE)
+                             rcov = rcov, data = data, G = list(genotype = as.matrix(K)),
+                             silent = TRUE)
   ## Extract components from fitted model.
   VgMat <- sommerFit$var.comp[[1]]
   VeMat <- sommerFit$var.comp[[2]]
@@ -70,15 +73,17 @@ covUnstructured <- function(Y,
 #' @rdname covUnstructured
 #' @keywords internal
 covPairwise <- function(Y,
-  K,
-  X = NULL,
-  fixDiag = FALSE,
-  corMat = FALSE) {
+                        K,
+                        X = NULL,
+                        fixDiag = FALSE,
+                        corMat = FALSE) {
   ## Check input.
-  if (missing(Y) || !(is.matrix(Y) || inherits(Y, "Matrix")))
+  if (missing(Y) || !(is.matrix(Y) || inherits(Y, "Matrix"))) {
     stop("Y should be a matrix")
-  if (missing(K) || !(is.matrix(K) || inherits(K, "Matrix")))
+  }
+  if (missing(K) || !(is.matrix(K) || inherits(K, "Matrix"))) {
     stop("K should be a matrix")
+  }
   if (fixDiag) {
     warning("fixDiag = TRUE not implemented yet. Value set to FALSE")
     fixDiag <- FALSE
@@ -97,13 +102,14 @@ covPairwise <- function(Y,
   if (!is.null(X)) {
     ## Define formula for fixed part. ` needed to accommodate - in variable names.
     fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ `",
-      paste(colnames(X)[-1], collapse ='` + `'), "`"))
+                               paste(colnames(X)[-1], collapse ='` + `'), "`"))
   } else {
     fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ 1"))
   }
   ## Fit model.
   sommerFit <- sommer::mmer2(fixed = fixed, random = ~ g(genotype),
-    data = data, G = list(genotype = as.matrix(K)), silent = TRUE)
+                             data = data, G = list(genotype = as.matrix(K)),
+                             silent = TRUE)
   ## Extract components from fitted model.
   VgVec <- diag(sommerFit$var.comp[[1]])
   VeVec <- diag(sommerFit$var.comp[[2]])
@@ -122,13 +128,13 @@ covPairwise <- function(Y,
       if (!is.null(X)) {
         ## Define formula for fixed part. ` needed to accommodate - in variable names.
         fixed <- as.formula(paste0("cbind(", idx[[1]], ", ", idx[[2]], ") ~ `",
-          paste(colnames(X)[-1], collapse ='` + `'), "`"))
+                                   paste(colnames(X)[-1], collapse ='` + `'), "`"))
       } else {
         fixed <- as.formula(paste0("cbind(", idx[[1]], ", ", idx[[2]], ") ~ 1"))
       }
       sommerFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
-        rcov = ~ us(trait):units, data = data,
-        G = list(genotype = as.matrix(K)), silent = TRUE)
+                                 rcov = ~ us(trait):units, data = data,
+                                 G = list(genotype = as.matrix(K)), silent = TRUE)
       ## Extract components from fitted model.
       return(sommerFit$var.comp)
     }, simplify = FALSE)

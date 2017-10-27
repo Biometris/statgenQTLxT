@@ -48,38 +48,44 @@
 #' @keywords internal
 
 EMFA <- function(Y,
-  K,
-  X = Matrix::Matrix(rep(1, nrow(K))),
-  CmHet = FALSE,
-  DmHet = FALSE,
-  tolerance = 1e-4,
-  maxIter = 300L,
-  CmStart = NULL,
-  DmStart = NULL,
-  mG = 1,
-  mE = 1,
-  maxDiag = 1e4,
-  prediction = TRUE,
-  stopIfDecreasing = FALSE,
-  computeLogLik = FALSE) {
+                 K,
+                 X = Matrix::Matrix(rep(1, nrow(K))),
+                 CmHet = FALSE,
+                 DmHet = FALSE,
+                 tolerance = 1e-4,
+                 maxIter = 300L,
+                 CmStart = NULL,
+                 DmStart = NULL,
+                 mG = 1,
+                 mE = 1,
+                 maxDiag = 1e4,
+                 prediction = TRUE,
+                 stopIfDecreasing = FALSE,
+                 computeLogLik = FALSE) {
   ## Check input.
-  if (missing(Y) || !(is.matrix(Y) || inherits(Y, "Matrix")) || anyNA(Y))
+  if (missing(Y) || !(is.matrix(Y) || inherits(Y, "Matrix")) || anyNA(Y)) {
     stop("Y should be a matrix without missing values.")
+  }
   if (missing(K) || !(is.matrix(K) || inherits(K, "Matrix")) ||
-      nrow(K) != nrow(Y) || ncol(K) != nrow(Y) || anyNA(K))
+      nrow(K) != nrow(Y) || ncol(K) != nrow(Y) || anyNA(K)) {
     stop("K should be a matrix without missing values with the same number of rows
       and columns as the number of rows in Y.")
-  if(!(is.matrix(X) || inherits(X, "Matrix")) || anyNA(X))
+  }
+  if(!(is.matrix(X) || inherits(X, "Matrix")) || anyNA(X)) {
     stop("X should be a matrix without missing values.")
+  }
   nc <- ncol(X)
-  if (nc > 0 && nrow(X) != nrow(K))
+  if (nc > 0 && nrow(X) != nrow(K)) {
     stop("X and K should have the same number of rows.")
+  }
   n <- ncol(K)
   p <- ncol(Y)
-  if (!is.numeric(mG) || mG != round(mG) || mG < 0 || mG > p)
+  if (!is.numeric(mG) || mG != round(mG) || mG < 0 || mG > p) {
     stop("mG should be a positive integer between 0 and the number of traits.")
-  if (!is.numeric(mE) || mE != round(mE) || mE < 0 || mE > p)
+  }
+  if (!is.numeric(mE) || mE != round(mE) || mE < 0 || mE > p) {
     stop("mE should be a positive integer between 0 and the number of traits.")
+  }
   if (nc > 0) {
     B <- Matrix::Matrix(0, nc, p) # the c x p matrix of coefficients (p traits)
     XtXinvXt <- Matrix::solve(Matrix::crossprod(X), Matrix::t(X))
@@ -95,7 +101,7 @@ EMFA <- function(Y,
     if (mG == 0) {
       Cm <- Matrix::Diagonal(n = p, x = 2)
     } else {
-      Cm <- Matrix::solve(cor(as.matrix(Y)) + Matrix::Diagonal(p) / 4)
+      Cm <- Matrix::solve(cor(as.matrix(Y)) + Matrix::Diagonal(n = p) / 4)
     }
   } else {
     Cm <- CmStart
@@ -105,7 +111,7 @@ EMFA <- function(Y,
     if (mE == 0) {
       Dm <- Matrix::Diagonal(n = p, x = 2)
     } else {
-      Dm <- Matrix::solve(cor(as.matrix(Y)) + Matrix::Diagonal(p) / 4)
+      Dm <- Matrix::solve(cor(as.matrix(Y)) + Matrix::Diagonal(n = p) / 4)
     }
   } else {
     Dm <- DmStart
@@ -210,10 +216,10 @@ EMFA <- function(Y,
         CmNewOutput <- updateFAHomVar(S = Omega2, m = mG)
       } else {
         CmNewOutput <- updateFA(Y = A,
-          WStart = Wg,
-          PStart = Pg,
-          hetVar = CmHet,
-          maxDiag = maxDiag)
+                                WStart = Wg,
+                                PStart = Pg,
+                                hetVar = CmHet,
+                                maxDiag = maxDiag)
       }
       WgNew <- CmNewOutput$W
       PgNew <- CmNewOutput$P
@@ -243,10 +249,10 @@ EMFA <- function(Y,
         DmNewOutput <- updateFAHomVar(S = Omega1, m = mE)
       } else {
         DmNewOutput <- updateFA(Y = A,
-          WStart = We,
-          PStart = Pe,
-          hetVar = DmHet,
-          maxDiag = maxDiag)
+                                WStart = We,
+                                PStart = Pe,
+                                hetVar = DmHet,
+                                maxDiag = maxDiag)
       }
       WeNew <- DmNewOutput$W
       PeNew <- DmNewOutput$P
@@ -293,14 +299,18 @@ EMFA <- function(Y,
     logLik <- NA
   }
   ## Add default names if needed.
-  if (is.null(rownames(Y))) {rownames(Y) <- paste0("genotype", 1:n)}
-  if (is.null(colnames(Y))) {colnames(Y) <- paste0("trait", 1:p)}
+  if (is.null(rownames(Y))) {
+    rownames(Y) <- paste0("genotype", 1:n)
+  }
+  if (is.null(colnames(Y))) {
+    colnames(Y) <- paste0("trait", 1:p)
+  }
   if (prediction & nc == 0) {
     mu <- Matrix::tcrossprod(Uk %*% S1, DmSqrtInv %*% Q1)
   }
   predFrame <- data.frame(trait = rep(colnames(Y), each = n),
-    genotype = rep(rownames(Y), p),
-    predicted = as.numeric(mu))
+                          genotype = rep(rownames(Y), p),
+                          predicted = as.numeric(mu))
   Vg = Matrix::solve(Cm)
   Ve = Matrix::solve(Dm)
   colnames(Vg) <- rownames(Vg) <- colnames(Ve) <- rownames(Ve) <- colnames(Y)

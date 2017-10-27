@@ -12,12 +12,16 @@
 #'
 #' @keywords internal
 vecInvDiag <- function(x, y) {
-  z <- sapply(x, function(x_i) {1 / (1 + x_i * y)})
+  z <- sapply(X = x, FUN = function(x_i) {
+    1 / (1 + x_i * y)
+  })
   return(z)
 }
 
 #' @rdname vecInvDiag
 tracePInvDiag <- function(x, y) {
-  z <- sapply(x, function(x_i) {sum(1 / (1 + x_i * y))})
+  z <- sapply(X = x, FUN = function(x_i) {
+    sum(1 / (1 + x_i * y))
+  })
   return(z)
 }

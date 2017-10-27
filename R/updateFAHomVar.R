@@ -14,20 +14,26 @@
 #' @keywords internal
 
 updateFAHomVar <- function(Y = NULL, S = NULL, m, maxDiag = 1e4) {
-  if ((is.null(Y) && is.null(S)) || (!is.null(Y) && !is.null(S)))
-  {stop("Either the data (Y) or the sample covariance matrix (S) must be provided.")}
-  if (m != round(m) || m < 1) {stop("m needs to be a positive integer")}
+  if ((is.null(Y) && is.null(S)) || (!is.null(Y) && !is.null(S))) {
+    stop("Either the data (Y) or the sample covariance matrix (S) must be provided.")
+  }
+  if (m != round(m) || m < 1) {
+    stop("m needs to be a positive integer")
+  }
   ## If S is not in imput, compute is from Y
   if (!is.null(Y)) {
-    if (anyNA(Y)) {stop('Y cannot contain missing values')}
+    if (anyNA(Y)) {
+      stop('Y cannot contain missing values')
+    }
     n <- nrow(Y)
     Y <- as(scale(Y, scale = FALSE), "dgeMatrix")
     S <- Matrix::crossprod(Y) / n
   }
   p <- ncol(S)
   a <- eigen(S, symmetric = TRUE)
-  if (m >= p)
+  if (m >= p) {
     stop("m needs to be smaller than the number of variables")
+  }
   sigma2 <- max(mean(a$values[-(1:m)]), 1 / maxDiag)
   ## Split cases for extra robustness.
   if (m == 1) {

@@ -33,13 +33,17 @@ plot.GWAS <- function(x, ..., type = "manhattan", environment = NULL, trait = NU
   type <- match.arg(type, choices = c("manhattan", "qq", "qtl"))
   dotArgs <- list(...)
   ## Checks.
-  if (!is.null(environment) && !is.character(environment) && !is.numeric(environment))
+  if (!is.null(environment) && !is.character(environment) && !is.numeric(environment)) {
     stop("environment should be a character or numeric value.\n")
+  }
   if ((is.character(environment) && !environment %in% names(x$GWAResult)) ||
-      (is.numeric(environment) && !environment %in% 1:length(x$GWAResult)))
+      (is.numeric(environment) && !environment %in% 1:length(x$GWAResult))) {
     stop("environment should be in x.\n")
+  }
   ## Convert character input to numeric.
-  if (is.character(environment)) environment <- which(names(x$GWAResult) == environment)
+  if (is.character(environment)) {
+    environment <- which(names(x$GWAResult) == environment)
+  }
   ## If NULL then summary of all environment.
   if (is.null(environment)) {
     if (length(x$GWAResult) != 1) {
@@ -69,12 +73,12 @@ plot.GWAS <- function(x, ..., type = "manhattan", environment = NULL, trait = NU
   if (type == "manhattan") {
     ## Compute chromosome boundaries.
     GWAResult <- GWAResult[!is.na(GWAResult$pos), ]
-    chrBnd <- aggregate(GWAResult$pos, by = list(GWAResult$chr), FUN = max)
+    chrBnd <- aggregate(x = GWAResult$pos, by = list(GWAResult$chr), FUN = max)
     ## Compute cumulative positions.
     addPos <- data.frame(chr = chrBnd[, 1], add = c(0, cumsum(chrBnd[, 2]))[1:nrow(chrBnd)])
     map <- dplyr::select(GWAResult, .data$snp, .data$chr, .data$pos, .data$LOD) %>%
-    dplyr::inner_join(addPos, by = "chr") %>%
-    dplyr::mutate(cumPos = .data$pos + .data$add)
+      dplyr::inner_join(addPos, by = "chr") %>%
+      dplyr::mutate(cumPos = .data$pos + .data$add)
     ## Extract numbers of significant SNPs.
     if (is.null(dotArgs$yThr)) {
       signSnpNr <- which(map$snp %in% signSnp$snp[as.numeric(signSnp$snpStatus) == 1])
@@ -87,17 +91,21 @@ plot.GWAS <- function(x, ..., type = "manhattan", environment = NULL, trait = NU
       plotType = "p"
     }
     ## Create manhattan plot.
-    do.call(manhattanPlot, args = c(list(xValues = map$cumPos, yValues = map$LOD,
-      map = map[, -which(colnames(map) == "LOD")],
-      plotType = plotType, xSig = signSnpNr, chrBoundaries = chrBnd[, 2],
-      yThr = ifelse(is.null(dotArgs$yThr), x$thr, dotArgs$yThr)),
-      dotArgs[-which(names(dotArgs) %in% c("plotType", "yThr"))]
-      ))
+    do.call(manhattanPlot,
+            args = c(list(xValues = map$cumPos, yValues = map$LOD,
+                          map = map[, -which(colnames(map) == "LOD")],
+                          plotType = plotType,
+                          xSig = signSnpNr,
+                          chrBoundaries = chrBnd[, 2],
+                          yThr = ifelse(is.null(dotArgs$yThr),
+                                        x$thr, dotArgs$yThr)),
+                     dotArgs[-which(names(dotArgs) %in% c("plotType", "yThr"))]
+            ))
   } else if (type == "qq") {
     ## Create qq-plot
     qqPlot(pValues = na.omit(GWAResult$pValue), ...)
   } else if (type == "qtl") {
     qtlPlot(data = signSnp,
-      map = GWAResult[!is.na(GWAResult$pos), c("chr", "pos")])
+            map = GWAResult[!is.na(GWAResult$pos), c("chr", "pos")])
   }
 }
