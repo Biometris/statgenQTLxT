@@ -7,7 +7,7 @@
 #' \item{remove SNPs with more missing values then \code{nMiss}.}
 #' \item{code SNPs to numerical values.}
 #' \item{remove SNPs with a minor allele frequency lower than \code{MAF}.}
-#' \item{remove duplicate SNPs.}
+#' \item{optionally remove duplicate SNPs.}
 #' \item{optionally impute missing values.}
 #' \item{repeat steps 3. and 4. if mssing values are imputed.}
 #' }
@@ -21,6 +21,7 @@
 #' \code{nMiss} will be removed. SNPs with only missing values will always be removed.
 #' @param MAF a numerical value between 0 and 1. SNPs with a Minor Allele Frequency (MAF) below
 #' this value will be removed.
+#' @param removeDuplicates should duplicate SNPs be removed?
 #' @param keep a vector of SNPs. These SNPs will never be removed in the whole process.
 #' @param impute should imputation of missing values be done?
 #' @param imputeType a character string indicating what kind of imputation of values should be done.\cr
@@ -31,7 +32,7 @@
 #' \item{beagle - missing values will be imputed using beagle software. If you use this option
 #' please cite the original papers in your publication.}
 #' }
-#' @param fixValue numerical value used for replacing missing values in case \code{inputType}
+#' @param fixedValue numerical value used for replacing missing values in case \code{inputType}
 #' is fixed.
 #'
 #' @return the input \code{gData} object with markers replaced by coded and imputed markers.
@@ -45,25 +46,45 @@ codeMarkers <- function(gData,
                         refAll = "minor",
                         nMiss = 1,
                         MAF = NULL,
+                        removeDuplicates = TRUE,
                         keep = NULL,
                         impute = TRUE,
-                        imputeType = "fix",
-                        fixValue = NULL) {
+                        imputeType = "fixed",
+                        fixedValue = NULL) {
   ## Checks.
   if(missing(gData) || !is.gData(gData) || is.null(gData$markers)) {
     stop("gData should be a valid gData object with at least markers included.\n")
   }
-  if (is.null(nMiss) || length(nMiss) > 1 || !is.numeric(nMiss) || nMiss < 0 || nMiss > 1)
+  if (length(refAll) > 1 && !length(refAll) == ncol(gData$markers)) {
+    stop("number of reference alleles should either be 1 or equal to the amount
+         of SNPs in markers.\n")
+  }
+  if (is.null(nMiss) || length(nMiss) > 1 || !is.numeric(nMiss) ||
+      !dplyr::between(x = nMiss, left = 0, right = 1)) {
     stop("nMiss should be a single numerical value between 0 and 1.\n")
+  }
+  if (!is.null(MAF) && (length(MAF) > 1 || !is.numeric(MAF) ||
+                        !dplyr::between(x = MAF, left = 0, right = 1))) {
+    stop("MAF should be a single numerical value between 0 and 1.\n")
+  }
+  if (!is.null(keep) && (!is.character(keep) || !all(keep %in% colnames(gData$markers)))) {
+    stop("all items in keep should be SNPs in markers.\n")
+  }
+  if (impute && length(imputeType) > 1 && !imputeType %in% c("fixed", "random", "beagle")) {
+    stop("imputeType should be one of fixed, random or beagle.\n")
+  }
+  if (impute && imputeType == "fixed" && is.null(fixedValue)) {
+    stop("fixedValue cannot be NULL.\n")
+  }
   markersOrig <- as.matrix(gData$markers)
   snpKeep <- colnames(markersOrig) %in% keep
   ## Remove markers with too many missings.
   if (!is.null(nMiss)) {
     snpMiss <- colMeans(is.na(markersOrig)) <= nMiss
     markersClean <- markersOrig[, snpMiss | snpKeep]
-    snpKeep <- snpKeep[which(snpMiss)]
+    snpKeep <- snpKeep[which(snpMiss | snpKeep)]
     if (length(refAll) > 1) {
-      refAll <- refAll[which(snpMiss)]
+      refAll <- refAll[which(snpMiss | snpKeep)]
     }
   }
   ## Recode markers.
@@ -116,24 +137,28 @@ codeMarkers <- function(gData,
   }
   ## Remove markers with low MAF.
   if (!is.null(MAF)) {
-    snpMAF <- dplyr::between(colMeans(markersRecoded, na.rm = TRUE),
-                             2 * MAF, 2 * (1 - MAF))
+    snpMAF <- dplyr::between(x = colMeans(markersRecoded, na.rm = TRUE),
+                             left = 2 * MAF, right = 2 * (1 - MAF))
     markersRecoded <- markersRecoded[, snpMAF | snpKeep]
-    snpKeep <- snpKeep[which(snpMAF)]
+    snpKeep <- snpKeep[which(snpMAF | snpKeep)]
   }
   ## Remove duplicated markers.
-  if (anyDuplicated(markersRecoded)) {
-    ## Only using duplicated would always remove the first occurence.
-    ## Using sample to make it random.
-    randOrder <- sample(x = ncol(markersRecoded))
-    dubs <- duplicated(markersRecoded[, randOrder], MARGIN = 2)[order(randOrder)]
-    markersRecoded <- markersRecoded[, !dubs]
+  if (removeDuplicates) {
+    if (anyDuplicated(markersRecoded, MARGIN = 2)) {
+      ## Only using duplicated would always remove the first occurence.
+      ## Using sample to make it random, always putting keep SNPs first.
+      randOrder <- c(c(1:ncol(markersRecoded))[snpKeep],
+                     sample(x = c(1:ncol(markersRecoded))[!snpKeep]))
+      dubs <- duplicated(markersRecoded[, randOrder], MARGIN = 2)[order(randOrder)]
+      markersRecoded <- markersRecoded[, !dubs | snpKeep]
+      snpKeep <- snpKeep[which(!dubs | snpKeep)]
+    }
   }
   ## Impute missing values.
   if (impute) {
-    if (imputeType == "fix") {
+    if (imputeType == "fixed") {
       ## Replace missing values by fixed value.
-      markersRecoded[is.na(markersRecoded)] <- fixValue
+      markersRecoded[is.na(markersRecoded)] <- fixedValue
     } else if (imputeType == "random") {
       ## Replace missing values by random value based on probabilities per SNP.
       snpNA <- apply(X = markersRecoded, MARGIN = 2, FUN = anyNA)
@@ -219,13 +244,15 @@ codeMarkers <- function(gData,
       snpMAF <- dplyr::between(colMeans(markersRecoded, na.rm = TRUE),
                                2 * MAF, 2 * (1 - MAF))
       markersRecoded <- markersRecoded[, snpMAF | snpKeep]
-      snpKeep <- snpKeep[which(snpMAF)]
+      snpKeep <- snpKeep[which(snpMAF | snpKeep)]
     }
     ## Remove duplicated markers after imputation.
     if (anyDuplicated(markersRecoded)) {
-      randOrder <- sample(x = ncol(markersRecoded))
+      randOrder <- c(c(1:ncol(markersRecoded))[snpKeep],
+                     sample(x = c(1:ncol(markersRecoded))[!snpKeep]))
       dubs <- duplicated(markersRecoded[, randOrder], MARGIN = 2)[order(randOrder)]
       markersRecoded <- markersRecoded[, !dubs]
+      snpKeep <- snpKeep[which(!dubs | snpKeep)]
     }
   }
   ## Return gData object with recoded and imputed markers.
