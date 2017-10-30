@@ -47,7 +47,7 @@ plot.GWAS <- function(x, ..., type = "manhattan", environment = NULL, trait = NU
   ## If NULL then summary of all environment.
   if (is.null(environment)) {
     if (length(x$GWAResult) != 1) {
-      stop("Environment not supplied but multiple environments detected in data.")
+      stop("Environment not supplied but multiple environments detected in data.\n")
     } else {
       environment <- 1
     }
@@ -59,7 +59,7 @@ plot.GWAS <- function(x, ..., type = "manhattan", environment = NULL, trait = NU
       trait <- unique(GWAResult$trait)
       if (length(trait) > 1) {
         if (substr(as.character(x$GWASInfo$call)[1], 1, 9) == "runSingle") {
-          stop("Trait not supplied but multiple traits detected in data.")
+          stop("Trait not supplied but multiple traits detected in data.\n")
         } else {
           ## For multi trait GWAS p-values are the same for all traits.
           trait <- trait[1]
@@ -105,6 +105,9 @@ plot.GWAS <- function(x, ..., type = "manhattan", environment = NULL, trait = NU
     ## Create qq-plot
     qqPlot(pValues = na.omit(GWAResult$pValue), ...)
   } else if (type == "qtl") {
+    if (is.null(signSnp)) {
+      stop("No significant SNPs in signSnp. No plot can be made.\n")
+    }
     qtlPlot(data = signSnp,
             map = GWAResult[!is.na(GWAResult$pos), c("chr", "pos")])
   }
