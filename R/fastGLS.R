@@ -94,7 +94,7 @@ fastGLS <-function(y,
   betaVec <- Matrix::rowSums(XtXinvLastRows[, 1:nCov, drop = FALSE] * Xty[, 1:nCov, drop = FALSE]) +
     XtXinvLastRows[, 1 + nCov] * Xty[, 1 + nCov]
   ## Compute residuals and RSS over all markers.
-  ResEnv <- lsfit(x = tMfixCovs, y = tMy, intercept = FALSE)$residuals
+  ResEnv <- Matrix::qr.resid(qr = Matrix::qr(tMfixCovs), y = as.numeric(tMy))
   RSSEnv <- sum(ResEnv ^ 2)
   ## QR decomposition of covariates.
   Q <- Matrix::qr.Q(Matrix::qr(tMfixCovs))
@@ -108,12 +108,14 @@ fastGLS <-function(y,
     RSSFull <- unlist(lapply(X = seq_along(chunks), FUN = function(i) {
       tX <- tMQtQ %*% X[, chunks[[i]], drop = FALSE]
       apply(X = tX, MARGIN = 2, FUN = function(x) {
-        sum(lsfit(x = x, y = ResEnv, intercept = FALSE)$residuals ^ 2)})
+        sum(qr.resid(qr = qr(x), y = ResEnv) ^ 2)
+      })
     }))
   } else {
     tX <- tMQtQ %*% X
     RSSFull <- apply(X = tX, MARGIN = 2, FUN = function(x) {
-      sum(lsfit(x = x, y = ResEnv, intercept = FALSE)$residuals ^ 2)})
+      sum(qr.resid(qr = qr(x), y = ResEnv) ^ 2)
+    })
   }
   ## Compute F and p values.
   df2 <- n - 1 - nCov

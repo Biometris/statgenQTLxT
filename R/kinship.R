@@ -8,7 +8,7 @@
 #' excluded from the calculation of the kinship matrix. Then some form of scaling is done which differs
 #' per algorithm. This gives a scaled matrix \code{Z}. The matrix \eqn{ZZ^t / denominator} is returned.
 #' By default the denominator is equal to the number of columns in \code{Z} for \code{astle}, \code{GRM}
-#' and \code{IBS} and \eqn{2* p * (1-p)} where \eqn{p = colSums(X) / (2 * nrow(X))} for \code{vanRaden}.
+#' and \code{IBS} and \eqn{2 * p * (1-p)} where \eqn{p = colSums(X) / (2 * nrow(X))} for \code{vanRaden}.
 #' This denominator can be overwritten by the user, e.g. when computing kinship matrices by splitting
 #' \code{X} in smaller matrices and then adding the results together in the end.
 #'
@@ -39,7 +39,7 @@ astle <- function(X,
     X <- as.matrix(X)
   }
   ## Remove markers with variance 0.
-  X <- X[, apply(X = X, MARGIN = 2, FUN = var) != 0, drop = FALSE]
+  X[, sd(X) != 0, drop = FALSE]
   ## Scale X.
   p <- colSums(X) / (2 * nrow(X))
   Z <- scale(X, center = 2 * p, scale = sqrt(2 * p * (1 - p)))
@@ -54,7 +54,7 @@ GRM <- function(X,
                 denominator = NULL) {
   if (!is.matrix(X)) X <- as.matrix(X)
   ## Remove markers with variance 0.
-  X <- X[, apply(X = X, MARGIN = 2, FUN = var) != 0, drop = FALSE]
+  X[, sd(X) != 0, drop = FALSE]
   ## Scale X.
   Z <- scale(X)
   ## Compute denominator.
@@ -67,7 +67,7 @@ GRM <- function(X,
 IBS <- function(X,
                 denominator = NULL) {
   ## Remove markers with variance 0.
-  X <- X[, apply(X = X, MARGIN = 2, FUN = var) != 0, drop = FALSE]
+  X[, sd(X) != 0, drop = FALSE]
   ## Compute denominator.
   if (is.null(denominator)) denominator <- ncol(X)
   return((Matrix::tcrossprod(X) + Matrix::tcrossprod(1 - X)) / denominator)
@@ -81,7 +81,7 @@ vanRaden <- function(X,
     X <- as.matrix(X)
   }
   ## Remove markers with variance 0.
-  X <- X[, apply(X = X, MARGIN = 2, FUN = var) != 0, drop = FALSE]
+  X[, sd(X) != 0, drop = FALSE]
   ## Scale X.
   p <- colSums(X) / (2 * nrow(X))
   Z <- scale(X, center = 2 * p, scale = FALSE)
