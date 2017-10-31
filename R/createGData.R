@@ -216,7 +216,7 @@ createGData <- function(gData = NULL,
       }
     } else {
       ## Sort rownames alphabetically.
-      markers <- markers[order(rownames(markers)), ]
+      markers <- markers[order(rownames(markers)), , drop = FALSE]
     }
     if (is.null(colnames(markers))) {
       ## Check for column names in markers. If not available take them from map.

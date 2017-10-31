@@ -67,9 +67,11 @@ estimateEffects <- function(X,
   }
   ## Define functions for faster computation of Vbeta and v.
   VbetaFunc <- function(i) {
-    kronecker(tcrossprod(X[, i]), VInvArray[[i]])}
+    kronecker(tcrossprod(X[, i]), VInvArray[[i]])
+    }
   vFunc <- function(i) {
-    kronecker(X[, i], VInvArray[[i]] %*% Y[, i])}
+    kronecker(X[, i], VInvArray[[i]] %*% Y[, i])
+    }
   if (p == 1 && ncTot == 1) {
     Vbeta <- sum(sapply(X = 1:n, FUN = VbetaFunc))
   } else {

@@ -110,7 +110,7 @@ codeMarkers <- function(gData,
   ## Remove markers with too many missings.
   if (!is.null(nMiss)) {
     snpMiss <- colMeans(is.na(markersOrig)) <= nMiss
-    markersClean <- markersOrig[, snpMiss | snpKeep]
+    markersClean <- markersOrig[, snpMiss | snpKeep, drop = FALSE]
     snpKeep <- snpKeep[which(snpMiss | snpKeep)]
     if (length(refAll) > 1) {
       refAll <- refAll[which(snpMiss | snpKeep)]
@@ -161,7 +161,7 @@ codeMarkers <- function(gData,
   if (!is.null(MAF)) {
     snpMAF <- dplyr::between(x = colMeans(markersRecoded, na.rm = TRUE),
                              left = maxAll * MAF, right = maxAll * (1 - MAF))
-    markersRecoded <- markersRecoded[, snpMAF | snpKeep]
+    markersRecoded <- markersRecoded[, snpMAF | snpKeep, drop = FALSE]
     snpKeep <- snpKeep[which(snpMAF | snpKeep)]
   }
   ## Remove duplicated markers.
@@ -172,7 +172,7 @@ codeMarkers <- function(gData,
       randOrder <- c(c(1:ncol(markersRecoded))[snpKeep],
                      sample(x = c(1:ncol(markersRecoded))[!snpKeep]))
       dubs <- duplicated(markersRecoded[, randOrder], MARGIN = 2)[order(randOrder)]
-      markersRecoded <- markersRecoded[, !dubs | snpKeep]
+      markersRecoded <- markersRecoded[, !dubs | snpKeep, drop = FALSE]
       snpKeep <- snpKeep[which(!dubs | snpKeep)]
     }
   }
@@ -275,7 +275,7 @@ codeMarkers <- function(gData,
     if (!is.null(MAF)) {
       snpMAF <- dplyr::between(colMeans(markersRecoded, na.rm = TRUE),
                                maxAll * MAF, maxAll * (1 - MAF))
-      markersRecoded <- markersRecoded[, snpMAF | snpKeep]
+      markersRecoded <- markersRecoded[, snpMAF | snpKeep, drop = FALSE]
       snpKeep <- snpKeep[which(snpMAF | snpKeep)]
     }
     ## Remove duplicated markers after imputation.
@@ -283,7 +283,7 @@ codeMarkers <- function(gData,
       randOrder <- c(c(1:ncol(markersRecoded))[snpKeep],
                      sample(x = c(1:ncol(markersRecoded))[!snpKeep]))
       dubs <- duplicated(markersRecoded[, randOrder], MARGIN = 2)[order(randOrder)]
-      markersRecoded <- markersRecoded[, !dubs]
+      markersRecoded <- markersRecoded[, !dubs, drop = FALSE]
       snpKeep <- snpKeep[which(!dubs | snpKeep)]
     }
   }

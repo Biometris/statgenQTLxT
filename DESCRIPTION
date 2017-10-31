@@ -1,9 +1,11 @@
 Package: genStatPipeline
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Genome Wide Association Studies in R
 Version: 0.0.0.9000
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
+Authors@R: c(
+    person("Bart-Jan", "van Rossum", email = "bart-jan.vanrossum@wur.nl", role = c("aut", "cre")),
+    person("Willem", "Kruijer", email = "willem.kruijer@wur.nl", role = "ctb"),
+    person("Maikel", "Verouden", email = "maikel.verouden@wur.nl", role = "ctb"))
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: GPL-3
