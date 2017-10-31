@@ -41,6 +41,33 @@
 #' samples. Am J Hum Genet 98:116-126. doi:10.1016/j.ajhg.2015.11.020}
 #'
 #' @export
+#'
+#' @examples ## Create markers
+#' markers <- matrix(c(
+#' "AA",   "AB",   "AA",   "BB",   "BA",   "AB",   "AA",   "AA",  NA, "AA",
+#' "AA",   "AA",   "BB",   "BB",   "AA",   "AA",   "BB",   "AA",  NA, "AA",
+#' "AA",   "BA",   "AB",   "BB",   "AB",   "AB",   "AA",   "BB",  NA, "AA",
+#' "AA",   "AA",   "BB",   "BB",   "AA",   "AA",   "AA",   "AA",  NA, "AA",
+#' "AA",   "AA",   "BB",   "BB",   "AA",   "BB",   "BB",   "BB",  "AB", "AA",
+#' "AA",   "AA",   "BB",   "BB",   "AA",   NA,     "BB",   "AA",  NA, "AA",
+#' "AB",   "AB",   "BB",   "BB",   "BB",   "AA",   "BB",   "BB",  NA, "AB",
+#' "AA",   "AA",    NA,    "BB",    NA,    "AA",   "AA",   "AA",  "AA", "AA",
+#' "AA",    NA,     NA,    "BB",   "BB",   "BB",   "BB",   "BB",  "AA", "AA",
+#' "AA",    NA,    "AA",   "BB",   "BB",   "BB",   "AA",   "AA",  NA, "AA"),
+#' ncol = 10, byrow = TRUE, dimnames = list(paste0("IND", 1:10), paste0("SNP", 1:10)))
+#'
+#' ## create object of class 'gData'.
+#' gData <- createGData(geno = markers)
+#'
+#' ## Code markers by minor allele, no imputation.
+#' gDataCoded1 <- codeMarkers(gData = gData, impute = FALSE)
+#'
+#' ## Code markers by reference alleles, impute missings by fixed value.
+#' gDataCoded2 <- codeMarkers(gData = gData, refAll = rep(x = c("A", "B"), times =  5),
+#'                            impute = TRUE, imputeType = "fixed", fixedValue = 1)
+#'
+#' ## Code markers by minor allele, impute by random value.
+#' gDataCoded3 <- codeMarkers(gData = gData, impute = TRUE, imputeType = "random")
 
 codeMarkers <- function(gData,
                         refAll = "minor",
