@@ -120,7 +120,10 @@ runSingleTraitGwas <- function (gData,
     stop("gData should be a valid gData object with at least map, markers and pheno included.\n")
   }
   if (!inherits(gData$markers, "Matrix")) {
-    stop("markers in gData should be a numerical matrix. Use recodeMarkers first for recoding.")
+    stop("markers in gData should be a numerical matrix. Use recodeMarkers first for recoding.\n")
+  }
+  if (anyNA(gData$markers)) {
+    stop("markers contains missing values. Impute or remove these first.\n")
   }
   if (!is.null(environments) && !is.numeric(environments) && !is.character(environments)) {
     stop("environments should be a numeric or character vector.\n")
@@ -244,11 +247,11 @@ runSingleTraitGwas <- function (gData,
     }
   }
   ## Compute max value in markers
-  maxScore <- max(gData$markers, na.rm = TRUE)
+  maxScore <- max(max(gData$markers, na.rm = TRUE), 2)
   # allele frequencies based on all genotypes (trait-independent)
   allFreqTot <- Matrix::colMeans(gData$markers, na.rm = TRUE)
   if (maxScore == 2) {
-    allFreqTot<- allFreqTot / 2
+    allFreqTot <- allFreqTot / 2
   }
   ## Define data.frames for total results.
   GWATot <- signSnpTot <- varCompTot <- LODThrTot <- inflationFactorTot <-
@@ -314,7 +317,7 @@ runSingleTraitGwas <- function (gData,
             ## Fit mmer2 model.
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
                                        random = ~ g(genotype),
-                                       G = list(genotype = as.matrix(kinshipRed)), silent = TRUE)
+                                       G = list(genotype = kinshipRed), silent = TRUE)
             ## Compute varcov matrix using var components from model.
             sommerK <- kinshipRed[nonMissingRepId, nonMissingRepId]
             varCompEnvir[[trait]] <- setNames(
@@ -367,7 +370,7 @@ runSingleTraitGwas <- function (gData,
             ## Fit mmer2 model using chromosome specific kinship.
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
                                        random = ~ g(genotype),
-                                       G = list(genotype = as.matrix(KinshipRedChr)),
+                                       G = list(genotype = KinshipRedChr),
                                        silent = TRUE)
             ## Compute varcov matrix using var components from model.
             sommerK <- KinshipRedChr[nonMissingRepId, nonMissingRepId]

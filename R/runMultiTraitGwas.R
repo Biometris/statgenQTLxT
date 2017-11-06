@@ -98,6 +98,9 @@ runMultiTraitGwas <- function(gData,
   if (!inherits(gData$markers, "Matrix")) {
     stop("markers in gData should be a numerical matrix. Use recodeMarkers first for recoding.")
   }
+  if (anyNA(gData$markers)) {
+    stop("markers contains missing values. Impute or remove these first.\n")
+  }
   if (!is.null(environments) && ((!is.numeric(environments) && !is.character(environments)) ||
                                  length(environments) > 1)) {
     stop("environments should be a single numeric or character value.\n")

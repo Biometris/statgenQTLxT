@@ -60,7 +60,7 @@ covUnstructured <- function(Y,
   }
   ## Fit model.
   sommerFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
-                             rcov = rcov, data = data, G = list(genotype = as.matrix(K)),
+                             rcov = rcov, data = data, G = list(genotype = K),
                              silent = TRUE)
   ## Extract components from fitted model.
   VgMat <- sommerFit$var.comp[[1]]
@@ -108,7 +108,7 @@ covPairwise <- function(Y,
   }
   ## Fit model.
   sommerFit <- sommer::mmer2(fixed = fixed, random = ~ g(genotype),
-                             data = data, G = list(genotype = as.matrix(K)),
+                             data = data, G = list(genotype = K),
                              silent = TRUE)
   ## Extract components from fitted model.
   VgVec <- diag(sommerFit$var.comp[[1]])
@@ -134,7 +134,7 @@ covPairwise <- function(Y,
       }
       sommerFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
                                  rcov = ~ us(trait):units, data = data,
-                                 G = list(genotype = as.matrix(K)), silent = TRUE)
+                                 G = list(genotype = K), silent = TRUE)
       ## Extract components from fitted model.
       return(sommerFit$var.comp)
     }, simplify = FALSE)
