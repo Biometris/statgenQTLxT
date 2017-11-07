@@ -247,7 +247,7 @@ runSingleTraitGwas <- function (gData,
     }
   }
   ## Compute max value in markers
-  maxScore <- max(max(gData$markers, na.rm = TRUE), 2)
+  maxScore <- min(max(gData$markers, na.rm = TRUE), 2)
   # allele frequencies based on all genotypes (trait-independent)
   allFreqTot <- Matrix::colMeans(gData$markers, na.rm = TRUE)
   if (maxScore == 2) {

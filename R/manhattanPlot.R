@@ -52,8 +52,8 @@ manhattanPlot <- function(xValues,
                           yThr = NULL,
                           signPointsThickness = 0.6) {
   ## Basic argument checks
-  if (is.null(xValues) || !is.numeric(xValues) || any(xValues != round(xValues))) {
-    stop("xValues should be an integer vector")
+  if (is.null(xValues) || !is.numeric(xValues)) { #|| any(xValues != round(xValues))
+     stop("xValues should be an integer vector")
   }
   if (is.null(yValues) || !is.numeric(yValues)) {
     stop("yValues should be a numerical vector")
@@ -64,14 +64,13 @@ manhattanPlot <- function(xValues,
   if (fileName != "" && (is.null(jpegPlot) || length(jpegPlot) > 1 || !is.logical(jpegPlot))) {
     stop("jpegPlot should be a single logical")
   }
-  if (is.null(xSig) || !is.numeric(xSig) || any(xSig != round(xSig))) {
+  if (is.null(xSig) || !is.numeric(xSig)) { #|| any(xSig != round(xSig))
     stop("xSig should be an integer vector")
   }
-  if (is.null(xEffects) || !is.numeric(xEffects) || any(xEffects != round(xEffects))) {
+  if (is.null(xEffects) || !is.numeric(xEffects)) { #|| any(xEffects != round(xEffects))
     stop("xEffects should be an integer vector")
   }
-  if (is.null(chrBoundaries) || !is.numeric(chrBoundaries) ||
-      any(chrBoundaries != round(chrBoundaries))) {
+  if (is.null(chrBoundaries) || !is.numeric(chrBoundaries)) { # || any(chrBoundaries != round(chrBoundaries))
     stop("chrBoundaries should be an integer vector")
   }
   if (!is.null(yThr) && (length(yThr) > 1)) {
@@ -97,7 +96,11 @@ manhattanPlot <- function(xValues,
     }
   }
   ## Extract central chromosome postions from map
-  chromosomes <- as.numeric(levels(factor(map$chr)))
+  if (is.numeric(map$chr)) {
+    chromosomes <- as.numeric(levels(as.factor(map$chr)))
+  } else {
+    chromosomes <- levels(as.factor(map$chr))
+  }
   xMarks <- aggregate(x = map$cumPos, by = list(map$chr),
                       FUN = function(x) {
                         min(x) + (max(x) - min(x)) / 2

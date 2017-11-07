@@ -75,7 +75,8 @@ plot.GWAS <- function(x, ..., type = "manhattan", environment = NULL, trait = NU
     GWAResult <- GWAResult[!is.na(GWAResult$pos), ]
     chrBnd <- aggregate(x = GWAResult$pos, by = list(GWAResult$chr), FUN = max)
     ## Compute cumulative positions.
-    addPos <- data.frame(chr = chrBnd[, 1], add = c(0, cumsum(chrBnd[, 2]))[1:nrow(chrBnd)])
+    addPos <- data.frame(chr = chrBnd[, 1], add = c(0, cumsum(chrBnd[, 2]))[1:nrow(chrBnd)],
+                         stringsAsFactors = FALSE)
     map <- dplyr::select(GWAResult, .data$snp, .data$chr, .data$pos, .data$LOD) %>%
       dplyr::inner_join(addPos, by = "chr") %>%
       dplyr::mutate(cumPos = .data$pos + .data$add)
