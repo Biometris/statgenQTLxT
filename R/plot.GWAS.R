@@ -99,7 +99,7 @@ plot.GWAS <- function(x, ..., type = "manhattan", environment = NULL, trait = NU
                           xSig = signSnpNr,
                           chrBoundaries = chrBnd[, 2],
                           yThr = ifelse(is.null(dotArgs$yThr),
-                                        x$thr, dotArgs$yThr)),
+                                        x$thr[[environment]][trait], dotArgs$yThr)),
                      dotArgs[-which(names(dotArgs) %in% c("plotType", "yThr"))]
             ))
   } else if (type == "qq") {

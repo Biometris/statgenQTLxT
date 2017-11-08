@@ -96,6 +96,7 @@ manhattanPlot <- function(xValues,
     }
   }
   ## Extract central chromosome postions from map
+  ## Differentiate cases to deal with character chromosomes
   if (is.numeric(map$chr)) {
     chromosomes <- as.numeric(levels(as.factor(map$chr)))
   } else {
@@ -108,7 +109,7 @@ manhattanPlot <- function(xValues,
   ## Setup empty plot
   plot(x = xValues, y = yValues, xlab = xLab, ylab = yLab, type = "n", lwd = 0.4,
        main = title, xaxt = 'n')
-  axis(side = 1, at = xMarks, labels = chromosomes)
+  axis(side = 1, at = xMarks, labels = chromosomes, cex.axis = 0.8)
   ## If chromosome boundaries are known add lines/ points per chromosome
   if (sum(chrBoundaries) != 0) {
     for (chromosome in chromosomes) {
@@ -119,7 +120,7 @@ manhattanPlot <- function(xValues,
       } else {
         points(x = xValues[map$chr == chromosome],
                y = yValues[map$chr == chromosome], pch = 20, lwd = 0.4,
-               col = colPalette[which(chromosomes==chromosome)])
+               col = colPalette[which(chromosomes == chromosome)])
       }
     }
   } else {
