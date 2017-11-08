@@ -184,15 +184,26 @@ codeMarkers <- function(gData,
     } else if (imputeType == "random") {
       ## Replace missing values by random value based on probabilities per SNP.
       snpNA <- apply(X = markersRecoded, MARGIN = 2, FUN = anyNA)
+      hom <- maxAll == 2 && any(markersRecoded == 1, na.rm = TRUE)
       markersRecoded[, snpNA] <- apply(X = markersRecoded[, snpNA], MARGIN = 2,
                                        FUN = function(x) {
                                          p <- mean(x, na.rm = TRUE) / maxAll
-                                         x[is.na(x)] <- sample(x = 0:maxAll,
-                                                               size = sum(is.na(x)),
-                                                               replace = TRUE,
-                                                               prob = choose(maxAll, 0:maxAll) *
-                                                                 (1 - p) ^ (maxAll:0) *
-                                                                 p ^ (0:maxAll))
+                                         if (hom) {
+                                           ## At least one heterozygous markers.
+                                           ## Imputation may add more.
+                                           x[is.na(x)] <- sample(x = 0:maxAll,
+                                                                 size = sum(is.na(x)),
+                                                                 replace = TRUE,
+                                                                 prob = choose(maxAll, 0:maxAll) *
+                                                                   (1 - p) ^ (maxAll:0) *
+                                                                   p ^ (0:maxAll))
+                                         } else {
+                                           ## only homozygous markers.
+                                           x[is.na(x)] <- sample(x = c(0, 2),
+                                                                 size = sum(is.na(x)),
+                                                                 replace = TRUE,
+                                                                 prob = c(1-p, p))
+                                         }
                                          return(x)
                                        })
     } else if (imputeType == "beagle") {
@@ -252,7 +263,7 @@ codeMarkers <- function(gData,
                                    "/java/beagle.jar")), " gtgl=beagle/run",
                     prefix, "input.vcf out=beagle/run",
                     prefix, "out gprobs=true nthreads=", 1,
-                    " map=beagle/run", prefix, ".map "), intern = TRUE)
+                    " map=beagle/run", prefix, ".map"), intern = TRUE)
       ## Read beagle output.
       beagleOut <- read.table(gzfile(paste0("beagle/run", prefix, "out.vcf.gz")),
                               stringsAsFactors = FALSE)
