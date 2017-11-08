@@ -29,8 +29,8 @@
 #' \item{fixed - missing values will be replaced by a given fixed value.}
 #' \item{random - missing values will be replaced by a random value calculated using allele
 #' frequencies per SNP.}
-#' \item{beagle - missing values will be imputed using beagle software. If you use this option
-#' please cite the original papers in your publication.}
+#' \item{beagle - missing values will be imputed using beagle software. Beagle only accepts integers
+#' as map positions. If you use this option please cite the original papers in your publication.}
 #' }
 #' @param fixedValue numerical value used for replacing missing values in case \code{inputType}
 #' is fixed.
@@ -103,6 +103,11 @@ codeMarkers <- function(gData,
     }
     if (imputeType == "fixed" && is.null(fixedValue)) {
       stop("fixedValue cannot be NULL.\n")
+    }
+    if (imputeType == "beagle" &&
+        (is.null(gData$map) || any(gData$map$pos != round(gData$map$pos)))) {
+      stop("when using beagle imputation gData should contain a map with only
+           integer positions.\n")
     }
   }
   markersOrig <- as.matrix(gData$markers)
@@ -219,6 +224,10 @@ codeMarkers <- function(gData,
                               rownames(map),
                               map$pos,
                               map$pos)
+      while (anyDuplicated(mapBeagle[, c(1, 4)])) {
+        mapBeagle[duplicated(mapBeagle[, c(1, 4)]), 4] <-
+          mapBeagle[duplicated(mapBeagle[, c(1, 4)]), 4] + 1
+      }
       if (!is.integer(mapBeagle[, 1])) {
         mapBeagle[, 1] <- as.integer(as.factor(mapBeagle[, 1]))
       }
@@ -239,7 +248,7 @@ codeMarkers <- function(gData,
       markersBeagle[markersBeagle == 2] <- all11
       markersBeagle[markersBeagle == -1] <- all10
       ## Write markers to vcf file.
-      vcfBeagle <- cbind(data.frame(CHROM = mapBeagle[, 1], POS = mapBeagle[, 3],
+      vcfBeagle <- cbind(data.frame(CHROM = mapBeagle[, 1], POS = mapBeagle[, 4],
                                     ID = rownames(map), REF = "A", ALT = "G", QUAL = ".",
                                     FILTER = "PASS", INFO = ".", FORMAT = "GT",
                                     stringsAsFactors = FALSE),
