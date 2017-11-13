@@ -29,7 +29,10 @@
 #'
 #' @export
 
-plot.GWAS <- function(x, ..., type = "manhattan", environment = NULL, trait = NULL) {
+plot.GWAS <- function(x, ...,
+                      type = "manhattan",
+                      environment = NULL,
+                      trait = NULL) {
   type <- match.arg(type, choices = c("manhattan", "qq", "qtl"))
   dotArgs <- list(...)
   ## Checks.

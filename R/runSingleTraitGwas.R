@@ -273,7 +273,9 @@ runSingleTraitGwas <- function (gData,
     ## Perform GWAS for all traits.
     for (trait in traits) {
       ## Select relevant columns only.
-      phenoEnvirTrait <- phenoEnvir[!is.na(phenoEnvir[trait]), c("genotype", trait, covarEnvir)]
+      phenoEnvirTrait <- phenoEnvir[!is.na(phenoEnvir[trait]) &
+                                      phenoEnvir$genotype %in% rownames(gData$markers),
+                                    c("genotype", trait, covarEnvir)]
       ## Select genotypes where trait is not missing.
       nonMissing <- unique(phenoEnvirTrait$genotype)
       if (GLSMethod == 1) {
@@ -289,15 +291,16 @@ runSingleTraitGwas <- function (gData,
       nonMissingRepId <- phenoEnvirTrait$genotype
       ## Estimate variance components.
       if (GLSMethod == 1) {
-        if (!isTRUE(all.equal(kinshipRed, Matrix::Diagonal(nrow(kinshipRed)), check.names = FALSE))) {
+        if (!isTRUE(all.equal(kinshipRed, Matrix::Diagonal(nrow(kinshipRed)),
+                              check.names = FALSE))) {
           if (remlAlgo == 1) {
             ## emma algorithm takes covariates from gData.
-            gDataEmma <- createGData(pheno = gData$pheno,
+            gDataEmma <- createGData(pheno = phenoEnvirTrait[, c("genotype", trait)],
                                      covar = if (is.null(covarEnvir)) {
                                        NULL
                                      } else {
-                                       as.data.frame(phenoEnvir[covarEnvir],
-                                                     row.names = phenoEnvir$genotype)
+                                       as.data.frame(phenoEnvirTrait[covarEnvir],
+                                                     row.names = phenoEnvirTrait$genotype)
                                      })
             remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment,
                                covar = covarEnvir, K = kinshipRed)
@@ -338,12 +341,12 @@ runSingleTraitGwas <- function (gData,
         names(varCompEnvir[[trait]]) <- paste("chr", chrs)
         ## emma algorithm takes covariates from gData.
         if (remlAlgo == 1) {
-          gDataEmma <- createGData(pheno = gData$pheno,
+          gDataEmma <- createGData(pheno = phenoEnvirTrait[, c("genotype", trait)],
                                    covar = if (is.null(covarEnvir)) {
                                      NULL
                                    } else {
-                                     as.data.frame(phenoEnvir[covarEnvir],
-                                                   row.names = phenoEnvir$genotype)
+                                     as.data.frame(phenoEnvirTrait[covarEnvir],
+                                                   row.names = phenoEnvirTrait$genotype)
                                    })
           for (chr in chrs) {
             ## Get chromosome specific kinship.
