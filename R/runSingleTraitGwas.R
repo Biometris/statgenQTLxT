@@ -302,7 +302,7 @@ runSingleTraitGwas <- function (gData,
                                        as.data.frame(phenoEnvirTrait[covarEnvir],
                                                      row.names = phenoEnvirTrait$genotype)
                                      })
-            remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment,
+            remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = 1,
                                covar = covarEnvir, K = kinshipRed)
             ## Compute varcov matrix using var components.
             varCompEnvir[[trait]] <- remlObj[[1]]
@@ -352,7 +352,7 @@ runSingleTraitGwas <- function (gData,
             ## Get chromosome specific kinship.
             KinshipRedChr <- KChr[[which(chrs == chr)]][nonMissing, nonMissing]
             ## Compute variance components using chromosome specific kinship.
-            remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = environment,
+            remlObj <- runEmma(gData = gDataEmma, trait = trait, environment = 1,
                                covar = covarEnvir, K = KinshipRedChr)
             ## Compute varcov matrix using var components.
             varCompEnvir[[trait]][[which(chrs == chr)]] <- remlObj[[1]]

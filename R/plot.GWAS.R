@@ -7,23 +7,24 @@
 #' \item{a qtl plot using the function \code{\link{qtlPlot}}}
 #' }
 #'
-#' When making a manhattan plot all markers in the \code{GWAResult} data.frame in the \code{GWAS} object
-#' are plotted. Significant SNPs are taken from the \code{signSnp} data.frame in the \code{GWAS} object and
-#' marked in the plot. Also the LOD-threshold is taken from the \code{GWAS} object and plotted as
-#' a horizontal line. Both \code{signSnp} and \code{thr} can be left empty and will then be
-#' ignored in the plot.\cr
-#' \code{...} can be used to pass extra arguments to the actual plotting functions. See those fuctions
-#' for details.
+#' When making a manhattan plot all markers in the \code{GWAResult} data.frame in the
+#' \code{GWAS} object are plotted. Significant SNPs are taken from the \code{signSnp}
+#' data.frame in the \code{GWAS} object and marked in the plot. Also the LOD-threshold
+#' is taken from the \code{GWAS} object and plotted as a horizontal line. Both
+#' \code{signSnp} and \code{thr} can be left empty and will then be ignored in the plot.\cr
+#' \code{...} can be used to pass extra arguments to the actual plotting functions.
+#' See those fuctions for details.
 #'
 #' @param x object of class \code{GWAS}.
 #' @param ... further arguments to be passed on to the actual plotting functions.
-#' @param type string indicating the type of plot to be made. One of "manhattan", "qq" and "qtl".
+#' @param type string indicating the type of plot to be made. One of "manhattan",
+#' "qq" and "qtl".
 #' @param environment a string or numeric index indicating for which environment the
-#' plot should be made. If \code{x} only contains results for one trait \code{environment} may be
-#' \code{NULL}.
-#' @param trait a string indicating for which trait the results should be plotted. For \code{type}
-#' "qtl" all traits are plotted. If \code{x} only contains results for one trait \code{trait} may be
-#' \code{NULL}.
+#' plot should be made. If \code{x} only contains results for one trait \code{environment}
+#' may be \code{NULL}.
+#' @param trait a string indicating for which trait the results should be plotted.
+#' For \code{type} "qtl" all traits are plotted. If \code{x} only contains results for
+#' one trait \code{trait} may be \code{NULL}.
 #'
 #' @seealso \code{\link{manhattanPlot}}, \code{\link{qqPlot}}, \code{\link{qtlPlot}}
 #'
@@ -113,6 +114,7 @@ plot.GWAS <- function(x, ...,
       stop("No significant SNPs in signSnp. No plot can be made.\n")
     }
     qtlPlot(data = signSnp,
-            map = GWAResult[!is.na(GWAResult$pos), c("chr", "pos")])
+            map = GWAResult[!is.na(GWAResult$pos), c("chr", "pos")],
+            ...)
   }
 }
