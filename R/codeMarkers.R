@@ -223,7 +223,8 @@ codeMarkers <- function(gData,
       mapBeagle <- data.frame(map$chr,
                               rownames(map),
                               map$pos,
-                              map$pos)
+                              map$pos) %>%
+      dplyr::arrange(.data$map.chr, .data$map.pos)
       while (anyDuplicated(mapBeagle[, c(1, 4)])) {
         mapBeagle[duplicated(mapBeagle[, c(1, 4)]), 4] <-
           mapBeagle[duplicated(mapBeagle[, c(1, 4)]), 4] + 1

@@ -54,14 +54,18 @@ summary.GWAS <- function(object, ..., environments = NULL) {
         cat("\t\tLOD-threshold:", object$thr[[environment]][trait], "\n")
         signSnpTrait <- signSnp[signSnp$trait == trait, ]
         if (!is.null(signSnpTrait)) {
-          cat("\t\tNumber of significant SNPs:" ,
-              nrow(signSnpTrait[signSnpTrait$snpStatus == "significant snp", ]), "\n")
-          cat("\t\tSmallest p-value among the significant SNPs:",
-              min(signSnpTrait[signSnpTrait$snpStatus == "significant snp", "pValue"]), "\n")
-          cat("\t\tLargest p-value among the significant SNPs: ",
-              max(signSnpTrait[signSnpTrait$snpStatus == "significant snp", "pValue"]),
-              " (LOD-score: ", min(signSnpTrait[signSnpTrait$snpStatus == "significant snp", "LOD"]),
-              ")\n\n", sep = "")
+          nSignSnp <- nrow(signSnpTrait[signSnpTrait$snpStatus == "significant snp", ])
+          cat("\t\tNumber of significant SNPs:" , nSignSnp, "\n")
+          if (nSignSnp > 0) {
+            cat("\t\tSmallest p-value among the significant SNPs:",
+                min(signSnpTrait[signSnpTrait$snpStatus == "significant snp", "pValue"]), "\n")
+            cat("\t\tLargest p-value among the significant SNPs: ",
+                max(signSnpTrait[signSnpTrait$snpStatus == "significant snp", "pValue"]),
+                " (LOD-score: ", min(signSnpTrait[signSnpTrait$snpStatus == "significant snp", "LOD"]),
+                ")\n\n", sep = "")
+          } else {
+            cat("\n")
+          }
         } else {
           cat("\t\tNo significant SNPs found.","\n\n")
         }
