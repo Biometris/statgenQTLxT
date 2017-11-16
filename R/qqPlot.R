@@ -6,7 +6,8 @@
 #' @inheritParams manhattanPlot
 #'
 #' @param pValues a numeric vector of pValues. Missings are ignored when plotting.
-#' @param title main title for the plot
+#' @param title main title for the plot.
+#' @param ... other graphical parameters passed on to plot.
 #'
 #' @references Segura et al. (2012) An efficient multi-locus mixed model approach for genome-wide
 #' association studies in structured populations
@@ -21,7 +22,9 @@
 qqPlot <- function(pValues,
                    title = "QQ-plot",
                    fileName = "",
-                   jpegPlot = TRUE) {
+                   jpegPlot = TRUE,
+                   ...) {
+  dotArgs <- list(...)
   if (is.null(pValues) || !is.numeric(pValues) || any(pValues < 0) || any(pValues > 1)) {
     stop("pValues should be an numeric vector with values between 0 and 1")
   }
@@ -42,13 +45,38 @@ qqPlot <- function(pValues,
   expected <- -log10(ppoints(n = length(pValues)))
   observed <- -log10(sort(pValues))
   pMax <- ceiling(max(observed))
-  plot(x = expected, y = observed, type = 'b', pch = 20, cex = 0.9, col = 1,
-       xlab = expression(Expected~~-log[10](p)),
-       ylab = expression(Observed~~-log[10](p)),
-       xlim=c(0, max(expected) + 1),
-       ylim=c(0, pMax),
-       main = title)
-  abline(a = 0, b = 1, col="blue")
+  if (!is.null(dotArgs$col)) {
+    color <- dotArgs$col
+  } else {
+    color <- 1
+  }
+  if (!is.null(dotArgs$cex)) {
+    cex <- dotArgs$cex
+  } else {
+    cex <- 0.9
+  }
+  if (!is.null(dotArgs$pch)) {
+    pch <- dotArgs$pch
+  } else {
+    pch <- 20
+  }
+  if (!is.null(dotArgs$xlab)) {
+    xlab <- dotArgs$xlab
+  } else {
+    xlab <- expression(Expected~~-log[10](p))
+  }
+  if (!is.null(dotArgs$ylab)) {
+    ylab <- dotArgs$ylab
+  } else {
+    ylab <- expression(Observed~~-log[10](p))
+  }
+  do.call(plot, c(list(x = expected, y = observed, type = 'b', pch = pch, cex = cex, col = color,
+                       xlab = xlab, ylab = ylab,
+                       xlim = c(0, max(expected) + 1),
+                       ylim = c(0, pMax),
+                       main = title),
+                  dotArgs[-which(names(dotArgs) %in% c("pch", "cex", "col", "xlab", "ylab"))]))
+  abline(a = 0, b = 1, col = "blue")
   if (fileName != "") {
     dev.off()
   }

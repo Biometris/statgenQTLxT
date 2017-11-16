@@ -10,9 +10,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<meta name="author" content="Vignette Author" />
+<meta name="author" content="Bart-Jan van Rossum" />
 
-<meta name="date" content="2017-09-04" />
+<meta name="date" content="2017-11-14" />
 
 <title>Introduction to the GWAS package</title>
 
@@ -31,8 +31,8 @@
 
 
 <h1 class="title toc-ignore">Introduction to the GWAS package</h1>
-<h4 class="author"><em>Vignette Author</em></h4>
-<h4 class="date"><em>2017-09-04</em></h4>
+<h4 class="author"><em>Bart-Jan van Rossum</em></h4>
+<h4 class="date"><em>2017-11-14</em></h4>
 
 
 
@@ -40,8 +40,8 @@
 <hr />
 <div id="the-class-gdata" class="section level2">
 <h2>The class <code>GData</code></h2>
-<p>Data for analysis on genomic data comes from different sources and is stored in one data object of class <strong>gData</strong> (<strong>g</strong>enomic <strong>Data</strong>) for convenience. A gdata object will contain all data needed for doing analyses, so the first thing to do when using the GWAS package is creating a gData object. A gData object consists of different types of data. To create the object all data is optional, however for certain analysis certain types of data are requiered. Additional data can always be added to an existing object later on.<br />
-A gData object can be created using the function <strong><em>createGData</em></strong>. If an existing gData object is provided as an input to this function data is added to the existing object and overwritten with a warning if necessary. All data is checked for consistency and if needed default names are added with a warning message.<br />
+<p>Data for analysis on genomic data comes from different sources and is stored in one data object of class <strong>gData</strong> (<strong>g</strong>enomic <strong>Data</strong>) for convenience. A gdata object will contain all data needed for performing analyses, so the first thing to do when using the GWAS package is creating a gData object. A gData object consists of different types of data. To create the object all data is optional, however for certain analyses certain types of data are requiered. Additional data can always be added to an existing object later on.<br />
+A gData object can be created using the function <strong><em>createGData</em></strong>. If an existing gData object is provided as an input to this function data is added to the existing object and existing data will be overwritten with a warning if necessary. All data is checked for consistency and if needed default names are added with a warning message.<br />
 A gData object created this way will consist of the following components:</p>
 <div id="marker-map" class="section level3">
 <h3><strong>Marker map</strong></h3>
@@ -49,15 +49,15 @@ A gData object created this way will consist of the following components:</p>
 </div>
 <div id="marker-matrix" class="section level3">
 <h3><strong>Marker matrix</strong></h3>
-<p>The marker matrix is stored in the matrix <strong>marker</strong> within the gData object. It has the names of the markers in its column names and the genotypes in its row names.</p>
+<p>The marker matrix is stored in the matrix <strong>marker</strong> within the gData object. It has the names of the markers in its column names and the genotypes in its row names. Markers can either be coded as character strings or as numerical values. In the former case before performing any analysis, the marker matrix has to be converted to a numerical matrix. This can be do using the function <strong><em>codeMarkers</em></strong>. Any numerical marker matrix will be stored as a matrix of class <em>Matrix</em> in a gData object in order to save storage space and speed up computation.</p>
 </div>
 <div id="phenotypic-data" class="section level3">
 <h3><strong>Phenotypic data</strong></h3>
-<p>Phenotypic data, either directly from field trails or after summarizing can be stored in <strong>pheno</strong> in the gData object. Pheno can either be a single data.frame or a list of data.frames for storing data for different environments or possibly different summarizations of the original data. The first column of all elements of pheno should be genotype and all the other columns should represent different traits. Storing additional variables should be done in <strong>covar</strong>. A single data.frame will be converted to a one-item list upon creation of a gData object.</p>
+<p>Phenotypic data, either directly from field trails or after summarizing can be stored in <strong>pheno</strong> in the gData object. Pheno can either be a single data.frame or a list of data.frames for storing data for different environments or possibly different summarizations of the original data. The first column of all elements of pheno should be <em>genotype</em> and all the other columns should represent different traits. Storing additional variables should be done in <strong>covar</strong>. A single data.frame will be converted to a one-item list upon creation of a gData object.</p>
 </div>
 <div id="kinship-matrix" class="section level3">
 <h3><strong>Kinship matrix</strong></h3>
-<p>The kinship matrix describes the genetic relatedness between the different genotypes. It is stored in the matrix <strong>kinship</strong> in the gData object. This should be a square matrix with genotypes in both row and column names and a measure for the genetic relatedness in its cells. There are many ways of computing genetic relatedness some of which are included in this package. Instead of providing one kinship matrix a list of kinship matrices can be provided with each matrix in this list a chromosome specific matrix usually computed using all markers that are not on the corresponding chromosome. If a named list of kinship matrices is provided its names should match the names or numbers of the chromosomes in <em>map</em>. Unnamed lists get default names.</p>
+<p>The kinship matrix describes the genetic relatedness between the different genotypes. It is stored in the matrix <strong>kinship</strong> in the gData object. This should be a square matrix with genotypes in both row and column names and a measure for the genetic relatedness in its cells. There are many ways of computing genetic relatedness some of which are included in this package. Instead of providing one kinship matrix a list of kinship matrices can be provided with each matrix in this list a chromosome specific matrix usually computed using all markers that are not on the corresponding chromosome. If a named list of kinship matrices is provided its names should match the names or numbers of the chromosomes in <strong>map</strong>. Unnamed lists will be given default names. Kinship matrices will be stored as matrices of class <em>Matrix</em> in a gData object in order to save storage space and speed up computation.</p>
 </div>
 <div id="further-covariates" class="section level3">
 <h3><strong>Further covariates</strong></h3>
@@ -72,6 +72,10 @@ A gData object created this way will consist of the following components:</p>
 <div id="multi-trait-gwas" class="section level2">
 <h2>Multi Trait GWAS</h2>
 <p>mtG</p>
+<hr />
+</div>
+<div id="worked-example" class="section level2">
+<h2>Worked example</h2>
 </div>
 
 

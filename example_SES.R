@@ -12,7 +12,6 @@ rownames(covar) <- data$Seedname
 gDataSes <- createGData(map = map, geno = markers, pheno = pheno, covar = covar)
 rm(list = setdiff(ls(), "gDataSes"))
 
-
 GWASes <- runSingleTraitGwas(gData = gDataSes,
   traits = NULL,
   environments =  NULL,
@@ -41,6 +40,4 @@ plot(x = GWASorig$minlog10p, y = -log10(GWASes$GWAResult[[1]]$pValue),
   col = adjustcolor(1:8, alpha.f = 0.3))
 legend(33, 25, unique(GWASorig$trait), col = 1:length(GWASorig$trait), pch = 1)
 abline(0,1, col = "blue")
-
-
 

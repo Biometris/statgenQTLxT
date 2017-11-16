@@ -24,7 +24,7 @@ gDataTest <- createGData(gData0, pheno = Y1, covar = covar)
 rm(list = setdiff(ls(), c("gDataTest")))
 
 ## Run single trait GWAS
-testGwas1 <- runSingleTraitGwas(gData = gDataTest, thrType = 2)
+testGwas1 <- runSingleTraitGwas(gData = gDataTest, remlAlgo = 2, thrType = 2)
 ## Run multi trait GWAS
 testGwas2 <- runMultiTraitGwas(gData = gDataTest, subsetMarkers = TRUE, markerSubset = 40501:41500)
 ## Run multi trait GWAS with chromosome specific kinship matrices.

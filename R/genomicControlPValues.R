@@ -5,7 +5,7 @@
 #'
 #' @param pVals a numeric vector of p-values between 0 and 1; may contain NA's.
 #' @param nObs an integer > 0 indicating the number of individuals.
-#' @param nCov a positive integer indicating the number of covariables.
+#' @param nCov an integer > 0 indicating the number of covariables.
 #' @return a list with two components:
 #' \itemize{
 #' \item{\code{pValues} a vector of p-values corrected by the genomic inflation factor, with the same NA's
@@ -30,17 +30,17 @@ genomicControlPValues <- function(pVals,
     stop("nObs should be a single integer > 0.\n")
   }
   if (length(nCov) > 1 || !is.numeric(nCov) || nCov != round(nCov) || nCov < 0) {
-    stop("nCov should be a single positive integer.\n")
+    stop("nCov should be a single integer > 0.\n")
   }
   ## Compute degree of freedom.
   df2 <- nObs - nCov - 2
   pValsNew <- pVals
   ## Compute F-values from input p-values.
-  FVals <- qf(na.omit(pVals), df1 = 1, df2 = df2, lower.tail = FALSE)
+  fVals <- qf(na.omit(pVals), df1 = 1, df2 = df2, lower.tail = FALSE)
   ## Compute inflation factor as in Devlin and Roeder.
-  inflation <- median(FVals, na.rm = TRUE) / qf(0.5, df1 = 1, df2 = df2, lower.tail = FALSE)
+  inflation <- median(fVals, na.rm = TRUE) / qf(0.5, df1 = 1, df2 = df2, lower.tail = FALSE)
   ## Compute new F-values and p-values.
-  FValsNew <- FVals / inflation
-  pValsNew[!is.na(pVals)] <- pf(FValsNew, df1 = 1, df2 = df2, lower.tail = FALSE)
+  fValsNew <- fVals / inflation
+  pValsNew[!is.na(pVals)] <- pf(fValsNew, df1 = 1, df2 = df2, lower.tail = FALSE)
   return(list(pValues = pValsNew, inflation = inflation))
 }

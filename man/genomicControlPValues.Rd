@@ -11,7 +11,7 @@ genomicControlPValues(pVals, nObs, nCov = 0)
 
 \item{nObs}{an integer > 0 indicating the number of individuals.}
 
-\item{nCov}{a positive integer indicating the number of covariables.}
+\item{nCov}{an integer > 0 indicating the number of covariables.}
 }
 \value{
 a list with two components:

@@ -4,17 +4,19 @@
 \alias{qqPlot}
 \title{qq-plot of observed versus expected LOD-scores}
 \usage{
-qqPlot(pValues, title = "QQ-plot", fileName = "", jpegPlot = TRUE)
+qqPlot(pValues, title = "QQ-plot", fileName = "", jpegPlot = TRUE, ...)
 }
 \arguments{
 \item{pValues}{a numeric vector of pValues. Missings are ignored when plotting.}
 
-\item{title}{main title for the plot}
+\item{title}{main title for the plot.}
 
 \item{fileName}{name of the outputfile that is created. If left empty the plot is written
 to the screen.}
 
 \item{jpegPlot}{should a jpeg file be produced? If \code{FALSE} a pdf file is produced.}
+
+\item{...}{other graphical parameters passed on to plot.}
 }
 \description{
 Given a vector of pvalues, generate a qq-plot of observed LOD-scores versus expected LOD-scores.
