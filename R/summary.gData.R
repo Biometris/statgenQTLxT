@@ -23,7 +23,7 @@ summary.gData <- function(object, ...) {
     cat("\tNumber of markers:", ncol(markers), "\n")
     cat("\tNumber of genotypes:", nrow(markers), "\n")
     cat("\tContent:\n")
-    tab <- (round(prop.table(table(as.numeric(markers), useNA = "always")), 2))
+    tab <- (round(prop.table(table(as.vector(markers), useNA = "always")), 2))
     cat("\t", names(tab), "\n")
     cat("\t", tab, "\n\n")
   }

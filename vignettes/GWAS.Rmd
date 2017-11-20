@@ -48,4 +48,135 @@ mtG
 
 ## Worked example
 
+As an example of the functionality of the package a worked example is provided using Asian rice, *Oriza sativa*,  data. The data is freely available from https://ricediversity.org.
 
+### **Load data**
+
+The first step is loading the data into R. 
+```{r eval=FALSE} 
+markersRaw <- read.csv(gzcon(
+  url("https://ricediversity.org/data/sets/44kgwas/RiceDiversity.44K.MSU6.Genotypes.csv.gz"), 
+  text = TRUE), stringsAsFactors = FALSE)
+phenoRaw <- read.delim(
+  "https://ricediversity.org/data/sets/44kgwas/RiceDiversity_44K_Phenotypes_34traits_PLINK.txt",
+  stringsAsFactors = FALSE)
+covarRaw <- read.csv(
+  "https://ricediversity.org/data/sets/44kgwas/RiceDiversity.44K.germplasm.csv", 
+  skip = 1,
+  stringsAsFactors = FALSE)
+```
+MarkersRaw contains the map and marker information for 36901 SNPs and 413 accessions. PhenoRaw contains phenotypic data for those 413 accessions for 31 traits. covarRaw contains some background information on the different accessions including previously calculated principal components, PC1 - PC4, which we will use in the analysis of the data.   
+
+### **Create gData object**
+
+Using the raw data the next step is to create a **gData** object that can be used for all analyses. For this the raw data has to be converted to a suitable format for a **gData** object.
+First we split the raw markers into two separate files, one containing mapping information and a second containing marker information.
+```{r eval=FALSE}
+## Create mapRice with columns chr and pos and SNP names as row names.
+mapRice <- data.frame(chr = markersRaw$chr, 
+                      pos = markersRaw$position, 
+                      row.names = markersRaw$id)
+## Create markersRice by removing the 'map' columns from the raw data and then transposing the result
+markersRice <- t(markersRaw[, 4:ncol(markersRaw)])
+## Add SNP names as column names
+colnames(markersRice) <- markersRaw$id
+## Missing values are coded in more than one way. Set everything that is not A, C, T or G to NA.
+markersRice[!markersRice %in% c("A", "C", "T", "G")] <- NA
+```
+Note that in the map file the column names 'chr' and 'pos' are obligatory. The order of those two columns isn't important and the presence of extra columns doesn't matter either. The latter will be ignored when creating the gData object. The rownames of the map file should always contain the genotypes.  
+The marker file should have the genotypes in the rows and the SNPs in the columns. To accomplish this the raw markers have to be transposed.  
+
+Now a gData object containing only map and marker information can be created. This object can be used as a base and phenotypic data and covariates may be added later on.
+```{r eval=FALSE}
+library(genStatPipeline)
+gDataRice <- createGData(geno = markersRice, map = mapRice)
+```
+The next step involves adding phenotypic data and covariates to the gData object just created. The raw phenotypic data is already in almost the right format. The main thing that needs to be done is constructing a genotype column such that the genotypes match the genotypes in *markersRice*. Also some superfluous columns are removed. The same holds for the covariates. Here genotypes need to be in the rownames. Since we will only use PC1 - PC4 in our analysis other columns are removed. It wouldn't harm to keep them in though.  
+```{r eval=FALSE}
+phenoRice <- cbind(genotype = paste0("NSFTV_", phenoRaw$NSFTVID), 
+                   phenoRaw[, 3:(ncol(phenoRaw) - 2)],
+                   stringsAsFactors = FALSE)
+covarRice <- covarRaw[!is.na(covarRaw$NSFTV.ID), c("PC1", "PC2", "PC3", "PC4")]
+rownames(covarRice) <- paste0("NSFTV_", covarRaw[!is.na(covarRaw$NSFTV.ID), "NSFTV.ID"])
+```
+The phenotypic data and covariates can be added to *gDataRice* using the same function we used before for creating the object. Adding an argument *gData = * to the function call will add new info to an existing object.
+```{r eval=FALSE}
+gDataRice <- createGData(gData = gDataRice, pheno = phenoRice, covar = covarRice)
+```
+Note that in the newly created object the phenotypic data is represented by a list containing 1 item named phenoRice. It is possible to add phenotypic data for i.e. several environments by adding a list of data.frames each containing the phenotypic data for a single environment.
+
+To get an idea of the contents of the data a summary of the gDataObject can be made.
+```{r eval=FALSE}
+summary(gDataRice)
+```
+### **Coding of markers**
+
+Marker data has to be numerical and without missing values in order to do GWAS analysis. Therefore before running the actual analysis the markers in *gDataRice* need to be coded and inputed. For this the package contains a function *codeMarkers*. Running this function with the default settings will recode the markers using the minor allele in a SNP as reference allele for this SNP. After that imputation will be done with a random value based on the distribution of values within a single SNP. 
+
+```{r eval=FALSE}
+gDataRiceCoded <- codeMarkers(gData = gDataRice)
+```
+
+Imputation with a random value isn't the best way to impute the markers. For a better imputation the independent beagle software can be used. This software is included in the package and will be used when calling *codeMarkers* with the proper settings. Doing so will call beagle with its default settings. For the current example beagle will take a long time to run. It is advised to load the results from the beagle imputation that come with the package directly.
+
+```{r eval=FALSE}
+## Perform imputation using beagle.
+gDataRiceCodedBeagle <- codeMarkers(gdata = gDataRice, 
+                                    removeDuplicates = FALSE, 
+                                    imputeType = "beagle")
+```
+```{r eval=FALSE}
+## Load the data imputed by beagle directly.
+data(gDataRiceCodedBeagle)
+```
+```{r eval=FALSE}
+summary(gDataRiceCodedBeagle)  
+```
+
+More options in codeMarkers take care of removing duplicate SNPs, removing SNPs with a low Minor Allele Frequency (MAF) and removing SNPs with a high percentage of missing value. See the function documentation for an overview of these options.
+
+### **Single trait GWAS**
+
+The coded gData object can be used for performing single trait GWAS analysis. With all the default settings the analysis already performs quite well.
+```{r eval=FALSE}
+GWASRicePlantHeight0 <- runSingleTraitGwas(gData = gDataRiceCodedBeagle, 
+                                           traits = "Plant.height")
+```
+To inspect the output a summary and plots the can be made. The default plot is a manhattan plot, other types of plot can be specified using the *type* argument in the function.
+```{r eval=FALSE}
+summary(GWASRicePlantHeight0)
+plot(GWASRicePlantHeight0, type = "qq")
+plot(GWASRicePlantHeight0)
+```
+In the default function call of the *runSingleTraitGwas* function a single kinship matrix is computed using the algorithm proposed by Astle and Balding. In most cases computing chromosome specific kinship matrices considerably improves the predicting power of the algorithm. Several different methods for computing the kinship matrix are available in the package. Users can provide their own kinship matrices as well.  
+As a default significant SNP are selected with a threshold computed using Bonferroni correction. Other thresholds can be specified as well. More options can be found in the function documentation for *runSingleTraitGwas*.
+The following example performs the GWAS computation using chromosome specific kinship matrices computed using Identity By State (IBS), a threshold for significant SNPs of 4 and PC1 - PC4 as covariates.
+```{r eval=FALSE}
+GWASRicePlantHeight <- runSingleTraitGwas(gData = gDataRiceCodedBeagle, 
+                                          traits = "Plant.height", 
+                                          covar = c("PC1", "PC2", "PC3", "PC4"),
+                                          GLSMethod = 2, kinshipMethod = "IBS", 
+                                          thrType = 2, LODThr = 4)
+
+summary(GWASRicePlantHeight)
+plot(GWASRicePlantHeight, type = "qq")
+plot(GWASRicePlantHeight)
+```
+The analysis can be performed for more than one trait in a single function call. Not specifying traits altogether will perform the analysis for all traits that are present in the phenotypic data. The results will be combined in a single output object with the traits specified in the column *trait* in *GWAResult* and *signSnp* within the output object.  
+When making a qq or manhattan plot of this output the trait has to be specified. Also a "qtl" plot is avaible which plots significant SNPs per trait against their position on the chromosomes. 
+```{r eval=FALSE}
+GWASRicePlantHeightMult <- runSingleTraitGwas(gData = gDataRiceCodedBeagle, 
+                                          covar = c("PC1", "PC2", "PC3", "PC4"),
+                                          GLSMethod = 2, kinshipMethod = "IBS", 
+                                          thrType = 2, LODThr = 4)
+
+summary(GWASRicePlantHeightMult)
+plot(GWASRicePlantHeightMult, type = "qq", trait = "Plant.height")
+plot(GWASRicePlantHeightMult, type = "qtl")
+```
+
+
+### **Multi trait GWAS**
+Performing a multi trait GWAS is done in mostly the same way 
+
+****

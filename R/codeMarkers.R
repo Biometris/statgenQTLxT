@@ -284,6 +284,7 @@ codeMarkers <- function(gData,
       markersRecoded[substr(markersRecoded, 1, 3) == all11] <- 2
       markersRecoded[substr(markersRecoded, 1, 3) == all10] <- NA
       markersRecoded <- apply(X = markersRecoded, MARGIN = 2, FUN = as.numeric)
+      markersRecoded[markersRecoded == -1] <- 0
       rownames(markersRecoded) <- colnames(markersBeagle)
       colnames(markersRecoded) <- beagleOut[, 3]
     }
