@@ -112,6 +112,10 @@ runMultiTraitGwas <- function(gData,
   if (is.null(environments) && length(gData$pheno) > 1) {
     stop("pheno contains multiple environments. Environment cannot be NULL.\n")
   }
+  ## SNPs with MAF == 0 always have to be removed to prevent creation of singular matrices.
+  if (MAF <= 1e-6) {
+    MAF <- 1e-6
+  }
   ## If environments is null set environments to only environment in pheno.
   if (is.null(environments)) {
     environments <- 1
@@ -196,35 +200,6 @@ runMultiTraitGwas <- function(gData,
     markersRed <- markers
     mapRed <- map
   }
-  ## Compute kinship matrix.
-  if (GLSMethod == 1) {
-    if (is.null(K)) {
-      if (!is.null(gData$kinship)) {
-        K <- gData$kinship
-      } else {
-        K <- do.call(kinshipMethod, list(X = gData$markers))
-      }
-    } else if (is.matrix(K)) {
-      K <- as(K, "dsyMatrix")
-    }
-  } else if (GLSMethod == 2) {
-    ## Compute kinship matrices per chromosome. Only needs to be done once.
-    chrs <- unique(mapRed$chr[rownames(mapRed) %in% colnames(markersRed)])
-    if (!is.null(K)) {
-      ## K is supplied. Set KChr to K.
-      KChr <- lapply(K, FUN = function(k) {
-        if(is.matrix(k)) {
-          as(k, "dsyMatrix")
-        } else {
-          k
-        }
-      })
-    } else {
-      ## Compute chromosome specific kinship matrices.
-      KChr <- chrSpecKin(gData = createGData(geno = markersRed, map = mapRed),
-                         kinshipMethod = kinshipMethod)
-    }
-  }
   ## Keep option open for extension to multiple environments.
   environment <- environments
   ## Add covariates to phenotypic data.
@@ -246,6 +221,38 @@ runMultiTraitGwas <- function(gData,
   Y <- as(as.matrix(tibble::column_to_rownames(
     tibble::remove_rownames(phenoEnvir[, which(!colnames(phenoEnvir) %in% covarEnvir)]),
     var = "genotype")), "dgeMatrix")
+  if (anyNA(Y)) {
+    stop("Phenotypic data cannot contain any missing values.\n")
+  }
+  ## Compute kinship matrix.
+  if (GLSMethod == 1) {
+    if (is.null(K)) {
+      if (!is.null(gData$kinship)) {
+        K <- gData$kinship
+      } else {
+        K <- do.call(kinshipMethod, list(X = gData$markers))
+      }
+    } else if (is.matrix(K)) {
+      K <- as(K, "dsyMatrix")
+    }
+  } else if (GLSMethod == 2) {
+    ## Compute kinship matrices per chromosome. Only needs to be done once.
+    chrs <- unique(mapRed$chr[rownames(mapRed) %in% colnames(markersRed)])
+    if (!is.null(K)) {
+      ## K is supplied. Set KChr to K.
+      KChr <- lapply(K, FUN = function(k) {
+        if (is.matrix(k)) {
+          as(k, "dsyMatrix")
+        } else {
+          k
+        }
+      })
+    } else {
+      ## Compute chromosome specific kinship matrices.
+      KChr <- chrSpecKin(gData = createGData(geno = markersRed, map = mapRed),
+                         kinshipMethod = kinshipMethod)
+    }
+  }
   if (GLSMethod == 1) {
     K <- K[rownames(Y), rownames(Y)]
   } else if (GLSMethod == 2) {
@@ -305,7 +312,8 @@ runMultiTraitGwas <- function(gData,
         ## ??
         geno <- rownames(Y)
         GBLUP <- sapply(as.matrix(Y), function(i) {
-          outH2 <- heritability::marker_h2_means(data.vector = i, geno.vector = geno, K = K)
+          outH2 <- heritability::marker_h2_means(data.vector = i, geno.vector = geno,
+                                                 K = as.matrix(K))
           delta <- outH2$va / outH2$ve
           return(delta * K %*% solve((delta * K + diag(nrow(Y))), matrix(i)))})
         varComp <- list(Vg = cov(GBLUP), Ve = cov(Y - GBLUP))

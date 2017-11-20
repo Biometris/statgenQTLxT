@@ -95,28 +95,28 @@
 #' @import stats
 #'
 #' @export
-runSingleTraitGwas <- function (gData,
-                                traits = NULL,
-                                environments = NULL,
-                                covar = NULL,
-                                snpCovariates = NULL,
-                                K = NULL,
-                                kinshipMethod = "astle",
-                                remlAlgo = 1,
-                                GLSMethod = 1,
-                                useMAF = TRUE,
-                                MAF = 0.01,
-                                MAC = 10,
-                                genomicControl = FALSE,
-                                thrType = 1,
-                                alpha = 0.05 ,
-                                LODThr = 4,
-                                nSnpLOD = 10,
-                                sizeInclRegion = 0,
-                                minR2) {
+runSingleTraitGwas <- function(gData,
+                               traits = NULL,
+                               environments = NULL,
+                               covar = NULL,
+                               snpCovariates = NULL,
+                               K = NULL,
+                               kinshipMethod = "astle",
+                               remlAlgo = 1,
+                               GLSMethod = 1,
+                               useMAF = TRUE,
+                               MAF = 0.01,
+                               MAC = 10,
+                               genomicControl = FALSE,
+                               thrType = 1,
+                               alpha = 0.05 ,
+                               LODThr = 4,
+                               nSnpLOD = 10,
+                               sizeInclRegion = 0,
+                               minR2) {
   ## Checks.
   if (missing(gData) || !is.gData(gData) || is.null(gData$map) || is.null(gData$markers) ||
-     is.null(gData$pheno)) {
+      is.null(gData$pheno)) {
     stop("gData should be a valid gData object with at least map, markers and pheno included.\n")
   }
   if (!inherits(gData$markers, "Matrix")) {
@@ -192,7 +192,9 @@ runSingleTraitGwas <- function (gData,
     if (is.null(MAF) || length(MAF) > 1 || !is.numeric(MAF) || MAF < 0 || MAF > 1) {
       stop("MAF should be a single numerical value between 0 and 1.\n")
     }
-    if (MAF == 0) {MAF <- 1e-6}
+    if (MAF <= 1e-6) {
+      MAF <- 1e-6
+    }
   } else {
     if (is.null(MAC) || length(MAC) > 1 || !is.numeric(MAC)) {
       stop("MAF should be a single numerical value.\n")
@@ -239,7 +241,7 @@ runSingleTraitGwas <- function (gData,
     if (!is.null(K)) {
       ## K is supplied. Set KChr to K.
       KChr <- lapply(X = K, FUN = function(k) {
-        if(is.matrix(k)) as(k, "dsyMatrix") else k
+        if (is.matrix(k)) as(k, "dsyMatrix") else k
       })
     } else {
       ## Compute chromosome specific kinship matrices.
