@@ -6,21 +6,17 @@
 #' @inheritParams manhattanPlot
 #'
 #' @param pValues a numeric vector of pValues. Missings are ignored when plotting.
-#' @param title main title for the plot.
-#' @param ... other graphical parameters passed on to plot.
 #'
 #' @references Segura et al. (2012) An efficient multi-locus mixed model approach for genome-wide
 #' association studies in structured populations
 #'
-#' @import grDevices
-#' @import graphics
+#' @import grDevices graphics
 #'
 #' @export
 
 ## TO DO: example
 
 qqPlot <- function(pValues,
-                   title = "QQ-plot",
                    fileName = "",
                    jpegPlot = TRUE,
                    ...) {
@@ -45,6 +41,11 @@ qqPlot <- function(pValues,
   expected <- -log10(ppoints(n = length(pValues)))
   observed <- -log10(sort(pValues))
   pMax <- ceiling(max(observed))
+  if (!is.null(dotArgs$main)) {
+    main <- dotArgs$main
+  } else {
+    main <- "QQ-plot"
+  }
   if (!is.null(dotArgs$col)) {
     color <- dotArgs$col
   } else {
@@ -70,12 +71,14 @@ qqPlot <- function(pValues,
   } else {
     ylab <- expression(Observed~~-log[10](p))
   }
-  do.call(plot, c(list(x = expected, y = observed, type = 'b', pch = pch, cex = cex, col = color,
+  do.call(plot, c(list(x = expected, y = observed, type = 'b', pch = pch, cex = cex,
+                       col = color,
                        xlab = xlab, ylab = ylab,
                        xlim = c(0, max(expected) + 1),
                        ylim = c(0, pMax),
-                       main = title),
-                  dotArgs[-which(names(dotArgs) %in% c("pch", "cex", "col", "xlab", "ylab"))]))
+                       main = main),
+                  dotArgs[!names(dotArgs) %in% c("pch", "cex", "col", "main",
+                                                       "xlab", "ylab")]))
   abline(a = 0, b = 1, col = "blue")
   if (fileName != "") {
     dev.off()

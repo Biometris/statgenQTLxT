@@ -14,7 +14,6 @@
 #' @param jpegPlot should a jpeg file be produced? If \code{FALSE} a pdf file is produced.
 #' @param xLab x-axis label.
 #' @param yLab y-axis label.
-#' @param title title of the plot
 #' @param plotType lines ("l") or dots ("d" or "p")
 #' @param xSig vector of integers, indicating which components in the vectors xValues and
 #' yValues are significant.
@@ -24,13 +23,13 @@
 #' @param chrBoundaries vector of chromosome boundaries, i.e. x-values on the same scale as xValues.
 #' @param yThr LOD-threshold.
 #' @param signPointsThickness thickness of the points that are false/true positives/negatives.
+#' @param ... other graphical parameters passed on to the actual plot function.
 #'
 #' @return a LOD-profile with LOD-scores per snip. Markers declared significant get a red dot,
 #' markers with a real effect get a blue dot. If both significant and real effects are given
 #' false positives get an orange dot, true negatives a yellow dot and true positives a green dot.
 #'
-#' @import grDevices
-#' @import graphics
+#' @import grDevices graphics
 #'
 #' @export
 
@@ -43,14 +42,14 @@ manhattanPlot <- function(xValues,
                           jpegPlot = TRUE,
                           xLab = "Chromosomes",
                           yLab = expression(-log[10](p)),
-                          title = "",
                           plotType = "l",
                           xSig = integer(),
                           xEffects = integer(),
                           colPalette = rep(c("royalblue", "maroon"), 50)[1:length(levels(factor(map$chr)))],
                           chrBoundaries = 0,
                           yThr = NULL,
-                          signPointsThickness = 0.6) {
+                          signPointsThickness = 0.6,
+                          ...) {
   ## Basic argument checks
   if (is.null(xValues) || !is.numeric(xValues)) { #|| any(xValues != round(xValues))
      stop("xValues should be an integer vector")
@@ -108,7 +107,7 @@ manhattanPlot <- function(xValues,
                       })[, 2]
   ## Setup empty plot
   plot(x = xValues, y = yValues, xlab = xLab, ylab = yLab, type = "n", lwd = 0.4,
-       main = title, xaxt = 'n')
+       xaxt = 'n', ...)
   axis(side = 1, at = xMarks, labels = chromosomes, cex.axis = 0.8)
   ## If chromosome boundaries are known add lines/ points per chromosome
   if (sum(chrBoundaries) != 0) {

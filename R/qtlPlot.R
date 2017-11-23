@@ -117,7 +117,7 @@ qtlPlot <- function(data,
   if (normalize) {
     data$eff <- sapply(X = 1:nrow(data), FUN = function(x) {
       (data[x, snpEffect] -
-         mean(data[data[trait] == as.character(data[x, trait]), snpEffect], na.rm=TRUE)) /
+         mean(data[data[trait] == as.character(data[x, trait]), snpEffect], na.rm = TRUE)) /
         sd(data[data[trait] == as.character(data[x, trait]), snpEffect], na.rm = TRUE)
     })
   } else data$eff <- data[[snpEffect]]
@@ -190,7 +190,7 @@ qtlPlot <- function(data,
                         linetype = 1,
                         color = "white")   +
     ## Add the points with a slight transparency in case of overlap
-    ggplot2:: geom_point(alpha = I(0.7), na.rm = TRUE) +
+    ggplot2::geom_point(alpha = I(0.7), na.rm = TRUE) +
     ## Split of the plot according to the chromosomes on the x axis
     ggplot2::facet_grid(". ~ chromosome",
                         ## Do not resize the x axise (otherwise every chromosome has the same size)

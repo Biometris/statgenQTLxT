@@ -5,11 +5,10 @@
 \title{Create a manhattan plot}
 \usage{
 manhattanPlot(xValues, yValues, map, fileName = "", jpegPlot = TRUE,
-  xLab = "Chromosomes", yLab = expression(-log[10](p)), title = "",
-  plotType = "l", xSig = integer(), xEffects = integer(),
-  colPalette = rep(c("royalblue", "maroon"),
-  50)[1:length(levels(factor(map$chr)))], chrBoundaries = 0, yThr = NULL,
-  signPointsThickness = 0.6)
+  xLab = "Chromosomes", yLab = expression(-log[10](p)), plotType = "l",
+  xSig = integer(), xEffects = integer(), colPalette = rep(c("royalblue",
+  "maroon"), 50)[1:length(levels(factor(map$chr)))], chrBoundaries = 0,
+  yThr = NULL, signPointsThickness = 0.6, ...)
 }
 \arguments{
 \item{xValues}{a vector of cumulative marker positions.}
@@ -29,8 +28,6 @@ to the screen.}
 
 \item{yLab}{y-axis label.}
 
-\item{title}{title of the plot}
-
 \item{plotType}{lines ("l") or dots ("d" or "p")}
 
 \item{xSig}{vector of integers, indicating which components in the vectors xValues and
@@ -46,6 +43,8 @@ correspond to a real (known) effect.}
 \item{yThr}{LOD-threshold.}
 
 \item{signPointsThickness}{thickness of the points that are false/true positives/negatives.}
+
+\item{...}{other graphical parameters passed on to the actual plot function.}
 }
 \value{
 a LOD-profile with LOD-scores per snip. Markers declared significant get a red dot,

@@ -85,15 +85,27 @@ plot.GWAS <- function(x, ...,
       dplyr::inner_join(addPos, by = "chr") %>%
       dplyr::mutate(cumPos = .data$pos + .data$add)
     ## Extract numbers of significant SNPs.
-    if (is.null(dotArgs$yThr)) {
-      signSnpNr <- which(map$snp %in% signSnp$snp[as.numeric(signSnp$snpStatus) == 1])
-    } else {
-      signSnpNr <- which(map$LOD > dotArgs$yThr)
-    }
+    if (is.null(signSnp)) {
+      if (is.null(dotArgs$yThr)) {
+        signSnpNr <- which(map$snp %in% signSnp$snp[as.numeric(signSnp$snpStatus) == 1])
+      } else {
+        signSnpNr <- which(map$LOD > dotArgs$yThr)
+      }} else {
+        signSnpNr <- integer()
+      }
     if (!is.null(dotArgs$plotType)) {
       plotType = dotArgs$plotType
     } else {
       plotType = "p"
+    }
+    if (is.null(dotArgs$yThr)) {
+      if (is.null(x$thr[[environment]][trait])) {
+        yThr <- Inf
+      } else {
+        yThr <- x$thr[[environment]][trait]
+      }
+    } else {
+      yThr <- dotArgs$yThr
     }
     ## Create manhattan plot.
     do.call(manhattanPlot,
@@ -102,9 +114,8 @@ plot.GWAS <- function(x, ...,
                           plotType = plotType,
                           xSig = signSnpNr,
                           chrBoundaries = chrBnd[, 2],
-                          yThr = ifelse(is.null(dotArgs$yThr),
-                                        x$thr[[environment]][trait], dotArgs$yThr)),
-                     dotArgs[-which(names(dotArgs) %in% c("plotType", "yThr"))]
+                          yThr = yThr),
+                     dotArgs[!(names(dotArgs) %in% c("plotType", "yThr"))]
             ))
   } else if (type == "qq") {
     ## Create qq-plot
