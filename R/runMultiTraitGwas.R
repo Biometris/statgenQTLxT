@@ -68,7 +68,7 @@ runMultiTraitGwas <- function(gData,
                               environments = NULL,
                               covar = NULL,
                               snpCovariates = NULL,
-                              K = NULL,
+                              kin = NULL,
                               kinshipMethod = "astle",
                               GLSMethod = 1,
                               subsetMarkers = FALSE,
@@ -138,17 +138,18 @@ runMultiTraitGwas <- function(gData,
   if (!is.null(snpCovariates) && !all(snpCovariates %in% colnames(gData$markers))) {
     stop("All snpCovariates should be in markers.\n")
   }
-  if (GLSMethod == 1 && !is.null(K) && !is.matrix(K)) {
-    stop("K should be a matrix.\n")
+  if (GLSMethod == 1 && !is.null(kin) && !(inherits(kin, "Matrix") || is.matrix(kin))) {
+    stop("kin should be a matrix.\n")
   }
-  if (GLSMethod == 2 && !is.null(K) && (!is.list(K) ||
-                                        !all(sapply(K, FUN = is.matrix)) ||
-                                        length(K) != dplyr::n_distinct(gData$map$chr))) {
-    stop("K should be a list of matrices of length equal to the number of chromosomes
+  if (GLSMethod == 2 && !is.null(kin) && (!is.list(kin) ||
+                                          !all(sapply(kin, FUN = function(k) {is.matrix(k) ||
+                                              inherits(k, "Matrix")})) ||
+                                          length(kin) != dplyr::n_distinct(gData$map$chr))) {
+    stop("kin should be a list of matrices of length equal to the number of chromosomes
       in the map.\n")
   }
-  if ((GLSMethod == 1 && is.null(gData$kinship) && is.null(K)) ||
-      GLSMethod == 2 && is.null(K)) {
+  if ((GLSMethod == 1 && is.null(gData$kinship) && is.null(kin)) ||
+      GLSMethod == 2 && is.null(kin)) {
     kinshipMethod <- match.arg(kinshipMethod, choices = c("astle", "GRM", "IBS", "vanRaden"))
   }
   if (subsetMarkers && markerSubset == "") {
@@ -226,14 +227,16 @@ runMultiTraitGwas <- function(gData,
   }
   ## Compute kinship matrix.
   if (GLSMethod == 1) {
-    if (is.null(K)) {
+    if (is.null(kin)) {
       if (!is.null(gData$kinship)) {
         K <- gData$kinship
       } else {
         K <- do.call(kinshipMethod, list(X = gData$markers))
       }
-    } else if (is.matrix(K)) {
-      K <- as(K, "dsyMatrix")
+    } else if (is.matrix(kin)) {
+      K <- as(kin, "dsyMatrix")
+    } else {
+      K <- kin
     }
   } else if (GLSMethod == 2) {
     ## Compute kinship matrices per chromosome. Only needs to be done once.
@@ -256,7 +259,9 @@ runMultiTraitGwas <- function(gData,
   if (GLSMethod == 1) {
     K <- K[rownames(Y), rownames(Y)]
   } else if (GLSMethod == 2) {
-    KChr <- lapply(X = KChr, FUN = function(x) {x[rownames(Y), rownames(Y)]})
+    KChr <- lapply(X = KChr, FUN = function(x) {
+      x[rownames(Y), rownames(Y)]
+      })
   }
   if (reduceK) {
     K <- reduceKinship(K = K, nPca = nPca)
@@ -524,7 +529,7 @@ runMultiTraitGwas <- function(gData,
   return(createGWAS(GWAResult = setNames(list(GWAResult), names(gData$pheno)[environment]),
                     signSnp = NULL,
                     kin = if (GLSMethod == 1) {
-                      if (is.null(K)) {
+                      if (is.null(kin)) {
                         gData$kinship
                       } else {
                         K

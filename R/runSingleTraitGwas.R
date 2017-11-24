@@ -18,17 +18,18 @@
 #' numeric indices or character names of columns in \code{covar} in \code{gData}. If \code{NULL} no
 #' covariates are used.
 #' @param snpCovariates an optional character vector of snps to be included as covariates.
-#' @param K an optional kinship matrix or list of kinship matrices. These matrices can be from the
+#' @param kin an optional kinship matrix or list of kinship matrices. These matrices can be from the
 #' \code{matrix} class as defined in the base package or from the \code{dsyMatrix} class, the
 #' class of symmetric matrices in the Matrix package.\cr
 #' If \code{GLSMethod} = 1 then one matrix should be provided, if \code{GLSMethod} = 2 a list of
 #' chromosome specific matrices of lenght equal to the number of chromosomes in \code{map}
 #' in \code{gData}.\cr
 #' If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
-#' If both \code{K} is provided and \code{gData} contains a matrix \code{kinship} then \code{K} is used.
+#' If both \code{kin} is provided and \code{gData} contains a matrix \code{kinship} then
+#' \code{kin} is used.
 #' @param kinshipMethod an optional character indicating the method used for calculating the kinship
 #' matrix(ces). Currently "astle" (Astle and Balding, 2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008)
-#' are supported. If a kinship matrix is supplied either in \code{gData} or in parameter \code{K}
+#' are supported. If a kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 #' \code{kinshipMethod} is ignored.
 #' @param remlAlgo an integer indicating the algorithm used to estimate the variance components.
 #' \enumerate{
@@ -100,7 +101,7 @@ runSingleTraitGwas <- function(gData,
                                environments = NULL,
                                covar = NULL,
                                snpCovariates = NULL,
-                               K = NULL,
+                               kin = NULL,
                                kinshipMethod = "astle",
                                remlAlgo = 1,
                                GLSMethod = 1,
@@ -165,18 +166,18 @@ runSingleTraitGwas <- function(gData,
   if (is.null(GLSMethod) || length(GLSMethod) > 1 || !is.numeric(GLSMethod)) {
     stop("GLSMethod should be a single numeric value.\n")
   }
-  if (GLSMethod == 1 && !is.null(K) && !(inherits(K, "Matrix") || is.matrix(K))) {
-    stop("K should be a matrix.\n")
+  if (GLSMethod == 1 && !is.null(kin) && !(inherits(kin, "Matrix") || is.matrix(kin))) {
+    stop("kin should be a matrix.\n")
   }
-  if (GLSMethod == 2 && !is.null(K) && (!is.list(K) ||
-                                        !all(sapply(K, FUN = function(k) {is.matrix(k) ||
+  if (GLSMethod == 2 && !is.null(kin) && (!is.list(kin) ||
+                                        !all(sapply(kin, FUN = function(k) {is.matrix(k) ||
                                             inherits(k, "Matrix")})) ||
-                                        length(K) != dplyr::n_distinct(gData$map$chr))) {
-    stop("K should be a list of matrices of length equal to the number of chromosomes
+                                        length(kin) != dplyr::n_distinct(gData$map$chr))) {
+    stop("kin should be a list of matrices of length equal to the number of chromosomes
       in the map.\n")
   }
-  if ((GLSMethod == 1 && is.null(gData$kinship) && is.null(K)) ||
-      GLSMethod == 2 && is.null(K)) {
+  if ((GLSMethod == 1 && is.null(gData$kinship) && is.null(kin)) ||
+      GLSMethod == 2 && is.null(kin)) {
     kinshipMethod <- match.arg(kinshipMethod, choices = c("astle", "GRM", "IBS", "vanRaden"))
   }
   if (is.null(sizeInclRegion) || length(sizeInclRegion) > 1 || !is.numeric(sizeInclRegion) ||
@@ -232,16 +233,20 @@ runSingleTraitGwas <- function(gData,
     warning("Invalid value for thrType. thrType set to 1.\n")
   }
   ## Compute kinship matrix.
-  if (GLSMethod == 1 && is.null(gData$kinship) && is.null(K)) {
-    K <- do.call(kinshipMethod, list(X = gData$markers))
+  if (GLSMethod == 1 && is.null(gData$kinship) && is.null(kin)) {
+    kin <- do.call(kinshipMethod, list(X = gData$markers))
   }
   ## Compute kinship matrices per chromosome. Only needs to be done once.
   if (GLSMethod == 2) {
     chrs <- unique(gData$map$chr[rownames(gData$map) %in% colnames(gData$markers)])
-    if (!is.null(K)) {
-      ## K is supplied. Set KChr to K.
-      KChr <- lapply(X = K, FUN = function(k) {
-        if (is.matrix(k)) as(k, "dsyMatrix") else k
+    if (!is.null(kin)) {
+      ## kin is supplied. Set KChr to kin.
+      KChr <- lapply(X = kin, FUN = function(k) {
+        if (is.matrix(k)) {
+          as(k, "dsyMatrix")
+        } else {
+          k
+        }
       })
     } else {
       ## Compute chromosome specific kinship matrices.
@@ -281,13 +286,13 @@ runSingleTraitGwas <- function(gData,
       ## Select genotypes where trait is not missing.
       nonMissing <- unique(phenoEnvirTrait$genotype)
       if (GLSMethod == 1) {
-        if (is.null(K)) {
+        if (is.null(kin)) {
           kinshipRed <- gData$kinship[nonMissing, nonMissing]
         } else {
-          if (is.matrix(K)) {
-            K <- as(K, "dsyMatrix")
+          if (is.matrix(kin)) {
+            kin <- as(kin, "dsyMatrix")
           }
-          kinshipRed <- K[nonMissing, nonMissing]
+          kinshipRed <- kin[nonMissing, nonMissing]
         }
       }
       nonMissingRepId <- phenoEnvirTrait$genotype
@@ -587,9 +592,10 @@ runSingleTraitGwas <- function(gData,
   return(createGWAS(GWAResult = GWATot,
                     signSnp = signSnpTot,
                     kin = if (GLSMethod == 1) {
-                      if (is.null(K)) {
-                        gData$kinship} else {
-                          K
+                      if (is.null(kin)) {
+                        gData$kinship
+                        } else {
+                          kin
                         }
                     } else {
                       KChr
