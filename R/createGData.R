@@ -25,22 +25,22 @@
 #' case no names are provided, the number of matrices should match the number of chromoses
 #' in \code{map} in which case default names are provided.
 #' @param pheno a data.frame or a list of data.frames with phenotypic data, with genotype in the
-#' first column \code{genotype} and traits in the following columns. A list of data.frames can be
-#' used for replications, i.e. different environments.
+#' first column \code{genotype} and traits in the following columns. The trait columns should
+#' be numerical columns only. A list of data.frames can be used for replications,
+#' i.e. different environments.
 #' @param covar a data.frame with extra covariates per genotype. Genotype should be in the rows.
 #' @param x \code{R} object
 #'
 #' @return \code{createGData} returns an object of class \code{gData} with the following components:
-#' \itemize{
-#' \item{\code{map} a data.frame containing map data. Map is sorted by chromosome and position.}
-#' \item{\code{markers} a sparse matrix from the Matrix package containing marker information in case
+#' \item{\code{map}}{a data.frame containing map data. Map is sorted by chromosome and position.}
+#' \item{\code{markers}}{a sparse matrix from the Matrix package containing marker information in case
 #' of numerical genotypic data, a standard matrix otherwise.}
-#' \item{\code{pheno} a list of matrices containing phenotypic data}
-#' \item{\code{kinship} a kinship matrix of class \code{dsyMatrix} from the Matrix package.}
-#' \item{\code{covar} a data.frame with extra covariates.}
-#' } \cr
-#' \code{is.gData} returns \code{TRUE} or \code{FALSE} depending on whether its argument is a \code{gData}
-#' object.
+#' \item{\code{pheno}}{a list of data.frames containing phenotypic data}
+#' \item{\code{kinship}}{a kinship matrix of class \code{dsyMatrix} from the Matrix package.}
+#' \item{\code{covar}}{a data.frame with extra covariates.}
+#' \cr
+#' \code{is.gData} returns \code{TRUE} or \code{FALSE} depending on whether its argument
+#' is a \code{gData} object.
 #'
 #' @author Bart-Jan van Rossum
 #'
@@ -151,13 +151,14 @@ createGData <- function(gData = NULL,
         if (!isTRUE(all(sapply(X = names(pheno), FUN = nchar) > 0))) {
           ## Add default names for unnamed environments.
           names(pheno) <- sapply(X = 1:length(pheno), FUN = function(x) {
-            if(!isTRUE(nchar(names(pheno)[x]) > 0)) {
+            if (!isTRUE(nchar(names(pheno)[x]) > 0)) {
               paste0("Environment", x)
             } else {
               names(pheno)[x]
             }
           })
-          message("Some data.frames in pheno contain no environment names. Default names added.\n")
+          message("Some data.frames in pheno contain no environment names.
+                  Default names added.\n")
         }
       }
     }
@@ -169,6 +170,12 @@ createGData <- function(gData = NULL,
     ## Convert genotype to character.
     for (i in 1:length(pheno)) {
       pheno[[i]]$genotype <- as.character(pheno[[i]]$genotype)
+    }
+    ## Check that all non-genotype columns are numerical.
+    if (!all(sapply(X = pheno, FUN = function(x) {
+      all(sapply(X = x[-1], FUN = is.numeric))
+    }))) {
+      stop("all trait columns in pheno should be numerical.\n")
     }
     if (!is.null(gData$pheno)) {
       warning("existing pheno will be overwritten.\n", call. = FALSE)
