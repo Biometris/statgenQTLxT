@@ -15,15 +15,15 @@
 
 updateFAHomVar <- function(Y = NULL, S = NULL, m, maxDiag = 1e4) {
   if ((is.null(Y) && is.null(S)) || (!is.null(Y) && !is.null(S))) {
-    stop("Either the data (Y) or the sample covariance matrix (S) must be provided.")
+    stop("Either the data (Y) or the sample covariance matrix (S) must be provided.\n")
   }
   if (m != round(m) || m < 1) {
     stop("m needs to be a positive integer")
   }
-  ## If S is not in imput, compute is from Y
+  ## If S is not in imput, compute S from Y.
   if (!is.null(Y)) {
     if (anyNA(Y)) {
-      stop('Y cannot contain missing values')
+      stop("Y cannot contain missing values.\n")
     }
     n <- nrow(Y)
     Y <- as(scale(Y, scale = FALSE), "dgeMatrix")
@@ -32,7 +32,7 @@ updateFAHomVar <- function(Y = NULL, S = NULL, m, maxDiag = 1e4) {
   p <- ncol(S)
   a <- eigen(S, symmetric = TRUE)
   if (m >= p) {
-    stop("m needs to be smaller than the number of variables")
+    stop("m needs to be smaller than the number of variables.\n")
   }
   sigma2 <- max(mean(a$values[-(1:m)]), 1 / maxDiag)
   ## Split cases for extra robustness.

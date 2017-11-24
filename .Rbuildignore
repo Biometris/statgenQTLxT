@@ -1,6 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 example_data_drops
-varcomp_analysis_generic.R
 examples_SGP.R
 example_SES.R
+beagle

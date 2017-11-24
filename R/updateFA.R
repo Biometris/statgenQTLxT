@@ -29,7 +29,9 @@ updateFA <- function(Y,
                      printProgress = FALSE) {
   ## Check input
   #Y <- as.matrix(Y)
-  if (anyNA(Y)) {stop('Y cannot contain missing values')}
+  if (anyNA(Y)) {
+    stop('Y cannot contain missing values.\n')
+  }
   p <- ncol(Y)
   n <- nrow(Y)
   if (!is.null(PStart)) {

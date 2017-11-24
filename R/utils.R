@@ -54,8 +54,10 @@ chrSpecKin <- function(gData,
   }
   ## Create list of zero matrices.
   KChr <- setNames(replicate(n = length(chrs),
-                             Matrix::Matrix(data = 0, nrow = nrow(gData$markers), ncol = nrow(gData$markers),
-                                            dimnames = list(rownames(gData$markers), rownames(gData$markers))),
+                             Matrix::Matrix(data = 0, nrow = nrow(gData$markers),
+                                            ncol = nrow(gData$markers),
+                                            dimnames = list(rownames(gData$markers),
+                                                            rownames(gData$markers))),
                              simplify = FALSE),
                    paste0("KChr", chrs))
   ## Create vector of marker numbers per chromosome.

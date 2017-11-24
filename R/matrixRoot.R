@@ -12,11 +12,11 @@
 matrixRoot <- function(X) {
   #if (!is.matrix(X)) X <- as.matrix(X)
   if (!Matrix::isSymmetric(X)) {
-    stop("X should be a symmetric matrix.")
+    stop("X should be a symmetric matrix.\n")
   }
   XEig <- eigen(X, symmetric = TRUE)
-  if(any(XEig$values < 0)) {
-    stop("X should be a positive definite matrix.")
+  if (any(XEig$values < 0)) {
+    stop("X should be a positive definite matrix.\n")
   }
   if (length(XEig$values) > 1) {
     XSqrt <- as(XEig$vectors, "dgeMatrix") %*% Matrix::Diagonal(x = sqrt(XEig$values)) %*%

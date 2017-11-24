@@ -20,7 +20,8 @@
 #' @param x \code{R} object
 #'
 #' @return \code{createGWAS} returns an object of class GWAS, a list of the input items.\cr\cr
-#' \code{is.gData} returns \code{TRUE} or \code{FALSE} depending on whether its argument is a \code{gData}
+#' \code{is.gData} returns \code{TRUE} or \code{FALSE} depending on whether its
+#' argument is a \code{gData}
 #' object.
 #'
 #' @seealso \code{\link{summary.GWAS}}, \code{\link{plot.GWAS}}

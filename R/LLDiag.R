@@ -33,12 +33,12 @@ LLDiag <- function(Y,
   stopifnot(nrow(Y) == dim(VInvArray)[2])
   stopifnot(nrow(Y) == dim(VInvArray)[3])
   if (anyNA(Y)) {
-    stop("No missing values allowed in Y")
+    stop("No missing values allowed in Y.\n")
   }
   if (!(is.data.frame(X) || nrow(X) == 0)) {
     stopifnot(ncol(X) == dim(VInvArray)[1])
     if (anyNA(X)) {
-      stop("No missing values allowed in X")
+      stop("No missing values allowed in X.\n")
     }
   }
   nc <- nrow(X)

@@ -36,11 +36,11 @@ genomicControlPValues <- function(pVals,
   df2 <- nObs - nCov - 2
   pValsNew <- pVals
   ## Compute F-values from input p-values.
-  fVals <- qf(na.omit(pVals), df1 = 1, df2 = df2, lower.tail = FALSE)
+  fVals <- qf(p = na.omit(pVals), df1 = 1, df2 = df2, lower.tail = FALSE)
   ## Compute inflation factor as in Devlin and Roeder.
-  inflation <- median(fVals, na.rm = TRUE) / qf(0.5, df1 = 1, df2 = df2, lower.tail = FALSE)
+  inflation <- median(fVals, na.rm = TRUE) / qf(p = 0.5, df1 = 1, df2 = df2, lower.tail = FALSE)
   ## Compute new F-values and p-values.
   fValsNew <- fVals / inflation
-  pValsNew[!is.na(pVals)] <- pf(fValsNew, df1 = 1, df2 = df2, lower.tail = FALSE)
+  pValsNew[!is.na(pVals)] <- pf(q = fValsNew, df1 = 1, df2 = df2, lower.tail = FALSE)
   return(list(pValues = pValsNew, inflation = inflation))
 }

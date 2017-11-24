@@ -49,14 +49,14 @@ runEmma <- function(gData,
                     snpName = NULL,
                     Z = NULL,
                     nGrids = 100,
-                    lLim = - 10,
+                    lLim = -10,
                     uLim = 10,
                     eps = 1e-10) {
   ## Check input
-  if(missing(gData) || !is.gData(gData) || is.null(gData$pheno)) {
+  if (missing(gData) || !is.gData(gData) || is.null(gData$pheno)) {
     stop("gData should be a valid gData object with at least pheno included.\n")
   }
-  if(missing(environment) || length(environment) > 1 || !(is.numeric(environment)
+  if (missing(environment) || length(environment) > 1 || !(is.numeric(environment)
                                                           || is.character(environment))) {
     stop("environment should be a single numeric or character.\n")
   }
@@ -64,7 +64,7 @@ runEmma <- function(gData,
       (is.numeric(environment) && environment > length(gData$pheno))) {
     stop("environment should be a list item in pheno.\n")
   }
-  if(missing(trait) || length(trait) > 1 || !(is.numeric(trait) || is.character(trait))) {
+  if (missing(trait) || length(trait) > 1 || !(is.numeric(trait) || is.character(trait))) {
     stop("trait should be a single numeric or character.\n")
   }
   if ((is.character(trait) && !trait %in% colnames(gData$pheno[[environment]])) ||
@@ -77,33 +77,33 @@ runEmma <- function(gData,
   if (is.null(K) && is.null(gData$kinship)) {
     stop("gData contains no matrix kinship so K should be provided.\n")
   }
-  if(!is.null(covar) && !is.numeric(covar) && !is.character(covar)) {
+  if (!is.null(covar) && !is.numeric(covar) && !is.character(covar)) {
     stop("covar should be a numeric or character.\n")
   }
   if ((is.character(covar) && !all(covar %in% colnames(gData$covar))) ||
       (is.numeric(covar) && any(covar > ncol(gData$covar)))) {
     stop("covar should be columns in covar in gData.\n")
   }
-  if(!is.null(snpName) && (length(snpName) > 1 || !is.character(snpName))) {
+  if (!is.null(snpName) && (length(snpName) > 1 || !is.character(snpName))) {
     stop("snpName should be a single character.\n")
   }
-  if(!is.null(Z) && !is.matrix(Z)) {
+  if (!is.null(Z) && !is.matrix(Z)) {
     stop("Z should be a matrix.\n")
   }
-  if(!is.null(nGrids) && (length(nGrids) > 1 || !is.numeric(nGrids) ||
+  if (!is.null(nGrids) && (length(nGrids) > 1 || !is.numeric(nGrids) ||
                           nGrids != round(nGrids))) {
     stop("nGrids should be a single integer.\n")
   }
-  if(!is.null(lLim) && (length(lLim) > 1 || !is.numeric(lLim))) {
+  if (!is.null(lLim) && (length(lLim) > 1 || !is.numeric(lLim))) {
     stop("lLim should be a single numeric value.\n")
   }
-  if(!is.null(uLim) && (length(uLim) > 1 || !is.numeric(uLim))) {
+  if (!is.null(uLim) && (length(uLim) > 1 || !is.numeric(uLim))) {
     stop("uLim should be a single numeric value.\n")
   }
   if (lLim >= uLim) {
     stop("lLim should be smaller than uLim.\n")
   }
-  if(!is.null(eps) && (length(eps) > 1 || !is.numeric(eps))) {
+  if (!is.null(eps) && (length(eps) > 1 || !is.numeric(eps))) {
     stop("eps should be a single numeric value.\n")
   }
   ## Add column genotype to environment.
@@ -190,15 +190,15 @@ runEmma <- function(gData,
                                  n = n, t = t, etas2 = etas2))
   }
   ## Check last item in dLL. If > - eps include LL value as possible optimum.
-  if (dLL[m] > - eps) {
+  if (dLL[m] > -eps) {
     optLogDelta <- c(optLogDelta, uLim)
     optLL <- c(optLL, emmaREMLLL(logDelta = uLim, lambda = eigR$values, etas1 = etas,
                                  n = 0, t = 0, etas2 = 0))
   }
   ## If derivative changes sign on an interval, compute local optimum for LL on that
   ## interval and add it to possible optima.
-  for(i in 1:(m - 1)) {
-    if (dLL[i] > 0 && dLL[i + 1] < 0 && dLL[i] * dLL[i + 1] < - eps ^ 2) {
+  for (i in 1:(m - 1)) {
+    if (dLL[i] > 0 && dLL[i + 1] < 0 && dLL[i] * dLL[i + 1] < -eps ^ 2) {
       r <- optimise(f = emmaREMLLL, lower = logDelta[i], upper = logDelta[i + 1],
                     lambda = eigR$values, etas1 = etas, n = 0, t = 0, etas2 = 0, maximum = TRUE)
       optLogDelta <- c(optLogDelta, r$maximum)
@@ -212,8 +212,71 @@ runEmma <- function(gData,
   if (is.null(Z)) {
     maxVg <- sum(etas ^ 2 / (eigR$values + maxDelta)) / (n - q)
   } else {
-    maxVg <- (sum(etas1 ^ 2 /(eigR$values + maxDelta)) + etas2 / maxDelta) / (n - q)
+    maxVg <- (sum(etas1 ^ 2 / (eigR$values + maxDelta)) + etas2 / maxDelta) / (n - q)
   }
   maxVe <- maxVg * maxDelta
   return(list(varcomp = c(Vg = maxVg, Ve = maxVe), K = K))
 }
+
+
+#' EMMA helper functions
+#'
+#' Helper functions for computing REML estimates of genetic and residual variance components
+#' using the EMMA algorithm.
+#'
+#' @inheritParams runEmma
+#' @param X a q x n covariate matrix, q being the number of covariates and n being the number
+#' of genotypes. q has to be at least one (typically an intercept).
+#'
+#' @keywords internal
+
+emmaEigenR <- function(K,
+                       X) {
+  n <- nrow(X)
+  q <- ncol(X)
+  ## Compute n-q non-zero eigenvalues of SHS as defined in eqn. 5 of Kang.
+  if (q == 1) {
+    S <- Matrix::Diagonal(n = n) - 1 / n
+  } else {
+    S <- Matrix::Diagonal(n = n) - X %*% Matrix::solve(Matrix::crossprod(X), Matrix::t(X))
+  }
+  eig <- eigen(S %*% (K + Matrix::Diagonal(n = n)) %*% S, symmetric = TRUE)
+  if (is.complex(eig$values))
+    stop("Complex eigen values found.\n")
+  return(list(values = eig$values[1:(n - q)] - 1,
+              vectors = eig$vectors[, 1:(n - q)]))
+}
+
+emmaEigenRZ <- function(Z,
+                        K,
+                        X,
+                        complete = TRUE) {
+  if (!complete) {
+    vIds <- colSums(Z) > 0
+    Z <- Z[, vIds]
+    K <- K[vIds, vIds]
+  }
+  n <- nrow(Z)
+  t <- ncol(Z)
+  q <- ncol(X)
+  SZ <- Z - X %*% solve(crossprod(X), crossprod(X, Z))
+  eig <- eigen(K %*% tcrossprod(Z, SZ), symmetric = FALSE)
+  if (is.complex(eig$values)) {
+    eig$values <- Re(eig$values)
+    eig$vectors <- Re(eig$vectors)
+  }
+  qrX <- qr.Q(qr(X))
+  return(list(values = eig$values[1:(t - q)],
+              vectors = qr.Q(qr(cbind(SZ %*% eig$vectors[, 1:(t - q)], qrX)),
+                             complete = TRUE)[, c(1:(t - q), (t + 1):n)]))
+}
+
+emmaREMLLL <- function(logDelta, lambda, etas1, n, t, etas2) {
+  ## Compute the REML LL as in eqn. 7 of Kang.
+  nq <- length(etas1) + n - t
+  delta <- exp(logDelta)
+  lDelta <- lambda + delta
+  return(0.5 * (nq * (log(nq / (2 * pi)) - 1 - log(sum(etas1 ^ 2 / (lDelta)) + etas2 / delta)) -
+                  (sum(log(lDelta)) + (n - t) * logDelta)))
+}
+

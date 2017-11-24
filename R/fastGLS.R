@@ -34,29 +34,30 @@ fastGLS <-function(y,
                    nChunks = 10) {
   ## Check class and missing values.
   if (missing(y) || !(inherits(y, "Matrix") || is.numeric(y)) || anyNA(y)) {
-    stop("y should be a numeric vector without missing values.")
+    stop("y should be a numeric vector without missing values.\n")
   }
   #  if (missing(X) || !(inherits(X, "Matrix") || is.matrix(X)) || anyNA(X))
   #    stop("X should be a matrix without missing values.")
-  if (missing(Sigma) || !(inherits(Sigma, "Matrix") || is.matrix(Sigma)) ||anyNA(Sigma)) {
-    stop("Sigma should be a matrix without missing values.")
+  if (missing(Sigma) || !(inherits(Sigma, "Matrix") || is.matrix(Sigma)) || anyNA(Sigma)) {
+    stop("Sigma should be a matrix without missing values.\n")
   }
   if (!is.null(covs) && (!(inherits(covs, "Matrix") || is.matrix(covs)) || anyNA(covs))) {
-    stop("covs should be a numeric vector without missing values.")
+    stop("covs should be a numeric vector without missing values.\n")
   }
   if (!is.numeric(nChunks) || length(nChunks) > 1 || nChunks != round(nChunks)) {
-    stop("nChunks should be an integer")
+    stop("nChunks should be an integer.\n")
   }
   n <- length(y)
   ## Check dimensions.
   if (nrow(X) != n) {
-    stop("The number of elements in y should be identical to the number of rows in X")
+    stop("The number of elements in y should be identical to the number of rows in X.\n")
   }
   if (nrow(Sigma) != n || ncol(Sigma) != n) {
-    stop("The number of elements in y should be identical to the number of rows and columns in Sigma")
+    stop("The number of elements in y should be identical to the number of
+         rows and columns in Sigma.\n")
   }
   if (!is.null(covs) && nrow(covs) != n) {
-    stop("The number of elements in y should be identical to the number of rows in covs")
+    stop("The number of elements in y should be identical to the number of rows in covs.\n")
   }
   m <- ncol(X)
   ## If necessary convert input to Matrix
@@ -87,7 +88,7 @@ fastGLS <-function(y,
   vv <- Matrix::colSums(tMX ^ 2)
   vX <- Matrix::crossprod(tMfixCovs, tMX)
   nn <- 1 / (vv - Matrix::colSums(vX * (A %*% vX)))
-  XtXinvLastRows <- Matrix::cbind2(- nn * Matrix::crossprod(vX, A), nn)
+  XtXinvLastRows <- Matrix::cbind2(-nn * Matrix::crossprod(vX, A), nn)
   Xty <- Matrix::cbind2(Matrix::Matrix(rep(as.numeric(Matrix::crossprod(tMfixCovs, tMy)),
                                            length(nn)), byrow = TRUE, ncol = nCov),
                         Matrix::crossprod(tMX, tMy))

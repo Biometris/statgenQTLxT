@@ -162,7 +162,7 @@ summary(GWASRicePlantHeight)
 plot(GWASRicePlantHeight, type = "qq")
 plot(GWASRicePlantHeight)
 ```
-The analysis can be performed for more than one trait in a single function call. Not specifying traits altogether will perform the analysis for all traits that are present in the phenotypic data. The results will be combined in a single output object with the traits specified in the column *trait* in *GWAResult* and *signSnp* within the output object.  
+The analysis can be performed for more than one trait in a single function call. Not specifying traits at all will perform the analysis for all traits that are present in the phenotypic data. The results will be combined in a single output object with the traits specified in the column *trait* in *GWAResult* and *signSnp* within this object.  
 When making a qq or manhattan plot of this output the trait has to be specified. Also a "qtl" plot is avaible which plots significant SNPs per trait against their position on the chromosomes. 
 ```{r eval=FALSE}
 GWASRicePlantHeightMult <- runSingleTraitGwas(gData = gDataRiceCodedBeagle, 

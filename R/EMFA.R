@@ -64,15 +64,15 @@ EMFA <- function(Y,
                  computeLogLik = FALSE) {
   ## Check input.
   if (missing(Y) || !(is.matrix(Y) || inherits(Y, "Matrix")) || anyNA(Y)) {
-    stop("Y should be a matrix without missing values.")
+    stop("Y should be a matrix without missing values.\n")
   }
   if (missing(K) || !(is.matrix(K) || inherits(K, "Matrix")) ||
       nrow(K) != nrow(Y) || ncol(K) != nrow(Y) || anyNA(K)) {
     stop("K should be a matrix without missing values with the same number of rows
-      and columns as the number of rows in Y.")
+      and columns as the number of rows in Y.\n")
   }
-  if(!(is.matrix(X) || inherits(X, "Matrix")) || anyNA(X)) {
-    stop("X should be a matrix without missing values.")
+  if (!(is.matrix(X) || inherits(X, "Matrix")) || anyNA(X)) {
+    stop("X should be a matrix without missing values.\n")
   }
   nc <- ncol(X)
   if (nc > 0 && nrow(X) != nrow(K)) {
@@ -171,17 +171,23 @@ EMFA <- function(Y,
       S1 <- vecInvDiag(x = lambda1, y = w$values) * (tUYminXb %*% matrixRoot(Dm) %*% Q1)
       S2 <- vecInvDiag(x = lambda2, y = 1 / w$values) * (tUYminXb %*% matrixRoot(Cm) %*% Q2)
     } else {
-      S1 <- vecInvDiag(x = lambda1, y = w$values) * Matrix::crossprod(Uk, Y %*% matrixRoot(Dm) %*% Q1)
-      S2 <- vecInvDiag(x = lambda2, y = 1 / w$values) * Matrix::crossprod(Uk, Y %*% matrixRoot(Cm) %*% Q2)
+      S1 <- vecInvDiag(x = lambda1, y = w$values) *
+        Matrix::crossprod(Uk, Y %*% matrixRoot(Dm) %*% Q1)
+      S2 <- vecInvDiag(x = lambda2, y = 1 / w$values) *
+        Matrix::crossprod(Uk, Y %*% matrixRoot(Cm) %*% Q2)
     }
     trP1 <- tracePInvDiag(x = lambda1, y = w$values)
     trP2 <- tracePInvDiag(x = lambda2, y = 1 / w$values)
     if (p > 1) {
-      part1 <- DmSqrtInv %*% Q1 %*% Matrix::Diagonal(x = trP1) %*% Matrix::crossprod(Q1, DmSqrtInv)
-      part2 <- CmSqrtInv %*% Q2 %*% Matrix::Diagonal(x = trP2) %*% Matrix::crossprod(Q2, CmSqrtInv)
+      part1 <- DmSqrtInv %*% Q1 %*% Matrix::Diagonal(x = trP1) %*%
+        Matrix::crossprod(Q1, DmSqrtInv)
+      part2 <- CmSqrtInv %*% Q2 %*% Matrix::Diagonal(x = trP2) %*%
+        Matrix::crossprod(Q2, CmSqrtInv)
     } else {
-      part1 <- DmSqrtInv %*% Q1 %*% Matrix::Matrix(trP1) %*% Matrix::crossprod(Q1, DmSqrtInv)
-      part2 <- CmSqrtInv %*% Q2 %*% Matrix::Matrix(trP2) %*% Matrix::crossprod(Q2, CmSqrtInv)
+      part1 <- DmSqrtInv %*% Q1 %*% Matrix::Matrix(trP1) %*%
+        Matrix::crossprod(Q1, DmSqrtInv)
+      part2 <- CmSqrtInv %*% Q2 %*% Matrix::Matrix(trP2) %*%
+        Matrix::crossprod(Q2, CmSqrtInv)
     }
     part3 <- Matrix::tcrossprod(CmSqrtInv %*% Matrix::tcrossprod(Q2, S2))
     part4 <- Matrix::tcrossprod(DmSqrtInv %*% Q1, S1) %*% lambdaR %*%

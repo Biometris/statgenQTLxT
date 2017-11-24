@@ -8,7 +8,7 @@
 #' @param Dk a vector of length n containing the eigenvalues obtained by the eigendecomposition
 #' of the kinship matrix K: \eqn{K = Uk * Dk * t(Uk)}
 #'
-#' @return An array of n p x p matrices \eqn{v_l} where \eqn{v_l = Dk_{l,l} * Vg + Ve \forall
+#' @return A list of n p x p matrices \eqn{v_l} where \eqn{v_l = Dk_{l,l} * Vg + Ve \forall
 #' l = 1, ..., n}.\cr
 #' When using \code{makeVInvArray} the output matrices are inverted.
 #'
