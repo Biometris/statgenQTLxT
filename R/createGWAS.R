@@ -58,7 +58,9 @@ createGWAS <- function(GWAResult = NULL,
   ## Check signSnps
   if (!all(sapply(signSnp, FUN = is.null))) {
     if (!is.data.frame(signSnp) &&
-        !(is.list(signSnp) && all(sapply(X = signSnp, FUN = is.data.frame)))) {
+        !(is.list(signSnp) && all(sapply(X = signSnp, FUN = function(x) {
+          is.null(x) || is.data.frame(x)
+          })))) {
       stop("signSnp should be a data.frame or a list of data.frames.\n")
     }
     if (is.data.frame(signSnp)) {
@@ -66,6 +68,7 @@ createGWAS <- function(GWAResult = NULL,
       signSnp <- list(signSnp)
     }
     if (!all(sapply(signSnp, FUN = function(x) {
+      is.null(x) ||
       all(c("trait", "snp", "snpStatus", "pValue", "LOD") %in% colnames(x))}))) {
       stop("signSnp should contain columns trait, snp, snpStatus, pValue and LOD.\n")
     }
