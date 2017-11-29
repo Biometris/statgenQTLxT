@@ -366,6 +366,7 @@ runSingleTraitGwas <- function(gData,
             vcovMatrixChr <- remlObj[[1]][1] * remlObj[[2]] +
               remlObj[[1]][2] * Matrix::Diagonal(nrow(remlObj[[2]]))
             rownames(vcovMatrixChr) <- colnames(vcovMatrixChr) <- rownames(remlObj[[2]])
+            vcovMatrix[[which(chrs == chr)]] <- vcovMatrixChr
           }
         } else if (remlAlgo == 2) {
           if (!is.null(covarEnvir)) {
