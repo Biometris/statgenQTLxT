@@ -316,7 +316,6 @@ runSingleTraitGwas <- function(gData,
             vcovMatrix <- remlObj[[1]][1] * remlObj[[2]] +
               Matrix::Diagonal(n = nrow(remlObj[[2]]), x = remlObj[[1]][2])
             rownames(vcovMatrix) <- colnames(vcovMatrix) <- rownames(remlObj[[2]])
-            vcovMatrix <- vcovMatrix[nonMissingRepId, nonMissingRepId]
           } else if (remlAlgo == 2) {
             ## Construct the formula for the fixed part of the model.
             if (!is.null(covarEnvir)) {
@@ -367,7 +366,6 @@ runSingleTraitGwas <- function(gData,
             vcovMatrixChr <- remlObj[[1]][1] * remlObj[[2]] +
               remlObj[[1]][2] * Matrix::Diagonal(nrow(remlObj[[2]]))
             rownames(vcovMatrixChr) <- colnames(vcovMatrixChr) <- rownames(remlObj[[2]])
-            vcovMatrix[[which(chrs == chr)]] <- vcovMatrixChr[nonMissingRepId, nonMissingRepId]
           }
         } else if (remlAlgo == 2) {
           if (!is.null(covarEnvir)) {
