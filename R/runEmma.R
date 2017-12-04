@@ -184,13 +184,13 @@ runEmma <- function(gData,
   optLogDelta <- numeric(0)
   optLL <- numeric(0)
   ## Check first item in dLL. If < eps include LL value as possible optimum.
-  if (abs(dLL[1]) < eps) {
+  if (dLL[1] < eps) {
     optLogDelta <- c(optLogDelta, lLim)
     optLL <- c(optLL, emmaREMLLL(logDelta = lLim, lambda = eigR$values, etas1 = etas1,
                                  n = n, t = t, etas2 = etas2))
   }
   ## Check last item in dLL. If > - eps include LL value as possible optimum.
-  if (abs(dLL[m]) < eps) {
+  if (dLL[m] > -eps) {
     optLogDelta <- c(optLogDelta, uLim)
     optLL <- c(optLL, emmaREMLLL(logDelta = uLim, lambda = eigR$values, etas1 = etas,
                                  n = 0, t = 0, etas2 = 0))
@@ -198,7 +198,7 @@ runEmma <- function(gData,
   ## If derivative changes sign on an interval, compute local optimum for LL on that
   ## interval and add it to possible optima.
   for (i in 1:(m - 1)) {
-    if (dLL[i] > 0 && dLL[i + 1] < 0 && dLL[i] * dLL[i + 1] < -eps ^ 2) {
+    if ((dLL[i] > 0 && dLL[i + 1] < 0) || dLL[i] * dLL[i + 1] < eps ^ 2) {
       r <- optimise(f = emmaREMLLL, lower = logDelta[i], upper = logDelta[i + 1],
                     lambda = eigR$values, etas1 = etas, n = 0, t = 0, etas2 = 0, maximum = TRUE)
       optLogDelta <- c(optLogDelta, r$maximum)
