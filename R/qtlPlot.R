@@ -205,26 +205,25 @@ qtlPlot <- function(data,
                                 values = c("darkblue", "green4"))
   if (exportPptx) {
     ## Save figure in .pptx
-    if (requireNamespace("ReporteRs", quietly = TRUE)) {
+    if (requireNamespace("officer", quietly = TRUE) &&
+        requireNamespace("rvg", quietly = TRUE)) {
       ## Create empty .pptx file
-      pptOut <- ReporteRs::pptx()
-      ## Add new slide (always necessary)
-      pptOut <- ReporteRs::addSlide(doc = pptOut, slide.layout = "Title and Content")
-      ## Add plot to the document
-      pptOut <- ReporteRs::addPlot(doc = pptOut,
-                                   ## "print" the graph
-                                   fun = print,
-                                   x = qtlPlot,
-                                   ## Plot position on the slide in inches
-                                   offx = 2.6, offy = 0.9,
-                                   ## Plot size in inches
-                                   width = 8, height = 6.4)
-      ## Add date to slide
-      pptOut <- ReporteRs::addDate(doc = pptOut)
-      ##Write .pptx
-      ReporteRs::writeDoc(doc = pptOut, file = pptxName)
-    } else {
-      message("Package ReporteRs needs to be installed to be able to export to .pptx")
+      pptOut <- officer::read_pptx() %>%
+        ## Add new slide (always necessary)
+        officer::add_slide(layout = "Title and Content",
+                           master = "Office Theme") %>%
+        ## Add plot to the document
+        rvg::ph_with_vg_at(ggobj = qtlPlot, left = 0.9, top = 0.9,
+                           width = 8, height = 6.4) %>%
+        ## Add date to slide
+        officer::ph_with_text(type = "dt",
+                              str = format(Sys.Date(),"%B %d, %Y")) %>%
+        ##Write .pptx
+        print(target = pptxName)
+    }
+    else {
+      message("Package officer needs to be installed to be able to export
+              to .pptx")
     }
   }
   return(qtlPlot)

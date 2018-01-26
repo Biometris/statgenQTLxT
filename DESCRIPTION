@@ -26,6 +26,7 @@ Imports: dplyr (>= 0.7.2),
     magrittr
 Suggests: knitr,
     rmarkdown,
-    ReporteRs,
-    testthat
+    officer,
+    testthat,
+    rvg
 VignetteBuilder: knitr
