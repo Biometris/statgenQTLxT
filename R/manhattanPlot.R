@@ -107,8 +107,8 @@ manhattanPlot <- function(xValues,
                       })[, 2]
   ## Setup empty plot
   ## ylim has to be set to cope with subsetting based on lod.
-  plot(x = xValues, y = yValues, ylim = c(0, max(yValues)), xlab = xLab,
-       ylab = yLab, type = "n", lwd = 0.4,
+  plot(x = xValues, y = yValues, ylim = c(0, max(yValues, na.rm = TRUE)),
+       xlab = xLab, ylab = yLab, type = "n", lwd = 0.4,
        xaxt = 'n', ...)
   axis(side = 1, at = xMarks, labels = chromosomes, cex.axis = 0.8)
   ## If chromosome boundaries are known add lines/ points per chromosome
