@@ -77,6 +77,20 @@ plot.GWAS <- function(x, ...,
   if (type == "manhattan") {
     ## Compute chromosome boundaries.
     GWAResult <- GWAResult[!is.na(GWAResult$pos), ]
+    ## Select specific chromosome(s) for plotting.
+    if (!is.null(dotArgs$chr)) {
+      GWAResult <- GWAResult[GWAResult$chr %in% dotArgs$chr, ]
+      if (nrow(GWAResult) == 0) {
+        stop("Select at least one valid chromosome for plotting.\n")
+      }
+    }
+    ## Select markers with sufficiently high lod for plotting.
+    if (!is.null(dotArgs$lod)) {
+      GWAResult <- GWAResult[GWAResult$LOD > dotArgs$lod, ]
+      if (nrow(GWAResult) == 0) {
+        stop("No chromosomes selected for plotting. Please check value of lod.\n")
+      }
+    }
     chrBnd <- aggregate(x = GWAResult$pos, by = list(GWAResult$chr), FUN = max)
     ## Compute cumulative positions.
     addPos <- data.frame(chr = chrBnd[, 1], add = c(0, cumsum(chrBnd[, 2]))[1:nrow(chrBnd)],
@@ -85,7 +99,7 @@ plot.GWAS <- function(x, ...,
       dplyr::inner_join(addPos, by = "chr") %>%
       dplyr::mutate(cumPos = .data$pos + .data$add)
     ## Extract numbers of significant SNPs.
-    if (is.null(signSnp)) {
+    if (!is.null(signSnp)) {
       if (is.null(dotArgs$yThr)) {
         signSnpNr <- which(map$snp %in% signSnp$snp[as.numeric(signSnp$snpStatus) == 1])
       } else {
@@ -115,7 +129,8 @@ plot.GWAS <- function(x, ...,
                           xSig = signSnpNr,
                           chrBoundaries = chrBnd[, 2],
                           yThr = yThr),
-                     dotArgs[!(names(dotArgs) %in% c("plotType", "yThr"))]
+                     dotArgs[!(names(dotArgs) %in% c("plotType", "yThr",
+                                                     "lod", "chr"))]
             ))
   } else if (type == "qq") {
     ## Create qq-plot

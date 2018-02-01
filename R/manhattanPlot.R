@@ -45,7 +45,7 @@ manhattanPlot <- function(xValues,
                           plotType = "l",
                           xSig = integer(),
                           xEffects = integer(),
-                          colPalette = rep(c("royalblue", "maroon"), 50)[1:length(levels(factor(map$chr)))],
+                          colPalette = rep(c("royalblue", "maroon"), 50),
                           chrBoundaries = 0,
                           yThr = NULL,
                           signPointsThickness = 0.6,
@@ -106,7 +106,9 @@ manhattanPlot <- function(xValues,
                         min(x) + (max(x) - min(x)) / 2
                       })[, 2]
   ## Setup empty plot
-  plot(x = xValues, y = yValues, xlab = xLab, ylab = yLab, type = "n", lwd = 0.4,
+  ## ylim has to be set to cope with subsetting based on lod.
+  plot(x = xValues, y = yValues, ylim = c(0, max(yValues)), xlab = xLab,
+       ylab = yLab, type = "n", lwd = 0.4,
        xaxt = 'n', ...)
   axis(side = 1, at = xMarks, labels = chromosomes, cex.axis = 0.8)
   ## If chromosome boundaries are known add lines/ points per chromosome
