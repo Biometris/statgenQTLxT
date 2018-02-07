@@ -11,11 +11,14 @@ gData <- createGData(geno = markers)
 test_that("codeMarkers produces correct results when no imputation, remove duplicates", {
   expect_equal(as.numeric(codeMarkers(gData = gData, impute = FALSE)$markers),
                c(0, NA, 0, 1, 2, 0, 0, NA, 1))
-  expect_equal(as.numeric(codeMarkers(gData = gData, nMiss = 0.1, impute = FALSE)$markers),
+  expect_equal(as.numeric(codeMarkers(gData = gData, nMiss = 0.1,
+                                      impute = FALSE)$markers),
                c(1, 2, 0))
-  expect_equal(as.numeric(codeMarkers(gData = gData, MAF = 0.2, impute = FALSE)$markers),
+  expect_equal(as.numeric(codeMarkers(gData = gData, MAF = 0.2,
+                                      impute = FALSE)$markers),
                c(1, 2, 0, 0, NA, 1))
-  expect_equal(as.numeric(codeMarkers(gData = gData, nMiss = 0.1, MAF = 0.2, impute = FALSE)$markers),
+  expect_equal(as.numeric(codeMarkers(gData = gData, nMiss = 0.1, MAF = 0.2,
+                                      impute = FALSE)$markers),
                c(1, 2, 0))
 })
 
@@ -30,22 +33,25 @@ test_that("codeMarkers produces correct results when no imputation, no remove du
                                       impute = FALSE)$markers),
                c(1, 2, 0, 0, NA, 1, 1, 2, 0))
   expect_equal(as.numeric(codeMarkers(gData = gData, nMiss = 0.1, MAF = 0.2,
-                                      removeDuplicates = FALSE, impute = FALSE)$markers),
+                                      removeDuplicates = FALSE,
+                                      impute = FALSE)$markers),
                c(1, 2, 0, 1, 2, 0))
 })
 
 test_that("codeMarkers produces correct results with imputation", {
-  expect_equal(as.numeric(codeMarkers(gData = gData, impute = TRUE, imputeType = "fixed",
-                                      fixedValue = 1)$markers),
-               c(0, 1, 0, 1, 2, 0, 0, 1, 1))
-  expect_equal(as.numeric(codeMarkers(gData = gData, impute = TRUE, imputeType = "random")$markers),
-               c(0, 0, 0, 0, 0, 1, 1, 2, 0))
-  expect_equal(as.numeric(codeMarkers(gData = gData, removeDuplicates = FALSE, impute = TRUE,
+  expect_equal(as.numeric(codeMarkers(gData = gData, impute = TRUE,
                                       imputeType = "fixed", fixedValue = 1)$markers),
-               c(0, 1, 0, 1, 2, 0, 0, 1, 1, 1, 2, 0))
-  expect_equal(as.numeric(codeMarkers(gData = gData, removeDuplicates = FALSE, impute = TRUE,
+               c(0, 1, 0, 1, 2, 0, 0, 1, 1))
+  expect_equal(as.numeric(codeMarkers(gData = gData, impute = TRUE,
                                       imputeType = "random")$markers),
-               c(0, 0, 0, 1, 2, 0, 0, 0, 1, 1, 2, 0))
+               c(0, 0, 0, 0, 0, 1, 1, 2, 0))
+  expect_equal(as.numeric(codeMarkers(gData = gData, removeDuplicates = FALSE,
+                                      impute = TRUE, imputeType = "fixed",
+                                      fixedValue = 1)$markers),
+               c(0, 1, 0, 1, 2, 0, 0, 1, 1, 1, 2, 0))
+  expect_equal(as.numeric(codeMarkers(gData = gData, removeDuplicates = FALSE,
+                                      impute = TRUE, imputeType = "random")$markers),
+               c(0, 0, 0, 1, 2, 0, 0, 1, 1, 1, 2, 0))
 })
 
 test_that("option keep in codeMarkers works properly", {
@@ -54,11 +60,13 @@ test_that("option keep in codeMarkers works properly", {
                c(0, NA, 0, 1, 2, 0))
   expect_equal(as.numeric(codeMarkers(gData = gData, MAF = 0.2, keep = "SNP1",
                                       impute = FALSE)$markers),
-               c(0, NA, 0, 0, NA, 1, 1, 2, 0))
-  expect_equal(as.numeric(codeMarkers(gData = gData, keep = "SNP2", impute = FALSE)$markers),
+               c(0, NA, 0, 1, 2, 0, 0, NA, 1))
+  expect_equal(as.numeric(codeMarkers(gData = gData, keep = "SNP2",
+                                      impute = FALSE)$markers),
                c(0, NA, 0, 1, 2, 0, 0, NA, 1))
   expect_equal(as.numeric(codeMarkers(gData = gData, keep = c("SNP2", "SNP4"),
-                                      impute = TRUE, imputeType = "fixed", fixedValue = 1)$markers),
+                                      impute = TRUE, imputeType = "fixed",
+                                      fixedValue = 1)$markers),
                c(0, 1, 0, 1, 2, 0, 0, 1, 1, 1, 2, 0))
 })
 
