@@ -17,7 +17,7 @@ GWASes <- runSingleTraitGwas(gData = gDataSes,
   environments =  NULL,
   covar = NULL,
   snpCovariates = NULL,
-  K = NULL,
+  kin = NULL,
   remlAlgo = 1,
   GLSMethod = 2,
   sizeInclRegion = 0,
@@ -40,4 +40,13 @@ plot(x = GWASorig$minlog10p, y = -log10(GWASes$GWAResult[[1]]$pValue),
   col = adjustcolor(1:8, alpha.f = 0.3))
 legend(33, 25, unique(GWASorig$trait), col = 1:length(GWASorig$trait), pch = 1)
 abline(0,1, col = "blue")
+
+gpSes <- genomicPrediction(gDataSes,
+                           traits = c("THA", "pctS"),
+                           environments = NULL,
+                           training = rownames(gData$covar[gData$covar$Phenotyped == "y", ]),
+                           kin = NULL,
+                           kinshipMethod = c("astle", "GRM", "IBS", "vanRaden"),
+                           keep = c("Pool", "Fam", "PepiNo", "Phenotyped"))
+
 
