@@ -148,6 +148,9 @@ qtlPlot <- function(data,
   plotData$color <- ifelse(plotData$eff != -Inf,
                            ifelse(plotData$eff > 0, "pos", "neg"),
                            NA)
+  ## Redefine trait as factor to keep traits in order as they appeared in
+  ## original data when plotting.
+  plotData$trait <- factor(plotData$trait, levels = unique(plotData$trait))
   plotData <- droplevels(plotData)
   ## Create theme for plot
   qtlPlotTheme <-
@@ -193,7 +196,7 @@ qtlPlot <- function(data,
     ggplot2::geom_point(alpha = I(0.7), na.rm = TRUE) +
     ## Split of the plot according to the chromosomes on the x axis
     ggplot2::facet_grid(". ~ chromosome",
-                        ## Do not resize the x axise (otherwise every chromosome has the same size)
+                        ## Do not resize the x axis (otherwise every chromosome has the same size)
                         scales = "free",
                         ## Do not add extra space between two facets
                         space = "free",
