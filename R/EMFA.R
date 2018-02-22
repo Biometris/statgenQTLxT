@@ -300,7 +300,8 @@ EMFA <- function(Y,
     } else {
       XTransformed <- data.frame()
     }
-    logLik <- LLDiag(Matrix::crossprod(Y, Uk), X = XTransformed, VArray = VArray, VInvArray = VInvArray)
+    logLik <- LLDiag(Matrix::crossprod(Y, Uk), X = XTransformed,
+                     VArray = VArray, VInvArray = VInvArray)
   } else {
     logLik <- NA
   }

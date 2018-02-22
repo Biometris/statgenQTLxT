@@ -437,15 +437,15 @@ runMultiTraitGwas <- function(gData,
                              computeExcludedMarkers(snpCovariates = snpCovariates,
                                                     markersRed = markersRed,
                                                     allFreq = allFreq))
-    effEst <- estimateEffects_nw(Y = Y, W = X,
-                                 X = markersRed[, -excludedMarkers],
-                                 Vg = Vg, Ve = Ve, K = K)
+    effEst <- estimateEffects(Y = Y, W = X,
+                              X = markersRed[, -excludedMarkers],
+                              Vg = Vg, Ve = Ve, K = K)
     pValues <- effEst$pVals
     effects <- effEst$effects
     effectsSe <- effEst$effectsSe
   } else if (GLSMethod == 2) {
     pValues <- numeric(0)
-    effects <- effectsSe <- t(gDataTest$pheno$Y1[FALSE, -1])
+    effects <- effectsSe <- t(gData$pheno[[environment]][FALSE, -1])
     for (chr in chrs) {
       mapRedChr <- mapRed[which(mapRed$chr == chr), ]
       markersRedChr <- markersRed[, which(colnames(markersRed) %in%
@@ -457,11 +457,11 @@ runMultiTraitGwas <- function(gData,
                                computeExcludedMarkers(snpCovariates = snpCovariates,
                                                       markersRed = markersRedChr,
                                                       allFreq = allFreqChr))
-      effEst <- estimateEffects_nw(Y = Y, W = X,
-                                   X = markersRedChr[, -excludedMarkers],
-                                   Vg = Vg[[which(chrs == chr)]],
-                                   Ve = Ve[[which(chrs == chr)]],
-                                   K = KChr[[which(chrs == chr)]])
+      effEst <- estimateEffects(Y = Y, W = X,
+                                X = markersRedChr[, -excludedMarkers],
+                                Vg = Vg[[which(chrs == chr)]],
+                                Ve = Ve[[which(chrs == chr)]],
+                                K = KChr[[which(chrs == chr)]])
       pValues <- c(pValues, effEst$pVals)
       effects <- cbind(effects, effEst$effects)
       effectsSe <- cbind(effectsSe, effEst$effectsSe)

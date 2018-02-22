@@ -104,37 +104,3 @@ computeExcludedMarkers <- function(snpCovariates,
   }
   return(exclude)
 }
-
-## Fill GWAResult data.frame for (a selection of) markers
-fillGWAResult <- function(GWAResult,
-                          effects,
-                          effectsSe,
-                          Xt,
-                          Yt,
-                          VInvArray,
-                          excludedMarkers,
-                          markersRed,
-                          Uk) {
-  p <- ncol(effects)
-  est0 <- estimateEffects(X = Xt, Y = Yt, VInvArray = VInvArray, returnAllEffects = TRUE)
-  fittedMean0 <- Matrix::Matrix(est0$effectsEstimates,
-                                ncol = length(est0$effectsEstimates) / p) %*% Xt
-  SS0 <- LLQuadFormDiag(Y = Yt - fittedMean0, VInvArray = VInvArray)
-  for (mrk in setdiff(1:ncol(markersRed), excludedMarkers)) {
-    mrkName <- colnames(markersRed)[mrk]
-    x <- markersRed[, mrk, drop = FALSE]
-    xt <- Matrix::crossprod(x, Uk)
-    LRTRes <- LRTTest(X = Xt, x = xt, Y = Yt, VInvArray = VInvArray, SS0 = SS0)
-    GWAResult[mrkName, "pValue"] <- LRTRes$pvalue
-    GWAResult[mrkName, "pValueWald"] <- pchisq(sum((LRTRes$effects / LRTRes$effectsSe) ^ 2),
-                                               df = p, lower.tail = FALSE)
-    effects[mrkName, ] <- LRTRes$effects
-    effectsSe[mrkName, ] <-  LRTRes$effectsSe
-  }
-  return(list(GWAResult = GWAResult, effects = effects, effectsSe = effectsSe))
-}
-
-
-
-
-
