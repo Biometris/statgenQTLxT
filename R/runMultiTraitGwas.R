@@ -440,9 +440,9 @@ runMultiTraitGwas <- function(gData,
     effEst <- estimateEffects_nw(Y = Y, W = X,
                                  X = markersRed[, -excludedMarkers],
                                  Vg = Vg, Ve = Ve, K = K)
-    pValues <- effEst$pvalues
-    effects <- effEst$effect.estimates
-    effectsSe <- effEst$effect.se
+    pValues <- effEst$pVals
+    effects <- effEst$effects
+    effectsSe <- effEst$effectsSe
   } else if (GLSMethod == 2) {
     pValues <- numeric(0)
     effects <- effectsSe <- t(gDataTest$pheno$Y1[FALSE, -1])
@@ -462,9 +462,9 @@ runMultiTraitGwas <- function(gData,
                                    Vg = Vg[[which(chrs == chr)]],
                                    Ve = Ve[[which(chrs == chr)]],
                                    K = KChr[[which(chrs == chr)]])
-      pValues <- c(pValues, effEst$pvalues)
-      effects <- cbind(effects, effEst$effect.estimates)
-      effectsSe <- cbind(effectsSe, effEst$effect.se)
+      pValues <- c(pValues, effEst$pVals)
+      effects <- cbind(effects, effEst$effects)
+      effectsSe <- cbind(effectsSe, effEst$effectsSe)
     }
   }
   ## Convert effects en effectsSe to long format and merge.
