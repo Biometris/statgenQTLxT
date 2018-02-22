@@ -479,8 +479,8 @@ runMultiTraitGwas <- function(gData,
     ## Select and compute relevant columns.
     ## Melt creates factors. Reconvert trait to character.
     dplyr::select(.data$snp, trait = .data$Var1, .data$chr, .data$pos,
-                  pValue = .data$pValues, .data$LOD, effect = .data$value.y,
-                  effectSe = .data$value.x, #.data$pValueWald, .data$LODWald,
+                  pValue = .data$pValues, .data$LOD, effect = .data$value.x,
+                  effectSe = .data$value.y, #.data$pValueWald, .data$LODWald,
                   .data$allFreq) %>%
     dplyr::arrange(.data$trait, .data$chr, .data$pos)
   ## Collect info.
