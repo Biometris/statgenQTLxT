@@ -198,8 +198,8 @@ runMultiTraitGwas <- function(gData,
     markersRed <- markers[, markerSubset]
     mapRed <- map[markerSubset, ]
   } else {
-    markersRed <- markers
-    mapRed <- map
+    markersRed <- markers[, colnames(markers) %in% rownames(map)]
+    mapRed <- map[rownames(map) %in% colnames(markers), ]
   }
   ## Keep option open for extension to multiple environments.
   environment <- environments
