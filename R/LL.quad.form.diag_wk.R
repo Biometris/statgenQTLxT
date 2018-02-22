@@ -1,63 +1,57 @@
-#' Compute tYPY as in Zhou and Stephens eqn. 50.
-#'
-#' Compute \eqn{t(y) * P * y}, part of the log-likelihood functions from
-#' equation 26 and 27 in Zhou and Stephens using equation 50. Equation 56, 57
-#' and 58 are used to do the actual computations.
-#'
-#' It is assumed that X and Y have already been rotated by Uk, where Uk is such
-#' that the kinship matrix K equals \eqn{K = Uk * Dk * t(Uk)}.\cr
-#' The original X and Y are right multiplied by Uk, e.g. \code{Y <- Y * Uk}.
-#' See Zhou and Stephens (2014), supplement.\cr
-#' It is these rotated versions that are the input of this function.
-#'
-#' @inheritParams estimateEffects
-#'
-#' @param X an optional c x n covariate matrix, c being the number of covariates
-#' and n being the number of genotypes. c has to be at least one
-#' (typically an intercept). No missing values are allowed.
-#'
-#' @return a numeric value for the \eqn{t(y) * P * y} part of the log-likelihood
-#' function.
-#'
-#' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
-#' mixed model algorithms for genome-wide association studies. Nature Methods,
-#' February 2014, Vol. 11, p. 407–409
-#'
-#' @keywords internal
-LL.quad.form.diag <- function(Y,
-                              X = data.frame(),
-                              V.inv.array) {
-  nc <- nrow(X)
-  n <- ncol(Y)
-  p <- nrow(Y)
-  ## Define functions for faster computation of scalair part, q and Q.
-  scalFunc <- function(i) {
-    as.numeric(crossprod(Y[, i], V.inv.array[i, ,] %*% Y[, i]))
-  }
-  qVecFunc <- function(i) {
-    kronecker(X[, i], V.inv.array[i, ,] %*% Y[, i])
-  }
-  qMatFunc <- function(i) {
-    kronecker(tcrossprod(X[, i]), V.inv.array[i, ,])
-  }
-  ## Compute scalair part.
-  qScal <- sum(sapply(X = 1:n, FUN = scalFunc))
+#######################################################################################################
+# the same as LL.diag, but without the det-part
+
+LL.quad.form.diag <- function(Y,X=data.frame(),V.inv.array) {
+
+# X is the c x n covariate matrix, c being the number of covariates and
+#      n being the number of genotypes
+#      c has to be at least one (typically an intercept)
+# Y is the p x n matrix of observed phenotypes, on p traits or environments
+#
+# No missing values are allowed in any of X,Y and x
+#
+# It is assumed that X,Y have already been rotated by Uk, where Uk is such that
+# the kinship matrix equals K = Uk %*% Dk %*% t(Uk)
+# (R: w <- eigen(K); Dk <- diag(w$values); Uk <- w$vectors)
+# Next, the original X, Y are post-multiplied by Uk, e.g. Y <- Y %*% Uk;
+# see Zhou and Stephens 2014, supplement.
+# It is the rotated versions that are the input of this function.
+
+  #stopifnot(ncol(Y)==ncol(X))
+
+  # Y=Yt;X=data.frame()
+  # Y=Yt;X=rbind(X,x)
+  # Y=Yt-fitted.mean # X=data.frame()
+
+  # Y=Yt;X=Xt;V.inv.array=V.inv.array
+
+  nc      <- nrow(X)
+  y       <- matrix(Y)
+  p       <- nrow(Y)
+  n       <- ncol(Y)
+
+  q.scal <- sum(sapply(1:n,function(i){t(matrix(Y[,i])) %*% V.inv.array[i,,] %*% matrix(Y[,i])}))
+
+  quad.form.part <-  q.scal
+
   if (nc > 0) {
-    ## Compute q and Q.
-    if (p == 1 && nc == 1) {
-      qVec <- sum(sapply(X = 1:n, FUN = qVecFunc))
-      QMatrix <- sum(sapply(X = 1:n, FUN = qMatFunc))
+
+    if (p==1 & nc==1) {
+
+      q.vec  <- matrix(sum(sapply(1:n,function(i){kronecker(matrix(X[,i]),V.inv.array[i,,] %*% matrix(Y[,i]))})))
+      Q.matrix <-  matrix(sum(sapply(1:n,function(i){kronecker(matrix(X[,i]) %*% t(matrix(X[,i])),V.inv.array[i,,])})))
+      quad.form.part <-  quad.form.part -1 * (as.numeric(t(q.vec) %*% solve(Q.matrix) %*% q.vec))
+
     } else {
-      qVec  <- rowSums(sapply(X = 1:n, FUN = qVecFunc))
-      QMatrix <- matrix(rowSums(sapply(X = 1:n, FUN = qMatFunc)), ncol = p * nc)
+
+      q.vec  <- matrix(apply((sapply(1:n,function(i){kronecker(matrix(X[,i]),V.inv.array[i,,] %*% matrix(Y[,i]))})),1,sum))
+      Q.matrix <-  matrix(apply((sapply(1:n,function(i){kronecker(matrix(X[,i]) %*% t(matrix(X[,i])),V.inv.array[i,,])})),1,sum),ncol=p*nc)
+      quad.form.part <-  quad.form.part -1 * (as.numeric(t(q.vec) %*% solve(Q.matrix) %*% q.vec))
     }
-    ## Compute quadratic part.
-    quadFormPart <- qScal - as.numeric(crossprod(qVec %*% solve(QMatrix, qVec)))
-  } else {
-    quadFormPart <- qScal
+
   }
-  return(quadFormPart)
+
+
+return(quad.form.part)
 }
-
-
-
+# LL.diag(Y=Yt,X=X,V.array=V.array,V.inv.array=V.inv.array)
