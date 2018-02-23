@@ -18,7 +18,6 @@
 #' @import utils
 #'
 #' @keywords internal
-
 covUnstructured <- function(Y,
                             K,
                             X = NULL,
@@ -49,7 +48,7 @@ covUnstructured <- function(Y,
   if (!is.null(X)) {
     ## Define formula for fixed part. ` needed to accommodate - in variable names.
     fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ `",
-                               paste(colnames(X)[-1], collapse ='` + `'), "`"))
+                               paste(colnames(X)[-1], collapse = '` + `'), "`"))
   } else {
     fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ 1"))
   }
@@ -99,20 +98,24 @@ covPairwise <- function(Y,
   K <- K[unique(Y$genotype), unique(Y$genotype)]
   traits <- colnames(Y)[-1]
   nTrait <- length(traits)
-  if (!is.null(X)) {
-    ## Define formula for fixed part. ` needed to accommodate - in variable names.
-    fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ `",
-                               paste(colnames(X)[-1], collapse ='` + `'), "`"))
-  } else {
-    fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ 1"))
+  VgVec <- VeVec <- vector(mode = "numeric", length = nTrait)
+  for (i in 1:nTrait) {
+    if (!is.null(X)) {
+      ## Define formula for fixed part. ` needed to accommodate - in variable names.
+      fixed <- as.formula(paste(traits[i], " ~ `",
+                                paste(colnames(X)[-1], collapse = '` + `'),
+                                "`"))
+    } else {
+      fixed <- as.formula(paste(traits[i], " ~ 1"))
+    }
+    ## Fit model.
+    sommerFit <- sommer::mmer2(fixed = fixed, random = ~ g(genotype),
+                               data = data, G = list(genotype = K),
+                               silent = TRUE)
+    ## Extract components from fitted model.
+    VgVec[i] <- as.numeric(sommerFit$var.comp[[1]])
+    VeVec[i] <- as.numeric(sommerFit$var.comp[[2]])
   }
-  ## Fit model.
-  sommerFit <- sommer::mmer2(fixed = fixed, random = ~ g(genotype),
-                             data = data, G = list(genotype = K),
-                             silent = TRUE)
-  ## Extract components from fitted model.
-  VgVec <- diag(sommerFit$var.comp[[1]])
-  VeVec <- diag(sommerFit$var.comp[[2]])
   if (corMat) {
     ## Ones on the diagonal of resulting matrix.
     VgMat <- VeMat <- diag(x = 1, nrow = nTrait)
@@ -128,7 +131,7 @@ covPairwise <- function(Y,
       if (!is.null(X)) {
         ## Define formula for fixed part. ` needed to accommodate - in variable names.
         fixed <- as.formula(paste0("cbind(", idx[[1]], ", ", idx[[2]], ") ~ `",
-                                   paste(colnames(X)[-1], collapse ='` + `'), "`"))
+                                   paste(colnames(X)[-1], collapse = '` + `'), "`"))
       } else {
         fixed <- as.formula(paste0("cbind(", idx[[1]], ", ", idx[[2]], ") ~ 1"))
       }
