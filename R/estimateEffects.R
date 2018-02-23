@@ -98,9 +98,6 @@ estimateEffects <- function(Y,
       EffCov[, snp] <- XSInv %*% (v - X2VinvX1 %*% VBetaSnpInv %*% VSnp[snp, ])
       QSnpInv <- solve(rbind(cbind(VBeta, X2VinvX1),
                              cbind(t(X2VinvX1), solve(VBetaSnpInv))))
-      ## FOR DEBUGGING NAN WARNING
-      if (any(diag(QSnpInv)[-(1:(p * nc))] < 0)) browser()
-      ##
       EffSe[, snp] <- sqrt(diag(QSnpInv)[-(1:(p * nc))])
       QInv[, snp] <- as.numeric(QSnpInv)
     }

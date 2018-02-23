@@ -475,13 +475,12 @@ runMultiTraitGwas <- function(gData,
   GWAResult <- dplyr::inner_join(GWAResult, effectsTot, by = c("snp" = "Var2")) %>%
     dplyr::inner_join(data.frame(snp = names(pValues), pValues,
                                  stringsAsFactors = FALSE), by = "snp") %>%
-    dplyr::mutate(LOD = -log10(.data$pValues)) %>% #LODWald = -log10(.data$pValueWald)
+    dplyr::mutate(LOD = -log10(.data$pValues)) %>%
     ## Select and compute relevant columns.
     ## Melt creates factors. Reconvert trait to character.
     dplyr::select(.data$snp, trait = .data$Var1, .data$chr, .data$pos,
                   pValue = .data$pValues, .data$LOD, effect = .data$value.x,
-                  effectSe = .data$value.y, #.data$pValueWald, .data$LODWald,
-                  .data$allFreq) %>%
+                  effectSe = .data$value.y, .data$allFreq) %>%
     dplyr::arrange(.data$trait, .data$chr, .data$pos)
   ## Collect info.
   GWASInfo <- list(call = match.call(),
