@@ -32,7 +32,8 @@ estimateEffects <- function(Y,
                             Ve,
                             K,
                             returnSe = TRUE,
-                            estCom = FALSE) {
+                            estCom = FALSE,
+                            nChunks = 200) {
   Y <- as.matrix(Y)
   W <- as.matrix(W)
   X <- as.matrix(X)
@@ -66,79 +67,90 @@ estimateEffects <- function(Y,
   v <- rowSums(sapply(X = 1:n, FUN = function(m) {
     kronecker(W[, m], vInvArr[m, , ] %*% Y[, m])
   }))
-  ## Define SNP-dependent quantities.
-  VSnp <- matrix(data = 0, nrow = ns, ncol = p)
-  VBetaSnp <- matrix(data = 0, nrow = ns, ncol = p ^ 2)
-  X2VinvX1Arr <- array(data = 0, dim = c(nc, ns, p ^ 2))
+  ## Calculate chunk sizes.
+  chunks <- split(1:ns, c(rep(1:nChunks, each = ns %/% nChunks),
+                          rep(nChunks, each = ns %% nChunks)))
+  ## Define output for effects.
   Eff <- matrix(data = 0, nrow = p, ncol = ns,
                 dimnames = list(genoNames, snpNames))
   if (returnSe) {
+    ## Define output for standard error of effects and p-values.
     EffSe <- Eff
-    EffCov <- matrix(data = 0, nrow = nc * p, ncol = ns)
-    QInv <- matrix(data = 0, nrow = ((nc + 1) * p) ^ 2, ncol = ns)
-  }
-  ## 'Fill' the SNP-dependent quantities, looping over the individuals.
-  for (i in 1:n) {
-    VSnp <- VSnp + tcrossprod(X[, i], vInvArr[i, , ] %*% Y[, i])
-    VBetaSnp <- VBetaSnp + tcrossprod(X2[, i], vInvArrRed[i, ])
-    for (cv in 1:nc) {
-      X2VinvX1Arr[cv, , ] <- X2VinvX1Arr[cv, , ] +
-        W[cv, i] * tcrossprod(X[, i], vInvArrRed[i, ])
-    }
-  }
-  ## Now do the remaining calculations, looping over the SNPs.
-  for (snp in 1:ns) {
-    VBetaSnpInv <- solve(matrix(data = VBetaSnp[snp, ], ncol = p))
-    X2VinvX1 <- matrix(t(X2VinvX1Arr[, snp, ]), ncol = p, byrow = TRUE)
-    XSInv <- solve(VBeta - X2VinvX1 %*% VBetaSnpInv %*% t(X2VinvX1))
-    Eff[, snp] <- VBetaSnpInv %*%
-      (VSnp[snp, ] + t(X2VinvX1) %*% XSInv %*%
-         (X2VinvX1 %*% VBetaSnpInv %*% VSnp[snp, ] - v))
-    if (returnSe) {
-      EffCov[, snp] <- XSInv %*% (v - X2VinvX1 %*% VBetaSnpInv %*% VSnp[snp, ])
-      QSnpInv <- solve(rbind(cbind(VBeta, X2VinvX1),
-                             cbind(t(X2VinvX1), solve(VBetaSnpInv))))
-      EffSe[, snp] <- sqrt(diag(QSnpInv)[-(1:(p * nc))])
-      QInv[, snp] <- as.numeric(QSnpInv)
-    }
-  }
-  if (returnSe) {
     pVals <- setNames(rep(x = 1, times = ns), snpNames)
+    ## Compute degrees of freedom
     dfFull <- (n - nc - 1) * p
-    ## Null model with the trait specific means only.
-    ## (which should be the model for which the Vg and Ve estimates were obtained).
+    ## Compute SS0 for null model with the trait specific means only.
     est0 <- solve(VBeta, v)
     fitMean0 <- matrix(est0, ncol = length(est0) / p) %*% W
     SS0 <- LLQuadFormDiag(Y = Y - fitMean0, vInvArr = vInvArr)
-    qScal <- rep(x = 0, times = ns)
-    VQ <- matrix(data = 0, nrow = ns, ncol = p * nc)
-    VSnpQ <- matrix(data = 0, nrow = ns, ncol = p)
+  }
+  for (ch in chunks) {
+    nsCh <- length(ch)
+    snpPos0 <- ch[1] - 1
+    ## Define SNP-dependent quantities.
+    VSnp <- matrix(data = 0, nrow = nsCh, ncol = p)
+    VBetaSnp <- matrix(data = 0, nrow = nsCh, ncol = p ^ 2)
+    X2VinvX1Arr <- array(data = 0, dim = c(nc, nsCh, p ^ 2))
+    if (returnSe) {
+      EffCov <- matrix(data = 0, nrow = nc * p, ncol = nsCh)
+      QInv <- matrix(data = 0, nrow = ((nc + 1) * p) ^ 2, ncol = nsCh)
+    }
+    ## 'Fill' the SNP-dependent quantities, looping over the individuals.
     for (i in 1:n) {
-      Res <- t(matrix(data = 1, nrow = p, ncol = ns) * Y[, i]) -
-        X[, i] * t(Eff) - W[1, i] * t(EffCov[1:p, ])
-      if (nc > 1) {
-        for (ec in 2:nc) {
-          Res <- Res - W[ec, i] * t(EffCov[(ec - 1) * p + 1:p, ])
-        }
-      }
-      ResVInv <- Res %*% vInvArr[i, , ]
-      qScal <- qScal + rowSums(Res * ResVInv)
-      VSnpQ <- VSnpQ + X[, i] * ResVInv
-      VQ[, 1:p] <- VQ[, 1:p] + W[1, i] * ResVInv
-      if (nc > 1) {
-        for (ec in 2:nc) {
-          VQ[, (ec - 1) * p + 1:p] <- VQ[, (ec - 1) * p + 1:p] +
-            W[ec, i] * ResVInv
-        }
+      VSnp <- VSnp + tcrossprod(X[ch, i], vInvArr[i, , ] %*% Y[, i])
+      VBetaSnp <- VBetaSnp + tcrossprod(X2[ch, i], vInvArrRed[i, ])
+      for (cv in 1:nc) {
+        X2VinvX1Arr[cv, , ] <- X2VinvX1Arr[cv, , ] +
+          W[cv, i] * tcrossprod(X[ch, i], vInvArrRed[i, ])
       }
     }
-    for (snp in 1:ns) {
-      QSnpInv <- matrix(QInv[, ns], ncol = p * (nc + 1))
-      QSnp <- matrix(c(VQ[snp, ], VSnpQ[snp, ]))
-      SS1 <- qScal[snp] - t(QSnp) %*% QSnpInv %*% QSnp
-      FVal <- ((SS0 - SS1) / SS1) * dfFull / p
-      pVals[snp] <- pf(q = FVal, df1 = p, df2 = dfFull,
-                       lower.tail = FALSE)
+    ## Now do the remaining calculations, looping over the SNPs.
+    for (snp in 1:nsCh) {
+      VBetaSnpInv <- solve(matrix(data = VBetaSnp[snp, ], ncol = p))
+      X2VinvX1 <- matrix(t(X2VinvX1Arr[, snp, ]), ncol = p, byrow = TRUE)
+      XSInv <- solve(VBeta - X2VinvX1 %*% VBetaSnpInv %*% t(X2VinvX1))
+      Eff[, snpPos0 + snp] <- VBetaSnpInv %*%
+        (VSnp[snp, ] + t(X2VinvX1) %*% XSInv %*%
+           (X2VinvX1 %*% VBetaSnpInv %*% VSnp[snp, ] - v))
+      if (returnSe) {
+        EffCov[, snp] <- XSInv %*% (v - X2VinvX1 %*% VBetaSnpInv %*% VSnp[snp, ])
+        QSnpInv <- solve(rbind(cbind(VBeta, X2VinvX1),
+                               cbind(t(X2VinvX1), solve(VBetaSnpInv))))
+        EffSe[, snpPos0 + snp] <- sqrt(diag(QSnpInv)[-(1:(p * nc))])
+        QInv[, snp] <- as.numeric(QSnpInv)
+      }
+    }
+    if (returnSe) {
+      qScal <- rep(x = 0, times = nsCh)
+      VQ <- matrix(data = 0, nrow = nsCh, ncol = p * nc)
+      VSnpQ <- matrix(data = 0, nrow = nsCh, ncol = p)
+      for (i in 1:n) {
+        Res <- t(matrix(data = 1, nrow = p, ncol = nsCh) * Y[, i]) -
+          X[ch, i] * t(Eff[, ch]) - W[1, i] * t(EffCov[1:p, ])
+        if (nc > 1) {
+          for (ec in 2:nc) {
+            Res <- Res - W[ec, i] * t(EffCov[(ec - 1) * p + 1:p, ])
+          }
+        }
+        ResVInv <- Res %*% vInvArr[i, , ]
+        qScal <- qScal + rowSums(Res * ResVInv)
+        VSnpQ <- VSnpQ + X[ch, i] * ResVInv
+        VQ[, 1:p] <- VQ[, 1:p] + W[1, i] * ResVInv
+        if (nc > 1) {
+          for (ec in 2:nc) {
+            VQ[, (ec - 1) * p + 1:p] <- VQ[, (ec - 1) * p + 1:p] +
+              W[ec, i] * ResVInv
+          }
+        }
+      }
+      for (snp in 1:nsCh) {
+        QSnpInv <- matrix(QInv[, nsCh], ncol = p * (nc + 1))
+        QSnp <- matrix(c(VQ[snp, ], VSnpQ[snp, ]))
+        SS1 <- qScal[snp] - t(QSnp) %*% QSnpInv %*% QSnp
+        FVal <- ((SS0 - SS1) / SS1) * dfFull / p
+        pVals[snpPos0 + snp] <- pf(q = FVal, df1 = p, df2 = dfFull,
+                                   lower.tail = FALSE)
+      }
     }
   }
   if (estCom) {
