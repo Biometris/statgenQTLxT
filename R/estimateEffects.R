@@ -36,7 +36,7 @@ estimateEffects <- function(Y,
   Y <- as.matrix(Y)
   W <- as.matrix(W)
   X <- as.matrix(X)
-  ## Extract number of traits, individuals, covariates and SNPs
+  ## Extract number of traits, individuals, covariates and SNPs.
   p <- ncol(Y)
   n <- nrow(Y)
   nc <- ncol(W)
@@ -56,17 +56,17 @@ estimateEffects <- function(Y,
   X2 <- X ^ 2
   # Define vInvArr
   vInvArr <- makeVInvArray(Vg = Vg, Ve = Ve , Dk = Dk)
-  ## create a second instance of vInvArr, in matrix form
+  ## create a second instance of vInvArr, in matrix form.
   vInvArrRed <- vInvArr
   dim(vInvArrRed) <- c(n, p ^ 2)
-  ## Compute quantities that are independent of the SNPs
+  ## Compute quantities that are independent of the SNPs.
   VBeta <- matrix(rowSums(sapply(X = 1:n, FUN = function(m) {
     kronecker(tcrossprod(W[, m]), vInvArr[m, , ])
   })), ncol = p * nc)
   v <- rowSums(sapply(X = 1:n, FUN = function(m) {
     kronecker(W[, m], vInvArr[m, , ] %*% Y[, m])
   }))
-  ## Define SNP-dependent quantities
+  ## Define SNP-dependent quantities.
   VSnp <- matrix(data = 0, nrow = ns, ncol = p)
   VBetaSnp <- matrix(data = 0, nrow = ns, ncol = p ^ 2)
   X2VinvX1Arr <- array(data = 0, dim = c(nc, ns, p ^ 2))
@@ -77,7 +77,7 @@ estimateEffects <- function(Y,
     EffCov <- matrix(data = 0, nrow = nc * p, ncol = ns)
     QInv <- matrix(data = 0, nrow = ((nc + 1) * p) ^ 2, ncol = ns)
   }
-  ## 'Fill' the SNP-dependent quantities, looping over the individuals
+  ## 'Fill' the SNP-dependent quantities, looping over the individuals.
   for (i in 1:n) {
     VSnp <- VSnp + tcrossprod(X[, i], vInvArr[i, , ] %*% Y[, i])
     VBetaSnp <- VBetaSnp + tcrossprod(X2[, i], vInvArrRed[i, ])
@@ -86,7 +86,7 @@ estimateEffects <- function(Y,
         W[cv, i] * tcrossprod(X[, i], vInvArrRed[i, ])
     }
   }
-  ## Now do the remaining calculations, looping over the SNPs
+  ## Now do the remaining calculations, looping over the SNPs.
   for (snp in 1:ns) {
     VBetaSnpInv <- solve(matrix(data = VBetaSnp[snp, ], ncol = p))
     X2VinvX1 <- matrix(t(X2VinvX1Arr[, snp, ]), ncol = p, byrow = TRUE)
@@ -106,8 +106,8 @@ estimateEffects <- function(Y,
     pVals <- setNames(rep(x = 1, times = ns), snpNames)
     dfFull <- (n - (nc + 1)) * p
     dfRed  <- (n - nc) * p
-    ## Null model with the trait specific means only
-    ## (which should be the model for which the Vg and Ve estimates were obtained)
+    ## Null model with the trait specific means only.
+    ## (which should be the model for which the Vg and Ve estimates were obtained).
     est0 <- solve(VBeta, v)
     fitMean0 <- matrix(est0, ncol = length(est0) / p) %*% W
     SS0 <- LLQuadFormDiag(Y = Y - fitMean0, vInvArr = vInvArr)
@@ -152,7 +152,7 @@ estimateEffects <- function(Y,
       EffCovCom <- matrix(data = 0, nrow = nc * p, ncol = ns)
       QInvCom <- matrix(data = 0, nrow = (nc * p + 1) ^ 2, ncol = ns)
     }
-    ## 'Fill' the SNP-dependent quantities, looping over the individuals
+    ## 'Fill' the SNP-dependent quantities, looping over the individuals.
     s1 <- s2 <- numeric(n)
     S3 <- matrix(nrow = n, ncol = p)
     for (i in 1:n) {

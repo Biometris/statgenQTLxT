@@ -444,7 +444,8 @@ runMultiTraitGwas <- function(gData,
     effects <- effEst$effects
     effectsSe <- effEst$effectsSe
   } else if (GLSMethod == 2) {
-    pValues <- numeric(0)
+    pValues <- numeric()
+    ## Create an empty matrix with traits as header.
     effects <- effectsSe <- t(gData$pheno[[environment]][FALSE, -1])
     for (chr in chrs) {
       mapRedChr <- mapRed[which(mapRed$chr == chr), ]

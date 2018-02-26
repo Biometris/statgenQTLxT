@@ -98,7 +98,8 @@ computeExcludedMarkers <- function(snpCovariates,
                        candidates[apply(X = markersRed[, candidates],
                                         MARGIN = 2,
                                         FUN = function(x) {
-                                          identical(as.numeric(x), as.numeric(snpInfo))
+                                          identical(as.numeric(x),
+                                                    as.numeric(snpInfo))
                                         })])
     }
   }

@@ -37,6 +37,9 @@ covUnstructured <- function(Y,
   }
   Y <- tibble::rownames_to_column(as.data.frame(as.matrix(Y)), var = "genotype")
   if (!is.null(X)) {
+    ## sommer cannot handle column names with special characters.
+    ## Therefore Simplify column names in X.
+    colnames(X) <- make.names(colnames(X), unique = TRUE)
     X <- tibble::rownames_to_column(as.data.frame(as.matrix(X)), var = "genotype")
     data <- merge(Y, X, by = "genotype")
   } else {
@@ -49,7 +52,7 @@ covUnstructured <- function(Y,
   if (!is.null(X)) {
     ## Define formula for fixed part. ` needed to accommodate - in variable names.
     fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ `",
-                               paste(colnames(X)[-1], collapse ='` + `'), "`"))
+                               paste(colnames(X)[-1], collapse = '` + `'), "`"))
   } else {
     fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ 1"))
   }
@@ -90,6 +93,9 @@ covPairwise <- function(Y,
   }
   Y <- tibble::rownames_to_column(as.data.frame(as.matrix(Y)), var = "genotype")
   if (!is.null(X)) {
+    ## sommer cannot handle column names with special characters.
+    ## Therefore Simplify column names in X.
+    colnames(X) <- make.names(colnames(X), unique = TRUE)
     X <- tibble::rownames_to_column(as.data.frame(as.matrix(X)), var = "genotype")
     data <- merge(Y, X, by = "genotype")
   } else {
@@ -102,7 +108,7 @@ covPairwise <- function(Y,
   if (!is.null(X)) {
     ## Define formula for fixed part. ` needed to accommodate - in variable names.
     fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ `",
-                               paste(colnames(X)[-1], collapse ='` + `'), "`"))
+                               paste(colnames(X)[-1], collapse = '` + `'), "`"))
   } else {
     fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ 1"))
   }
@@ -128,7 +134,7 @@ covPairwise <- function(Y,
       if (!is.null(X)) {
         ## Define formula for fixed part. ` needed to accommodate - in variable names.
         fixed <- as.formula(paste0("cbind(", idx[[1]], ", ", idx[[2]], ") ~ `",
-                                   paste(colnames(X)[-1], collapse ='` + `'), "`"))
+                                   paste(colnames(X)[-1], collapse = '` + `'), "`"))
       } else {
         fixed <- as.formula(paste0("cbind(", idx[[1]], ", ", idx[[2]], ") ~ 1"))
       }
