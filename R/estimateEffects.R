@@ -104,8 +104,7 @@ estimateEffects <- function(Y,
   }
   if (returnSe) {
     pVals <- setNames(rep(x = 1, times = ns), snpNames)
-    dfFull <- (n - (nc + 1)) * p
-    dfRed  <- (n - nc) * p
+    dfFull <- (n - nc - 1) * p
     ## Null model with the trait specific means only.
     ## (which should be the model for which the Vg and Ve estimates were obtained).
     est0 <- solve(VBeta, v)
@@ -137,8 +136,8 @@ estimateEffects <- function(Y,
       QSnpInv <- matrix(QInv[, ns], ncol = p * (nc + 1))
       QSnp <- matrix(c(VQ[snp, ], VSnpQ[snp, ]))
       SS1 <- qScal[snp] - t(QSnp) %*% QSnpInv %*% QSnp
-      FVal <- ((SS0 - SS1) / SS1) * dfFull / (dfRed - dfFull)
-      pVals[snp] <- pf(q = FVal, df1 = dfRed - dfFull, df2 = dfFull,
+      FVal <- ((SS0 - SS1) / SS1) * dfFull / p
+      pVals[snp] <- pf(q = FVal, df1 = p, df2 = dfFull,
                        lower.tail = FALSE)
     }
   }

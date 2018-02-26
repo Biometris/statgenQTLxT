@@ -288,10 +288,10 @@ runMultiTraitGwas <- function(gData,
         if (!is.null(snpCovariates)) {
           ## Sommer always adds an intercept so remove it from XRed.
           varCompRed <- covUnstructured(Y = Y, K = K,
-                                        X = if (ncol(X) == 1) {
+                                        X = if (ncol(XRed) == 1) {
                                           NULL
                                         } else {
-                                          X[, -1, drop = FALSE]
+                                          XRed[, -1, drop = FALSE]
                                         },
                                         fixDiag = FALSE, VeDiag = VeDiag)
         }
