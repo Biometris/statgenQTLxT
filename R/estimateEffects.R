@@ -15,6 +15,8 @@
 #' @param K An n x n genetic relatedness matrix.
 #' @param returnSe Should standard errors and p-values be returned?
 #' @param estCom Should the common SNP-effect model be fitted?
+#' @param nChunks An integer, the number of blocks in which the calculations
+#' should be split.
 #'
 #' @return A list containing the estimates, optionally the standard errors of
 #' the estimates and corresponding p-values. If \code{estCom = TRUE} also
@@ -74,15 +76,14 @@ estimateEffects <- function(Y,
   Eff <- matrix(data = 0, nrow = p, ncol = ns,
                 dimnames = list(genoNames, snpNames))
   if (returnSe) {
-    ## Define output for standard error of effects and p-values.
+    ## Define output for standard error of effects.
     EffSe <- Eff
-    pVals <- setNames(rep(x = 1, times = ns), snpNames)
-    ## Compute degrees of freedom
-    dfFull <- (n - nc - 1) * p
     ## Compute SS0 for null model with the trait specific means only.
     est0 <- solve(VBeta, v)
     fitMean0 <- matrix(est0, ncol = length(est0) / p) %*% W
     SS0 <- LLQuadFormDiag(Y = Y - fitMean0, vInvArr = vInvArr)
+    ## Define output for SS1.
+    SS1 <- setNames(rep(x = 1, times = ns), snpNames)
   }
   for (ch in chunks) {
     nsCh <- length(ch)
@@ -108,12 +109,12 @@ estimateEffects <- function(Y,
     for (snp in 1:nsCh) {
       VBetaSnpInv <- solve(matrix(data = VBetaSnp[snp, ], ncol = p))
       X2VinvX1 <- matrix(t(X2VinvX1Arr[, snp, ]), ncol = p, byrow = TRUE)
-      XSInv <- solve(VBeta - X2VinvX1 %*% VBetaSnpInv %*% t(X2VinvX1))
+      XSInv <- solve(VBeta - tcrossprod(X2VinvX1 %*% VBetaSnpInv, X2VinvX1))
+      EffCovSnp <- XSInv %*% (v - X2VinvX1 %*% VBetaSnpInv %*% VSnp[snp, ])
       Eff[, snpPos0 + snp] <- VBetaSnpInv %*%
-        (VSnp[snp, ] + t(X2VinvX1) %*% XSInv %*%
-           (X2VinvX1 %*% VBetaSnpInv %*% VSnp[snp, ] - v))
+        (VSnp[snp, ] - crossprod(X2VinvX1, EffCovSnp))
       if (returnSe) {
-        EffCov[, snp] <- XSInv %*% (v - X2VinvX1 %*% VBetaSnpInv %*% VSnp[snp, ])
+        EffCov[, snp] <- EffCovSnp
         QSnpInv <- solve(rbind(cbind(VBeta, X2VinvX1),
                                cbind(t(X2VinvX1), solve(VBetaSnpInv))))
         EffSe[, snpPos0 + snp] <- sqrt(diag(QSnpInv)[-(1:(p * nc))])
@@ -146,12 +147,15 @@ estimateEffects <- function(Y,
       for (snp in 1:nsCh) {
         QSnpInv <- matrix(QInv[, nsCh], ncol = p * (nc + 1))
         QSnp <- matrix(c(VQ[snp, ], VSnpQ[snp, ]))
-        SS1 <- qScal[snp] - t(QSnp) %*% QSnpInv %*% QSnp
-        FVal <- ((SS0 - SS1) / SS1) * dfFull / p
-        pVals[snpPos0 + snp] <- pf(q = FVal, df1 = p, df2 = dfFull,
-                                   lower.tail = FALSE)
+        SS1[snpPos0 + snp] <- qScal[snp] - crossprod(QSnp, QSnpInv %*% QSnp)
       }
     }
+  }
+  if (returnSe) {
+    ## Compute degrees of freedom
+    dfFull <- (n - nc - 1) * p
+    FVals <- ((SS0 - SS1) / SS1) * dfFull / p
+    pVals <- pf(q = FVals, df1 = p, df2 = dfFull, lower.tail = FALSE)
   }
   if (estCom) {
     ## Define SNP-dependent quantities
