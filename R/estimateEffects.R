@@ -83,7 +83,7 @@ estimateEffects <- function(Y,
     fitMean0 <- matrix(est0, ncol = length(est0) / p) %*% W
     SS0 <- LLQuadFormDiag(Y = Y - fitMean0, vInvArr = vInvArr)
     ## Define output for SS1.
-    SS1 <- setNames(rep(x = 1, times = ns), snpNames)
+    SS1 <- setNames(rep(x = NA, times = ns), snpNames)
   }
   for (ch in chunks) {
     nsCh <- length(ch)
@@ -201,17 +201,58 @@ estimateEffects <- function(Y,
         QInvCom[, snp] <- as.numeric(QSnpInvCom)
       }
     }
+    if (returnSe) {
+      dfCom  <- (n - nc) * p - 1
+      ### Null model with the trait specific means only
+      #    (which should be the model for which the Vg and Ve estimates were obtained)
+      qScal <- rep(0, ns)
+      VQ <- matrix(0, ns, p * nc)
+      VSnpQ <- matrix(0, ns, 1)
+      for (i in 1:n) {
+        Res <- t(matrix(1, p, ns) * Y[,i]) -
+          X[, i] %*% matrix(1, 1, p) * as.numeric(EffCom) -
+          t(EffCovCom[1:p, ] * W[1, i])
+        if (nc > 1) {
+          for (ec in 2:nc) {
+            Res <- Res - t(EffCovCom[(ec - 1) * p + 1:p, ] * W[ec, i])
+          }
+        }
+        ResVInv <- Res %*% vInvArr[i, , ]
+        qScal <- qScal + rowSums(Res * ResVInv)
+        VSnpQ <- VSnpQ + X[, i] * rowSums(ResVInv)
+        VQ[, 1:p] <- VQ[, 1:p] + W[1,i] * ResVInv
+        if (nc > 1) {
+          for (ec in 2:nc) {
+            VQ[, (ec - 1) * p + 1:p] <- VQ[, (ec - 1) * p + 1:p] +
+              W[ec, i] * Res %*% vInvArr[i, , ]
+          }
+        }
+      }
+      SS1Com <- setNames(rep(x = NA, times = ns), snpNames)
+      for (snp in 1:ns) {
+        QSnpInv <- matrix(QInvCom[, ns], ncol = p * nc + 1)
+        QSnp <- matrix(c(VQ[snp, ], VSnpQ[snp, ]))
+        SS1Com[snp] <- qScal[snp] - crossprod(QSnp, QSnpInv %*% QSnp)
+      }
+      FValCom <- (SS0 - SS1Com) / SS1Com * dfCom
+      pValCom <- pf(q = FValCom, df1 = 1, df2 = dfCom, lower.tail = FALSE)
+      FValQtlE <- ((SS1Com - SS1) / SS1) * dfFull / (p - 1)
+      pValQtlE <- pf(q = FValQtlE, df1 = p - 1, df2 = dfFull,
+                     lower.tail = FALSE)
+    }
   }
   ## Construct output.
   out <- list(effects = Eff)
   if (returnSe) {
-    out$effectsSe = EffSe
-    out$pVals = pVals
+    out$effectsSe <- EffSe
+    out$pVals <- pVals
   }
   if (estCom) {
-    out$effectsCom = EffCom
+    out$effectsCom <- EffCom
     if (returnSe) {
-      out$effectsSe = EffSeCom
+      out$effectsSe <- EffSeCom
+      out$pValCom <- pValCom
+      out$PValQtlE <- pValQtlE
     }
   }
   return(out)
