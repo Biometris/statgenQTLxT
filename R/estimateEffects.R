@@ -36,7 +36,8 @@ estimateEffects <- function(Y,
                             K,
                             returnSe = TRUE,
                             estCom = FALSE,
-                            nChunks = 50) {
+                            nChunks = ceiling(ncol(Y) * ncol(W) *
+                                                ncol(X) / 50000)) {
   ## Y, W and X might be from the Matrix class. This function needs standard
   ## matrices for its computations.
   Y <- as.matrix(Y)
