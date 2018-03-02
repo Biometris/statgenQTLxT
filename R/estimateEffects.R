@@ -67,14 +67,14 @@ estimateEffects <- function(Y,
   vInvArrRed <- vInvArr
   dim(vInvArrRed) <- c(n, p ^ 2)
   ## Compute quantities that are independent of the SNPs.
-  VBeta <- matrix(rowSums(sapply(X = 1:n, FUN = function(m) {
-    kronecker(tcrossprod(W[, m]), vInvArr[m, , ])
+  VBeta <- matrix(rowSums(sapply(X = 1:n, FUN = function(i) {
+    kronecker(tcrossprod(W[, i]), vInvArr[i, , ])
   })), ncol = p * nc)
-  v <- rowSums(sapply(X = 1:n, FUN = function(m) {
-    kronecker(W[, m], vInvArr[m, , ] %*% Y[, m])
+  v <- rowSums(sapply(X = 1:n, FUN = function(i) {
+    kronecker(W[, i], vInvArr[i, , ] %*% Y[, i])
   }))
-  ## YSnpVInv is used is several equations so is defined once here.
-  YSnpVInv <- sapply(X = 1:n, FUN = function(i) {
+  ## VInvY is used is several equations so is computed once here.
+  VInvY <- sapply(X = 1:n, FUN = function(i) {
     vInvArr[i, , ] %*% Y[, i]
   })
   ## Define output for effects.
@@ -90,10 +90,10 @@ estimateEffects <- function(Y,
     ## Compute VQ
     VQ <- numeric(p * nc)
     for (c in 1:nc) {
-      VQ[(c - 1) * p + 1:p] <- YSnpVInv %*% W[c, ]
+      VQ[(c - 1) * p + 1:p] <- VInvY %*% W[c, ]
     }
     ## Compute scalar part of SS1.
-    qScal <- sum(Y * YSnpVInv)
+    qScal <- sum(Y * VInvY)
     ## Define output for SS1.
     SS1 <- setNames(rep(x = NA, times = ns), snpNames)
   }
@@ -101,7 +101,7 @@ estimateEffects <- function(Y,
     ## Define output for common effects.
     EffCom <- setNames(numeric(ns), snpNames)
     ## Compute chunk independent quantities.
-    s1 <- colSums(YSnpVInv)
+    s1 <- colSums(VInvY)
     s2 <- apply(X = vInvArr, MARGIN = 1, FUN = sum)
     S3 <- t(apply(X = vInvArr, MARGIN = 1, FUN = rowSums))
     if (returnSe) {
@@ -122,16 +122,20 @@ estimateEffects <- function(Y,
     snpPos0 <- ch[1] - 1
     ## Define SNP-dependent quantities.
     X2VinvX1Arr <- array(data = 0, dim = c(nc, nsCh, p ^ 2))
-    if (returnSe) {
-      QInv <- array(dim = c(nsCh, (nc + 1) * p, (nc + 1) * p))
-    }
     ## Fill X2VinvX1Arr by looping over covariates.
     for (cv in 1:nc) {
       X2VinvX1Arr[cv, , ] <- X[ch, ] %*% (vInvArrRed * as.numeric(W[cv, ]))
     }
     ## Compute VBeta and V per SNP - computation only depends on individuals.
     VBetaSnp <- X2[ch, ] %*% vInvArrRed
-    VSnp <- tcrossprod(X[ch, ], YSnpVInv)
+    VSnp <- tcrossprod(X[ch, ], VInvY)
+    if (returnSe) {
+      ## Compute VSnpQ by looping over individuals.
+      VSnpQ <- matrix(data = 0, nrow = nsCh, ncol = p)
+      for (i in 1:n) {
+        VSnpQ <- VSnpQ + X[ch, i] %o% VInvY[, i]
+      }
+    }
     ## The remaining calculations are SNP-dependent.
     for (snp in 1:nsCh) {
       ## Compute inverse of VBetaSnp.
@@ -151,30 +155,17 @@ estimateEffects <- function(Y,
                                cbind(t(X2VinvX1), solve(VBetaSnpInv))))
         ## Compute SE of SNP effect.
         EffSe[, snpPos0 + snp] <- sqrt(diag(QSnpInv)[-(1:(p * nc))])
-        QInv[snp, , ] <- QSnpInv
-      }
-    }
-    if (returnSe) {
-      ## Compute VSnpQ by looping over individuals.
-      VSnpQ <- matrix(data = 0, nrow = nsCh, ncol = p)
-      for (i in 1:n) {
-        VSnpQ <- VSnpQ + X[ch, i] %o% YSnpVInv[, i]
-      }
-      for (snp in 1:nsCh) {
         ## Compute SS1 per SNP.
         QSnp <- c(VQ, VSnpQ[snp, ])
-        SS1[snpPos0 + snp] <- qScal - crossprod(QSnp, QInv[snp, , ] %*% QSnp)
-      }
-    }
+        SS1[snpPos0 + snp] <- qScal - crossprod(QSnp, QSnpInv %*% QSnp)
+      } # End returnSe
+    } # End loop over SNPs
     if (estCom) {
       ## Calculations for common effect are similar to those above.
       ## However the dimensions are lower and therefore some calculations
       ## have been simplified.
       ## Define SNP-dependent quantities.
       X2VinvX1ArrCom <- array(data = 0, dim = c(nc, nsCh, p))
-      if (returnSe) {
-        QInvCom <- array(dim = c(nsCh, nc * p + 1, nc * p + 1))
-      }
       ## Fill X2VinvX1ArrCom by looping over covariates.
       for (cv in 1:nc) {
         X2VinvX1ArrCom[cv, , ] <- X[ch, ] %*% (S3 * as.numeric(W[cv, ]))
@@ -182,6 +173,10 @@ estimateEffects <- function(Y,
       ## Compute common VBeta and V per SNP - only depends on individuals.
       VSnpCom <- X[ch, ] %*% s1
       VBetaSnpCom <- X2[ch, ] %*% s2
+      if (returnSe) {
+        ## Compute VSnpQ for common effect.
+        vSnpQCom <- rowSums(X[ch, ] %*% colSums(VInvY))
+      }
       ## The remaining calculations are SNP-dependent.
       for (snp in 1:nsCh) {
         ## Compute VBetaSnpInvCom - scalar value
@@ -194,7 +189,7 @@ estimateEffects <- function(Y,
         EffCovComSnp <- XSInvCom %*%
           (v - VBetaSnpInvCom * VSnpCom[snp] * X2VinvX1Com)
         ## Compute common effect.
-        EffCom[snpPos0 + snp] <- VBetaSnpInvCom %*%
+        EffCom[snpPos0 + snp] <- VBetaSnpInvCom *
           (VSnpCom[snp] - X2VinvX1Com %*% EffCovComSnp)
         if (returnSe) {
           ## Compute inverse of QSnp for common effect.
@@ -202,19 +197,12 @@ estimateEffects <- function(Y,
                                     c(X2VinvX1Com, 1 / VBetaSnpInvCom)))
           ## Compute SE of common SNP effect.
           EffSeCom[snpPos0 + snp] <- sqrt(diag(QSnpInvCom)[-(1:(p * nc))])
-          QInvCom[snp, , ] <- QSnpInvCom
-        }
-      }
-      if (returnSe) {
-        ## Compute VSnpQ for common effect.
-        vSnpQCom <- rowSums(X[ch, ] %*% colSums(YSnpVInv))
-        for (snp in 1:nsCh) {
           ## Compute SS1 for common effect.
           QSnpCom <- c(VQ, vSnpQCom[snp])
           SS1Com[snpPos0 + snp] <- qScal -
-            crossprod(QSnpCom, QInvCom[snp, , ] %*% QSnpCom)
-        }
-      }
+            crossprod(QSnpCom, QSnpInvCom %*% QSnpCom)
+        } # End returnSe
+      } # End loop over SNPs
     } # End estCom
   } # End loop over chuncks
   if (returnSe) {
