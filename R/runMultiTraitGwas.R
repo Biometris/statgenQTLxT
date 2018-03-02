@@ -431,18 +431,27 @@ runMultiTraitGwas <- function(gData,
                           stringsAsFactors = FALSE)
   ## Run GWAS.
   if (GLSMethod == 1) {
-    excludedMarkers <- which(allFreq < MAF | allFreq > 1 - MAF)
+    segMarkers <- which(allFreq < MAF | allFreq > 1 - MAF)
     ## Add snpCovariates to segregating markers.
-    excludedMarkers <- union(excludedMarkers,
+    excludedMarkers <- union(segMarkers,
                              computeExcludedMarkers(snpCovariates = snpCovariates,
                                                     markersRed = markersRed,
                                                     allFreq = allFreq))
+    if (!is.null(snpCovariates)) {
+      effEstSnpCov <- estimateEffects(Y = Y, W = XRed,
+                                      X = markersRed[, snpCovariates,
+                                                     drop = FALSE],
+                                      Vg = Vg, Ve = Ve, K = K)
+    }
     effEst <- estimateEffects(Y = Y, W = X,
                               X = markersRed[, -excludedMarkers],
                               Vg = Vg, Ve = Ve, K = K)
-    pValues <- effEst$pVals
-    effects <- effEst$effects
-    effectsSe <- effEst$effectsSe
+    pValues <- c(effEst$pVals,
+                 if (!is.null(snpCovariates)) effEstSnpCov$pVals)
+    effects <- cbind(effEst$effects,
+                     if (!is.null(snpCovariates)) effEstSnpCov$effects)
+    effectsSe <- cbind(effEst$effectsSe,
+                       if (!is.null(snpCovariates)) effEstSnpCov$effectsSe)
   } else if (GLSMethod == 2) {
     pValues <- numeric()
     ## Create an empty matrix with traits as header.
@@ -452,23 +461,36 @@ runMultiTraitGwas <- function(gData,
       markersRedChr <- markersRed[, which(colnames(markersRed) %in%
                                             rownames(mapRedChr)), drop = FALSE]
       allFreqChr <- Matrix::colMeans(markersRedChr) / max(markersRedChr)
-      excludedMarkers <- which(allFreqChr < MAF | allFreqChr > 1 - MAF)
+      segMarkers <- which(allFreqChr < MAF | allFreqChr > 1 - MAF)
+      snpCovChr <- snpCovariates[snpCovariates %in% colnames(markersRedChr)]
       ## Add snpCovariates to segregating markers.
-      excludedMarkers <- union(excludedMarkers,
-                               computeExcludedMarkers(snpCovariates = snpCovariates,
+      excludedMarkers <- union(segMarkers,
+                               computeExcludedMarkers(snpCovariates = snpCovChr,
                                                       markersRed = markersRedChr,
                                                       allFreq = allFreqChr))
+      if (length(snpCovChr) > 0) {
+        effEstSnpCov <- estimateEffects(Y = Y, W = XRed,
+                                        X = markersRedChr[, snpCovChr,
+                                                          drop = FALSE],
+                                        Vg = Vg[[which(chrs == chr)]],
+                                        Ve = Ve[[which(chrs == chr)]],
+                                        K = KChr[[which(chrs == chr)]])
+      }
       effEst <- estimateEffects(Y = Y, W = X,
                                 X = markersRedChr[, -excludedMarkers],
                                 Vg = Vg[[which(chrs == chr)]],
                                 Ve = Ve[[which(chrs == chr)]],
                                 K = KChr[[which(chrs == chr)]])
-      pValues <- c(pValues, effEst$pVals)
-      effects <- cbind(effects, effEst$effects)
-      effectsSe <- cbind(effectsSe, effEst$effectsSe)
+      pValues <- c(pValues, effEst$pVals,
+                   if (length(snpCovChr) > 0) effEstSnpCov$pVals)
+      effects <- cbind(effects, effEst$effects,
+                       if (length(snpCovChr) > 0) effEstSnpCov$effects)
+      effectsSe <- cbind(effectsSe, effEst$effectsSe,
+                         if (length(snpCovChr) > 0) effEstSnpCov$effectsSe)
+
     }
   }
-  ## Convert effects en effectsSe to long format and merge.
+  ## Convert effects and effectsSe to long format and merge.
   effectsTot <- reshape2::melt(effects) %>%
     dplyr::inner_join(reshape2::melt(effectsSe), by = c("Var1", "Var2")) %>%
     dplyr::mutate(Var1 = as.character(.data$Var1), Var2 = as.character(.data$Var2))
