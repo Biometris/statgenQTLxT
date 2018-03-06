@@ -93,13 +93,12 @@ computeExcludedMarkers <- function(snpCovariates,
       ## Rough selection based on allele frequency. Done for speed.
       candidates <- which(allFreq == allFreq[snp])
       ## Exclude all snps that are identical to snps in snpCovariates.
-      snpInfo <- markersRed[, snp]
+      snpInfo <- as.numeric(markersRed[, snp])
       exclude <- union(exclude,
                        candidates[apply(X = markersRed[, candidates],
                                         MARGIN = 2,
                                         FUN = function(x) {
-                                          identical(as.numeric(x),
-                                                    as.numeric(snpInfo))
+                                          identical(as.numeric(x), snpInfo)
                                         })])
     }
   }

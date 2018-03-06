@@ -30,7 +30,7 @@ LLQuadFormDiag <- function(Y,
   nc <- nrow(X)
   n <- ncol(Y)
   p <- nrow(Y)
-  ## Define functions for faster computation of scalair part, q and Q.
+  ## Define functions for faster computation of scalar part, q and Q.
   scalFunc <- function(i) {
     as.numeric(crossprod(Y[, i], vInvArr[i, ,] %*% Y[, i]))
   }
