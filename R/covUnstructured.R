@@ -143,12 +143,14 @@ covPairwise <- function(Y,
     }, simplify = FALSE)
   ## Fill VgMat using symmetry.
   VgMat[lower.tri(VgMat)] <- sapply(1:length(pwVar), FUN = function(x) {
-    if (!corMat) pwVar[[x]][[1]][1, 2] else cov2cor(pwVar[[x]][[1]])[1, 2]
+    if (!corMat) pwVar[[x]][[1]][1, 2] else
+      Matrix::cov2cor(Matrix::nearPD(pwVar[[x]][[1]])$mat)[1, 2]
   })
   VgMat[upper.tri(VgMat)] <- t(VgMat)[upper.tri(VgMat)]
   ## Fill VeMat using symmetry.
   VeMat[lower.tri(VeMat)] <- sapply(1:length(pwVar), FUN = function(x) {
-    if (!corMat) pwVar[[x]][[2]][1, 2] else cov2cor(pwVar[[x]][[2]])[1, 2]
+    if (!corMat) pwVar[[x]][[1]][1, 2] else
+      Matrix::cov2cor(Matrix::nearPD(pwVar[[x]][[2]])$mat)[1, 2]
   })
   VeMat[upper.tri(VeMat)] <- t(VeMat)[upper.tri(VeMat)]
   ## Make positive definite.
