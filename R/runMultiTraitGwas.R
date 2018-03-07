@@ -433,7 +433,7 @@ runMultiTraitGwas <- function(gData,
   if (GLSMethod == 1) {
     segMarkers <- which(allFreq < MAF | allFreq > 1 - MAF)
     ## Add snpCovariates to segregating markers.
-    excludedMarkers <- union(segMarkers,
+    excludedMarkers <- union(c(segMarkers, ncol(markersRed) + 1),
                              computeExcludedMarkers(snpCovariates = snpCovariates,
                                                     markersRed = markersRed,
                                                     allFreq = allFreq))
@@ -464,7 +464,7 @@ runMultiTraitGwas <- function(gData,
       segMarkers <- which(allFreqChr < MAF | allFreqChr > 1 - MAF)
       snpCovChr <- snpCovariates[snpCovariates %in% colnames(markersRedChr)]
       ## Add snpCovariates to segregating markers.
-      excludedMarkers <- union(segMarkers,
+      excludedMarkers <- union(c(segMarkers, ncol(markersRed) + 1),
                                computeExcludedMarkers(snpCovariates = snpCovChr,
                                                       markersRed = markersRedChr,
                                                       allFreq = allFreqChr))

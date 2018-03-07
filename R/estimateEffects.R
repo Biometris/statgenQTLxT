@@ -36,8 +36,8 @@ estimateEffects <- function(Y,
                             K,
                             returnSe = TRUE,
                             estCom = FALSE,
-                            nChunks = ceiling(ncol(Y) * ncol(W) *
-                                                ncol(X) / 50000)) {
+                            nChunks = min(ncol(X), ceiling(ncol(Y) * ncol(W) *
+                                                ncol(X) / 50000))) {
   ## Y, W and X might be from the Matrix class. This function needs standard
   ## matrices for its computations.
   Y <- as.matrix(Y)
@@ -113,7 +113,6 @@ estimateEffects <- function(Y,
   ## Calculate chunk sizes.
   chunks <- split(1:ns, c(rep(1:nChunks, each = ns %/% nChunks),
                           rep(nChunks, each = ns %% nChunks)))
-
   ## All calculations are done for chunks of markers to avoid memory problems.
   for (ch in chunks) {
     ## Compute chunk length.
