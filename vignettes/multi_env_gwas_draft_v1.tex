@@ -238,7 +238,7 @@ We consider the multi-trait mixed model of \cite{zhou_stephens_2014}, and adopt 
 \mathbf{\tilde Y} = \mathbf{B}   \mathbf{\tilde X} + \mathbf{\tilde G} + \mathbf{\tilde E}, \quad \mathbf{\tilde G} \sim MN(0, V_g, K), \quad \mathbf{\tilde E} \sim MN(0, V_e, I_n),
 \end{equation}
 %
-where tilde superscripts distinguish the resepctive matrices from their transformed counterparts introduced below. The $p \times n$ matrix $\mathbf{\tilde Y}$ contains phenotypic values for $p$ traits and $n$ genotypes, and the matrices $\mathbf{G}$ and $\mathbf{E}$ contain the corresponding genetic and residual effects. Given an $n \times n$ genetic relatedness matrix and $p \times p$ matrices $V_g$, $V_e$ containing the genetic and residual covariances between traits, it is assumed that $\mathbf{\tilde G}$ follows a matrix-variate normal distribution with row covariance $V_g$ and column covariance $K$; similarly, $\mathbf{\tilde E}$ is matrix-variate normal with row covariance $V_e$ and column covariance $I_n$ (the identity matrix). The $p \times c$ matrix $\mathbf{B}$ contains the trait (or environment) specific effects of $c$ covariates, whose values are contained in a $c \times n$ matrix $\mathbf{\tilde X}$.
+where tilde superscripts distinguish the resepctive matrices from their transformed counterparts introduced below. The $p \times n$ matrix $\mathbf{\tilde Y}$ contains phenotypic values for $p$ traits and $n$ genotypes, and the matrices $\mathbf{G}$ and $\mathbf{E}$ contain the corresponding genetic and residual effects. Given an $n \times n$ genetic relatedness matrix $K$ and $p \times p$ matrices $V_g$, $V_e$ containing the genetic and residual covariances between traits, it is assumed that $\mathbf{\tilde G}$ follows a matrix-variate normal distribution with row covariance $V_g$ and column covariance $K$; similarly, $\mathbf{\tilde E}$ is matrix-variate normal with row covariance $V_e$ and column covariance $I_n$ (the identity matrix). The $p \times c$ matrix $\mathbf{B}$ contains the trait (or environment) specific effects of $c$ covariates, whose values are contained in the $c \times n$ matrix $\mathbf{\tilde X}$.
 Throughout this text we will always assume that $\mathbf{\tilde X}$ contains at least an intercept; hence $c \geq 1$. In multi-trait GWAS $\mathbf{\tilde X}$ will also contain marker scores; this is discussed in more detail in section \ref{gwas} below. 
 
 The sum $\mathbf{\tilde G} + \mathbf{\tilde E}$ does in general not have a matrix-variate normal distribution, but we do have that $vec(\mathbf{\tilde G} + \mathbf{\tilde E})$ is multivariate normal, where $vec$ denotes the operation of creating a column vector by stacking the columns of a matrix:
@@ -256,7 +256,7 @@ Following again \cite{zhou_stephens_2014}, we use the eigen-decomposition  $K = 
 \mathbf{y} = vec(\mathbf{Y}) = vec(\mathbf{\tilde Y} U_k) \sim N\left(vec(\mathbf{B} \mathbf{X}),  D_k \otimes V_g  + I_n \otimes V_e\right).
 \end{equation}
 %
-where $\mathbf{X} = \mathbf{\tilde X} U_k$. Models \eqref{mtmmvec} and \eqref{mtmmvec2} do not have the same likelihood, but are equivalent in the sense that the fixed effects matrix $\mathbf{B}$ is the same. The big advantage of \eqref{mtmmvec2} is that the covariance matrix is now block-diagonal with blocks $V_i = \delta_i V_g + V_e$ ($i = 1,\ldots,n$); consequently $(D_k \otimes V_g  + I_n \otimes V_e)^{-1}$ is also block diagonal, with blocks $V_i^{-1}$. Note that this is not the case if the observations are grouped per trait (i.e. $vec(\mathbf{Y}^t)$), instead of per genotype; this is the main reason for having genotypes as rows in \eqref{mtmm}. Summarizing, after transforming $\mathbf{\tilde Y}$ and $\mathbf{\tilde X}$, inversion of the  $np \times np$ covariance matrix  only requires $n$ times an inversion of a $p \times p$ matrix.
+where $\mathbf{X} = \mathbf{\tilde X} U_k$. Models \eqref{mtmmvec} and \eqref{mtmmvec2} do not have the same likelihood (CORRECT ?), but are equivalent in the sense that the fixed effects matrix $\mathbf{B}$ is the same. The big advantage of \eqref{mtmmvec2} is that the covariance matrix is now block-diagonal with blocks $V_i = \delta_i V_g + V_e$ ($i = 1,\ldots,n$); consequently $(D_k \otimes V_g  + I_n \otimes V_e)^{-1}$ is also block diagonal, with blocks $V_i^{-1}$. Note that this is not the case if the observations are grouped per trait (i.e. $vec(\mathbf{Y}^t)$), instead of per genotype; this is the main reason for having genotypes as rows in \eqref{mtmm}. Summarizing, after transforming $\mathbf{\tilde Y}$ and $\mathbf{\tilde X}$, inversion of the  $np \times np$ covariance matrix  only requires $n$ times an inversion of a $p \times p$ matrix.
 %computation of generalized least squares (GLS) estimates
 
 \subsection{Multi-trait GWAS: estimation of marker effects} \label{gwas}
@@ -270,7 +270,7 @@ Recall that both $W$ and $x$ are the transformed versions of the original covari
 To perform the GWAS, we re-fit model \eqref{mtmmvec2} for each SNP in turn, i.e. the vector $x$ changes from marker to marker, while $W$ stays constant. We also keep the estimates of $V_g$ and $V_e$ constant, which have been obtained for a model without SNPs (i.e., with only $W$). We do however allow  $V_g$ and $V_e$ to be refitted for each chromosome, as was proposed by \cite{rincent_etal_2014} in a univariate setting.
 
 
-When $\mathbf{x}_l$ denotes the $i$th column of $\mathbf{X}$, the GLS estimate for the regression coefficients (not only the marker-effects) is given by
+When $\mathbf{x}_i$ denotes the $i$th column of $\mathbf{X}$, the GLS estimates for the regression coefficients (not only the marker-effects) are given by
 \begin{equation} \label{gls1}
 \hat \beta_{GLS} = \left(\sum_{i=1}^n (\mathbf{x}_i \mathbf{x}_i^t) \otimes \hat V_i^{-1} \right)^{-1}
 \left( \sum_{i=1}^n \mathbf{x}_i \otimes (\hat V_i^{-1} \mathbf{y}_i)\right),
@@ -289,7 +289,7 @@ In section \ref{test_section} below we describe the F-test for testing if the ma
 
 \subsection{Partitioning the design matrix}
 	
-Equation \eqref{gls1} gives the GLS-estimate of all marker-effects as well as covariate effects. Estimates of the latter will be marker-dependent, but the covariate values themselves are not. For this reason it is numerically more efficient if we explicitly partition $\beta$; corresponding with the different components of the design matrix. To see how this follows from well known linear algebra and classical results in regression, we will consider, just in sections \ref{ols}-\ref{gls} below, a general design matrix $X$ with the samples (individuals) corresponding to rows and variables to columns. To make the connection with the rest of this work, we have to choose $X = \mathbf{X}^t \otimes I_p$, where $\mathbf{X}^t = [W^t\: \:x]$ is of dimension $n \times (c+1)$. The $\mathbf{X}^t \otimes I_p$ form is also used in \cite{zhou_stephens_2014} (supplement; e.g. their equation (3)). We can now derive equation \eqref{gls1} from the   
+Equation \eqref{gls1} gives the GLS-estimate of all marker-effects as well as covariate effects. Estimates of the latter will be marker-dependent, but many of the quantities required for the estimates of the (non-marker) covariate effects are independent of the markers, and need to be evaluated only once. For this reason it is numerically more efficient if we explicitly partition $\beta$; corresponding with the different components of the design matrix. To see how this follows from well known linear algebra and classical results in regression, we will consider, just in sections \ref{ols}-\ref{gls} below, a general design matrix $X$ with the samples (individuals) corresponding to rows and variables to columns. To make the connection with the rest of this work, we have to choose $X = \mathbf{X}^t \otimes I_p$, where $\mathbf{X}^t = [W^t\: \:x]$ is of dimension $n \times (c+1)$. The $(\mathbf{X}^t \otimes I_p)$ form is also used in \cite{zhou_stephens_2014} (supplement; e.g. their equation (3)). We can now derive equation \eqref{gls1} from the   
 standard GLS expression $\hat \beta = (X^t V^{-1} X)^{-1} X^t V^{-1} y$, using that $V$ is block diagonal with blocks $V_i$, and that therefore $X^t V^{-1} X$ and $X^t V^{-1}$ can be expressed in terms of $p \times p$ blocks. 
 
 
@@ -300,10 +300,10 @@ standard GLS expression $\hat \beta = (X^t V^{-1} X)^{-1} X^t V^{-1} y$, using t
 When, in OLS, the $n \times p$ design matrix $X$ consists of blocks   
 $X_1$ and $X_2$ of dimensions $n \times p_1$ and $n \times p_2$, for some $p_1$ and $p_2$ summing to $p$, the corresponding least squares estimates are given by 
 
-\begin{equation}
+\begin{equation} \label{beta1}
 \hat \beta_1 = X_S^{-1} X_1^t y   - X_S^{-1} (X_1^t X_2) (X_2^t X_2)^{-1} X_2^t y
 \end{equation}
-\begin{equation}
+\begin{equation} \label{beta2}
 \begin{split}
 \hat \beta_2 = (X_2^t X_2)^{-1} X_2^t y + (X_2^t X_2)^{-1} X_2^t X_1 X_S^{-1} X_1^t X_2 (X_2^t X_2)^{-1} X_2^t y \\
 \quad \quad - (X_2^t X_2)^{-1} X_2^t X_1 X_S^{-1} X_1^t  y,
@@ -311,12 +311,12 @@ $X_1$ and $X_2$ of dimensions $n \times p_1$ and $n \times p_2$, for some $p_1$ 
 \end{equation}
 %
 where 
-\begin{equation}
+\begin{equation}\label{XS}
 X_S = X_1^t X_1 - X_1^t X_2 (X_2^t X_2)^{-1} X_2^t X_1
 \end{equation}
 is the well-known Schur-complement. These expressions can be derived by working out the block inverse $(X^t X)^{-1} = ([X_1 \: X_2]^t [X_1 \: X_2])^{-1}$ in
 %
-\begin{equation}
+\begin{equation} \label{beta}
 \hat \beta = (X^t X)^{-1} X^t y = \left[\begin{array}{c}
 \hat \beta_1 \\
 \hat \beta_2
@@ -324,7 +324,9 @@ is the well-known Schur-complement. These expressions can be derived by working 
 \right],
 \end{equation}
 see e.g. \verb|https://www.le.ac.uk/users/dsgp1/COURSES/LEIMETZ/PARTIMOD.pdf|.
-For the case $p_2=1$, see Jones 1970 ("recursive estimation of a subset of regression coefficients"), or, in the matrix cookbook, section 3.2.6 ("Rank-1 update of inverse of inner product"). 
+For the case $p_2=1$, see \cite{jones_1970_recursive}, or, in the matrix cookbook (\cite{petersen2008matrix}), section 3.2.6 ("Rank-1 update of inverse of inner product"). Also: include related references on the Frisch-Waugh-Lovell theorem.
+
+Another way to obtain \eqref{beta1}-\eqref{beta2} is to define the projection matrix $P_2 = I - X_2 (X_2^t X_2)^{-1} X_2^t$ and solve the least-squares problem $P_2 y = (P_2 X_1) \beta_1 + e$. Alternatively, we can solve $P_1 y = (P_1 X_2) \beta_2 + e$ (which gives a different $X_S$). 
 
 \subsubsection{Extension to GLS} \label{gls}
 
@@ -347,7 +349,7 @@ X_S = X_1^t V^{-1} X_1 - X_1^t V^{-1} X_2 (X_2^t V^{-1} X_2)^{-1} X_2^t V^{-1} X
 
 \subsubsection{Applying the general GLS partitioning to \eqref{gls1}}
 
-We will now apply \eqref{gls2}-\eqref{gls4} to multi-trait GWAS by setting $X_1 = W^t \otimes I_p$ and $X_2 = x \otimes I_p$. In each of the following equations, the left-hand side describes a matrix or vector in the notation in the R-code; after the first equality sign we express it in the generic notation with $X_1$, $X_2$, and $y = \mathbf{y} = vec(\mathbf{Y})$, and on the right-hand-side we work that out in terms of kronecker products involving $W$ and $x$, as in \cite{zhou_stephens_2014}. Let the $c \times 1$ column vector $w_i$ denote the $i$th column of $W$ and $x_i$ the $i$th element of $x$, and 
+We will now apply \eqref{gls2}-\eqref{gls4} to multi-trait GWAS, by setting $X_1 = W^t \otimes I_p$ and $X_2 = x \otimes I_p$. In each of the following equations, the left-hand side describes a matrix or vector in the notation in the R-code; after the first equality sign we express it in the generic notation of sections \ref{ols}-\ref{gls} with $X_1$, $X_2$, and $y = \mathbf{y} = vec(\mathbf{Y})$, and on the right-hand-side we work that out in terms of kronecker products involving $W$ and $x$, as in \cite{zhou_stephens_2014}. Let the $c \times 1$ column vector $w_i$ denote the $i$th column of $W$ and $x_i$ the $i$th element of $x$, and 
 recall that the covariance matrix $V = (D_k \otimes V_g  + I_n \otimes V_e)$ is block diagonal with blocks
 $V_i = \delta_i V_g + V_e$ ($i = 1,\ldots,n$). We have:
 %
@@ -416,10 +418,11 @@ For the full model, the latter depends on the SNP as well as covariate effects. 
 \begin{equation} \label{SS2}
 \mathbf{y}^t P \mathbf{y},
 \end{equation}
-where $P$ is defined in their equation (29). TO DO: DISCUSS IF WE CONSIDER THE RESIDUAL LIKELIHOOD, OR JUST THE LIKELHOOD. 
+where $P$ is defined in their equation (29). See also  \cite{johnson_thompson_1995}. 
 
+Note that we use the ML-based LRT; for the REML-based LRT we get the extra terms of equation (27) in \cite{zhou_stephens_2014}.
 
-Instead of the LRT, we use the related F-test
+Instead of the (ML) LRT, we use the related F-test
 %
 \begin{equation} \label{Ftest}
 F = \frac{df_{full}}{df_{red} - df_{full}} \left(\frac{SS_{red} - SS_{full}}{SS_{full}}\right) = \frac{(n-c-1)p}{p} \left(\frac{SS_{red} - SS_{full}}{SS_{full}}\right),
@@ -427,7 +430,7 @@ F = \frac{df_{full}}{df_{red} - df_{full}} \left(\frac{SS_{red} - SS_{full}}{SS_
 %
 which, under the null-hypothesis, has an F-distribution with degrees of freedom $df1 = df_{red} - df_{full} = p$ and $df2 = df_{full} = (n-c-1)p$.
 
-To compute $F$ we need $SS_{red}$ and $SS_{full}$, i.e. equations \eqref{SS} and \eqref{SS2} for the reduced and the full model. The former is the same for all SNPs, and we evaluate it with our \verb|LL.quad.form.diag| function. It would be convenient to use the same for $SS_{full}$, but this would require storing all $np$ residuals for all $n_s$ SNPs. To avoid this we use equation (50) of \cite{zhou_stephens_2014}, on p.21: $\mathbf{y}^t P \mathbf{y} = q - \mathbf{q}^t \mathbf{Q^{-1}} \mathbf{q}$, where the terms on the right-hand-side are define at the bottom of p.20. This formula is also used in the \verb|LL.quad.form.diag| function. However, instead of directly looping over all SNPs and calling \verb|LL.quad.form.diag| each time, we first compute the terms $\mathbf{Q^{-1}}$,  $\mathbf{q}$ and $q$ for all SNPs simulateously, looping over the individuals.   
+To compute $F$ we need $SS_{red}$ and $SS_{full}$, i.e. equations \eqref{SS} and \eqref{SS2} for the reduced and the full model. The former is the same for all SNPs, and we evaluate it with our \verb|LL.quad.form.diag| function. It would be convenient to use the same for $SS_{full}$, but this would require storing all $np$ residuals for all $n_s$ SNPs. To avoid this we use equation (50) of \cite{zhou_stephens_2014}, on p.21: $\mathbf{y}^t P \mathbf{y} = q - \mathbf{q}^t \mathbf{Q^{-1}} \mathbf{q}$, where the terms on the right-hand-side are define at the bottom of p.20. This formula is also used in the \verb|LL.quad.form.diag| function. However, instead of directly looping over all SNPs and calling \verb|LL.quad.form.diag| each time, we first compute the terms $\mathbf{Q^{-1}}$,  $\mathbf{q}$ and $q$ for all SNPs simultaneously, looping over the individuals.   
 
 \section{Simulation}
 
