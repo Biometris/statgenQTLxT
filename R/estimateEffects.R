@@ -37,7 +37,7 @@ estimateEffects <- function(Y,
                             returnSe = TRUE,
                             estCom = FALSE,
                             nChunks = min(ncol(X), ceiling(ncol(Y) * ncol(W) *
-                                                ncol(X) / 50000))) {
+                                                             ncol(X) / 50000))) {
   ## Y, W and X might be from the Matrix class. This function needs standard
   ## matrices for its computations.
   Y <- as.matrix(Y)
@@ -54,6 +54,7 @@ estimateEffects <- function(Y,
   ## Compute eigen-decomposition of K.
   w <- eigen(K, symmetric = TRUE)
   Dk <- w$values
+  Dk[Dk < 1e-5] <- 1e-5
   Uk <- w$vectors
   ## Transform Y, W and X.
   Y <- t(Y) %*% Uk
