@@ -54,7 +54,7 @@ estimateEffects <- function(Y,
   ## Compute eigen-decomposition of K.
   w <- eigen(K, symmetric = TRUE)
   Dk <- w$values
-  Dk[Dk < 1e-5] <- 1e-5
+  Dk[Dk < max(Dk) * 1e-5] <- max(Dk) * 1e-5
   Uk <- w$vectors
   ## Transform Y, W and X.
   Y <- t(Y) %*% Uk
