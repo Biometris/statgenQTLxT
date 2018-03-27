@@ -301,13 +301,13 @@ runMultiTraitGwas <- function(gData,
         varComp <- covPairwise(Y = Y, K = K,
                                X = if (ncol(X) == 1) NULL else
                                  X[, -1, drop = FALSE],
-                               fixDiag = FALSE, corMat = TRUE)
+                               fixDiag = FALSE, corMat = FALSE)
         if (!is.null(snpCovariates)) {
           ## Sommer always adds an intercept so remove it from XRed.
           varCompRed <- covPairwise(Y = Y, K = K,
                                     X = if (ncol(XRed) == 1) NULL else
                                       XRed[, -1, drop = FALSE],
-                                    fixDiag = FALSE, corMat = TRUE)
+                                    fixDiag = FALSE, corMat = FALSE)
         }
       } else if (covModel == 3) {
         ## FA models.
