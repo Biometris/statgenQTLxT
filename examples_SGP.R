@@ -7,11 +7,12 @@ load("./example_data_drops/testData.Rdata")
 colnames(map)[1:2] <- c("chr", "pos")
 pheno <- tibble::rownames_to_column(Y, var = "genotype")
 
-gData0 <- createGData(map=map[map$chr %in% c(2,3,4,5),],
-  geno=t(markers[rownames(markers) %in% rownames(map[map$chr %in% c(1,2,3,4),]),]),
+gData0 <- createGData(map = map[map$chr %in% c(2,3,4,5),],
+  geno = t(markers[rownames(markers) %in% rownames(map[map$chr %in% c(1,2,3,4),]),]),
   kin = K, pheno = pheno, covar = NULL)
 
-covar <- as.data.frame(x = as.factor(sapply(strsplit(gData0$pheno[[1]]$genotype, "_"), tail, 1)))
+covar <- as.data.frame(x = as.factor(sapply(strsplit(gData0$pheno[[1]]$genotype, "_"),
+                                            tail, 1)))
 colnames(covar) <- "region"
 rownames(covar) <- gData0$pheno[[1]]$genotype
 covar$altitude <- runif(nrow(covar), 0, 2000)
@@ -26,7 +27,8 @@ rm(list = setdiff(ls(), c("gDataTest")))
 ## Run single trait GWAS
 testGwas1 <- runSingleTraitGwas(gData = gDataTest, remlAlgo = 2, thrType = 2)
 ## Run multi trait GWAS
-testGwas2 <- runMultiTraitGwas(gData = gDataTest, subsetMarkers = TRUE, markerSubset = 40501:41500)
+testGwas2 <- runMultiTraitGwas(gData = gDataTest, subsetMarkers = TRUE,
+                               markerSubset = 40501:41500)
 ## Run multi trait GWAS with chromosome specific kinship matrices.
 ## Markersubset has to contain at least 2 chromosomes to use chr. specific kinships.
 testGwas3 <- runMultiTraitGwas(gData = gDataTest,

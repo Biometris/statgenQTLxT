@@ -282,10 +282,10 @@ runMultiTraitGwas <- function(gData,
         if (!is.null(snpCovariates)) {
           ## Sommer always adds an intercept so remove it from XRed.
           varCompRed <- covUnstructured(Y = Y, K = K,
-                                        X = if (ncol(X) == 1) {
+                                        X = if (ncol(XRed) == 1) {
                                           NULL
                                         } else {
-                                          X[, -1, drop = FALSE]
+                                          XRed[, -1, drop = FALSE]
                                         },
                                         fixDiag = FALSE, VeDiag = VeDiag)
         }
@@ -293,13 +293,15 @@ runMultiTraitGwas <- function(gData,
         ## Unstructured (pairwise) models.
         ## Sommer always adds an intercept so remove it from X.
         varComp <- covPairwise(Y = Y, K = K,
-                               X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
-                               fixDiag = FALSE, corMat = TRUE)
+                               X = if (ncol(X) == 1) NULL else
+                                 X[, -1, drop = FALSE],
+                               fixDiag = FALSE, corMat = FALSE)
         if (!is.null(snpCovariates)) {
           ## Sommer always adds an intercept so remove it from XRed.
           varCompRed <- covPairwise(Y = Y, K = K,
-                                    X = if (ncol(XRed) == 1) NULL else XRed[, -1, drop = FALSE],
-                                    fixDiag = FALSE, corMat = TRUE)
+                                    X = if (ncol(XRed) == 1) NULL else
+                                      XRed[, -1, drop = FALSE],
+                                    fixDiag = FALSE, corMat = FALSE)
         }
       } else if (covModel == 3) {
         ## FA models.
@@ -423,44 +425,31 @@ runMultiTraitGwas <- function(gData,
                           stringsAsFactors = FALSE)
   ## Run GWAS.
   if (GLSMethod == 1) {
-    w <- eigen(K, symmetric = TRUE)
-    Dk <- w$values
-    Uk <- w$vectors
-    Yt <- Matrix::crossprod(Y, Uk)
-    colnames(Yt) <- rownames(Y)
-    if (ncol(X) > 0) {
-      Xt <- Matrix::crossprod(X, Uk)
-    }
-    VInvArray <- makeVInvArray(Vg = Vg, Ve = Ve, Dk = Dk)
-    if (!is.null(snpCovariates)) {
-      if (ncol(XRed) > 0) {
-        XtRed <- Matrix::crossprod(XRed, Uk)
-      }
-      VInvArrayRed <- makeVInvArray(Vg = VgRed, Ve = VeRed, Dk = Dk)
-    }
-    excludedMarkers <- which(allFreq < MAF | allFreq > 1 - MAF)
+    segMarkers <- which(allFreq < MAF | allFreq > 1 - MAF)
     ## Add snpCovariates to segregating markers.
-    excludedMarkers <- union(excludedMarkers, computeExcludedMarkers(snpCovariates = snpCovariates,
-                                                                     markersRed = markersRed,
-                                                                     allFreq = allFreq))
-    ## Scan.
+    excludedMarkers <- union(c(segMarkers, ncol(markersRed) + 1),
+                             computeExcludedMarkers(snpCovariates = snpCovariates,
+                                                    markersRed = markersRed,
+                                                    allFreq = allFreq))
     if (!is.null(snpCovariates)) {
-      filledRed <- fillGWAResult(GWAResult = GWAResult, effects = effects, effectsSe = effectsSe,
-                                 Xt = XtRed, Yt = Yt, VInvArray = VInvArrayRed,
-                                 excludedMarkers = excludedMarkers,
-                                 markersRed = markersRed, Uk = Uk)
-      GWAResult <- filledRed$GWAResult
-      effects <- filledRed$effects
-      effectsSe <- filledRed$effectsSe
+      effEstSnpCov <- estimateEffects(Y = Y, W = XRed,
+                                      X = markersRed[, snpCovariates,
+                                                     drop = FALSE],
+                                      Vg = Vg, Ve = Ve, K = K)
     }
-    filled <- fillGWAResult(GWAResult = GWAResult, effects = effects, effectsSe = effectsSe,
-                            Xt = Xt, Yt = Yt, VInvArray = VInvArray,
-                            excludedMarkers = excludedMarkers,
-                            markersRed = markersRed, Uk = Uk)
-    GWAResult <- filled$GWAResult
-    effects <- filled$effects
-    effectsSe <- filled$effectsSe
+    effEst <- estimateEffects(Y = Y, W = X,
+                              X = markersRed[, -excludedMarkers],
+                              Vg = Vg, Ve = Ve, K = K)
+    pValues <- c(effEst$pVals,
+                 if (!is.null(snpCovariates)) effEstSnpCov$pVals)
+    effects <- cbind(effEst$effects,
+                     if (!is.null(snpCovariates)) effEstSnpCov$effects)
+    effectsSe <- cbind(effEst$effectsSe,
+                       if (!is.null(snpCovariates)) effEstSnpCov$effectsSe)
   } else if (GLSMethod == 2) {
+    pValues <- numeric()
+    ## Create an empty matrix with traits as header.
+    effects <- effectsSe <- t(gData$pheno[[environment]][FALSE, -1])
     for (chr in chrs) {
       w <- eigen(KChr[[which(chrs == chr)]], symmetric = TRUE)
       Dk <- w$values
@@ -482,42 +471,49 @@ runMultiTraitGwas <- function(gData,
       mapRedChr <- mapRed[which(mapRed$chr == chr), ]
       markersRedChr <- markersRed[, which(colnames(markersRed) %in% rownames(mapRedChr)), drop = FALSE]
       allFreqChr <- Matrix::colMeans(markersRedChr) / max(markersRedChr)
-      excludedMarkers <- which(allFreqChr < MAF | allFreqChr > 1 - MAF)
+      segMarkers <- which(allFreqChr < MAF | allFreqChr > 1 - MAF)
+      snpCovChr <- snpCovariates[snpCovariates %in% colnames(markersRedChr)]
       ## Add snpCovariates to segregating markers.
-      excludedMarkers <- union(excludedMarkers, computeExcludedMarkers(snpCovariates = snpCovariates,
-                                                                       markersRed = markersRedChr,
-                                                                       allFreq = allFreqChr))
-      ## Scan.
-      if (!is.null(snpCovariates)) {
-        filledRed <- fillGWAResult(GWAResult = GWAResult, effects = effects, effectsSe = effectsSe,
-                                   Xt = XtRed, Yt = Yt, VInvArray = VInvArrayRed,
-                                   excludedMarkers = excludedMarkers,
-                                   markersRed = markersRedChr, Uk = Uk)
-        GWAResult <- filledRed$GWAResult
-        effects <- filledRed$effects
-        effectsSe <- filledRed$effectsSe
+      excludedMarkers <- union(c(segMarkers, ncol(markersRed) + 1),
+                               computeExcludedMarkers(snpCovariates = snpCovChr,
+                                                      markersRed = markersRedChr,
+                                                      allFreq = allFreqChr))
+      if (length(snpCovChr) > 0) {
+        effEstSnpCov <- estimateEffects(Y = Y, W = XRed,
+                                        X = markersRedChr[, snpCovChr,
+                                                          drop = FALSE],
+                                        Vg = Vg[[which(chrs == chr)]],
+                                        Ve = Ve[[which(chrs == chr)]],
+                                        K = KChr[[which(chrs == chr)]])
       }
-      filled <- fillGWAResult(GWAResult = GWAResult, effects = effects, effectsSe = effectsSe,
-                              Xt = Xt, Yt = Yt, VInvArray = VInvArray,
-                              excludedMarkers = excludedMarkers,
-                              markersRed = markersRedChr, Uk = Uk)
-      GWAResult <- filled$GWAResult
-      effects <- filled$effects
-      effectsSe <- filled$effectsSe
+      effEst <- estimateEffects(Y = Y, W = X,
+                                X = markersRedChr[, -excludedMarkers],
+                                Vg = Vg[[which(chrs == chr)]],
+                                Ve = Ve[[which(chrs == chr)]],
+                                K = KChr[[which(chrs == chr)]])
+      pValues <- c(pValues, effEst$pVals,
+                   if (length(snpCovChr) > 0) effEstSnpCov$pVals)
+      effects <- cbind(effects, effEst$effects,
+                       if (length(snpCovChr) > 0) effEstSnpCov$effects)
+      effectsSe <- cbind(effectsSe, effEst$effectsSe,
+                         if (length(snpCovChr) > 0) effEstSnpCov$effectsSe)
+
     }
   }
-  ## Convert effects en effectsSe to long format and merge.
-  effectsTot <- reshape2::melt(effects) %>% dplyr::inner_join(reshape2::melt(effectsSe),
-                                                              by = c("Var1", "Var2")) %>%
+  ## Convert effects and effectsSe to long format and merge.
+  effectsTot <- reshape2::melt(effects) %>%
+    dplyr::inner_join(reshape2::melt(effectsSe), by = c("Var1", "Var2")) %>%
     dplyr::mutate(Var1 = as.character(.data$Var1), Var2 = as.character(.data$Var2))
   ## Merge the effects and effectsSe to the results
-  GWAResult <- dplyr::inner_join(GWAResult, effectsTot, by = c("snp" = "Var1")) %>%
-    dplyr::mutate(LOD = -log10(.data$pValue), LODWald = -log10(.data$pValueWald)) %>%
+  GWAResult <- dplyr::inner_join(GWAResult, effectsTot, by = c("snp" = "Var2")) %>%
+    dplyr::inner_join(data.frame(snp = names(pValues), pValues,
+                                 stringsAsFactors = FALSE), by = "snp") %>%
+    dplyr::mutate(LOD = -log10(.data$pValues)) %>%
     ## Select and compute relevant columns.
     ## Melt creates factors. Reconvert trait to character.
-    dplyr::select(.data$snp, trait = .data$Var2, .data$chr, .data$pos, .data$pValue, .data$LOD,
-                  effect = .data$value.x, effectSe = .data$value.y, .data$pValueWald,
-                  .data$LODWald, .data$allFreq) %>%
+    dplyr::select(.data$snp, trait = .data$Var1, .data$chr, .data$pos,
+                  pValue = .data$pValues, .data$LOD, effect = .data$value.x,
+                  effectSe = .data$value.y, .data$allFreq) %>%
     dplyr::arrange(.data$trait, .data$chr, .data$pos)
   ## Collect info.
   GWASInfo <- list(call = match.call(),

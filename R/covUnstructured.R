@@ -36,6 +36,9 @@ covUnstructured <- function(Y,
   }
   Y <- tibble::rownames_to_column(as.data.frame(as.matrix(Y)), var = "genotype")
   if (!is.null(X)) {
+    ## sommer cannot handle column names with special characters.
+    ## Therefore Simplify column names in X.
+    colnames(X) <- make.names(colnames(X), unique = TRUE)
     X <- tibble::rownames_to_column(as.data.frame(as.matrix(X)), var = "genotype")
     data <- merge(Y, X, by = "genotype")
   } else {
@@ -89,6 +92,9 @@ covPairwise <- function(Y,
   }
   Y <- tibble::rownames_to_column(as.data.frame(as.matrix(Y)), var = "genotype")
   if (!is.null(X)) {
+    ## sommer cannot handle column names with special characters.
+    ## Therefore Simplify column names in X.
+    colnames(X) <- make.names(colnames(X), unique = TRUE)
     X <- tibble::rownames_to_column(as.data.frame(as.matrix(X)), var = "genotype")
     data <- merge(Y, X, by = "genotype")
   } else {
@@ -98,6 +104,7 @@ covPairwise <- function(Y,
   K <- K[unique(Y$genotype), unique(Y$genotype)]
   traits <- colnames(Y)[-1]
   nTrait <- length(traits)
+  smpVar <- sapply(Y[-1], var)
   VgVec <- VeVec <- vector(mode = "numeric", length = nTrait)
   for (i in 1:nTrait) {
     if (!is.null(X)) {
@@ -116,6 +123,9 @@ covPairwise <- function(Y,
     VgVec[i] <- as.numeric(sommerFit$var.comp[[1]])
     VeVec[i] <- as.numeric(sommerFit$var.comp[[2]])
   }
+  ## Keep diagonal for Vg and Ve away from 0.
+  VgVec[VgVec <= 0] <- 1e-3 * smpVar[VgVec <= 0]
+  VeVec[VeVec <= 0] <- 1e-3 * smpVar[VgVec <= 0]
   if (corMat) {
     ## Ones on the diagonal of resulting matrix.
     VgMat <- VeMat <- diag(x = 1, nrow = nTrait)
@@ -124,44 +134,50 @@ covPairwise <- function(Y,
     VgMat <- diag(x = VgVec)
     VeMat <- diag(x = VeVec)
   }
+  rownames(VgMat) <- colnames(VgMat) <- traits
+  rownames(VeMat) <- colnames(VeMat) <- traits
   ## For every combination of traits compute variance.
-  pwVar <- combn(
-    traits, 2,
-    FUN = function(idx) {
-      if (!is.null(X)) {
-        ## Define formula for fixed part. ` needed to accommodate - in variable names.
-        fixed <- as.formula(paste0("cbind(", idx[[1]], ", ", idx[[2]], ") ~ `",
-                                   paste(colnames(X)[-1], collapse = '` + `'), "`"))
-      } else {
-        fixed <- as.formula(paste0("cbind(", idx[[1]], ", ", idx[[2]], ") ~ 1"))
-      }
-      sommerFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
-                                 rcov = ~ us(trait):units, data = data,
-                                 G = list(genotype = K), silent = TRUE)
-      ## Extract components from fitted model.
-      return(sommerFit$var.comp)
-    }, simplify = FALSE)
+  pwVar <- combn(x = traits, m = 2, FUN = function(idx) {
+    if (!is.null(X)) {
+      ## Define formula for fixed part. ` needed to accommodate - in variable names.
+      fixed <- as.formula(paste0("cbind(", idx[[1]], ", ", idx[[2]], ") ~ `",
+                                 paste(colnames(X)[-1], collapse = '` + `'), "`"))
+    } else {
+      fixed <- as.formula(paste0("cbind(", idx[[1]], ", ", idx[[2]], ") ~ 1"))
+    }
+    sommerFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
+                               rcov = ~ us(trait):units, data = data,
+                               G = list(genotype = K), silent = TRUE,
+                               init = list(diag(diag(VgMat[idx, idx])),
+                                           diag(diag(VeMat[idx, idx]))))
+    ## Extract components from fitted model.
+    return(sommerFit$var.comp)
+  }, simplify = FALSE)
   ## Fill VgMat using symmetry.
   VgMat[lower.tri(VgMat)] <- sapply(1:length(pwVar), FUN = function(x) {
-    if (!corMat) pwVar[[x]][[1]][1, 2] else
-      Matrix::cov2cor(Matrix::nearPD(pwVar[[x]][[1]])$mat)[1, 2]
+    if (!corMat) pwVar[[x]][[1]][1, 2] else {
+      if (pwVar[[x]][[1]][1, 2] == 0) {
+        0
+      } else {
+        Matrix::cov2cor(Matrix::nearPD(pwVar[[x]][[1]])$mat)[1, 2]
+      }
+    }
   })
   VgMat[upper.tri(VgMat)] <- t(VgMat)[upper.tri(VgMat)]
   ## Fill VeMat using symmetry.
   VeMat[lower.tri(VeMat)] <- sapply(1:length(pwVar), FUN = function(x) {
-    if (!corMat) pwVar[[x]][[1]][1, 2] else
-      Matrix::cov2cor(Matrix::nearPD(pwVar[[x]][[2]])$mat)[1, 2]
+    if (!corMat) pwVar[[x]][[2]][1, 2] else {
+      if (pwVar[[x]][[2]][1, 2] == 0) {
+        0
+      } else {
+        Matrix::cov2cor(Matrix::nearPD(pwVar[[x]][[2]])$mat)[1, 2]
+      }
+    }
   })
   VeMat[upper.tri(VeMat)] <- t(VeMat)[upper.tri(VeMat)]
   ## Make positive definite.
   VgMat <- Matrix::nearPD(VgMat, corr = corMat)$mat
   VeMat <- Matrix::nearPD(VeMat, corr = corMat)$mat
-  ## Multiply by results from univariate analysis.
-  VgMat <- Matrix::tcrossprod(sqrt(VgVec)) * VgMat
-  VeMat <- Matrix::tcrossprod(sqrt(VeVec)) * VeMat
-  ## Add row- and column names.
-  colnames(VgMat) <- rownames(VgMat) <- traits
-  colnames(VeMat) <- rownames(VeMat) <- traits
   return(list(Vg = VgMat, Ve = VeMat))
 }
 
