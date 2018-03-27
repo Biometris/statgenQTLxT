@@ -558,6 +558,7 @@ runSingleTraitGwas <- function(gData,
           snpStatus = as.factor(snpStatus),
           allFreq = allFreq[snpSelection],
           effect = GWAResultSel$effect,
+          effectSe = GWAResultSel$effectSe,
           RLR2 = GWAResultSel$RLR2,
           propSnpVar = propSnpVar,
           stringsAsFactors = FALSE)

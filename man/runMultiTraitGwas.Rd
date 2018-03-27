@@ -5,7 +5,7 @@
 \title{Perform multi-trait GWAS}
 \usage{
 runMultiTraitGwas(gData, environments = NULL, covar = NULL,
-  snpCovariates = NULL, K = NULL, kinshipMethod = "astle",
+  snpCovariates = NULL, kin = NULL, kinshipMethod = "astle",
   GLSMethod = 1, subsetMarkers = FALSE, markerSubset = "", MAF = 0.01,
   fitVarComp = TRUE, covModel = 1, VeDiag = TRUE, tolerance = 1e-06,
   maxIter = 2e+05, maxDiag = 10000, mG = 1, mE = 1, CmHet = TRUE,
@@ -25,18 +25,19 @@ covariates are used.}
 
 \item{snpCovariates}{an optional character vector of snps to be included as covariates.}
 
-\item{K}{an optional kinship matrix or list of kinship matrices. These matrices can be from the
+\item{kin}{an optional kinship matrix or list of kinship matrices. These matrices can be from the
 \code{matrix} class as defined in the base package or from the \code{dsyMatrix} class, the
 class of symmetric matrices in the Matrix package.\cr
 If \code{GLSMethod} = 1 then one matrix should be provided, if \code{GLSMethod} = 2 a list of
 chromosome specific matrices of lenght equal to the number of chromosomes in \code{map}
 in \code{gData}.\cr
 If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
-If both \code{K} is provided and \code{gData} contains a matrix \code{kinship} then \code{K} is used.}
+If both \code{kin} is provided and \code{gData} contains a matrix \code{kinship} then
+\code{kin} is used.}
 
 \item{kinshipMethod}{an optional character indicating the method used for calculating the kinship
 matrix(ces). Currently "astle" (Astle and Balding, 2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008)
-are supported. If a kinship matrix is supplied either in \code{gData} or in parameter \code{K}
+are supported. If a kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 \code{kinshipMethod} is ignored.}
 
 \item{GLSMethod}{an integer indicating the method used to estimate the marker effects.

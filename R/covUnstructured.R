@@ -18,7 +18,6 @@
 #' @import utils
 #'
 #' @keywords internal
-
 covUnstructured <- function(Y,
                             K,
                             X = NULL,
