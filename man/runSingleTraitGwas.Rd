@@ -5,10 +5,10 @@
 \title{Perform single-trait GWAS}
 \usage{
 runSingleTraitGwas(gData, traits = NULL, environments = NULL,
-  covar = NULL, snpCovariates = NULL, K = NULL, kinshipMethod = "astle",
-  remlAlgo = 1, GLSMethod = 1, useMAF = TRUE, MAF = 0.01, MAC = 10,
-  genomicControl = FALSE, thrType = 1, alpha = 0.05, LODThr = 4,
-  nSnpLOD = 10, sizeInclRegion = 0, minR2)
+  covar = NULL, snpCovariates = NULL, kin = NULL,
+  kinshipMethod = "astle", remlAlgo = 1, GLSMethod = 1, useMAF = TRUE,
+  MAF = 0.01, MAC = 10, genomicControl = FALSE, thrType = 1,
+  alpha = 0.05, LODThr = 4, nSnpLOD = 10, sizeInclRegion = 0, minR2)
 }
 \arguments{
 \item{gData}{an object of class \code{gData} containing at least \code{map}, \code{markers} and
@@ -26,18 +26,19 @@ covariates are used.}
 
 \item{snpCovariates}{an optional character vector of snps to be included as covariates.}
 
-\item{K}{an optional kinship matrix or list of kinship matrices. These matrices can be from the
+\item{kin}{an optional kinship matrix or list of kinship matrices. These matrices can be from the
 \code{matrix} class as defined in the base package or from the \code{dsyMatrix} class, the
 class of symmetric matrices in the Matrix package.\cr
 If \code{GLSMethod} = 1 then one matrix should be provided, if \code{GLSMethod} = 2 a list of
 chromosome specific matrices of lenght equal to the number of chromosomes in \code{map}
 in \code{gData}.\cr
 If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
-If both \code{K} is provided and \code{gData} contains a matrix \code{kinship} then \code{K} is used.}
+If both \code{kin} is provided and \code{gData} contains a matrix \code{kinship} then
+\code{kin} is used.}
 
 \item{kinshipMethod}{an optional character indicating the method used for calculating the kinship
 matrix(ces). Currently "astle" (Astle and Balding, 2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008)
-are supported. If a kinship matrix is supplied either in \code{gData} or in parameter \code{K}
+are supported. If a kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 \code{kinshipMethod} is ignored.}
 
 \item{remlAlgo}{an integer indicating the algorithm used to estimate the variance components.

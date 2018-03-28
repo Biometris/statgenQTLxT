@@ -7,15 +7,6 @@
 reduceKinship(K, nPca)
 }
 \arguments{
-\item{K}{an optional kinship matrix or list of kinship matrices. These matrices can be from the
-\code{matrix} class as defined in the base package or from the \code{dsyMatrix} class, the
-class of symmetric matrices in the Matrix package.\cr
-If \code{GLSMethod} = 1 then one matrix should be provided, if \code{GLSMethod} = 2 a list of
-chromosome specific matrices of lenght equal to the number of chromosomes in \code{map}
-in \code{gData}.\cr
-If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
-If both \code{K} is provided and \code{gData} contains a matrix \code{kinship} then \code{K} is used.}
-
 \item{nPca}{an integer, the number of eigenvectors used for reducing the kinship matrix.}
 }
 \value{

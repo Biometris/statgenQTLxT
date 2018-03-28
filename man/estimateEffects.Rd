@@ -4,44 +4,47 @@
 \alias{estimateEffects}
 \title{Estimates for covariates}
 \usage{
-estimateEffects(X, x = NULL, Y, VInvArray, returnAllEffects = TRUE)
+estimateEffects(Y, W = matrix(data = 1, nrow = nrow(Y)), X, Vg, Ve, K,
+  returnSe = TRUE, estCom = FALSE, nChunks = min(ncol(X), ceiling(ncol(Y)
+  * ncol(W) * ncol(X)/50000)))
 }
 \arguments{
-\item{X}{a c x n covariate matrix, c being the number of covariates and n being the number
-of genotypes. c has to be at least one (typically an intercept). See details.}
+\item{Y}{An n x p matrix of observed phenotypes, on p traits or environments
+for n genotypes. No missing values are allowed.}
 
-\item{x}{an optional additional covariate, a numeric vector of length n. See details.}
+\item{W}{An n x c covariate matrix, c being the number of covariates and n
+being the number of genotypes. c has to be at least one (typically an
+intercept). No missing values are allowed.}
 
-\item{Y}{a p x n matrix of observed phenotypes, on p traits or environments for n genotypes.
-See details.}
+\item{X}{An n x ns matrix of marker scores. Neither missing values nor
+non-segregating markers are allowed.}
 
-\item{VInvArray}{an n x p x p dimensional array obtained as an output from the function
-\code{\link{makeVInvArray}}. It contains for each genotype l the p x p matrix \eqn{v_l ^ {-1}} (in
-the notation of Zhou and Stephens)}
+\item{Vg}{A p x p matrix of genetic covariances.}
 
-\item{returnAllEffects}{If \code{FALSE} only the p effect estimates for the additional covariate
-are returned, (the first p * c are actually computed, but not returned). If \code{TRUE},
-also the effect estimates and standard errors for the other covariates (i.e. those in X) are returned.
-If no x is provided, \code{returnAllEffects} is automatically set to \code{TRUE}.}
+\item{Ve}{A p x p matrix of environmental covariances.}
+
+\item{K}{An n x n genetic relatedness matrix.}
+
+\item{returnSe}{Should standard errors and p-values be returned?}
+
+\item{estCom}{Should the common SNP-effect model be fitted?}
+
+\item{nChunks}{An integer, the number of blocks in which the calculations
+should be split.}
 }
 \value{
-A list containing the estimates, the standard errors of the estimates and if an value for
-x is input
+A list containing the estimates, optionally the standard errors of
+the estimates and corresponding p-values. If \code{estCom = TRUE} also
+common SNP-effects, their standard errors and corresponding p-values and
+the p-values for QtlxE are output.
 }
 \description{
-Compute the estimates and standard errors for the covariates in the input matrix X. Optionally an
-additional covariate x can be estimated.
-}
-\details{
-No missing values are allowed in X, Y and x.\cr
-It is assumed that X, Y and x have already been rotated by Uk, where Uk is such that
-the kinship matrix K equals \eqn{K = Uk * Dk * t(Uk)}.\cr
-The original X, Y and x are right multiplied by Uk, e.g. \code{Y <- Y * Uk}. See Zhou
-and Stephens 2014, supplement.\cr
-It is these rotated versions that are the input of this function.
+Compute the estimates and standard errors for the covariates in the input
+matrix W.
 }
 \references{
-Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
-genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
+Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
+mixed model algorithms for genome-wide association studies. Nature Methods,
+February 2014, Vol. 11, p. 407–409
 }
 \keyword{internal}

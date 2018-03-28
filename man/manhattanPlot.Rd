@@ -7,8 +7,8 @@
 manhattanPlot(xValues, yValues, map, fileName = "", jpegPlot = TRUE,
   xLab = "Chromosomes", yLab = expression(-log[10](p)), plotType = "l",
   xSig = integer(), xEffects = integer(), colPalette = rep(c("royalblue",
-  "maroon"), 50)[1:length(levels(factor(map$chr)))], chrBoundaries = 0,
-  yThr = NULL, signPointsThickness = 0.6, ...)
+  "maroon"), 50), chrBoundaries = 0, yThr = NULL,
+  signPointsThickness = 0.6, ...)
 }
 \arguments{
 \item{xValues}{a vector of cumulative marker positions.}
