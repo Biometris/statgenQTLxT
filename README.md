@@ -1,3 +1,5 @@
+[![pipeline status](https://git.wur.nl/rossu027/genStatPipeline/badges/master/pipeline.svg)](https://git.wur.nl/rossu027/genStatPipeline/commits/master)
+
 # genStatPipeline
 
 R Genetic Statistical Pipeline for 
