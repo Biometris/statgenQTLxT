@@ -1,4 +1,4 @@
-[![pipeline status](https://git.wur.nl/rossu027/genStatPipeline/badges/master/pipeline.svg)](https://git.wur.nl/rossu027/genStatPipeline/commits/master)
+[![pipeline status](https://git.wur.nl/rossu027/statGenPipeline/badges/master/pipeline.svg)](https://git.wur.nl/rossu027/statGenPipeline/commits/master)
 
 # genStatPipeline
 
