@@ -327,7 +327,8 @@ runSingleTraitGwas <- function(gData,
             ## Fit mmer2 model.
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
                                        random = ~ g(genotype),
-                                       G = list(genotype = kinshipRed), silent = TRUE)
+                                       G = list(genotype = kinshipRed),
+                                       silent = TRUE, date.warning = FALSE)
             ## Compute varcov matrix using var components from model.
             sommerK <- kinshipRed[nonMissingRepId, nonMissingRepId]
             varCompEnvir[[trait]] <- setNames(
@@ -382,7 +383,7 @@ runSingleTraitGwas <- function(gData,
             sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
                                        random = ~ g(genotype),
                                        G = list(genotype = KinshipRedChr),
-                                       silent = TRUE)
+                                       silent = TRUE, date.warning = FALSE)
             ## Compute varcov matrix using var components from model.
             sommerK <- KinshipRedChr[nonMissingRepId, nonMissingRepId]
             varCompEnvir[[trait]][[which(chrs == chr)]] <- setNames(

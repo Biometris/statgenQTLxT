@@ -68,7 +68,7 @@ genomicPrediction <- function(gData,
                                G = list(genotype = KTrain),
                                rcov = ~ units,
                                data = dataTrain,
-                               silent = TRUE)
+                               silent = TRUE, date.warning = FALSE)
     ## Extract y.
     y <- dataTrain[[trait]]
     ## Extract mu from model.
