@@ -125,7 +125,7 @@ covPairwise <- function(Y,
   }
   ## Keep diagonal for Vg and Ve away from 0.
   VgVec[VgVec <= 0] <- 1e-3 * smpVar[VgVec <= 0]
-  VeVec[VeVec <= 0] <- 1e-3 * smpVar[VgVec <= 0]
+  VeVec[VeVec <= 0] <- 1e-3 * smpVar[VeVec <= 0]
   if (corMat) {
     ## Ones on the diagonal of resulting matrix.
     VgMat <- VeMat <- diag(x = 1, nrow = nTrait)
