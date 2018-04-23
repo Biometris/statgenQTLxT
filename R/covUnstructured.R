@@ -65,8 +65,8 @@ covUnstructured <- function(Y,
                              rcov = rcov, data = data, G = list(genotype = K),
                              silent = TRUE)
   ## Extract components from fitted model.
-  VgMat <- sommerFit$var.comp[[1]]
-  VeMat <- sommerFit$var.comp[[2]]
+  VgMat <- Matrix::nearPD(sommerFit$var.comp[[1]])$mat
+  VeMat <- Matrix::nearPD(sommerFit$var.comp[[2]])$mat
   colnames(VgMat) <- rownames(VgMat) <- traits
   colnames(VeMat) <- rownames(VeMat) <- traits
   return(list(Vg = VgMat, Ve = VeMat))
