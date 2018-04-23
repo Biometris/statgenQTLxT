@@ -48,6 +48,7 @@ covUnstructured <- function(Y,
   K <- K[unique(Y$genotype), unique(Y$genotype)]
   traits <- colnames(Y)[-1]
   nTrait <- length(traits)
+  smpVar <- sapply(Y[-1], var)
   if (!is.null(X)) {
     ## Define formula for fixed part. ` needed to accommodate - in variable names.
     fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ `",
@@ -65,8 +66,14 @@ covUnstructured <- function(Y,
                              rcov = rcov, data = data, G = list(genotype = K),
                              silent = TRUE)
   ## Extract components from fitted model.
-  VgMat <- Matrix::nearPD(sommerFit$var.comp[[1]])$mat
-  VeMat <- Matrix::nearPD(sommerFit$var.comp[[2]])$mat
+  VgMat <- sommerFit$var.comp[[1]]
+  VeMat <- sommerFit$var.comp[[2]]
+  ## Keep diagonal for Vg and Ve away from 0.
+  diag(VgMat)[diag(VgMat) <= 0] <- 1e-3 * smpVar[diag(VgMat) <= 0]
+  diag(VeMat)[diag(VeMat) <= 0] <- 1e-3 * smpVar[diag(VeMat) <= 0]
+  ## Make Vg and Ve positive definite
+  VgMat <- Matrix::nearPD(VgMat)$mat
+  VeMat <- Matrix::nearPD(VeMat)$mat
   colnames(VgMat) <- rownames(VgMat) <- traits
   colnames(VeMat) <- rownames(VeMat) <- traits
   return(list(Vg = VgMat, Ve = VeMat))
