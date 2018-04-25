@@ -1,64 +1,73 @@
 #' Perform multi-trait GWAS
 #'
-#' \code{runMultiTraitGwas} performs a multi-trait Genome Wide Association Study (GWAS) on phenotypic and
-#' genotypic data contained in a \code{gData} object.
+#' \code{runMultiTraitGwas} performs a multi-trait Genome Wide Association
+#' Study (GWAS) on phenotypic and' genotypic data contained in a \code{gData}
+#' object.
 #'
 #' @inheritParams runSingleTraitGwas
 #'
 #' @param subsetMarkers should the marker data be subsetted?
-#' @param markerSubset numeric or character vector used for subsetting the markers. Ignored if
-#' subsetMarkers = \code{FALSE}.
-#' @param fitVarComp should the variance components be fitted? If \code{FALSE} they should be supplied
-#' in Vg and Ve
-#' @param covModel an integer value for the model used when fitting the variance components.
+#' @param markerSubset numeric or character vector used for subsetting the
+#' markers. Ignored if subsetMarkers = \code{FALSE}.
+#' @param fitVarComp should the variance components be fitted? If \code{FALSE}
+#' they should be supplied in Vg and Ve @param covModel an integer value for
+#' the model used when fitting the variance components.
 #' \enumerate{
 #' \item{unstructured for both Vg and Ve (as in Zhou and Stephens (2014))}
-#' \item{unstructered for both Vg and Ve (pairwise, as in Furlotte and Eskin (2013))}
+#' \item{unstructered for both Vg and Ve (pairwise, as in Furlotte and Eskin
+#' (2013))}
 #' \item{factor-analytic for both Vg and Ve}
 #' \item{approximate ...(as in Kruijer et al. (2015))}
 #' }
 #' Ignored if fitVarComp = \code{FALSE}
-#' @param VeDiag Should there be environmental correlations if covModel = 1 or 2? If traits are measured on
-#' the same individuals put \code{FALSE}.
-#' @param tolerance a numerical value. Used when fitting the factor analytical model if covModel = 3.
-#' See \code{\link{EMFA}}.
-#' @param maxIter an integer. Used when fitting the factor analytical model if covModel = 3.
-#' See \code{\link{EMFA}}.
-#' @param maxDiag a numerical value. Used when fitting the factor analytical model if covModel = 3.
-#' See \code{\link{EMFA}}.
-#' @param mG an integer. Used when fitting the factor analytical model if covModel = 3.
-#' See \code{\link{EMFA}}.
-#' @param mE an integer. Used when fitting the factor analytical model if covModel = 3.
-#' See \code{\link{EMFA}}.
-#' @param CmHet a boolean. Used when fitting the factor analytical model if covModel = 3.
-#' See \code{\link{EMFA}}.
-#' @param DmHet a boolean. Used when fitting the factor analytical model if covModel = 3.
-#' See \code{\link{EMFA}}.
-#' @param stopIfDecreasing a boolean. Used when fitting the factor analytical model if covModel = 3.
-#' See \code{\link{EMFA}}.
-#' @param computeLogLik a boolean. Used when fitting the factor analytical model if covModel = 3.
-#' See \code{\link{EMFA}}.
-#' @param Vg an optional matrix with genotypic variance components. Vg should have row names
-#' column names corresponding to the column names of Y. It may contain additional rows and colums
-#' which will be ignored. Ignored if fitVarComp = \code{TRUE}.
-#' @param Ve an optional matrix with environmental variance components. Ve should have row names
-#' column names corresponding to the column names of Y. It may contain additional rows and colums
-#' which will be ignored. Ignored if fitVarComp = \code{TRUE}.
-#' @param reduceK if \code{TRUE} the kinship matrix is reduced. See \code{\link{reduceKinship}}
-#' @param nPca an integer giving the number of Pcas used whe reducing the kinship matrix.
-#' Ignored if reduceK = \code{FALSE}.
+#' @param VeDiag Should there be environmental correlations if covModel = 1 or
+#' 2? If traits are measured on the same individuals put \code{FALSE}.
+#' @param tolerance a numerical value. Used when fitting the factor analytical
+#' model if covModel = 3. See \code{\link{EMFA}}.
+#' @param maxIter an integer. Used when fitting the factor analytical model if
+#' covModel = 3. See \code{\link{EMFA}}.
+#' @param maxDiag a numerical value. Used when fitting the factor analytical
+#' model if covModel = 3. See \code{\link{EMFA}}.
+#' @param mG an integer. Used when fitting the factor analytical model if
+#' covModel = 3. See \code{\link{EMFA}}.
+#' @param mE an integer. Used when fitting the factor analytical model if
+#' covModel = 3. See \code{\link{EMFA}}.
+#' @param CmHet a boolean. Used when fitting the factor analytical model if
+#' covModel = 3. See \code{\link{EMFA}}.
+#' @param DmHet a boolean. Used when fitting the factor analytical model if
+#' covModel = 3. See \code{\link{EMFA}}.
+#' @param stopIfDecreasing a boolean. Used when fitting the factor analytical
+#' model if covModel = 3. See \code{\link{EMFA}}.
+#' @param computeLogLik a boolean. Used when fitting the factor analytical model
+#' if covModel = 3. See \code{\link{EMFA}}.
+#' @param Vg an optional matrix with genotypic variance components. Vg should
+#' have row names column names corresponding to the column names of Y. It may
+#' contain additional rows and colums which will be ignored. Ignored if
+#' fitVarComp = \code{TRUE}.
+#' @param Ve an optional matrix with environmental variance components. Ve
+#' should have row names column names corresponding to the column names of Y.
+#' It may contain additional rows and colums which will be ignored. Ignored if
+#' fitVarComp = \code{TRUE}.
+#' @param reduceK if \code{TRUE} the kinship matrix is reduced. See
+#' \code{\link{reduceKinship}}
+#' @param nPca an integer giving the number of Pcas used whe reducing the
+#' kinship matrix. Ignored if reduceK = \code{FALSE}.
+#' @param parallel Should the computation of variance components be done in
+#' parallel. Only used if \code{covModel = 2}. A parallel computing environment
+#' has to be setup by the user.
 #'
 #' @return an object of class \code{\link{GWAS}}.
 #'
-#' @references Dahl et al. (2013). Network inference in matrix-variate Gaussian models with
-#' non-independent noise. arXiv preprint arXiv:1312.1622.
-#' @references Furlotte, N.A. and Eskin, E. (2015). Efficient multiple-trait association and
-#' estimation of genetic correlation using the matrix-variate linear mixed model. Genetics, May 2015,
-#' Vol.200-1, p. 59-68.
-#' @references Kruijer et al. (2015) Marker-based estimation of heritability in immortal populations.
-#' Genetics. February 2015, Vol. 199-2, p. 379-398.
-#' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
-#' genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409.
+#' @references Dahl et al. (2013). Network inference in matrix-variate Gaussian
+#' models with non-independent noise. arXiv preprint arXiv:1312.1622.
+#' @references Furlotte, N.A. and Eskin, E. (2015). Efficient multiple-trait
+#' association and estimation of genetic correlation using the matrix-variate
+#' linear mixed model. Genetics, May 2015, Vol.200-1, p. 59-68.
+#' @references Kruijer et al. (2015) Marker-based estimation of heritability in
+#' immortal populations. Genetics. February 2015, Vol. 199-2, p. 379-398.
+#' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
+#' mixed model algorithms for genome-wide association studies. Nature Methods,
+#' February 2014, Vol. 11, p. 407–409.
 #'
 #' @importFrom rlang .data
 #'
@@ -89,19 +98,23 @@ runMultiTraitGwas <- function(gData,
                               Vg = NULL,
                               Ve = NULL,
                               reduceK = FALSE,
-                              nPca = NULL) {
+                              nPca = NULL,
+                              parallel = FALSE) {
   ## Check input.
   if (missing(gData) || !is.gData(gData) || is.null(gData$markers) ||
       is.null(gData$map) || is.null(gData$pheno)) {
-    stop("gData should be a valid gData object containing at least map, markers and pheno.\n")
+    stop(paste("gData should be a valid gData object containing at least map,",
+               "markers and pheno.\n"))
   }
   if (!inherits(gData$markers, "Matrix")) {
-    stop("markers in gData should be a numerical matrix. Use recodeMarkers first for recoding.")
+    stop(paste("markers in gData should be a numerical matrix. Use",
+               "recodeMarkers first for recoding."))
   }
   if (anyNA(gData$markers)) {
     stop("markers contains missing values. Impute or remove these first.\n")
   }
-  if (!is.null(environments) && ((!is.numeric(environments) && !is.character(environments)) ||
+  if (!is.null(environments) && ((!is.numeric(environments) &&
+                                  !is.character(environments)) ||
                                  length(environments) > 1)) {
     stop("environments should be a single numeric or character value.\n")
   }
@@ -112,7 +125,8 @@ runMultiTraitGwas <- function(gData,
   if (is.null(environments) && length(gData$pheno) > 1) {
     stop("pheno contains multiple environments. Environment cannot be NULL.\n")
   }
-  ## SNPs with MAF == 0 always have to be removed to prevent creation of singular matrices.
+  ## SNPs with MAF == 0 always have to be removed to prevent creation of
+  ## singular matrices.
   if (MAF <= 1e-6) {
     MAF <- 1e-6
   }
@@ -122,8 +136,8 @@ runMultiTraitGwas <- function(gData,
   }
   markers <- gData$markers
   map <- gData$map
-  ## Construct Y from pheno data in gData. Remove rownames first since column_to_rownames doesn't
-  ## overwrite existing rownames.
+  ## Construct Y from pheno data in gData. Remove rownames first since
+  ## column_to_rownames doesn't overwrite existing rownames.
   if (!is.null(covar) && !is.numeric(covar) && !is.character(covar)) {
     stop("covar should be a numeric or character vector.\n")
   }
@@ -138,19 +152,22 @@ runMultiTraitGwas <- function(gData,
   if (!is.null(snpCovariates) && !all(snpCovariates %in% colnames(gData$markers))) {
     stop("All snpCovariates should be in markers.\n")
   }
-  if (GLSMethod == 1 && !is.null(kin) && !(inherits(kin, "Matrix") || is.matrix(kin))) {
+  if (GLSMethod == 1 && !is.null(kin) && !(inherits(kin, "Matrix") ||
+                                           is.matrix(kin))) {
     stop("kin should be a matrix.\n")
   }
   if (GLSMethod == 2 && !is.null(kin) && (!is.list(kin) ||
-                                          !all(sapply(kin, FUN = function(k) {is.matrix(k) ||
+                                          !all(sapply(kin, FUN = function(k) {
+                                            is.matrix(k) ||
                                               inherits(k, "Matrix")})) ||
                                           length(kin) != dplyr::n_distinct(gData$map$chr))) {
-    stop("kin should be a list of matrices of length equal to the number of chromosomes
-      in the map.\n")
+    stop(paste("kin should be a list of matrices of length equal to the number",
+               "of chromosomes in the map.\n"))
   }
   if ((GLSMethod == 1 && is.null(gData$kinship) && is.null(kin)) ||
       GLSMethod == 2 && is.null(kin)) {
-    kinshipMethod <- match.arg(kinshipMethod, choices = c("astle", "GRM", "IBS", "vanRaden"))
+    kinshipMethod <- match.arg(kinshipMethod,
+                               choices = c("astle", "GRM", "IBS", "vanRaden"))
   }
   if (subsetMarkers && markerSubset == "") {
     stop("If subsetting markers, markerSubset cannot be empty.\n")
@@ -164,12 +181,16 @@ runMultiTraitGwas <- function(gData,
       stop("Ve should be a matrix.\n")
     }
     if (is.null(colnames(Vg)) || is.null(rownames(Vg)) ||
-        any(colnames(Vg) != rownames(Vg)) || !all(colnames(Vg) %in% colnames(gData$pheno[[1]])[-1])) {
-      stop("Column names and rownames of Vg should be identical and included in column names of Y.\n")
+        any(colnames(Vg) != rownames(Vg)) ||
+        !all(colnames(Vg) %in% colnames(gData$pheno[[1]])[-1])) {
+      stop(paste("Column names and rownames of Vg should be identical and",
+                 "included in column names of Y.\n"))
     }
     if (is.null(colnames(Ve)) || is.null(rownames(Ve)) ||
-        any(colnames(Ve) != rownames(Ve)) || !all(colnames(Ve) %in% colnames(gData$pheno[[1]])[-1])) {
-      stop("Column names and rownames of Ve should be identical and included in column names of pheno.\n")
+        any(colnames(Ve) != rownames(Ve)) ||
+        !all(colnames(Ve) %in% colnames(gData$pheno[[1]])[-1])) {
+      stop(paste("Column names and rownames of Ve should be identical and",
+                 "included in column names of pheno.\n"))
     }
     Vg <- Vg[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
     Ve <- Ve[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
@@ -209,18 +230,20 @@ runMultiTraitGwas <- function(gData,
   phenoEnvir <- phenoExp$phenoEnvir
   covarEnvir <- phenoExp$covarEnvir
   ## Convert pheno and covariates to format suitable for fitting variance components.
-  X <- Matrix::cbind2(rep(1, nrow(phenoEnvir)), as(as.matrix(phenoEnvir[covarEnvir]), "dgeMatrix"))
+  X <- cbind(rep(1, nrow(phenoEnvir)),
+             as(as.matrix(phenoEnvir[covarEnvir]), "dgeMatrix"))
   rownames(X) <- phenoEnvir$genotype
   ## Add snpCovariates to X
   if (!is.null(snpCovariates)) {
     if (ncol(X) == length(snpCovariates)) {
-      XRed <- Matrix::Matrix(nrow = nrow(X), ncol = 0, dimnames = list(rownames(X)))
+      XRed <- Matrix::Matrix(nrow = nrow(X), ncol = 0,
+                             dimnames = list(rownames(X)))
     } else {
       XRed <- X[, 1:(ncol(X) - length(snpCovariates)), drop = FALSE]
     }
   }
   Y <- as(as.matrix(tibble::column_to_rownames(
-    tibble::remove_rownames(phenoEnvir[, which(!colnames(phenoEnvir) %in% covarEnvir)]),
+    tibble::remove_rownames(phenoEnvir[, !colnames(phenoEnvir) %in% covarEnvir]),
     var = "genotype")), "dgeMatrix")
   if (anyNA(Y)) {
     stop("Phenotypic data cannot contain any missing values.\n")
@@ -295,31 +318,38 @@ runMultiTraitGwas <- function(gData,
         varComp <- covPairwise(Y = Y, K = K,
                                X = if (ncol(X) == 1) NULL else
                                  X[, -1, drop = FALSE],
-                               fixDiag = FALSE, corMat = FALSE)
+                               fixDiag = FALSE, corMat = FALSE,
+                               parallel = parallel)
         if (!is.null(snpCovariates)) {
           ## Sommer always adds an intercept so remove it from XRed.
           varCompRed <- covPairwise(Y = Y, K = K,
                                     X = if (ncol(XRed) == 1) NULL else
                                       XRed[, -1, drop = FALSE],
-                                    fixDiag = FALSE, corMat = FALSE)
+                                    fixDiag = FALSE, corMat = FALSE,
+                                    parallel = parallel)
         }
       } else if (covModel == 3) {
         ## FA models.
         ## Including snpCovariates.
-        varComp <- EMFA(Y = Y, K = K, X = X, maxIter = maxIter, tolerance = tolerance,
-                        mG = mG, mE = mE, CmHet = CmHet, DmHet = DmHet, maxDiag = maxDiag,
-                        stopIfDecreasing = stopIfDecreasing, computeLogLik = computeLogLik)
+        varComp <- EMFA(Y = Y, K = K, X = X, maxIter = maxIter,
+                        tolerance = tolerance, mG = mG, mE = mE, CmHet = CmHet,
+                        DmHet = DmHet, maxDiag = maxDiag,
+                        stopIfDecreasing = stopIfDecreasing,
+                        computeLogLik = computeLogLik)
         if (!is.null(snpCovariates)) {
           ## Without snpCovariates.
-          varCompRed <- EMFA(Y = Y, K = K, X = XRed, maxIter = maxIter, tolerance = tolerance,
-                             mG = mG, mE = mE, CmHet = TRUE, DmHet = TRUE, maxDiag = maxDiag,
-                             computeLogLik = computeLogLik, stopIfDecreasing = stopIfDecreasing)
+          varCompRed <- EMFA(Y = Y, K = K, X = XRed, maxIter = maxIter,
+                             tolerance = tolerance, mG = mG, mE = mE,
+                             CmHet = TRUE, DmHet = TRUE, maxDiag = maxDiag,
+                             computeLogLik = computeLogLik,
+                             stopIfDecreasing = stopIfDecreasing)
         }
       } else if (covModel == 4) {
         ## ??
         geno <- rownames(Y)
         GBLUP <- sapply(as.matrix(Y), function(i) {
-          outH2 <- heritability::marker_h2_means(data.vector = i, geno.vector = geno,
+          outH2 <- heritability::marker_h2_means(data.vector = i,
+                                                 geno.vector = geno,
                                                  K = as.matrix(K))
           delta <- outH2$va / outH2$ve
           return(delta * K %*% solve((delta * K + diag(nrow(Y))), matrix(i)))})
@@ -337,7 +367,7 @@ runMultiTraitGwas <- function(gData,
         ## Sommer always adds an intercept so remove it from X.
         varComp <- sapply(X = chrs, FUN = function(chr) {
           covUnstructured(Y = Y,
-                          K = KChr[[which(chrs == chr)]],
+                          K = KChr[[chrs == chr]],
                           X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
                           fixDiag = FALSE, VeDiag = VeDiag)
         }, simplify = FALSE)
@@ -345,8 +375,9 @@ runMultiTraitGwas <- function(gData,
           ## Sommer always adds an intercept so remove it from XRed.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
             covUnstructured(Y = Y,
-                            K = KChr[[which(chrs == chr)]],
-                            X = if (ncol(XRed) == 1) NULL else XRed[, -1, drop = FALSE],
+                            K = KChr[[chrs == chr]],
+                            X = if (ncol(XRed) == 1) NULL else
+                              XRed[, -1, drop = FALSE],
                             fixDiag = FALSE, VeDiag = VeDiag)
           }, simplify = FALSE)
         }
@@ -355,50 +386,54 @@ runMultiTraitGwas <- function(gData,
         ## Sommer always adds an intercept so remove it from X.
         varComp <- sapply(X = chrs, FUN = function(chr) {
           covPairwise(Y = Y,
-                      K = KChr[[which(chrs == chr)]],
+                      K = KChr[[chrs == chr]],
                       X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
-                      fixDiag = FALSE, corMat = TRUE)
+                      fixDiag = FALSE, corMat = TRUE, parallel = parallel)
         }, simplify = FALSE)
         if (!is.null(snpCovariates)) {
           ## Sommer always adds an intercept so remove it from XRed.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
             covPairwise(Y = Y,
-                        K = KChr[[which(chrs == chr)]],
-                        X = if (ncol(XRed) == 1) NULL else XRed[, -1, drop = FALSE],
-                        fixDiag = FALSE, corMat = TRUE)
+                        K = KChr[[chrs == chr]],
+                        X = if (ncol(XRed) == 1) NULL else
+                          XRed[, -1, drop = FALSE],
+                        fixDiag = FALSE, corMat = TRUE, parallel = parallel)
           }, simplify = FALSE)
         }
       } else if (covModel == 3) {
         ## FA models.
         ## Including snpCovariates.
         varComp <- sapply(X = chrs, FUN = function(chr) {
-          EMFA(Y = Y,
-               K = KChr[[which(chrs == chr)]],
-               X = X, maxIter = maxIter, tolerance = tolerance,
-               mG = mG, mE = mE, CmHet = CmHet, DmHet = DmHet, maxDiag = maxDiag,
-               stopIfDecreasing = stopIfDecreasing, computeLogLik = computeLogLik)
+          EMFA(Y = Y, K = KChr[[chrs == chr]], X = X, maxIter = maxIter,
+               tolerance = tolerance, mG = mG, mE = mE, CmHet = CmHet,
+               DmHet = DmHet, maxDiag = maxDiag,
+               stopIfDecreasing = stopIfDecreasing,
+               computeLogLik = computeLogLik)
         }, simplify = FALSE)
         if (!is.null(snpCovariates)) {
           ## Without snpCovariates.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
-            EMFA(Y = Y,
-                 K = KChr[[which(chrs == chr)]],
-                 X = XRed, maxIter = maxIter, tolerance = tolerance,
-                 mG = mG, mE = mE, CmHet = CmHet, DmHet = DmHet, maxDiag = maxDiag,
-                 stopIfDecreasing = stopIfDecreasing, computeLogLik = computeLogLik)
+            EMFA(Y = Y, K = KChr[[chrs == chr]], X = XRed, maxIter = maxIter,
+                 tolerance = tolerance, mG = mG, mE = mE, CmHet = CmHet,
+                 DmHet = DmHet, maxDiag = maxDiag,
+                 stopIfDecreasing = stopIfDecreasing,
+                 computeLogLik = computeLogLik)
           }, simplify = FALSE)
         }
       } else if (covModel == 4) {
         ## ??
         geno <- rownames(Y)
         GBLUP <- sapply(as.data.frame(Y), function(i) {
-          outH2 <- heritability::marker_h2_means(data.vector = i, geno.vector = geno, K = K)
+          outH2 <- heritability::marker_h2_means(data.vector = i,
+                                                 geno.vector = geno, K = K)
           delta <- outH2$va / outH2$ve
           return(delta * K %*% solve((delta * K + diag(nrow(Y))), matrix(i)))})
         varComp <- list(Vg = cov(GBLUP), Ve = cov(Y - GBLUP))
       }
-      Vg <- setNames(lapply(X = varComp, FUN = function(x) {x[[1]]}), paste("chr", chrs))
-      Ve <- setNames(lapply(X = varComp, FUN = function(x) {x[[2]]}), paste("chr", chrs))
+      Vg <- setNames(lapply(X = varComp, FUN = function(x) {x[[1]]}),
+                     paste("chr", chrs))
+      Ve <- setNames(lapply(X = varComp, FUN = function(x) {x[[2]]}),
+                     paste("chr", chrs))
       if (!is.null(snpCovariates)) {
         VgRed <- lapply(X = varCompRed, FUN = function(x) {x[[1]]})
         VeRed <- lapply(X = varCompRed, FUN = function(x) {x[[2]]})
@@ -407,9 +442,11 @@ runMultiTraitGwas <- function(gData,
   }
   ## Create data.frame and matrices for storing GWAS Results.
   nn <- nrow(mapRed)
-  allFreq <- Matrix::colMeans(markersRed[rownames(Y), rownames(mapRed)]) / max(markersRed)
+  allFreq <- Matrix::colMeans(markersRed[rownames(Y),
+                                         rownames(mapRed)]) / max(markersRed)
   effects <- effectsSe <- matrix(nrow = nn, ncol = ncol(Y),
-                                 dimnames = list(colnames(markersRed), colnames(Y)))
+                                 dimnames = list(colnames(markersRed),
+                                                 colnames(Y)))
   markersRed <- markersRed[rownames(Y), ]
   GWAResult <- data.frame(trait = NA,
                           snp = rownames(mapRed),
@@ -451,7 +488,7 @@ runMultiTraitGwas <- function(gData,
     ## Create an empty matrix with traits as header.
     effects <- effectsSe <- t(gData$pheno[[environment]][FALSE, -1])
     for (chr in chrs) {
-      w <- eigen(KChr[[which(chrs == chr)]], symmetric = TRUE)
+      w <- eigen(KChr[[chrs == chr]], symmetric = TRUE)
       Dk <- w$values
       Uk <- w$vectors
       Yt <- Matrix::crossprod(Y, Uk)
@@ -459,17 +496,18 @@ runMultiTraitGwas <- function(gData,
       if (ncol(X) > 0) {
         Xt <- Matrix::crossprod(X, Uk)
       }
-      VInvArray <- makeVInvArray(Vg = Vg[[which(chrs == chr)]], Ve = Ve[[which(chrs == chr)]],
+      VInvArray <- makeVInvArray(Vg = Vg[[chrs == chr]], Ve = Ve[[chrs == chr]],
                                  Dk = Dk)
       if (!is.null(snpCovariates)) {
         if (ncol(XRed) > 0) {
           XtRed <- Matrix::crossprod(XRed, Uk)
         }
-        VInvArrayRed <- makeVInvArray(Vg = VgRed[[which(chrs == chr)]],
-                                      Ve = VeRed[[which(chrs == chr)]], Dk = Dk)
+        VInvArrayRed <- makeVInvArray(Vg = VgRed[[chrs == chr]],
+                                      Ve = VeRed[[chrs == chr]], Dk = Dk)
       }
-      mapRedChr <- mapRed[which(mapRed$chr == chr), ]
-      markersRedChr <- markersRed[, which(colnames(markersRed) %in% rownames(mapRedChr)), drop = FALSE]
+      mapRedChr <- mapRed[mapRed$chr == chr, ]
+      markersRedChr <- markersRed[, colnames(markersRed) %in% rownames(mapRedChr),
+                                  drop = FALSE]
       allFreqChr <- Matrix::colMeans(markersRedChr) / max(markersRedChr)
       segMarkers <- which(allFreqChr < MAF | allFreqChr > 1 - MAF)
       snpCovChr <- snpCovariates[snpCovariates %in% colnames(markersRedChr)]
@@ -482,30 +520,30 @@ runMultiTraitGwas <- function(gData,
         effEstSnpCov <- estimateEffects(Y = Y, W = XRed,
                                         X = markersRedChr[, snpCovChr,
                                                           drop = FALSE],
-                                        Vg = Vg[[which(chrs == chr)]],
-                                        Ve = Ve[[which(chrs == chr)]],
-                                        K = KChr[[which(chrs == chr)]])
+                                        Vg = Vg[[chrs == chr]],
+                                        Ve = Ve[[chrs == chr]],
+                                        K = KChr[[chrs == chr]])
       }
       effEst <- estimateEffects(Y = Y, W = X,
                                 X = markersRedChr[, -excludedMarkers],
-                                Vg = Vg[[which(chrs == chr)]],
-                                Ve = Ve[[which(chrs == chr)]],
-                                K = KChr[[which(chrs == chr)]])
+                                Vg = Vg[[chrs == chr]], Ve = Ve[[chrs == chr]],
+                                K = KChr[[chrs == chr]])
       pValues <- c(pValues, effEst$pVals,
                    if (length(snpCovChr) > 0) effEstSnpCov$pVals)
       effects <- cbind(effects, effEst$effects,
                        if (length(snpCovChr) > 0) effEstSnpCov$effects)
       effectsSe <- cbind(effectsSe, effEst$effectsSe,
                          if (length(snpCovChr) > 0) effEstSnpCov$effectsSe)
-
     }
   }
   ## Convert effects and effectsSe to long format and merge.
   effectsTot <- reshape2::melt(effects) %>%
     dplyr::inner_join(reshape2::melt(effectsSe), by = c("Var1", "Var2")) %>%
-    dplyr::mutate(Var1 = as.character(.data$Var1), Var2 = as.character(.data$Var2))
+    dplyr::mutate(Var1 = as.character(.data$Var1),
+                  Var2 = as.character(.data$Var2))
   ## Merge the effects and effectsSe to the results
-  GWAResult <- dplyr::inner_join(GWAResult, effectsTot, by = c("snp" = "Var2")) %>%
+  GWAResult <- dplyr::inner_join(GWAResult, effectsTot,
+                                 by = c("snp" = "Var2")) %>%
     dplyr::inner_join(data.frame(snp = names(pValues), pValues,
                                  stringsAsFactors = FALSE), by = "snp") %>%
     dplyr::mutate(LOD = -log10(.data$pValues)) %>%
@@ -522,7 +560,8 @@ runMultiTraitGwas <- function(gData,
                                       labels = c("single kinship matrix",
                                                  "chromosome specific kinship matrices")),
                    varComp = list(Vg = Vg, Ve = Ve))
-  return(createGWAS(GWAResult = setNames(list(GWAResult), names(gData$pheno)[environment]),
+  return(createGWAS(GWAResult = setNames(list(GWAResult),
+                                         names(gData$pheno)[environment]),
                     signSnp = NULL,
                     kin = if (GLSMethod == 1) {
                       if (is.null(kin)) {

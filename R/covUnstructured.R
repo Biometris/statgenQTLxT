@@ -1,21 +1,26 @@
 #' Compute unstructured covariance
 #'
-#' Compute unstructured covariance pairwise using \code{covPairwise} or using a single model using
-#' \code{covUnstructured}.
+#' Compute unstructured covariance pairwise using \code{covPairwise} or using a
+#' single model using \code{covUnstructured}.
 #'
 #' @inheritParams EMFA
 
-#' @param X a covariate matrix, c being the number of covariates and n being the number
-#' of genotypes.
-#' @param fixDiag should the diagonal of the covariate matrix be fixed during calculations?
-#' -- NOT YET IMPLEMENTED
+#' @param X a covariate matrix, c being the number of covariates and n being the
+#' number of genotypes.
+#' @param fixDiag should the diagonal of the covariate matrix be fixed during
+#' calculations? -- NOT YET IMPLEMENTED
 #' @param VeDiag should Ve be a diagonale matrix?
-#' @param corMat should the output be a correlation matrix instead of a covariance matrix?
+#' @param corMat should the output be a correlation matrix instead of a
+#' covariance matrix?
+#' @param parallel Should the computation of variance components be done in
+#' parallel.
 #'
-#' @return a list of two matrices \code{Vg} and \code{Ve} containing genotypic and environmental
-#' variance components respectively.
+#' @return a list of two matrices \code{Vg} and \code{Ve} containing genotypic
+#' and environmental variance components respectively.
 #'
 #' @import utils
+#' @importFrom foreach %do%
+#' @importFrom foreach %dopar%
 #'
 #' @keywords internal
 covUnstructured <- function(Y,
@@ -34,12 +39,14 @@ covUnstructured <- function(Y,
     warning("fixDiag = TRUE not implemented yet. Value set to FALSE")
     fixDiag <- FALSE
   }
-  Y <- tibble::rownames_to_column(as.data.frame(as.matrix(Y)), var = "genotype")
+  Y <- tibble::rownames_to_column(as.data.frame(as.matrix(Y)),
+                                  var = "genotype")
   if (!is.null(X)) {
     ## sommer cannot handle column names with special characters.
     ## Therefore Simplify column names in X.
     colnames(X) <- make.names(colnames(X), unique = TRUE)
-    X <- tibble::rownames_to_column(as.data.frame(as.matrix(X)), var = "genotype")
+    X <- tibble::rownames_to_column(as.data.frame(as.matrix(X)),
+                                    var = "genotype")
     data <- merge(Y, X, by = "genotype")
   } else {
     data <- Y
@@ -85,7 +92,8 @@ covPairwise <- function(Y,
                         K,
                         X = NULL,
                         fixDiag = FALSE,
-                        corMat = FALSE) {
+                        corMat = FALSE,
+                        parallel = FALSE) {
   ## Check input.
   if (missing(Y) || !(is.matrix(Y) || inherits(Y, "Matrix"))) {
     stop("Y should be a matrix")
@@ -97,6 +105,7 @@ covPairwise <- function(Y,
     warning("fixDiag = TRUE not implemented yet. Value set to FALSE")
     fixDiag <- FALSE
   }
+  `%op%` <- getOper(parallel && foreach::getDoParWorkers() > 1)
   Y <- tibble::rownames_to_column(as.data.frame(as.matrix(Y)), var = "genotype")
   if (!is.null(X)) {
     ## sommer cannot handle column names with special characters.
@@ -144,50 +153,54 @@ covPairwise <- function(Y,
   rownames(VgMat) <- colnames(VgMat) <- traits
   rownames(VeMat) <- colnames(VeMat) <- traits
   ## For every combination of traits compute variance.
-  pwVar <- combn(x = traits, m = 2, FUN = function(idx) {
+  modPW <- function(i, j) {
     if (!is.null(X)) {
       ## Define formula for fixed part. ` needed to accommodate - in variable names.
-      fixed <- as.formula(paste0("cbind(", idx[[1]], ", ", idx[[2]], ") ~ `",
+      fixed <- as.formula(paste0("cbind(", traits[i], ", ", traits[j], ") ~ `",
                                  paste(colnames(X)[-1], collapse = '` + `'), "`"))
     } else {
-      fixed <- as.formula(paste0("cbind(", idx[[1]], ", ", idx[[2]], ") ~ 1"))
+      fixed <- as.formula(paste0("cbind(", traits[i], ", ", traits[j], ") ~ 1"))
     }
-    sommerFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
-                               rcov = ~ us(trait):units, data = data,
-                               G = list(genotype = K), silent = TRUE,
-                               init = list(diag(diag(VgMat[idx, idx])),
-                                           diag(diag(VeMat[idx, idx]))),
-                               date.warning = FALSE)
-    ## Extract components from fitted model.
-    return(sommerFit$var.comp)
-  }, simplify = FALSE)
+    modFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
+                            rcov = ~ us(trait):units,
+                            data = data[, c("genotype", traits[i], traits[j])],
+                            G = list(genotype = K),
+                            init = list(diag(VgVec[c(i, j)]),
+                                        diag(VeVec[c(i, j)])),
+                            silent = TRUE, date.warning = FALSE)
+    return(c(modFit$var.comp[[1]][1,2],
+             modFit$var.comp[[2]][1,2]))
+  }
+  comb <- combn(x = seq_along(traits), m = 2)
+  pwVar <- foreach::foreach(i = comb[1, ], j = comb[2, ],
+                            .combine = "cbind", .packages = "sommer") %op% {
+                              modPW(i, j)
+                            }
+  ## If there are only 2 traits pwVar is a vector, where it should be a matrix
+  if (nTrait == 2) {
+    pwVar <- t(t(pwVar))
+  }
   ## Fill VgMat using symmetry.
-  VgMat[lower.tri(VgMat)] <- sapply(1:length(pwVar), FUN = function(x) {
-    if (!corMat) pwVar[[x]][[1]][1, 2] else {
-      if (pwVar[[x]][[1]][1, 2] == 0) {
-        0
-      } else {
-        Matrix::cov2cor(Matrix::nearPD(pwVar[[x]][[1]])$mat)[1, 2]
-      }
-    }
-  })
+  VgMat[lower.tri(VgMat)] <- pwVar[1, ]
   VgMat[upper.tri(VgMat)] <- t(VgMat)[upper.tri(VgMat)]
+  if (corMat) {
+    VgMat <- cor(VgMat)
+  }
   ## Fill VeMat using symmetry.
-  VeMat[lower.tri(VeMat)] <- sapply(1:length(pwVar), FUN = function(x) {
-    if (!corMat) pwVar[[x]][[2]][1, 2] else {
-      if (pwVar[[x]][[2]][1, 2] == 0) {
-        0
-      } else {
-        Matrix::cov2cor(Matrix::nearPD(pwVar[[x]][[2]])$mat)[1, 2]
-      }
-    }
-  })
+  VeMat[lower.tri(VeMat)] <- pwVar[2, ]
   VeMat[upper.tri(VeMat)] <- t(VeMat)[upper.tri(VeMat)]
+  if (corMat) {
+    VeMat <- cor(VeMat)
+  }
   ## Make positive definite.
   VgMat <- Matrix::nearPD(VgMat, corr = corMat)$mat
   VeMat <- Matrix::nearPD(VeMat, corr = corMat)$mat
   return(list(Vg = VgMat, Ve = VeMat))
 }
+
+
+
+
 
 
 

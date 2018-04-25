@@ -7,7 +7,8 @@
 \usage{
 covUnstructured(Y, K, X = NULL, fixDiag = FALSE, VeDiag = FALSE)
 
-covPairwise(Y, K, X = NULL, fixDiag = FALSE, corMat = FALSE)
+covPairwise(Y, K, X = NULL, fixDiag = FALSE, corMat = FALSE,
+  parallel = FALSE)
 }
 \arguments{
 \item{Y}{an n x p matrix of observed phenotypes, on p traits or environments for n individuals.
@@ -15,22 +16,26 @@ No missing values are allowed.}
 
 \item{K}{an n x n kinship matrix.}
 
-\item{X}{a covariate matrix, c being the number of covariates and n being the number
-of genotypes.}
+\item{X}{a covariate matrix, c being the number of covariates and n being the
+number of genotypes.}
 
-\item{fixDiag}{should the diagonal of the covariate matrix be fixed during calculations?
--- NOT YET IMPLEMENTED}
+\item{fixDiag}{should the diagonal of the covariate matrix be fixed during
+calculations? -- NOT YET IMPLEMENTED}
 
 \item{VeDiag}{should Ve be a diagonale matrix?}
 
-\item{corMat}{should the output be a correlation matrix instead of a covariance matrix?}
+\item{corMat}{should the output be a correlation matrix instead of a
+covariance matrix?}
+
+\item{parallel}{Should the computation of variance components be done in
+parallel.}
 }
 \value{
-a list of two matrices \code{Vg} and \code{Ve} containing genotypic and environmental
-variance components respectively.
+a list of two matrices \code{Vg} and \code{Ve} containing genotypic
+and environmental variance components respectively.
 }
 \description{
-Compute unstructured covariance pairwise using \code{covPairwise} or using a single model using
-\code{covUnstructured}.
+Compute unstructured covariance pairwise using \code{covPairwise} or using a
+single model using \code{covUnstructured}.
 }
 \keyword{internal}

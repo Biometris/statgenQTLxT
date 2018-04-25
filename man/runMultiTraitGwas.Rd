@@ -10,7 +10,8 @@ runMultiTraitGwas(gData, environments = NULL, covar = NULL,
   fitVarComp = TRUE, covModel = 1, VeDiag = TRUE, tolerance = 1e-06,
   maxIter = 2e+05, maxDiag = 10000, mG = 1, mE = 1, CmHet = TRUE,
   DmHet = TRUE, stopIfDecreasing = TRUE, computeLogLik = TRUE,
-  Vg = NULL, Ve = NULL, reduceK = FALSE, nPca = NULL)
+  Vg = NULL, Ve = NULL, reduceK = FALSE, nPca = NULL,
+  parallel = FALSE)
 }
 \arguments{
 \item{gData}{an object of class \code{gData} containing at least \code{map}, \code{markers} and
@@ -48,86 +49,95 @@ are supported. If a kinship matrix is supplied either in \code{gData} or in para
 
 \item{subsetMarkers}{should the marker data be subsetted?}
 
-\item{markerSubset}{numeric or character vector used for subsetting the markers. Ignored if
-subsetMarkers = \code{FALSE}.}
+\item{markerSubset}{numeric or character vector used for subsetting the
+markers. Ignored if subsetMarkers = \code{FALSE}.}
 
 \item{MAF}{A numerical value between 0 and 1. SNPs with minor allele frequency below
 this value are not taken into account for the analysis, i.e. p-values and effect sizes are
 put to missing (NA). Ignored if \code{useMAF} is \code{FALSE}.}
 
-\item{fitVarComp}{should the variance components be fitted? If \code{FALSE} they should be supplied
-in Vg and Ve}
-
-\item{covModel}{an integer value for the model used when fitting the variance components.
+\item{fitVarComp}{should the variance components be fitted? If \code{FALSE}
+they should be supplied in Vg and Ve @param covModel an integer value for
+the model used when fitting the variance components.
 \enumerate{
 \item{unstructured for both Vg and Ve (as in Zhou and Stephens (2014))}
-\item{unstructered for both Vg and Ve (pairwise, as in Furlotte and Eskin (2013))}
+\item{unstructered for both Vg and Ve (pairwise, as in Furlotte and Eskin
+(2013))}
 \item{factor-analytic for both Vg and Ve}
 \item{approximate ...(as in Kruijer et al. (2015))}
 }
 Ignored if fitVarComp = \code{FALSE}}
 
-\item{VeDiag}{Should there be environmental correlations if covModel = 1 or 2? If traits are measured on
-the same individuals put \code{FALSE}.}
+\item{VeDiag}{Should there be environmental correlations if covModel = 1 or
+2? If traits are measured on the same individuals put \code{FALSE}.}
 
-\item{tolerance}{a numerical value. Used when fitting the factor analytical model if covModel = 3.
-See \code{\link{EMFA}}.}
+\item{tolerance}{a numerical value. Used when fitting the factor analytical
+model if covModel = 3. See \code{\link{EMFA}}.}
 
-\item{maxIter}{an integer. Used when fitting the factor analytical model if covModel = 3.
-See \code{\link{EMFA}}.}
+\item{maxIter}{an integer. Used when fitting the factor analytical model if
+covModel = 3. See \code{\link{EMFA}}.}
 
-\item{maxDiag}{a numerical value. Used when fitting the factor analytical model if covModel = 3.
-See \code{\link{EMFA}}.}
+\item{maxDiag}{a numerical value. Used when fitting the factor analytical
+model if covModel = 3. See \code{\link{EMFA}}.}
 
-\item{mG}{an integer. Used when fitting the factor analytical model if covModel = 3.
-See \code{\link{EMFA}}.}
+\item{mG}{an integer. Used when fitting the factor analytical model if
+covModel = 3. See \code{\link{EMFA}}.}
 
-\item{mE}{an integer. Used when fitting the factor analytical model if covModel = 3.
-See \code{\link{EMFA}}.}
+\item{mE}{an integer. Used when fitting the factor analytical model if
+covModel = 3. See \code{\link{EMFA}}.}
 
-\item{CmHet}{a boolean. Used when fitting the factor analytical model if covModel = 3.
-See \code{\link{EMFA}}.}
+\item{CmHet}{a boolean. Used when fitting the factor analytical model if
+covModel = 3. See \code{\link{EMFA}}.}
 
-\item{DmHet}{a boolean. Used when fitting the factor analytical model if covModel = 3.
-See \code{\link{EMFA}}.}
+\item{DmHet}{a boolean. Used when fitting the factor analytical model if
+covModel = 3. See \code{\link{EMFA}}.}
 
-\item{stopIfDecreasing}{a boolean. Used when fitting the factor analytical model if covModel = 3.
-See \code{\link{EMFA}}.}
+\item{stopIfDecreasing}{a boolean. Used when fitting the factor analytical
+model if covModel = 3. See \code{\link{EMFA}}.}
 
-\item{computeLogLik}{a boolean. Used when fitting the factor analytical model if covModel = 3.
-See \code{\link{EMFA}}.}
+\item{computeLogLik}{a boolean. Used when fitting the factor analytical model
+if covModel = 3. See \code{\link{EMFA}}.}
 
-\item{Vg}{an optional matrix with genotypic variance components. Vg should have row names
-column names corresponding to the column names of Y. It may contain additional rows and colums
-which will be ignored. Ignored if fitVarComp = \code{TRUE}.}
+\item{Vg}{an optional matrix with genotypic variance components. Vg should
+have row names column names corresponding to the column names of Y. It may
+contain additional rows and colums which will be ignored. Ignored if
+fitVarComp = \code{TRUE}.}
 
-\item{Ve}{an optional matrix with environmental variance components. Ve should have row names
-column names corresponding to the column names of Y. It may contain additional rows and colums
-which will be ignored. Ignored if fitVarComp = \code{TRUE}.}
+\item{Ve}{an optional matrix with environmental variance components. Ve
+should have row names column names corresponding to the column names of Y.
+It may contain additional rows and colums which will be ignored. Ignored if
+fitVarComp = \code{TRUE}.}
 
-\item{reduceK}{if \code{TRUE} the kinship matrix is reduced. See \code{\link{reduceKinship}}}
+\item{reduceK}{if \code{TRUE} the kinship matrix is reduced. See
+\code{\link{reduceKinship}}}
 
-\item{nPca}{an integer giving the number of Pcas used whe reducing the kinship matrix.
-Ignored if reduceK = \code{FALSE}.}
+\item{nPca}{an integer giving the number of Pcas used whe reducing the
+kinship matrix. Ignored if reduceK = \code{FALSE}.}
+
+\item{parallel}{Should the computation of variance components be done in
+parallel. Only used if \code{covModel = 2}. A parallel computing environment
+has to be setup by the user.}
 }
 \value{
 an object of class \code{\link{GWAS}}.
 }
 \description{
-\code{runMultiTraitGwas} performs a multi-trait Genome Wide Association Study (GWAS) on phenotypic and
-genotypic data contained in a \code{gData} object.
+\code{runMultiTraitGwas} performs a multi-trait Genome Wide Association
+Study (GWAS) on phenotypic and' genotypic data contained in a \code{gData}
+object.
 }
 \references{
-Dahl et al. (2013). Network inference in matrix-variate Gaussian models with
-non-independent noise. arXiv preprint arXiv:1312.1622.
+Dahl et al. (2013). Network inference in matrix-variate Gaussian
+models with non-independent noise. arXiv preprint arXiv:1312.1622.
 
-Furlotte, N.A. and Eskin, E. (2015). Efficient multiple-trait association and
-estimation of genetic correlation using the matrix-variate linear mixed model. Genetics, May 2015,
-Vol.200-1, p. 59-68.
+Furlotte, N.A. and Eskin, E. (2015). Efficient multiple-trait
+association and estimation of genetic correlation using the matrix-variate
+linear mixed model. Genetics, May 2015, Vol.200-1, p. 59-68.
 
-Kruijer et al. (2015) Marker-based estimation of heritability in immortal populations.
-Genetics. February 2015, Vol. 199-2, p. 379-398.
+Kruijer et al. (2015) Marker-based estimation of heritability in
+immortal populations. Genetics. February 2015, Vol. 199-2, p. 379-398.
 
-Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
-genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409.
+Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
+mixed model algorithms for genome-wide association studies. Nature Methods,
+February 2014, Vol. 11, p. 407–409.
 }

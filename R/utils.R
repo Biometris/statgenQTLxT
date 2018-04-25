@@ -104,3 +104,12 @@ computeExcludedMarkers <- function(snpCovariates,
   }
   return(exclude)
 }
+
+#' Helper function for accessing parallel computing functions.
+getOper <- function(x) {
+  if (x) {
+    `%dopar%`
+  } else {
+    `%do%`
+  }
+}
