@@ -47,9 +47,9 @@ covUnstructured <- function(Y,
     colnames(X) <- make.names(colnames(X), unique = TRUE)
     X <- tibble::rownames_to_column(as.data.frame(as.matrix(X)),
                                     var = "genotype")
-    data <- merge(Y, X, by = "genotype")
+    dat <- merge(Y, X, by = "genotype")
   } else {
-    data <- Y
+    dat <- Y
   }
   ## Restrict K to genotypes in Y.
   K <- K[unique(Y$genotype), unique(Y$genotype)]
@@ -70,7 +70,7 @@ covUnstructured <- function(Y,
   }
   ## Fit model.
   sommerFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
-                             rcov = rcov, data = data, G = list(genotype = K),
+                             rcov = rcov, data = dat, G = list(genotype = K),
                              silent = TRUE, date.warning = FALSE)
   ## Extract components from fitted model.
   VgMat <- sommerFit$var.comp[[1]]
@@ -111,10 +111,11 @@ covPairwise <- function(Y,
     ## sommer cannot handle column names with special characters.
     ## Therefore Simplify column names in X.
     colnames(X) <- make.names(colnames(X), unique = TRUE)
-    X <- tibble::rownames_to_column(as.data.frame(as.matrix(X)), var = "genotype")
-    data <- merge(Y, X, by = "genotype")
+    X <- tibble::rownames_to_column(as.data.frame(as.matrix(X)),
+                                    var = "genotype")
+    dat <- merge(Y, X, by = "genotype")
   } else {
-    data <- Y
+    dat <- Y
   }
   ## Restrict K to genotypes in Y.
   K <- K[unique(Y$genotype), unique(Y$genotype)]
@@ -124,7 +125,7 @@ covPairwise <- function(Y,
   VgVec <- VeVec <- vector(mode = "numeric", length = nTrait)
   for (i in 1:nTrait) {
     if (!is.null(X)) {
-      ## Define formula for fixed part. ` needed to accommodate - in variable names.
+      ## Define formula for fixed part. ` needed to accommodate - in varnames.
       fixed <- as.formula(paste(traits[i], " ~ `",
                                 paste(colnames(X)[-1], collapse = '` + `'),
                                 "`"))
@@ -133,7 +134,7 @@ covPairwise <- function(Y,
     }
     ## Fit model.
     sommerFit <- sommer::mmer2(fixed = fixed, random = ~ g(genotype),
-                               data = data, G = list(genotype = K),
+                               data = dat, G = list(genotype = K),
                                silent = TRUE, date.warning = FALSE)
     ## Extract components from fitted model.
     VgVec[i] <- as.numeric(sommerFit$var.comp[[1]])
@@ -155,15 +156,16 @@ covPairwise <- function(Y,
   ## For every combination of traits compute variance.
   modPW <- function(i, j) {
     if (!is.null(X)) {
-      ## Define formula for fixed part. ` needed to accommodate - in variable names.
-      fixed <- as.formula(paste0("cbind(", traits[i], ", ", traits[j], ") ~ `",
-                                 paste(colnames(X)[-1], collapse = '` + `'), "`"))
+      ## Define formula for fixed part. ` needed to accommodate - in varnames.
+      fixed <- formula(paste0("cbind(", traits[i], ", ", traits[j], ") ~ `",
+                              paste(colnames(X)[-1], collapse = '` + `'), "`"))
     } else {
-      fixed <- as.formula(paste0("cbind(", traits[i], ", ", traits[j], ") ~ 1"))
+      fixed <- formula(paste0("cbind(", traits[i], ", ", traits[j], ") ~ 1"))
     }
     modFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
                             rcov = ~ us(trait):units,
-                            data = data[, c("genotype", traits[i], traits[j])],
+                            data = dat[, c("genotype", traits[i], traits[j],
+                                           colnames(X)[-1])],
                             G = list(genotype = K),
                             init = list(diag(VgVec[c(i, j)]),
                                         diag(VeVec[c(i, j)])),

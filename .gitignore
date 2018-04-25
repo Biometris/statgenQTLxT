@@ -3,6 +3,5 @@
 .RData
 .Ruserdata
 NAMESPACE
-man/
-inst/doc
 beagle/
+20simulated_traits.RData

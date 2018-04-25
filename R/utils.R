@@ -1,6 +1,7 @@
 #' @keywords internal
 
-### Add covariates and snpCovariates to phenotypic data and convert covariate factors to dummy varables.
+## Add covariates and snpCovariates to phenotypic data and convert covariate
+## factors to dummy varables.
 expandPheno <- function(gData,
                         environment,
                         covar,
@@ -10,17 +11,21 @@ expandPheno <- function(gData,
     phenoEnvir <- gData$pheno[[environment]]
     covarEnvir <- NULL
   } else {
-    ## Append covariates to pheno data. Merge to remove values from pheno that are missing in covar.
+    ## Append covariates to pheno data. Merge to remove values from pheno that
+    ## are missing in covar.
     phenoEnvir <- merge(gData$pheno[[environment]], gData$covar[covar],
                         by.x = "genotype", by.y = "row.names")
-    ## Remove rows from phenoEnvir with missing covar check if there are missing values.
+    ## Remove rows from phenoEnvir with missing covar check if there are
+    ## missing values.
     phenoEnvir <- phenoEnvir[complete.cases(phenoEnvir[covar]), ]
-    ## Expand covariates that are a factor (i.e. dummy variables are created) using model.matrix
-    ## The new dummies are attached to phenoEnvir, and covar is changed accordingly
+    ## Expand covariates that are a factor (i.e. dummy variables are created)
+    ## using model.matrix. The new dummies are attached to phenoEnvir, and covar
+    ## is changed accordingly
     factorCovs <- which(sapply(X = gData$covar[covar], FUN = is.factor))
     if (length(factorCovs) > 0) {
       ## Create dummy variables without intercept.
-      covFormula <- as.formula(paste("genotype ~ ", paste(covar[factorCovs], collapse = "+")))
+      covFormula <- as.formula(paste("genotype ~ ", paste(covar[factorCovs],
+                                                          collapse = "+")))
       extraCov <- as.data.frame(suppressWarnings(model.matrix(object = covFormula,
                                                               data = droplevels(phenoEnvir))))[, -1]
       ## Add dummy variables to pheno data.
@@ -36,9 +41,11 @@ expandPheno <- function(gData,
     ## Add snp covariates to covar.
     covarEnvir <- c(covarEnvir, snpCovariates)
     ## Add snp covariates to pheno data.
-    phenoEnvir <- merge(phenoEnvir, as.matrix(gData$markers[, snpCovariates, drop = FALSE]),
+    phenoEnvir <- merge(phenoEnvir, as.matrix(gData$markers[, snpCovariates,
+                                                            drop = FALSE]),
                         by.x = "genotype", by.y = "row.names")
-    colnames(phenoEnvir)[(ncol(phenoEnvir) - length(snpCovariates) + 1):ncol(phenoEnvir)] <-
+    colnames(phenoEnvir)[(ncol(phenoEnvir) -
+                            length(snpCovariates) + 1):ncol(phenoEnvir)] <-
       snpCovariates
   }
   return(list(phenoEnvir = phenoEnvir, covarEnvir = covarEnvir))
@@ -64,8 +71,10 @@ chrSpecKin <- function(gData,
   nMrkChr <- setNames(numeric(length = length(chrs)), chrs)
   for (chr in chrs) {
     ## Extract markers for current chromosome.
-    chrMrk <- which(colnames(gData$markers) %in% rownames(gData$map[gData$map$chr == chr, ]))
-    ## Compute kinship for current chromosome only. Denominator = 1, division is done later.
+    chrMrk <- which(colnames(gData$markers) %in%
+                      rownames(gData$map[gData$map$chr == chr, ]))
+    ## Compute kinship for current chromosome only. Denominator = 1, division
+    ## is done later.
     K <- do.call(kinshipMethod, list(X = gData$markers[, chrMrk, drop = FALSE],
                                      denominator = 1))
     ## Compute number of markers for other chromosomes.
@@ -75,7 +84,8 @@ chrSpecKin <- function(gData,
       KChr[[i]] <- KChr[[i]] + K
     }
   }
-  ## Divide matrix for current chromosome by number of markers in other chromosomes.
+  ## Divide matrix for current chromosome by number of markers in other
+  ## chromosomes.
   for (i in 1:length(KChr)) {
     KChr[[i]] <- KChr[[i]] / nMrkChr[i]
   }
@@ -105,7 +115,7 @@ computeExcludedMarkers <- function(snpCovariates,
   return(exclude)
 }
 
-#' Helper function for accessing parallel computing functions.
+## Helper function for accessing parallel computing functions.
 getOper <- function(x) {
   if (x) {
     `%dopar%`

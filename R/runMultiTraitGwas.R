@@ -10,8 +10,9 @@
 #' @param markerSubset numeric or character vector used for subsetting the
 #' markers. Ignored if subsetMarkers = \code{FALSE}.
 #' @param fitVarComp should the variance components be fitted? If \code{FALSE}
-#' they should be supplied in Vg and Ve @param covModel an integer value for
-#' the model used when fitting the variance components.
+#' they should be supplied in Vg and Ve
+#' @param covModel an integer value for the model used when fitting the variance
+#'  components.
 #' \enumerate{
 #' \item{unstructured for both Vg and Ve (as in Zhou and Stephens (2014))}
 #' \item{unstructered for both Vg and Ve (pairwise, as in Furlotte and Eskin
