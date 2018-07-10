@@ -281,11 +281,15 @@ runMultiTraitGwas <- function(gData,
     }
   }
   if (GLSMethod == 1) {
-    K <- K[rownames(Y), rownames(Y)]
+    K <- K[rownames(K) %in% rownames(Y), colnames(K) %in% rownames(Y)]
+    Y <- Y[rownames(Y) %in% rownames(K), ]
+    X <- X[rownames(X) %in% rownames(K), , drop = FALSE]
   } else if (GLSMethod == 2) {
     KChr <- lapply(X = KChr, FUN = function(x) {
-      x[rownames(Y), rownames(Y)]
-      })
+      x[rownames(x) %in% rownames(Y), colnames(x) %in% rownames(Y)]
+    })
+    Y <- Y[rownames(Y) %in% rownames(KChr[[1]]), ]
+    X <- X[rownames(X) %in% rownames(KChr[[1]]), , drop = FALSE]
   }
   if (reduceK) {
     K <- reduceKinship(K = K, nPca = nPca)
