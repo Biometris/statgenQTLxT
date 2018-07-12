@@ -53,6 +53,7 @@
 #' \code{\link{reduceKinship}}
 #' @param nPca an integer giving the number of Pcas used whe reducing the
 #' kinship matrix. Ignored if reduceK = \code{FALSE}.
+#' @param estCom Should the common SNP-effect model be fitted?
 #' @param parallel Should the computation of variance components be done in
 #' parallel. Only used if \code{covModel = 2}. A parallel computing environment
 #' has to be setup by the user.
@@ -100,6 +101,7 @@ runMultiTraitGwas <- function(gData,
                               Ve = NULL,
                               reduceK = FALSE,
                               nPca = NULL,
+                              estCom = FALSE,
                               parallel = FALSE) {
   ## Check input.
   if (missing(gData) || !is.gData(gData) || is.null(gData$markers) ||
@@ -265,9 +267,9 @@ runMultiTraitGwas <- function(gData,
   } else if (GLSMethod == 2) {
     ## Compute kinship matrices per chromosome. Only needs to be done once.
     chrs <- unique(mapRed$chr[rownames(mapRed) %in% colnames(markersRed)])
-    if (!is.null(K)) {
+    if (!is.null(kin)) {
       ## K is supplied. Set KChr to K.
-      KChr <- lapply(K, FUN = function(k) {
+      KChr <- lapply(kin, FUN = function(k) {
         if (is.matrix(k)) {
           as(k, "dsyMatrix")
         } else {
@@ -372,7 +374,7 @@ runMultiTraitGwas <- function(gData,
         ## Sommer always adds an intercept so remove it from X.
         varComp <- sapply(X = chrs, FUN = function(chr) {
           covUnstructured(Y = Y,
-                          K = KChr[[chrs == chr]],
+                          K = KChr[[which(chrs == chr)]],
                           X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
                           fixDiag = FALSE, VeDiag = VeDiag)
         }, simplify = FALSE)
@@ -380,7 +382,7 @@ runMultiTraitGwas <- function(gData,
           ## Sommer always adds an intercept so remove it from XRed.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
             covUnstructured(Y = Y,
-                            K = KChr[[chrs == chr]],
+                            K = KChr[[which(chrs == chr)]],
                             X = if (ncol(XRed) == 1) NULL else
                               XRed[, -1, drop = FALSE],
                             fixDiag = FALSE, VeDiag = VeDiag)
@@ -391,7 +393,7 @@ runMultiTraitGwas <- function(gData,
         ## Sommer always adds an intercept so remove it from X.
         varComp <- sapply(X = chrs, FUN = function(chr) {
           covPairwise(Y = Y,
-                      K = KChr[[chrs == chr]],
+                      K = KChr[[which(chrs == chr)]],
                       X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
                       fixDiag = FALSE, corMat = TRUE, parallel = parallel)
         }, simplify = FALSE)
@@ -399,7 +401,7 @@ runMultiTraitGwas <- function(gData,
           ## Sommer always adds an intercept so remove it from XRed.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
             covPairwise(Y = Y,
-                        K = KChr[[chrs == chr]],
+                        K = KChr[[which(chrs == chr)]],
                         X = if (ncol(XRed) == 1) NULL else
                           XRed[, -1, drop = FALSE],
                         fixDiag = FALSE, corMat = TRUE, parallel = parallel)
@@ -409,7 +411,7 @@ runMultiTraitGwas <- function(gData,
         ## FA models.
         ## Including snpCovariates.
         varComp <- sapply(X = chrs, FUN = function(chr) {
-          EMFA(Y = Y, K = KChr[[chrs == chr]], X = X, maxIter = maxIter,
+          EMFA(Y = Y, K = KChr[[which(chrs == chr)]], X = X, maxIter = maxIter,
                tolerance = tolerance, mG = mG, mE = mE, CmHet = CmHet,
                DmHet = DmHet, maxDiag = maxDiag,
                stopIfDecreasing = stopIfDecreasing,
@@ -418,9 +420,9 @@ runMultiTraitGwas <- function(gData,
         if (!is.null(snpCovariates)) {
           ## Without snpCovariates.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
-            EMFA(Y = Y, K = KChr[[chrs == chr]], X = XRed, maxIter = maxIter,
-                 tolerance = tolerance, mG = mG, mE = mE, CmHet = CmHet,
-                 DmHet = DmHet, maxDiag = maxDiag,
+            EMFA(Y = Y, K = KChr[[which(chrs == chr)]], X = XRed,
+                 maxIter = maxIter, tolerance = tolerance, mG = mG, mE = mE,
+                 CmHet = CmHet, DmHet = DmHet, maxDiag = maxDiag,
                  stopIfDecreasing = stopIfDecreasing,
                  computeLogLik = computeLogLik)
           }, simplify = FALSE)
@@ -477,23 +479,32 @@ runMultiTraitGwas <- function(gData,
       effEstSnpCov <- estimateEffects(Y = Y, W = XRed,
                                       X = markersRed[, snpCovariates,
                                                      drop = FALSE],
-                                      Vg = Vg, Ve = Ve, K = K)
+                                      Vg = Vg, Ve = Ve, K = K, estCom = estCom)
     }
     effEst <- estimateEffects(Y = Y, W = X,
                               X = markersRed[, -excludedMarkers],
-                              Vg = Vg, Ve = Ve, K = K)
+                              Vg = Vg, Ve = Ve, K = K, estCom = estCom)
     pValues <- c(effEst$pVals,
                  if (!is.null(snpCovariates)) effEstSnpCov$pVals)
     effects <- cbind(effEst$effects,
                      if (!is.null(snpCovariates)) effEstSnpCov$effects)
     effectsSe <- cbind(effEst$effectsSe,
                        if (!is.null(snpCovariates)) effEstSnpCov$effectsSe)
+    pValuesCom <- c(effEst$pValsCom,
+                    if (!is.null(snpCovariates)) effEstSnpCov$pValsCom)
+    effectsCom <- c(effEst$effectsCom,
+                    if (!is.null(snpCovariates)) effEstSnpCov$effects)
+    effectsComSe <- c(effEst$effectsComSe,
+                      if (!is.null(snpCovariates)) effEstSnpCov$effectsComSe)
+    pValuesQtlE <- c(effEst$pValsQtlE,
+                     if (!is.null(snpCovariates)) effEstSnpCov$pValsQtlE)
   } else if (GLSMethod == 2) {
-    pValues <- numeric()
+    pValues <- pValuesCom <- pValuesQtlE <- numeric()
     ## Create an empty matrix with traits as header.
-    effects <- effectsSe <- t(gData$pheno[[environment]][FALSE, -1])
+    effects <- effectsSe <- effectsCom <- effectsComSe <-
+      t(gData$pheno[[environment]][FALSE, -1])
     for (chr in chrs) {
-      w <- eigen(KChr[[chrs == chr]], symmetric = TRUE)
+      w <- eigen(KChr[[which(chrs == chr)]], symmetric = TRUE)
       Dk <- w$values
       Uk <- w$vectors
       Yt <- Matrix::crossprod(Y, Uk)
@@ -501,14 +512,15 @@ runMultiTraitGwas <- function(gData,
       if (ncol(X) > 0) {
         Xt <- Matrix::crossprod(X, Uk)
       }
-      VInvArray <- makeVInvArray(Vg = Vg[[chrs == chr]], Ve = Ve[[chrs == chr]],
+      VInvArray <- makeVInvArray(Vg = Vg[[which(chrs == chr)]],
+                                 Ve = Ve[[which(chrs == chr)]],
                                  Dk = Dk)
       if (!is.null(snpCovariates)) {
         if (ncol(XRed) > 0) {
           XtRed <- Matrix::crossprod(XRed, Uk)
         }
-        VInvArrayRed <- makeVInvArray(Vg = VgRed[[chrs == chr]],
-                                      Ve = VeRed[[chrs == chr]], Dk = Dk)
+        VInvArrayRed <- makeVInvArray(Vg = VgRed[[which(chrs == chr)]],
+                                      Ve = VeRed[[which(chrs == chr)]], Dk = Dk)
       }
       mapRedChr <- mapRed[mapRed$chr == chr, ]
       markersRedChr <- markersRed[, colnames(markersRed) %in% rownames(mapRedChr),
@@ -525,20 +537,30 @@ runMultiTraitGwas <- function(gData,
         effEstSnpCov <- estimateEffects(Y = Y, W = XRed,
                                         X = markersRedChr[, snpCovChr,
                                                           drop = FALSE],
-                                        Vg = Vg[[chrs == chr]],
-                                        Ve = Ve[[chrs == chr]],
-                                        K = KChr[[chrs == chr]])
+                                        Vg = Vg[[which(chrs == chr)]],
+                                        Ve = Ve[[which(chrs == chr)]],
+                                        K = KChr[[which(chrs == chr)]],
+                                        estCom = estCom)
       }
       effEst <- estimateEffects(Y = Y, W = X,
                                 X = markersRedChr[, -excludedMarkers],
-                                Vg = Vg[[chrs == chr]], Ve = Ve[[chrs == chr]],
-                                K = KChr[[chrs == chr]])
+                                Vg = Vg[[which(chrs == chr)]],
+                                Ve = Ve[[which(chrs == chr)]],
+                                K = KChr[[which(chrs == chr)]], estCom = estCom)
       pValues <- c(pValues, effEst$pVals,
                    if (length(snpCovChr) > 0) effEstSnpCov$pVals)
       effects <- cbind(effects, effEst$effects,
                        if (length(snpCovChr) > 0) effEstSnpCov$effects)
       effectsSe <- cbind(effectsSe, effEst$effectsSe,
                          if (length(snpCovChr) > 0) effEstSnpCov$effectsSe)
+      pValuesCom <- c(pValuesCom, effEst$pValsCom,
+                      if (!is.null(snpCovariates)) effEstSnpCov$pValsCom)
+      effectsCom <- c(effectsCom, effEst$effectsCom,
+                      if (!is.null(snpCovariates)) effEstSnpCov$effects)
+      effectsComSe <- c(effectsComSe, effEst$effectsComSe,
+                        if (!is.null(snpCovariates)) effEstSnpCov$effectsComSe)
+      pValuesQtlE <- c(pValuesQtlE, effEst$pValsQtlE,
+                       if (!is.null(snpCovariates)) effEstSnpCov$pValsQtlE)
     }
   }
   ## Convert effects and effectsSe to long format and merge.
@@ -546,17 +568,29 @@ runMultiTraitGwas <- function(gData,
     dplyr::inner_join(reshape2::melt(effectsSe), by = c("Var1", "Var2")) %>%
     dplyr::mutate(Var1 = as.character(.data$Var1),
                   Var2 = as.character(.data$Var2))
+  ## Bind common effects, SE, and pvalues together.
+  if (estCom) {
+    comDat <- cbind(pValuesCom, effectsCom, effectsComSe, pValuesQtlE)
+    comDat <- as.data.frame(comDat)
+    comDat$snp <- rownames(comDat)
+  }
   ## Merge the effects and effectsSe to the results
   GWAResult <- dplyr::inner_join(GWAResult, effectsTot,
                                  by = c("snp" = "Var2")) %>%
     dplyr::inner_join(data.frame(snp = names(pValues), pValues,
-                                 stringsAsFactors = FALSE), by = "snp") %>%
-    dplyr::mutate(LOD = -log10(.data$pValues)) %>%
+                                 stringsAsFactors = FALSE), by = "snp")
+  if (estCom) {
+    GWAResult <- dplyr::inner_join(GWAResult, comDat, by = "snp")
+  }
+  GWAResult <- dplyr::mutate(.data = GWAResult,
+                             LOD = -log10(.data$pValues)) %>%
     ## Select and compute relevant columns.
     ## Melt creates factors. Reconvert trait to character.
     dplyr::select(.data$snp, trait = .data$Var1, .data$chr, .data$pos,
                   pValue = .data$pValues, .data$LOD, effect = .data$value.x,
-                  effectSe = .data$value.y, .data$allFreq) %>%
+                  effectSe = .data$value.y, .data$allFreq,
+                  .data$pValuesCom, .data$effectsCom, .data$effectsComSe,
+                  .data$pValuesQtlE) %>%
     dplyr::arrange(.data$trait, .data$chr, .data$pos)
   ## Collect info.
   GWASInfo <- list(call = match.call(),

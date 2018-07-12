@@ -10,7 +10,7 @@ runMultiTraitGwas(gData, environments = NULL, covar = NULL,
   fitVarComp = TRUE, covModel = 1, VeDiag = TRUE, tolerance = 1e-06,
   maxIter = 2e+05, maxDiag = 10000, mG = 1, mE = 1, CmHet = TRUE,
   DmHet = TRUE, stopIfDecreasing = TRUE, computeLogLik = TRUE,
-  Vg = NULL, Ve = NULL, reduceK = FALSE, nPca = NULL,
+  Vg = NULL, Ve = NULL, reduceK = FALSE, nPca = NULL, estCom = FALSE,
   parallel = FALSE)
 }
 \arguments{
@@ -115,6 +115,8 @@ fitVarComp = \code{TRUE}.}
 
 \item{nPca}{an integer giving the number of Pcas used whe reducing the
 kinship matrix. Ignored if reduceK = \code{FALSE}.}
+
+\item{estCom}{Should the common SNP-effect model be fitted?}
 
 \item{parallel}{Should the computation of variance components be done in
 parallel. Only used if \code{covModel = 2}. A parallel computing environment
