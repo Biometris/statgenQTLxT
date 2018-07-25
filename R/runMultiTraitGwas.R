@@ -6,12 +6,12 @@
 #'
 #' @inheritParams runSingleTraitGwas
 #'
-#' @param subsetMarkers should the marker data be subsetted?
-#' @param markerSubset numeric or character vector used for subsetting the
+#' @param subsetMarkers Should the marker data be subsetted?
+#' @param markerSubset A numeric or character vector used for subsetting the
 #' markers. Ignored if subsetMarkers = \code{FALSE}.
-#' @param fitVarComp should the variance components be fitted? If \code{FALSE}
+#' @param fitVarComp Should the variance components be fitted? If \code{FALSE}
 #' they should be supplied in Vg and Ve
-#' @param covModel an integer value for the model used when fitting the variance
+#' @param covModel An integer value for the model used when fitting the variance
 #'  components.
 #' \enumerate{
 #' \item{unstructured for both Vg and Ve (as in Zhou and Stephens (2014))}
@@ -23,42 +23,42 @@
 #' Ignored if fitVarComp = \code{FALSE}
 #' @param VeDiag Should there be environmental correlations if covModel = 1 or
 #' 2? If traits are measured on the same individuals put \code{FALSE}.
-#' @param tolerance a numerical value. Used when fitting the factor analytical
+#' @param tolerance A numerical value. Used when fitting the factor analytical
 #' model if covModel = 3. See \code{\link{EMFA}}.
-#' @param maxIter an integer. Used when fitting the factor analytical model if
+#' @param maxIter An integer. Used when fitting the factor analytical model if
 #' covModel = 3. See \code{\link{EMFA}}.
-#' @param maxDiag a numerical value. Used when fitting the factor analytical
+#' @param maxDiag A numerical value. Used when fitting the factor analytical
 #' model if covModel = 3. See \code{\link{EMFA}}.
-#' @param mG an integer. Used when fitting the factor analytical model if
+#' @param mG An integer. Used when fitting the factor analytical model if
 #' covModel = 3. See \code{\link{EMFA}}.
-#' @param mE an integer. Used when fitting the factor analytical model if
+#' @param mE An integer. Used when fitting the factor analytical model if
 #' covModel = 3. See \code{\link{EMFA}}.
-#' @param CmHet a boolean. Used when fitting the factor analytical model if
+#' @param CmHet A boolean. Used when fitting the factor analytical model if
 #' covModel = 3. See \code{\link{EMFA}}.
-#' @param DmHet a boolean. Used when fitting the factor analytical model if
+#' @param DmHet A boolean. Used when fitting the factor analytical model if
 #' covModel = 3. See \code{\link{EMFA}}.
-#' @param stopIfDecreasing a boolean. Used when fitting the factor analytical
+#' @param stopIfDecreasing A boolean. Used when fitting the factor analytical
 #' model if covModel = 3. See \code{\link{EMFA}}.
-#' @param computeLogLik a boolean. Used when fitting the factor analytical model
+#' @param computeLogLik A boolean. Used when fitting the factor analytical model
 #' if covModel = 3. See \code{\link{EMFA}}.
-#' @param Vg an optional matrix with genotypic variance components. Vg should
+#' @param Vg An optional matrix with genotypic variance components. Vg should
 #' have row names column names corresponding to the column names of Y. It may
 #' contain additional rows and colums which will be ignored. Ignored if
 #' fitVarComp = \code{TRUE}.
-#' @param Ve an optional matrix with environmental variance components. Ve
+#' @param Ve An optional matrix with environmental variance components. Ve
 #' should have row names column names corresponding to the column names of Y.
 #' It may contain additional rows and colums which will be ignored. Ignored if
 #' fitVarComp = \code{TRUE}.
-#' @param reduceK if \code{TRUE} the kinship matrix is reduced. See
+#' @param reduceK Should the kinship matrix be reduced? See
 #' \code{\link{reduceKinship}}
-#' @param nPca an integer giving the number of Pcas used whe reducing the
+#' @param nPca An integer giving the number of Pcas used whe reducing the
 #' kinship matrix. Ignored if reduceK = \code{FALSE}.
 #' @param estCom Should the common SNP-effect model be fitted?
 #' @param parallel Should the computation of variance components be done in
-#' parallel. Only used if \code{covModel = 2}. A parallel computing environment
+#' parallel? Only used if \code{covModel = 2}. A parallel computing environment
 #' has to be setup by the user.
 #'
-#' @return an object of class \code{\link{GWAS}}.
+#' @return An object of class \code{\link{GWAS}}.
 #'
 #' @references Dahl et al. (2013). Network inference in matrix-variate Gaussian
 #' models with non-independent noise. arXiv preprint arXiv:1312.1622.

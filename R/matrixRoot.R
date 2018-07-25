@@ -1,11 +1,11 @@
 #' Compute Square root of a symmetric, positive definite matrix
 #'
-#' Given an symmetric, positive definite matrix X a matrix Y is computed such
+#' Given a symmetric, positive definite matrix X a matrix Y is computed such
 #' that \eqn{Y^2 = X}. Computation is done using eigendecomposition of X.
 #'
-#' @param X a symmetric, positive definite matrix.
+#' @param X A symmetric, positive definite matrix.
 #'
-#' @return a matrix Y such that \eqn{Y^2 = X}.
+#' @return A matrix Y such that \eqn{Y^2 = X}.
 #'
 #' @keywords internal
 

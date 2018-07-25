@@ -3,39 +3,40 @@
 #' Using the EMMA algorithm as is Kang et al. (2008) compute REML estimates of
 #' genetic and residual variance components.
 #'
-#' @param gData an object of class gData containing at least a data.frame
+#' @param gData An object of class gData containing at least a data.frame
 #' \code{pheno}. If \code{K} is not supplied a matrix \code{kinship} should be
 #' in \code{gData}. If covariates are included then a data.frame covar is
 #' needed as wel and if an extra snp is to be included as covariate (defined
 #' in \code{snpName}) then a data.frame \code{markers} is also needed. Missing
 #' values in \code{pheno} are allowed but will be excluded from the
 #' calculations.
-#' @param trait a trait for which to estimate variance components. This can be
+#' @param trait A trait for which to estimate variance components. This can be
 #' either numeric index or character name of a column in \code{pheno}.
-#' @param environment an environment for which to estimate variance components.
+#' @param environment An environment for which to estimate variance components.
 #' This can be either numeric index or character name of a list item in
 #' \code{pheno}.
-#' @param K an optional kinship matrix. If \code{NULL} then matrix
+#' @param K An optional kinship matrix. If \code{NULL} then matrix
 #' \code{kinship} in \code{gData} is used. If both \code{K} is provided and
 #' \code{gData} contains a matrix \code{kinship} then \code{K} is used.
-#' @param covar an optional vector of covariates taken into account when
+#' @param covar An optional vector of covariates taken into account when
 #' estimating variance components. These can be either numeric indices or
 #' character names of columns in \code{covar} in \code{gData}. If \code{NULL}
 #' no covariates are used.
-#' @param snpName an optional character name of a marker in \code{markers} in
+#' @param snpName An optional character string of a marker in \code{markers} in
 #' \code{gData} to be included as covariate. If used the \code{gData} object
 #' should contain a data.frame \code{markers}.
-#' @param Z an optional incidence matrix mapping each observed phenotype to
+#' @param Z An optional incidence matrix mapping each observed phenotype to
 #' one of inbred strains.
-#' @param nGrids an integer indicating the number of intervals used for local
+#' @param nGrids An integer indicating the number of intervals used for local
 #' optimisation within the algorithm.
-#' @param lLim a numeric value indicating the lower limit of the interval over
+#' @param lLim A numerical value indicating the lower limit of the interval over
 #' which optimisating is done.
-#' @param uLim a numeric value indicating the upper limit of the interval over
+#' @param uLim A numerical value indicating the upper limit of the interval over
 #' which optimisating is done.
-#' @param eps a numeric value used as computational tolerance in the algorithm.
+#' @param eps A numerical value used as computational tolerance in the
+#' algorithm.
 #'
-#' @return a list with two components:
+#' @return A list with two components:
 #' \itemize{
 #' \item{\code{varcomp} a vector of genetic variance Vg and residual variance
 #' Ve}
@@ -104,16 +105,16 @@ runEmma <- function(gData,
     stop("nGrids should be a single integer.\n")
   }
   if (!is.null(lLim) && (length(lLim) > 1 || !is.numeric(lLim))) {
-    stop("lLim should be a single numeric value.\n")
+    stop("lLim should be a single numerical value.\n")
   }
   if (!is.null(uLim) && (length(uLim) > 1 || !is.numeric(uLim))) {
-    stop("uLim should be a single numeric value.\n")
+    stop("uLim should be a single numerical value.\n")
   }
   if (lLim >= uLim) {
     stop("lLim should be smaller than uLim.\n")
   }
   if (!is.null(eps) && (length(eps) > 1 || !is.numeric(eps))) {
-    stop("eps should be a single numeric value.\n")
+    stop("eps should be a single numerical value.\n")
   }
   ## Add column genotype to environment.
   phenoEnvir <- gData$pheno[[environment]]

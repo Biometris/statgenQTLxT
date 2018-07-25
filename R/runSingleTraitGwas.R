@@ -10,21 +10,21 @@
 #' specific kinship matrices for each chromosome. Significant SNPs are selected
 #' based on a user defined threshold.
 #'
-#' @param gData an object of class \code{gData} containing at least \code{map},
+#' @param gData An object of class \code{gData} containing at least \code{map},
 #' \code{markers} and \code{pheno}.
-#' @param traits a vector of traits on which to run GWAS. These can be either
+#' @param traits A vector of traits on which to run GWAS. These can be either
 #' numeric indices or character names of columns in \code{pheno}. If \code{NULL}
 #' GWAS is run on all traits.
-#' @param environments a vector of environments on which to run GWAS. These can
+#' @param environments A vector of environments on which to run GWAS. These can
 #' be either numeric indices or character names of list items in \code{pheno}.
 #' If \code{NULL} GWAS is run for all environments.
-#' @param covar an optional vector of covariates taken into account when
+#' @param covar An optional vector of covariates taken into account when
 #' running GWAS. These can be either numeric indices or character names of
 #' columns in \code{covar} in \code{gData}. If \code{NULL} no covariates are
 #' used.
-#' @param snpCovariates an optional character vector of snps to be included as
+#' @param snpCovariates An optional character vector of snps to be included as
 #' covariates.
-#' @param kin an optional kinship matrix or list of kinship matrices. These
+#' @param kin An optional kinship matrix or list of kinship matrices. These
 #' matrices can be from the \code{matrix} class as defined in the base package
 #' or from the \code{dsyMatrix} class, the class of symmetric matrices in the
 #' Matrix package.\cr
@@ -34,24 +34,24 @@
 #' If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
 #' If both \code{kin} is provided and \code{gData} contains a matrix
 #' \code{kinship} then \code{kin} is used.
-#' @param kinshipMethod an optional character indicating the method used for
+#' @param kinshipMethod An optional character indicating the method used for
 #' calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
 #' 2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
 #' kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 #' \code{kinshipMethod} is ignored.
-#' @param remlAlgo an integer indicating the algorithm used to estimate the
+#' @param remlAlgo An integer indicating the algorithm used to estimate the
 #' variance components.
 #' \enumerate{
 #' \item{EMMA}
 #' \item{Newton-Raphson using sommer package}
 #' }
-#' @param GLSMethod an integer indicating the method used to estimate the marker
+#' @param GLSMethod An integer indicating the method used to estimate the marker
 #' effects.
 #' \enumerate{
 #' \item{using one kinship matrix.}
 #' \item{using chromosome specific kinship matrices.}
 #' }
-#' @param useMAF should the minor allele frequency be used for selecting SNPs
+#' @param useMAF Should the minor allele frequency be used for selecting SNPs
 #' for the analysis. If \code{FALSE} the minor allele count is used instead.
 #' @param MAF A numerical value between 0 and 1. SNPs with minor allele
 #' frequency below this value are not taken into account for the analysis,
@@ -60,9 +60,9 @@
 #' @param MAC A numerical value. SNPs with minor allele count below this value
 #' are not taken into account for the analysis, i.e. p-values and effect sizes
 #' are put to missing (NA). Ignored if \code{useMAF} is \code{TRUE}.
-#' @param genomicControl should genomic control correction as in Devlin and
+#' @param genomicControl Should genomic control correction as in Devlin and
 #' Roeder (1999) be applied?
-#' @param thrType an integer indicating the type of threshold used for the
+#' @param thrType An integer indicating the type of threshold used for the
 #' selection of candidate loci.
 #' \enumerate{
 #' \item{Bonferroni; a LOD-threshold of \eqn{-log10(alpha/p)}, where p is the
@@ -71,13 +71,13 @@
 #' \item{the LOD-threshold is chosen such the the SNPs with the \code{nSnpLOD}
 #' smallest p-values are selected. \code{nSnpLOD} can be specified.}
 #' }
-#' @param alpha a numerical value used for calculating the LOD-threshold for
+#' @param alpha A numerical value used for calculating the LOD-threshold for
 #' \code{thrType} = 1.
-#' @param LODThr a numerical value used as a LOD-threshold when
+#' @param LODThr A numerical value used as a LOD-threshold when
 #' \code{thrType} = 2.
-#' @param nSnpLOD a numerical value indicating the number of SNPs with the
+#' @param nSnpLOD A numerical value indicating the number of SNPs with the
 #' smallest p-values that are selected when \code{thrType} = 3.
-#' @param sizeInclRegion an integer. Should the results for SNPs close to
+#' @param sizeInclRegion An integer. Should the results for SNPs close to
 #' significant SNPs be included? If so, the size of the region in centimorgan
 #' or base pairs. Otherwise 0.
 #' @param minR2 A numerical value between 0 and 1. Restricts the SNPs included
@@ -89,7 +89,7 @@
 #' most 200kb away from this significant snp are included. Ignored if
 #' \code{sizeInclRegion} = 0.
 #'
-#' @return an object of class \code{\link{GWAS}}.
+#' @return An object of class \code{\link{GWAS}}.
 #'
 #' @references Astle W., Balding D. J. (2009) Population structure and cryptic
 #' relatedness in genetic association studies, Stat. Sci., November 2009,
@@ -191,10 +191,10 @@ runSingleTraitGwas <- function(gData,
     stop("All snpCovariates should be in markers.\n")
   }
   if (is.null(remlAlgo) || length(remlAlgo) > 1 || !is.numeric(remlAlgo)) {
-    stop("remlAlgo should be a single numeric value.\n")
+    stop("remlAlgo should be a single numerical value.\n")
   }
   if (is.null(GLSMethod) || length(GLSMethod) > 1 || !is.numeric(GLSMethod)) {
-    stop("GLSMethod should be a single numeric value.\n")
+    stop("GLSMethod should be a single numerical value.\n")
   }
   if (GLSMethod == 1 && !is.null(kin) && !(inherits(kin, "Matrix") ||
                                            is.matrix(kin))) {
@@ -238,7 +238,7 @@ runSingleTraitGwas <- function(gData,
     }
   }
   if (is.null(thrType) || length(thrType) > 1 || !is.numeric(thrType)) {
-    stop("thrType should be a single numeric value.\n")
+    stop("thrType should be a single numerical value.\n")
   }
   if (thrType == 1) {
     if (is.null(alpha) || length(alpha) > 1 || !is.numeric(alpha)) {

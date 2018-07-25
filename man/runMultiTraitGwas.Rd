@@ -14,22 +14,22 @@ runMultiTraitGwas(gData, environments = NULL, covar = NULL,
   nPca = NULL, estCom = FALSE, parallel = FALSE)
 }
 \arguments{
-\item{gData}{an object of class \code{gData} containing at least \code{map},
+\item{gData}{An object of class \code{gData} containing at least \code{map},
 \code{markers} and \code{pheno}.}
 
-\item{environments}{a vector of environments on which to run GWAS. These can
+\item{environments}{A vector of environments on which to run GWAS. These can
 be either numeric indices or character names of list items in \code{pheno}.
 If \code{NULL} GWAS is run for all environments.}
 
-\item{covar}{an optional vector of covariates taken into account when
+\item{covar}{An optional vector of covariates taken into account when
 running GWAS. These can be either numeric indices or character names of
 columns in \code{covar} in \code{gData}. If \code{NULL} no covariates are
 used.}
 
-\item{snpCovariates}{an optional character vector of snps to be included as
+\item{snpCovariates}{An optional character vector of snps to be included as
 covariates.}
 
-\item{kin}{an optional kinship matrix or list of kinship matrices. These
+\item{kin}{An optional kinship matrix or list of kinship matrices. These
 matrices can be from the \code{matrix} class as defined in the base package
 or from the \code{dsyMatrix} class, the class of symmetric matrices in the
 Matrix package.\cr
@@ -40,22 +40,22 @@ If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
 If both \code{kin} is provided and \code{gData} contains a matrix
 \code{kinship} then \code{kin} is used.}
 
-\item{kinshipMethod}{an optional character indicating the method used for
+\item{kinshipMethod}{An optional character indicating the method used for
 calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
 2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
 kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 \code{kinshipMethod} is ignored.}
 
-\item{GLSMethod}{an integer indicating the method used to estimate the marker
+\item{GLSMethod}{An integer indicating the method used to estimate the marker
 effects.
 \enumerate{
 \item{using one kinship matrix.}
 \item{using chromosome specific kinship matrices.}
 }}
 
-\item{subsetMarkers}{should the marker data be subsetted?}
+\item{subsetMarkers}{Should the marker data be subsetted?}
 
-\item{markerSubset}{numeric or character vector used for subsetting the
+\item{markerSubset}{A numeric or character vector used for subsetting the
 markers. Ignored if subsetMarkers = \code{FALSE}.}
 
 \item{MAF}{A numerical value between 0 and 1. SNPs with minor allele
@@ -63,10 +63,10 @@ frequency below this value are not taken into account for the analysis,
 i.e. p-values and effect sizes are put to missing (NA). Ignored if
 \code{useMAF} is \code{FALSE}.}
 
-\item{fitVarComp}{should the variance components be fitted? If \code{FALSE}
+\item{fitVarComp}{Should the variance components be fitted? If \code{FALSE}
 they should be supplied in Vg and Ve}
 
-\item{covModel}{an integer value for the model used when fitting the variance
+\item{covModel}{An integer value for the model used when fitting the variance
  components.
 \enumerate{
 \item{unstructured for both Vg and Ve (as in Zhou and Stephens (2014))}
@@ -80,57 +80,57 @@ Ignored if fitVarComp = \code{FALSE}}
 \item{VeDiag}{Should there be environmental correlations if covModel = 1 or
 2? If traits are measured on the same individuals put \code{FALSE}.}
 
-\item{tolerance}{a numerical value. Used when fitting the factor analytical
+\item{tolerance}{A numerical value. Used when fitting the factor analytical
 model if covModel = 3. See \code{\link{EMFA}}.}
 
-\item{maxIter}{an integer. Used when fitting the factor analytical model if
+\item{maxIter}{An integer. Used when fitting the factor analytical model if
 covModel = 3. See \code{\link{EMFA}}.}
 
-\item{maxDiag}{a numerical value. Used when fitting the factor analytical
+\item{maxDiag}{A numerical value. Used when fitting the factor analytical
 model if covModel = 3. See \code{\link{EMFA}}.}
 
-\item{mG}{an integer. Used when fitting the factor analytical model if
+\item{mG}{An integer. Used when fitting the factor analytical model if
 covModel = 3. See \code{\link{EMFA}}.}
 
-\item{mE}{an integer. Used when fitting the factor analytical model if
+\item{mE}{An integer. Used when fitting the factor analytical model if
 covModel = 3. See \code{\link{EMFA}}.}
 
-\item{CmHet}{a boolean. Used when fitting the factor analytical model if
+\item{CmHet}{A boolean. Used when fitting the factor analytical model if
 covModel = 3. See \code{\link{EMFA}}.}
 
-\item{DmHet}{a boolean. Used when fitting the factor analytical model if
+\item{DmHet}{A boolean. Used when fitting the factor analytical model if
 covModel = 3. See \code{\link{EMFA}}.}
 
-\item{stopIfDecreasing}{a boolean. Used when fitting the factor analytical
+\item{stopIfDecreasing}{A boolean. Used when fitting the factor analytical
 model if covModel = 3. See \code{\link{EMFA}}.}
 
-\item{computeLogLik}{a boolean. Used when fitting the factor analytical model
+\item{computeLogLik}{A boolean. Used when fitting the factor analytical model
 if covModel = 3. See \code{\link{EMFA}}.}
 
-\item{Vg}{an optional matrix with genotypic variance components. Vg should
+\item{Vg}{An optional matrix with genotypic variance components. Vg should
 have row names column names corresponding to the column names of Y. It may
 contain additional rows and colums which will be ignored. Ignored if
 fitVarComp = \code{TRUE}.}
 
-\item{Ve}{an optional matrix with environmental variance components. Ve
+\item{Ve}{An optional matrix with environmental variance components. Ve
 should have row names column names corresponding to the column names of Y.
 It may contain additional rows and colums which will be ignored. Ignored if
 fitVarComp = \code{TRUE}.}
 
-\item{reduceK}{if \code{TRUE} the kinship matrix is reduced. See
+\item{reduceK}{Should the kinship matrix be reduced? See
 \code{\link{reduceKinship}}}
 
-\item{nPca}{an integer giving the number of Pcas used whe reducing the
+\item{nPca}{An integer giving the number of Pcas used whe reducing the
 kinship matrix. Ignored if reduceK = \code{FALSE}.}
 
 \item{estCom}{Should the common SNP-effect model be fitted?}
 
 \item{parallel}{Should the computation of variance components be done in
-parallel. Only used if \code{covModel = 2}. A parallel computing environment
+parallel? Only used if \code{covModel = 2}. A parallel computing environment
 has to be setup by the user.}
 }
 \value{
-an object of class \code{\link{GWAS}}.
+An object of class \code{\link{GWAS}}.
 }
 \description{
 \code{runMultiTraitGwas} performs a multi-trait Genome Wide Association

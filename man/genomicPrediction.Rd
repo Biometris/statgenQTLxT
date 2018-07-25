@@ -9,21 +9,21 @@ genomicPrediction(gData, traits = NULL, environments = NULL, training,
   keep = NULL)
 }
 \arguments{
-\item{gData}{an object of class \code{gData} containing at least \code{map},
+\item{gData}{An object of class \code{gData} containing at least \code{map},
 \code{markers} and \code{pheno}.}
 
-\item{traits}{a vector of traits on which to run GWAS. These can be either
+\item{traits}{A vector of traits on which to run GWAS. These can be either
 numeric indices or character names of columns in \code{pheno}. If \code{NULL}
 GWAS is run on all traits.}
 
-\item{environments}{a vector of environments on which to run GWAS. These can
+\item{environments}{A vector of environments on which to run GWAS. These can
 be either numeric indices or character names of list items in \code{pheno}.
 If \code{NULL} GWAS is run for all environments.}
 
-\item{training}{a character vector with names of genotypes to use as
+\item{training}{A character vector with names of genotypes to use as
 training data for the prediction.}
 
-\item{kin}{an optional kinship matrix or list of kinship matrices. These
+\item{kin}{An optional kinship matrix or list of kinship matrices. These
 matrices can be from the \code{matrix} class as defined in the base package
 or from the \code{dsyMatrix} class, the class of symmetric matrices in the
 Matrix package.\cr
@@ -34,13 +34,13 @@ If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
 If both \code{kin} is provided and \code{gData} contains a matrix
 \code{kinship} then \code{kin} is used.}
 
-\item{kinshipMethod}{an optional character indicating the method used for
+\item{kinshipMethod}{An optional character indicating the method used for
 calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
 2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
 kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 \code{kinshipMethod} is ignored.}
 
-\item{keep}{a character vector with names of columns in \code{covar} in
+\item{keep}{A character vector with names of columns in \code{covar} in
 \code{gData} that should be included in the output.}
 }
 \value{

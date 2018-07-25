@@ -4,10 +4,11 @@
 #' and Roeder (1999). It is assumed that the p-values come from an F-test with
 #' df1 = 1 and df2 = nObs - nCov - 2.
 #'
-#' @param pVals a numeric vector of p-values between 0 and 1; may contain NA's.
-#' @param nObs an integer > 0 indicating the number of individuals.
-#' @param nCov an integer > 0 indicating the number of covariables.
-#' @return a list with two components:
+#' @param pVals A numeric vector of p-values between 0 and 1; may contain NA's.
+#' @param nObs An integer > 0 indicating the number of individuals.
+#' @param nCov An integer > 0 indicating the number of covariables.
+#'
+#' @return A list with two components:
 #' \itemize{
 #' \item{\code{pValues} a vector of p-values corrected by the genomic inflation
 #' factor, with the same NA's as the input}.

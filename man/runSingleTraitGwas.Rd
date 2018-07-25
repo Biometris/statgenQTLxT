@@ -12,26 +12,26 @@ runSingleTraitGwas(gData, traits = NULL, environments = NULL,
   nSnpLOD = 10, sizeInclRegion = 0, minR2)
 }
 \arguments{
-\item{gData}{an object of class \code{gData} containing at least \code{map},
+\item{gData}{An object of class \code{gData} containing at least \code{map},
 \code{markers} and \code{pheno}.}
 
-\item{traits}{a vector of traits on which to run GWAS. These can be either
+\item{traits}{A vector of traits on which to run GWAS. These can be either
 numeric indices or character names of columns in \code{pheno}. If \code{NULL}
 GWAS is run on all traits.}
 
-\item{environments}{a vector of environments on which to run GWAS. These can
+\item{environments}{A vector of environments on which to run GWAS. These can
 be either numeric indices or character names of list items in \code{pheno}.
 If \code{NULL} GWAS is run for all environments.}
 
-\item{covar}{an optional vector of covariates taken into account when
+\item{covar}{An optional vector of covariates taken into account when
 running GWAS. These can be either numeric indices or character names of
 columns in \code{covar} in \code{gData}. If \code{NULL} no covariates are
 used.}
 
-\item{snpCovariates}{an optional character vector of snps to be included as
+\item{snpCovariates}{An optional character vector of snps to be included as
 covariates.}
 
-\item{kin}{an optional kinship matrix or list of kinship matrices. These
+\item{kin}{An optional kinship matrix or list of kinship matrices. These
 matrices can be from the \code{matrix} class as defined in the base package
 or from the \code{dsyMatrix} class, the class of symmetric matrices in the
 Matrix package.\cr
@@ -42,27 +42,27 @@ If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
 If both \code{kin} is provided and \code{gData} contains a matrix
 \code{kinship} then \code{kin} is used.}
 
-\item{kinshipMethod}{an optional character indicating the method used for
+\item{kinshipMethod}{An optional character indicating the method used for
 calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
 2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
 kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 \code{kinshipMethod} is ignored.}
 
-\item{remlAlgo}{an integer indicating the algorithm used to estimate the
+\item{remlAlgo}{An integer indicating the algorithm used to estimate the
 variance components.
 \enumerate{
 \item{EMMA}
 \item{Newton-Raphson using sommer package}
 }}
 
-\item{GLSMethod}{an integer indicating the method used to estimate the marker
+\item{GLSMethod}{An integer indicating the method used to estimate the marker
 effects.
 \enumerate{
 \item{using one kinship matrix.}
 \item{using chromosome specific kinship matrices.}
 }}
 
-\item{useMAF}{should the minor allele frequency be used for selecting SNPs
+\item{useMAF}{Should the minor allele frequency be used for selecting SNPs
 for the analysis. If \code{FALSE} the minor allele count is used instead.}
 
 \item{MAF}{A numerical value between 0 and 1. SNPs with minor allele
@@ -74,10 +74,10 @@ i.e. p-values and effect sizes are put to missing (NA). Ignored if
 are not taken into account for the analysis, i.e. p-values and effect sizes
 are put to missing (NA). Ignored if \code{useMAF} is \code{TRUE}.}
 
-\item{genomicControl}{should genomic control correction as in Devlin and
+\item{genomicControl}{Should genomic control correction as in Devlin and
 Roeder (1999) be applied?}
 
-\item{thrType}{an integer indicating the type of threshold used for the
+\item{thrType}{An integer indicating the type of threshold used for the
 selection of candidate loci.
 \enumerate{
 \item{Bonferroni; a LOD-threshold of \eqn{-log10(alpha/p)}, where p is the
@@ -87,16 +87,16 @@ number of markers and alpha can be specified in \code{alpha}.}
 smallest p-values are selected. \code{nSnpLOD} can be specified.}
 }}
 
-\item{alpha}{a numerical value used for calculating the LOD-threshold for
+\item{alpha}{A numerical value used for calculating the LOD-threshold for
 \code{thrType} = 1.}
 
-\item{LODThr}{a numerical value used as a LOD-threshold when
+\item{LODThr}{A numerical value used as a LOD-threshold when
 \code{thrType} = 2.}
 
-\item{nSnpLOD}{a numerical value indicating the number of SNPs with the
+\item{nSnpLOD}{A numerical value indicating the number of SNPs with the
 smallest p-values that are selected when \code{thrType} = 3.}
 
-\item{sizeInclRegion}{an integer. Should the results for SNPs close to
+\item{sizeInclRegion}{An integer. Should the results for SNPs close to
 significant SNPs be included? If so, the size of the region in centimorgan
 or base pairs. Otherwise 0.}
 
@@ -110,7 +110,7 @@ most 200kb away from this significant snp are included. Ignored if
 \code{sizeInclRegion} = 0.}
 }
 \value{
-an object of class \code{\link{GWAS}}.
+An object of class \code{\link{GWAS}}.
 }
 \description{
 \code{runSingleTraitGwas} performs a single-trait Genome Wide Association

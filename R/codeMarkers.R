@@ -16,27 +16,27 @@
 #' \item{repeat steps 5. and 6. if missing values are imputed.}
 #' }
 #'
-#' @param gData an object of class \code{gData} containing at least
+#' @param gData An object of class \code{gData} containing at least
 #' \code{markers}.
-#' @param refAll a character string indicating the reference allele used when
+#' @param refAll A character string indicating the reference allele used when
 #' recoding markers.\cr
 #' If "minor" then the recoding is done using the minor allele as reference
 #' allele. Alternatively a single character can be supplied as a reference
 #' allele for the whole set of SNPs, or a character vector with a reference
 #' allele per SNP.
-#' @param nMissGeno a numerical value between 0 and 1. genotypes with a
+#' @param nMissGeno A numerical value between 0 and 1. genotypes with a
 #' fraction of missings higher then \code{nMissGeno} will be removed. Genotypes
 #' with only missing values will always be removed.
-#' @param nMiss a numerical value between 0 and 1. SNPs with a fraction of
+#' @param nMiss A numerical value between 0 and 1. SNPs with a fraction of
 #' missings higher then \code{nMiss} will be removed. SNPs with only missing
 #' values will always be removed.
-#' @param MAF a numerical value between 0 and 1. SNPs with a Minor Allele
+#' @param MAF A numerical value between 0 and 1. SNPs with a Minor Allele
 #' Frequency (MAF) below this value will be removed.
-#' @param removeDuplicates should duplicate SNPs be removed?
-#' @param keep a vector of SNPs. These SNPs will never be removed in the whole
+#' @param removeDuplicates Should duplicate SNPs be removed?
+#' @param keep A vector of SNPs. These SNPs will never be removed in the whole
 #' process.
-#' @param impute should imputation of missing values be done?
-#' @param imputeType a character string indicating what kind of imputation of
+#' @param impute Should imputation of missing values be done?
+#' @param imputeType A character string indicating what kind of imputation of
 #' values should be done.\cr
 #' \itemize{
 #' \item{fixed - missing values will be replaced by a given fixed value.}
@@ -46,16 +46,16 @@
 #' only accepts integers as map positions. If you use this option please cite
 #' the original papers in your publication.}
 #' }
-#' @param fixedValue numerical value used for replacing missing values in
+#' @param fixedValue A numerical value used for replacing missing values in
 #' case \code{inputType} is fixed.
-#' @param naStrings a character vector of strings to be treated as NA.
+#' @param naStrings A character vector of strings to be treated as NA.
 #'
-#' @return a copy of the input \code{gData} object with markers replaced by
+#' @return A copy of the input \code{gData} object with markers replaced by
 #' coded and imputed markers.
 #'
-#' @references {B L Browning and S R Browning (2016). Genotype imputation with
+#' @references B L Browning and S R Browning (2016). Genotype imputation with
 #' millions of reference samples. Am J Hum Genet 98:116-126.
-#' doi:10.1016/j.ajhg.2015.11.020}
+#' doi:10.1016/j.ajhg.2015.11.020
 #'
 #' @examples ## Create markers
 #' markers <- matrix(c(

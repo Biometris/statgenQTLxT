@@ -17,13 +17,13 @@ IBS(X, denominator = NULL)
 vanRaden(X, denominator = NULL)
 }
 \arguments{
-\item{X}{an n x m marker matrix with genotypes in the rows and markers in
+\item{X}{An n x m marker matrix with genotypes in the rows and markers in
 the columns.}
 
-\item{denominator}{an numeric value. See details.}
+\item{denominator}{A numerical value. See details.}
 }
 \value{
-an n x n kinship matrix.
+An n x n kinship matrix.
 }
 \description{
 A collection of functions for calculating kinship matrices using different

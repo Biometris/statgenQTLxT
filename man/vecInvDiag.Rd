@@ -10,9 +10,9 @@ vecInvDiag(x, y)
 tracePInvDiag(x, y)
 }
 \arguments{
-\item{x}{a numeric vector}
+\item{x}{A numeric vector}
 
-\item{y}{a numeric vector}
+\item{y}{A numeric vector}
 }
 \value{
 for \code{vecInvDiag} a matrix defined by

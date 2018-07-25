@@ -4,9 +4,9 @@
 #' variance matrices for the transformed genotypes per individual as given by
 #' equation 4.
 #'
-#' @param Vg a p x p symmetric matrix of genetic variance components
-#' @param Ve a p x p symmetric matrix of environmental variance components
-#' @param Dk a vector of length n containing the eigenvalues obtained by the
+#' @param Vg A p x p symmetric matrix of genetic variance components
+#' @param Ve A p x p symmetric matrix of environmental variance components
+#' @param Dk A vector of length n containing the eigenvalues obtained by the
 #' eigen-decomposition of the kinship matrix K: \eqn{K = Uk * Dk * t(Uk)}
 #'
 #' @return A list of n p x p matrices \eqn{v_l} where \eqn{v_l =

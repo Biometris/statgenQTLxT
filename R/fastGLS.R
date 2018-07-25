@@ -4,17 +4,17 @@
 #' the algorithm proposed by Segura (2012). Also the \eqn{R_LR^2} statistics
 #' as in Sun (2010) is computed.
 #'
-#' @param y a numeric vector of length n of phenotypic scores. No missing
+#' @param y A numeric vector of length n of phenotypic scores. No missing
 #' values allowed.
-#' @param X an n x m matrix of marker-scores, n being the number of
+#' @param X An n x m matrix of marker-scores, n being the number of
 #' individuals, m the number of markers. no missing values allowed.
-#' @param Sigma an n x n covariance matrix. No missing values allowed.
-#' @param covs an n x c matrix of covariates (NOT including an intercept).
+#' @param Sigma An n x n covariance matrix. No missing values allowed.
+#' @param covs An n x c matrix of covariates (NOT including an intercept).
 #' No missing values allowed.
-#' @param nChunks an integer, the number of parts in which the calculations
+#' @param nChunks An integer, the number of parts in which the calculations
 #' are split.
 #'
-#' @return a data.frame with the following columns:
+#' @return A data.frame with the following columns:
 #' \itemize{
 #' \item{\code{pValue} a vector of p-values for the GLS F-test}
 #' \item{\code{beta} a vector of effect sizes}

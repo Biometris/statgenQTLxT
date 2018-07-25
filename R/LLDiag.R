@@ -12,14 +12,14 @@
 #'
 #' @inheritParams estimateEffects
 #'
-#' @param X an optional c x n covariate matrix, c being the number of
+#' @param X An optional c x n covariate matrix, c being the number of
 #' covariates and n being the number of genotypes. c has to be at least one
 #' (typically an intercept). No missing values are allowed.
-#' @param VArray an n x p x p dimensional array obtained as an output from the
+#' @param VArray An n x p x p dimensional array obtained as an output from the
 #' function \code{\link{makeVArray}}. It contains for each genotype l the
 #' p x p matrix \eqn{v_l} (in the notation of Zhou and Stephens)
 #'
-#' @return a numeric value for the \eqn{t(y) * P * y} part of the
+#' @return A numerical value for the \eqn{t(y) * P * y} part of the
 #' log-likelihood function.
 #'
 #' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear

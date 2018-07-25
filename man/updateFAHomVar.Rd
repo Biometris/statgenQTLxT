@@ -7,17 +7,17 @@
 updateFAHomVar(Y = NULL, S = NULL, m, maxDiag = 10000)
 }
 \arguments{
-\item{Y}{an n x p matrix of observed phenotypes, on p traits or environments
+\item{Y}{An n x p matrix of observed phenotypes, on p traits or environments
 for n individuals. No missing values are allowed.}
 
-\item{S}{an p x p sample covariance matrix.}
+\item{S}{An p x p sample covariance matrix.}
 
-\item{m}{an integer. The order of the model.}
+\item{m}{An integer. The order of the model.}
 
-\item{maxDiag}{a numerical value for the maximum value of sigma2.}
+\item{maxDiag}{A numerical value for the maximum value of sigma2.}
 }
 \value{
-a list containing the new value for the matrices W and P.
+A list containing the new value for the matrices W and P.
 }
 \description{
 Updata W and P used in the iteration process in the EMFA algorithm in case

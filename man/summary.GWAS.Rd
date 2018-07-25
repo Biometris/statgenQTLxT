@@ -7,11 +7,11 @@
 \method{summary}{GWAS}(object, ..., environments = NULL)
 }
 \arguments{
-\item{object}{object of class \code{GWAS}}
+\item{object}{An object of class \code{GWAS}}
 
-\item{...}{not used}
+\item{...}{Not used}
 
-\item{environments}{a vector of strings or numeric indices indicating for
+\item{environments}{A vector of strings or numeric indices indicating for
 which environment the summary should be made. If \code{NULL} a summary is
 made for all environments.}
 }

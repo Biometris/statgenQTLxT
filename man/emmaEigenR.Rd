@@ -7,7 +7,7 @@
 emmaEigenR(K, X)
 }
 \arguments{
-\item{K}{an optional kinship matrix. If \code{NULL} then matrix
+\item{K}{An optional kinship matrix. If \code{NULL} then matrix
 \code{kinship} in \code{gData} is used. If both \code{K} is provided and
 \code{gData} contains a matrix \code{kinship} then \code{K} is used.}
 

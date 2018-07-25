@@ -2,8 +2,8 @@
 #'
 #' Gives a summary for an object of S3 class \code{GData}.
 #'
-#' @param object object of class \code{GData}
-#' @param ... not used
+#' @param object An object of class \code{GData}
+#' @param ... Not used
 #'
 #' @export
 summary.gData <- function(object, ...) {

@@ -7,13 +7,13 @@
 matrixRoot(X)
 }
 \arguments{
-\item{X}{a symmetric, positive definite matrix.}
+\item{X}{A symmetric, positive definite matrix.}
 }
 \value{
-a matrix Y such that \eqn{Y^2 = X}.
+A matrix Y such that \eqn{Y^2 = X}.
 }
 \description{
-Given an symmetric, positive definite matrix X a matrix Y is computed such
+Given a symmetric, positive definite matrix X a matrix Y is computed such
 that \eqn{Y^2 = X}. Computation is done using eigendecomposition of X.
 }
 \keyword{internal}

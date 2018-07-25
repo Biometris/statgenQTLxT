@@ -10,47 +10,47 @@ EMFA(Y, K, X = Matrix::Matrix(rep(1, nrow(K))), CmHet = FALSE,
   stopIfDecreasing = FALSE, computeLogLik = FALSE)
 }
 \arguments{
-\item{Y}{an n x p matrix of observed phenotypes, on p traits or environments
+\item{Y}{An n x p matrix of observed phenotypes, on p traits or environments
 for n individuals. No missing values are allowed.}
 
-\item{K}{an n x n kinship matrix.}
+\item{K}{An n x n kinship matrix.}
 
-\item{X}{an n x c covariate matrix, c being the number of covariates and n
+\item{X}{An n x c covariate matrix, c being the number of covariates and n
 being the number of genotypes. c has to be at least one (typically
 an intercept). No missing values are allowed. If not provided a vector of 1s
 is used.}
 
-\item{CmHet}{should an extra diagonal part be added in the model for the
+\item{CmHet}{Should an extra diagonal part be added in the model for the
 precision matrix Cm?}
 
-\item{DmHet}{should an extra diagonal part be added in the model for the
+\item{DmHet}{Should an extra diagonal part be added in the model for the
 precision matrix Dm?}
 
-\item{tolerance}{a numerical value. The iterating process stops if the
+\item{tolerance}{A numerical value. The iterating process stops if the
 difference in conditional log-likelihood between two consecutive iterations
 drops below tolerance.}
 
-\item{maxIter}{a numerical value for the maximum number of iterations.}
+\item{maxIter}{A numerical value for the maximum number of iterations.}
 
-\item{CmStart}{a p x p matrix containing starting values for the precision
+\item{CmStart}{A p x p matrix containing starting values for the precision
 matrix Cm.}
 
-\item{DmStart}{a p x p matrix containing starting values for the precision
+\item{DmStart}{A p x p matrix containing starting values for the precision
 matrix Dm.}
 
-\item{mG}{an integer. The order of the genetic part of the model.}
+\item{mG}{An integer. The order of the genetic part of the model.}
 
-\item{mE}{an integer. The order of the environmental part of the model.}
+\item{mE}{An integer. The order of the environmental part of the model.}
 
-\item{maxDiag}{a numical value. The maximal value of the diagonal elements
+\item{maxDiag}{A numical value. The maximal value of the diagonal elements
 in the precision matrices Cm and Dm (ignoring the low-rank part W W^t)}
 
-\item{prediction}{should predicted values for Y be returned?}
+\item{prediction}{Should predicted values for Y be returned?}
 
-\item{stopIfDecreasing}{should the iterating process stop if after 50
+\item{stopIfDecreasing}{Should the iterating process stop if after 50
 iterations the log-likelihood decreases between two consecutive iterations?}
 
-\item{computeLogLik}{should the log-likelihood be returned?}
+\item{computeLogLik}{Should the log-likelihood be returned?}
 }
 \value{
 A list containing the following components

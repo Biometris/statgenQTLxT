@@ -17,17 +17,17 @@
 #' \code{...} can be used to pass extra arguments to the actual plotting
 #' functions. See those fuctions for details.
 #'
-#' @param x object of class \code{GWAS}.
+#' @param x An object of class \code{GWAS}.
 #' @param ... further arguments to be passed on to the actual plotting
 #' functions.
-#' @param type string indicating the type of plot to be made. One of
-#' "manhattan", "qq" and "qtl".
-#' @param environment a string or numeric index indicating for which environment
-#' the plot should be made. If \code{x} only contains results for one trait
-#' \code{environment} may be \code{NULL}.
-#' @param trait a string indicating for which trait the results should be
-#' plotted. For \code{type} "qtl" all traits are plotted. If \code{x} only
-#' contains results for one trait \code{trait} may be \code{NULL}.
+#' @param type A character string indicating the type of plot to be made. One
+#' of "manhattan", "qq" and "qtl".
+#' @param environment A character string or numeric index indicating for which
+#' environment the plot should be made. If \code{x} only contains results for
+#' one trait \code{environment} may be \code{NULL}.
+#' @param trait A character string indicating for which trait the results
+#' should be plotted. For \code{type} "qtl" all traits are plotted. If \code{x}
+#' only contains results for one trait \code{trait} may be \code{NULL}.
 #'
 #' @seealso \code{\link{manhattanPlot}}, \code{\link{qqPlot}},
 #' \code{\link{qtlPlot}}
@@ -42,11 +42,11 @@ plot.GWAS <- function(x, ...,
   ## Checks.
   if (!is.null(environment) && !is.character(environment) &&
       !is.numeric(environment)) {
-    stop("environment should be a character or numeric value.\n")
+    stop("Environment should be a character or numerical value.\n")
   }
   if ((is.character(environment) && !environment %in% names(x$GWAResult)) ||
       (is.numeric(environment) && !environment %in% 1:length(x$GWAResult))) {
-    stop("environment should be in x.\n")
+    stop("Environment should be in x.\n")
   }
   ## Convert character input to numeric.
   if (is.character(environment)) {

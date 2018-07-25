@@ -10,41 +10,41 @@ qtlPlot(data, chromosome = "chr", trait = "trait", snpEffect = "effect",
   exportPptx = FALSE, pptxName = "")
 }
 \arguments{
-\item{data}{QTL data to be plotted}
+\item{data}{A data.frame with QTL data to be plotted}
 
-\item{chromosome}{a character indicating the data column containing the
-chromosome number.}
+\item{chromosome}{A character string indicating the data column containing
+the chromosome number.}
 
-\item{trait}{a character indicating the data column containing the trait
-name.}
+\item{trait}{A character string indicating the data column containing the
+trait name.}
 
-\item{snpEffect}{a character indicating the data column containing the snp
-effect.}
+\item{snpEffect}{A character string indicating the data column containing
+the snp effect.}
 
-\item{snpPosition}{a character indicating the data column containing the
-position of the snp on the chromosome.}
+\item{snpPosition}{A character string indicating the data column containing
+the position of the snp on the chromosome.}
 
-\item{map}{a dataframe with at least the columns \code{chr}, the number of
+\item{map}{A data.frame with at least the columns \code{chr}, the number of
 the chromosome and \code{pos}, the position of the snp on the chromosome.
 These are used for calculating the physical limits of the chromosome.}
 
-\item{normalize}{should the snpEffect be normalized?}
+\item{normalize}{Should the snpEffect be normalized?}
 
-\item{sortData}{should the data be sorted before plotting? Either
+\item{sortData}{Should the data be sorted before plotting? Either
 \code{FALSE} if no sorting should be done or a character indicating the data
 column on which the data should be sorted.}
 
-\item{binPositions}{an optional dataframe containing at leasts two columns,
+\item{binPositions}{An optional data.frame containing at leasts two columns,
 chromosome and position. Vertical lines are plotted at those positions.}
 
 \item{printVertGrid}{Should default vertical grid lines be plotted.}
 
-\item{yLab}{y-axis label.}
+\item{yLab}{A character string, the y-axis label.}
 
-\item{exportPptx}{should the plot be exported to a .pptx file?}
+\item{exportPptx}{Should the plot be exported to a .pptx file?}
 
-\item{pptxName}{name of the .pptx file to which the plot is exported.
-Ignored if exportPptx = \code{FALSE}.}
+\item{pptxName}{A character string, the name of the .pptx file to which the
+plot is exported. Ignored if exportPptx = \code{FALSE}.}
 }
 \value{
 A ggplot object is returned and plotted on screen. Optionally the

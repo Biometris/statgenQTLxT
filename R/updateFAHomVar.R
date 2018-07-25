@@ -5,11 +5,11 @@
 #'
 #' @inheritParams EMFA
 #'
-#' @param S an p x p sample covariance matrix.
-#' @param m an integer. The order of the model.
-#' @param maxDiag a numerical value for the maximum value of sigma2.
+#' @param S An p x p sample covariance matrix.
+#' @param m An integer. The order of the model.
+#' @param maxDiag A numerical value for the maximum value of sigma2.
 #'
-#' @return a list containing the new value for the matrices W and P.
+#' @return A list containing the new value for the matrices W and P.
 #'
 #' @keywords internal
 

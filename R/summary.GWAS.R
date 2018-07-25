@@ -2,9 +2,9 @@
 #'
 #' Gives a summary for an object of S3 class \code{GWAS}.
 #'
-#' @param object object of class \code{GWAS}
-#' @param ... not used
-#' @param environments a vector of strings or numeric indices indicating for
+#' @param object An object of class \code{GWAS}
+#' @param ... Not used
+#' @param environments A vector of strings or numeric indices indicating for
 #' which environment the summary should be made. If \code{NULL} a summary is
 #' made for all environments.
 #'

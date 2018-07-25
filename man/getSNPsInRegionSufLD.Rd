@@ -7,20 +7,20 @@
 getSNPsInRegionSufLD(gData, snp, regionSize = 5000, minR2 = 0.5)
 }
 \arguments{
-\item{gData}{an object of class gData with at least the map and markers
+\item{gData}{An object of class gData with at least the map and markers
 included.}
 
-\item{snp}{an integer indicating the index of the reference SNP within
+\item{snp}{An integer indicating the index of the reference SNP within
 the map.}
 
-\item{regionSize}{a numeric value indicating the size of the region on
+\item{regionSize}{A numerical value indicating the size of the region on
 the chromosome in which to look for SNPs.}
 
-\item{minR2}{a numeric value between 0 and 1 indicating the minimum
+\item{minR2}{A numerical value between 0 and 1 indicating the minimum
 LD (in terms of r^2) that the SNPs should have with the reference SNP.}
 }
 \value{
-an integer vector with indices of the SNPs that are within the
+An integer vector with indices of the SNPs that are within the
 given \code{regionSize} and have a minimum LD with the reference SNP.
 }
 \description{

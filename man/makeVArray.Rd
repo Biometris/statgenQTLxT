@@ -10,11 +10,11 @@ makeVArray(Vg, Ve, Dk)
 makeVInvArray(Vg, Ve, Dk)
 }
 \arguments{
-\item{Vg}{a p x p symmetric matrix of genetic variance components}
+\item{Vg}{A p x p symmetric matrix of genetic variance components}
 
-\item{Ve}{a p x p symmetric matrix of environmental variance components}
+\item{Ve}{A p x p symmetric matrix of environmental variance components}
 
-\item{Dk}{a vector of length n containing the eigenvalues obtained by the
+\item{Dk}{A vector of length n containing the eigenvalues obtained by the
 eigen-decomposition of the kinship matrix K: \eqn{K = Uk * Dk * t(Uk)}}
 }
 \value{

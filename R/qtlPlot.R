@@ -9,29 +9,29 @@
 #' direction of the effect: green when the allele increases the trait value,
 #' and blue when it decreases the value.
 #'
-#' @param data QTL data to be plotted
-#' @param chromosome a character indicating the data column containing the
-#' chromosome number.
-#' @param trait a character indicating the data column containing the trait
-#' name.
-#' @param snpEffect a character indicating the data column containing the snp
-#' effect.
-#' @param snpPosition a character indicating the data column containing the
-#' position of the snp on the chromosome.
-#' @param map a dataframe with at least the columns \code{chr}, the number of
+#' @param data A data.frame with QTL data to be plotted
+#' @param chromosome A character string indicating the data column containing
+#' the chromosome number.
+#' @param trait A character string indicating the data column containing the
+#' trait name.
+#' @param snpEffect A character string indicating the data column containing
+#' the snp effect.
+#' @param snpPosition A character string indicating the data column containing
+#' the position of the snp on the chromosome.
+#' @param map A data.frame with at least the columns \code{chr}, the number of
 #' the chromosome and \code{pos}, the position of the snp on the chromosome.
 #' These are used for calculating the physical limits of the chromosome.
-#' @param normalize should the snpEffect be normalized?
-#' @param sortData should the data be sorted before plotting? Either
+#' @param normalize Should the snpEffect be normalized?
+#' @param sortData Should the data be sorted before plotting? Either
 #' \code{FALSE} if no sorting should be done or a character indicating the data
 #' column on which the data should be sorted.
-#' @param binPositions an optional dataframe containing at leasts two columns,
+#' @param binPositions An optional data.frame containing at leasts two columns,
 #' chromosome and position. Vertical lines are plotted at those positions.
 #' @param printVertGrid Should default vertical grid lines be plotted.
-#' @param yLab y-axis label.
-#' @param exportPptx should the plot be exported to a .pptx file?
-#' @param pptxName name of the .pptx file to which the plot is exported.
-#' Ignored if exportPptx = \code{FALSE}.
+#' @param yLab A character string, the y-axis label.
+#' @param exportPptx Should the plot be exported to a .pptx file?
+#' @param pptxName A character string, the name of the .pptx file to which the
+#' plot is exported. Ignored if exportPptx = \code{FALSE}.
 #'
 #' @return A ggplot object is returned and plotted on screen. Optionally the
 #' plot is exported to pptx as well.
@@ -59,7 +59,7 @@ qtlPlot <- function(data,
                     pptxName = "") {
   ## Basic argument checks
   if (is.null(data) || !is.data.frame(data)) {
-    stop("data should be a dataframe")
+    stop("data should be a data.frame")
   }
   if (is.null(chromosome) || length(chromosome) > 1 ||
       !is.character(chromosome)) {
@@ -76,7 +76,7 @@ qtlPlot <- function(data,
     stop("snpPosition should be a single character")
   }
   if (is.null(map) || !is.data.frame(map)) {
-    stop("map should be a dataframe")
+    stop("map should be a data.frame")
   }
   if (is.null(normalize) || length(normalize) > 1 || !is.logical(normalize)) {
     stop("normalize should be a single logical")
@@ -86,7 +86,7 @@ qtlPlot <- function(data,
     stop("sortData should be either FALSE or a single character")
   }
   if (!is.null(binPositions) && (!is.data.frame(binPositions))) {
-    stop("binPositions should be either NULL or an dataframe")
+    stop("binPositions should be either NULL or an data.frame")
   }
   if (is.null(exportPptx) || length(exportPptx) > 1 ||
       !is.logical(exportPptx)) {
@@ -144,8 +144,8 @@ qtlPlot <- function(data,
   ## This ensures plotting of all chromosomes
   limitsLow <- aggregate(x = map$pos, by = list(map$chr), FUN = min)
   limitsHigh <- aggregate(x = map$pos, by = list(map$chr), FUN = max)
-  ## Empty dataframe with 2 lines per chromosomes and as many columns as the QTL
-  ## dataframe
+  ## Empty data.frame with 2 lines per chromosomes and as many columns as the
+  ## QTL data.frame
   limits <- data.frame(matrix(ncol = ncol(data), nrow = 2 * nrow(limitsLow)))
   names(limits) <- names(data)
   ## Trait and sort have to be filled. Value is not important

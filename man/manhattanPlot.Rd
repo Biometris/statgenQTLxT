@@ -5,52 +5,53 @@
 \title{Create a manhattan plot}
 \usage{
 manhattanPlot(xValues, yValues, map, fileName = "", jpegPlot = TRUE,
-  xLab = "Chromosomes", yLab = expression(-log[10](p)), plotType = "l",
-  xSig = integer(), xEffects = integer(), colPalette = rep(c("royalblue",
-  "maroon"), 50), chrBoundaries = 0, yThr = NULL,
-  signPointsThickness = 0.6, ...)
+  xLab = "Chromosomes", yLab = expression(-log[10](p)), plotType = c("l",
+  "p", "d"), xSig = integer(), xEffects = integer(),
+  colPalette = rep(c("royalblue", "maroon"), 50), chrBoundaries = 0,
+  yThr = NULL, signPointsThickness = 0.6, ...)
 }
 \arguments{
-\item{xValues}{a vector of cumulative marker positions.}
+\item{xValues}{A vector of cumulative marker positions.}
 
-\item{yValues}{a vector of LOD-scores.}
+\item{yValues}{A vector of LOD-scores.}
 
-\item{map}{a dataframe with at least the columns chr, the number of the
+\item{map}{A data.frame with at least the columns chr, the number of the
 chromosome and cumPos, the cumulative position of the snp the cumulative
 position of the snp starting from the first chromosome.}
 
-\item{fileName}{name of the outputfile that is created. If left empty the
-plot is written to the screen.}
+\item{fileName}{A character string, the name of the outputfile that is
+created. If left empty the plot is written to the screen.}
 
-\item{jpegPlot}{should a jpeg file be produced? If \code{FALSE} a pdf file
+\item{jpegPlot}{Should a jpeg file be produced? If \code{FALSE} a pdf file
 is produced.}
 
-\item{xLab}{x-axis label.}
+\item{xLab}{A character string, the x-axis label.}
 
-\item{yLab}{y-axis label.}
+\item{yLab}{A character string, the y-axis label.}
 
-\item{plotType}{lines ("l") or dots ("d" or "p")}
+\item{plotType}{The type of plot that is made, either a line plot ("l") or
+a dot plot ("d" or "p")}
 
-\item{xSig}{vector of integers, indicating which components in the vectors
+\item{xSig}{A vector of integers, indicating which components in the vectors
 xValues and yValues are significant.}
 
-\item{xEffects}{vector of integers, indicating which components in the vector
-xValues correspond to a real (known) effect.}
+\item{xEffects}{A vector of integers, indicating which components in the
+vector xValues correspond to a real (known) effect.}
 
-\item{colPalette}{color palette used for plotting.}
+\item{colPalette}{A color palette used for plotting.}
 
-\item{chrBoundaries}{vector of chromosome boundaries, i.e. x-values on the
+\item{chrBoundaries}{A vector of chromosome boundaries, i.e. x-values on the
 same scale as xValues.}
 
-\item{yThr}{LOD-threshold.}
+\item{yThr}{A numerical value for the LOD-threshold.}
 
-\item{signPointsThickness}{thickness of the points that are false/true
-positives/negatives.}
+\item{signPointsThickness}{A numerical value giving the thickness of the
+points that are false/true positives/negatives.}
 
-\item{...}{other graphical parameters passed on to the actual plot function.}
+\item{...}{Other graphical parameters passed on to the actual plot function.}
 }
 \value{
-a LOD-profile with LOD-scores per snip. Markers declared significant
+A LOD-profile with LOD-scores per snip. Markers declared significant
 get a red dot, markers with a real effect get a blue dot. If both significant
 and real effects are given false positives get an orange dot, true negatives
 a yellow dot and true positives a green dot.

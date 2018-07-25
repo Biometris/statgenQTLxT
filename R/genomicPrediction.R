@@ -4,9 +4,9 @@
 #'
 #' @inheritParams runSingleTraitGwas
 #'
-#' @param training a character vector with names of genotypes to use as
+#' @param training A character vector with names of genotypes to use as
 #' training data for the prediction.
-#' @param keep a character vector with names of columns in \code{covar} in
+#' @param keep A character vector with names of columns in \code{covar} in
 #' \code{gData} that should be included in the output.
 #'
 #' @return A data.frame containing predictions for genotypes per trait.

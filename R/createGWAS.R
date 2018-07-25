@@ -7,23 +7,23 @@
 #' \code{summary} and \code{plot} functions are available.\cr\cr
 #' \code{is.gData} tests if an \code{R} object is of class \code{gData}.
 #'
-#' @param GWAResult optional data.frame or list of data.frames containing the
+#' @param GWAResult An optional data.frame or list of data.frames containing the
 #' overall analysis results. Should a least contain columns \code{trait}, the
 #' evaluated trait, \code{snp}, the name of the SNP, \code{chr}, the chromosome
 #' number, \code{pos}, the position of the SNP on the chromosome,
 #' \code{pValue}, the p-values from the analysis and \code{LOD} the LOD-score.
-#' @param signSnp optional data.frame or list of data.frames containing
+#' @param signSnp An optional data.frame or list of data.frames containing
 #' information on the significant SNPs and optionally the SNPs close to the
 #' significant SNPs. Should at least contain columns \code{trait}, the
 #' evaluated trait, \code{snp}, the name of the SNP, \code{pValue}, the p-values
 #' from the analysis and \code{LOD} the LOD-score.
-#' @param kin optional kinship matrix or list of chromosome specific kinship
+#' @param kin An optional kinship matrix or list of chromosome specific kinship
 #' matrices.
-#' @param thr optional numeric value, the threshold used in performing the
+#' @param thr An optional numerical value, the threshold used in performing the
 #' GWAS analysis.
-#' @param GWASInfo list containing extra information concering the GWAS
+#' @param GWASInfo a list containing extra information concering the GWAS
 #' analysis.
-#' @param x \code{R} object
+#' @param x An \code{R} object
 #'
 #' @return \code{createGWAS} returns an object of class GWAS, a list of the
 #' input items.\cr\cr

@@ -7,16 +7,16 @@
 qqPlot(pValues, fileName = "", jpegPlot = TRUE, ...)
 }
 \arguments{
-\item{pValues}{a numeric vector of pValues. Missings are ignored when
+\item{pValues}{A numeric vector of pValues. Missings are ignored when
 plotting.}
 
-\item{fileName}{name of the outputfile that is created. If left empty the
-plot is written to the screen.}
+\item{fileName}{A character string, the name of the outputfile that is
+created. If left empty the plot is written to the screen.}
 
-\item{jpegPlot}{should a jpeg file be produced? If \code{FALSE} a pdf file
+\item{jpegPlot}{Should a jpeg file be produced? If \code{FALSE} a pdf file
 is produced.}
 
-\item{...}{other graphical parameters passed on to the actual plot function.}
+\item{...}{Other graphical parameters passed on to the actual plot function.}
 }
 \description{
 Given a vector of pvalues, generate a qq-plot of observed LOD-scores versus

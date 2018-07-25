@@ -10,13 +10,13 @@ LLQuadFormDiag(Y, X = data.frame(), vInvArr)
 \item{Y}{An n x p matrix of observed phenotypes, on p traits or environments
 for n genotypes. No missing values are allowed.}
 
-\item{X}{an optional c x n covariate matrix, c being the number of covariates
+\item{X}{An optional c x n covariate matrix, c being the number of covariates
 and n being the number of genotypes. c has to be at least one
 (typically an intercept). No missing values are allowed.}
 }
 \value{
-a numeric value for the \eqn{t(y) * P * y} part of the log-likelihood
-function.
+A numerical value for the \eqn{t(y) * P * y} part of the
+log-likelihood function.
 }
 \description{
 Compute \eqn{t(y) * P * y}, part of the log-likelihood functions from

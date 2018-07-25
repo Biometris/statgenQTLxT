@@ -7,9 +7,9 @@
 \method{summary}{gData}(object, ...)
 }
 \arguments{
-\item{object}{object of class \code{GData}}
+\item{object}{An object of class \code{GData}}
 
-\item{...}{not used}
+\item{...}{Not used}
 }
 \description{
 Gives a summary for an object of S3 class \code{GData}.

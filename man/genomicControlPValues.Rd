@@ -7,14 +7,14 @@
 genomicControlPValues(pVals, nObs, nCov = 0)
 }
 \arguments{
-\item{pVals}{a numeric vector of p-values between 0 and 1; may contain NA's.}
+\item{pVals}{A numeric vector of p-values between 0 and 1; may contain NA's.}
 
-\item{nObs}{an integer > 0 indicating the number of individuals.}
+\item{nObs}{An integer > 0 indicating the number of individuals.}
 
-\item{nCov}{an integer > 0 indicating the number of covariables.}
+\item{nCov}{An integer > 0 indicating the number of covariables.}
 }
 \value{
-a list with two components:
+A list with two components:
 \itemize{
 \item{\code{pValues} a vector of p-values corrected by the genomic inflation
 factor, with the same NA's as the input}.

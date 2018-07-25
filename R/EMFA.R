@@ -3,33 +3,33 @@
 #' Implementation of the factor analytic variation of the EM algoritm as
 #' proposed by Dahl et al. (2013).
 #'
-#' @param Y an n x p matrix of observed phenotypes, on p traits or environments
+#' @param Y An n x p matrix of observed phenotypes, on p traits or environments
 #' for n individuals. No missing values are allowed.
-#' @param K an n x n kinship matrix.
-#' @param X an n x c covariate matrix, c being the number of covariates and n
+#' @param K An n x n kinship matrix.
+#' @param X An n x c covariate matrix, c being the number of covariates and n
 #' being the number of genotypes. c has to be at least one (typically
 #' an intercept). No missing values are allowed. If not provided a vector of 1s
 #' is used.
-#' @param CmHet should an extra diagonal part be added in the model for the
+#' @param CmHet Should an extra diagonal part be added in the model for the
 #' precision matrix Cm?
-#' @param DmHet should an extra diagonal part be added in the model for the
+#' @param DmHet Should an extra diagonal part be added in the model for the
 #' precision matrix Dm?
-#' @param tolerance a numerical value. The iterating process stops if the
+#' @param tolerance A numerical value. The iterating process stops if the
 #' difference in conditional log-likelihood between two consecutive iterations
 #' drops below tolerance.
-#' @param maxIter a numerical value for the maximum number of iterations.
-#' @param CmStart a p x p matrix containing starting values for the precision
+#' @param maxIter A numerical value for the maximum number of iterations.
+#' @param CmStart A p x p matrix containing starting values for the precision
 #' matrix Cm.
-#' @param DmStart a p x p matrix containing starting values for the precision
+#' @param DmStart A p x p matrix containing starting values for the precision
 #' matrix Dm.
-#' @param mG an integer. The order of the genetic part of the model.
-#' @param mE an integer. The order of the environmental part of the model.
-#' @param maxDiag a numical value. The maximal value of the diagonal elements
+#' @param mG An integer. The order of the genetic part of the model.
+#' @param mE An integer. The order of the environmental part of the model.
+#' @param maxDiag A numical value. The maximal value of the diagonal elements
 #' in the precision matrices Cm and Dm (ignoring the low-rank part W W^t)
-#' @param prediction should predicted values for Y be returned?
-#' @param stopIfDecreasing should the iterating process stop if after 50
+#' @param prediction Should predicted values for Y be returned?
+#' @param stopIfDecreasing Should the iterating process stop if after 50
 #' iterations the log-likelihood decreases between two consecutive iterations?
-#' @param computeLogLik should the log-likelihood be returned?
+#' @param computeLogLik Should the log-likelihood be returned?
 #'
 #' @return A list containing the following components
 #' \itemize{

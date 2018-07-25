@@ -8,20 +8,20 @@
 #' warning.\cr\cr
 #' \code{is.gData} tests if an \code{R} object is of class \code{gData}.
 #'
-#' @param gData an optional gData object to be modified. If \code{NULL} a new
+#' @param gData An optional gData object to be modified. If \code{NULL} a new
 #' gData object is created.
-#' @param geno matrix or data.frame with genotypes in the rows and markers in
+#' @param geno A matrix or data.frame with genotypes in the rows and markers in
 #' the columns. A matrix from the \code{matrix} in the base package may be
 #' provided as well as as matrix from the Matrix package. \cr
 #' If no row names are used they are taken from \code{pheno} (if supplied and
 #' dimension matches). If no column names are used the row names are taken
 #' from \code{map} (if supplied and dimension matches).
-#' @param map a data.frame with columns \code{chr} for chromosome and
+#' @param map A data.frame with columns \code{chr} for chromosome and
 #' \code{pos} for position. Positions can be in basepair or centimorgan. They
 #' should not be cumulative over the chromosomes. Other columns are ignored.
 #' Marker names should be in the row names. These should match the marker names
 #' in \code{geno} (if supplied).
-#' @param kin a kinship matrix or list of kinship matrices with genotype in
+#' @param kin A kinship matrix or list of kinship matrices with genotype in
 #' rows and colums. These matrices can be from the \code{matrix} class as
 #' defined in the base package or from the \code{dsyMatrix} class, the class
 #' of symmetric matrices in the Matrix package.\cr
@@ -31,14 +31,14 @@
 #' of the names of the chromosomes in \code{map} or in case no names are
 #' provided, the number of matrices should match the number of chromoses
 #' in \code{map} in which case default names are provided.
-#' @param pheno a data.frame or a list of data.frames with phenotypic data,
+#' @param pheno A data.frame or a list of data.frames with phenotypic data,
 #' with genotype in the first column \code{genotype} and traits in the
 #' following columns. The trait columns should be numerical columns only.
 #' A list of data.frames can be used for replications, i.e. different
 #' environments.
-#' @param covar a data.frame with extra covariates per genotype. Genotype
+#' @param covar A data.frame with extra covariates per genotype. Genotype
 #' should be in the rows.
-#' @param x \code{R} object
+#' @param x An \code{R} object
 #'
 #' @return \code{createGData} returns an object of class \code{gData} with the
 #' following components:

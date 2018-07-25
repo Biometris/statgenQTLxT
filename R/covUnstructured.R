@@ -5,17 +5,17 @@
 #'
 #' @inheritParams EMFA
 
-#' @param X a covariate matrix, c being the number of covariates and n being the
+#' @param X A covariate matrix, c being the number of covariates and n being the
 #' number of genotypes.
-#' @param fixDiag should the diagonal of the covariate matrix be fixed during
+#' @param fixDiag Should the diagonal of the covariate matrix be fixed during
 #' calculations? -- NOT YET IMPLEMENTED
-#' @param VeDiag should Ve be a diagonale matrix?
-#' @param corMat should the output be a correlation matrix instead of a
+#' @param VeDiag Should Ve be a diagonale matrix?
+#' @param corMat Should the output be a correlation matrix instead of a
 #' covariance matrix?
 #' @param parallel Should the computation of variance components be done in
 #' parallel.
 #'
-#' @return a list of two matrices \code{Vg} and \code{Ve} containing genotypic
+#' @return A list of two matrices \code{Vg} and \code{Ve} containing genotypic
 #' and environmental variance components respectively.
 #'
 #' @import utils

@@ -2,19 +2,19 @@
 #'
 #' Updata W and P used in the iteration process in the EMFA algorithm.
 #'
-#' @param Y a n x p matrix or dataframe.
-#' @param WStart a p x p matrix or dataframe containing starting values for W.
-#' @param m an integer. The order of the model.
-#' @param PStart a p x p matrix or dataframe containing starting values for P.
-#' @param hetVar should an extra diagonal part be added in the model for the
+#' @param Y An n x p matrix or data.frame.
+#' @param WStart A p x p matrix or data.frame containing starting values for W.
+#' @param m An integer. The order of the model.
+#' @param PStart A p x p matrix or data.frame containing starting values for P.
+#' @param hetVar Should an extra diagonal part be added in the model for the
 #' precision matrix?
-#' @param maxDiag a numerical value for the maximum value of the diagonal of P.
-#' @param tolerance a numerical value. The iterating process stops if the sum
+#' @param maxDiag A numerical value for the maximum value of the diagonal of P.
+#' @param tolerance A numerical value. The iterating process stops if the sum
 #' of the difference for P and W between two steps gets lower than this value.
-#' @param maxIter a numerical value for the maximum number of iterations.
-#' @param printProgress should progress be printed during iterations?
+#' @param maxIter A numerical value for the maximum number of iterations.
+#' @param printProgress Should progress be printed during iterations?
 #'
-#' @return a list containing the new matrices W and P after the iteration
+#' @return A list containing the new matrices W and P after the iteration
 #' process and the number of iterations.
 #'
 #' @keywords internal

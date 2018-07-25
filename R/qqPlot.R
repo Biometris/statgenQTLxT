@@ -5,7 +5,7 @@
 #'
 #' @inheritParams manhattanPlot
 #'
-#' @param pValues a numeric vector of pValues. Missings are ignored when
+#' @param pValues A numeric vector of pValues. Missings are ignored when
 #' plotting.
 #'
 #' @references Segura et al. (2012) An efficient multi-locus mixed model

@@ -15,11 +15,11 @@
 #' splitting \code{X} in smaller matrices and then adding the results together
 #' in the end.
 #'
-#' @param X an n x m marker matrix with genotypes in the rows and markers in
+#' @param X An n x m marker matrix with genotypes in the rows and markers in
 #' the columns.
-#' @param denominator an numeric value. See details.
+#' @param denominator A numerical value. See details.
 #'
-#' @return an n x n kinship matrix.
+#' @return An n x n kinship matrix.
 #'
 #' @references Astle W., Balding D. J. (2009) Population structure and cryptic
 #' relatedness in genetic association studies, Stat. Sci., November 2009,

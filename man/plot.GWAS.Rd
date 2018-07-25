@@ -8,21 +8,21 @@
   environment = NULL, trait = NULL)
 }
 \arguments{
-\item{x}{object of class \code{GWAS}.}
+\item{x}{An object of class \code{GWAS}.}
 
 \item{...}{further arguments to be passed on to the actual plotting
 functions.}
 
-\item{type}{string indicating the type of plot to be made. One of
-"manhattan", "qq" and "qtl".}
+\item{type}{A character string indicating the type of plot to be made. One
+of "manhattan", "qq" and "qtl".}
 
-\item{environment}{a string or numeric index indicating for which environment
-the plot should be made. If \code{x} only contains results for one trait
-\code{environment} may be \code{NULL}.}
+\item{environment}{A character string or numeric index indicating for which
+environment the plot should be made. If \code{x} only contains results for
+one trait \code{environment} may be \code{NULL}.}
 
-\item{trait}{a string indicating for which trait the results should be
-plotted. For \code{type} "qtl" all traits are plotted. If \code{x} only
-contains results for one trait \code{trait} may be \code{NULL}.}
+\item{trait}{A character string indicating for which trait the results
+should be plotted. For \code{type} "qtl" all traits are plotted. If \code{x}
+only contains results for one trait \code{trait} may be \code{NULL}.}
 }
 \description{
 Creates a plot of an object of S3 class \code{GWAS}. Three types of plots

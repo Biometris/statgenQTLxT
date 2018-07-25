@@ -5,8 +5,8 @@
 #' \code{tracePInvDiag} for quickly computing column sums of
 #' \eqn{(I + x \otimes y)^{-1}}. Both are used in the penalized EM algorithm.
 #'
-#' @param x a numeric vector
-#' @param y a numeric vector
+#' @param x A numeric vector
+#' @param y A numeric vector
 #'
 #' @return for \code{vecInvDiag} a matrix defined by
 #' \eqn{(I + x \otimes y)^{-1}}, for \code{tracePInvDiag} a matrix containing

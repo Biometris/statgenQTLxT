@@ -5,31 +5,32 @@
 #' are previously known marker effect also false positives and true negatives
 #' will be marked.
 #'
-#' @param xValues a vector of cumulative marker positions.
-#' @param yValues a vector of LOD-scores.
-#' @param map a dataframe with at least the columns chr, the number of the
+#' @param xValues A vector of cumulative marker positions.
+#' @param yValues A vector of LOD-scores.
+#' @param map A data.frame with at least the columns chr, the number of the
 #' chromosome and cumPos, the cumulative position of the snp the cumulative
 #' position of the snp starting from the first chromosome.
-#' @param fileName name of the outputfile that is created. If left empty the
-#' plot is written to the screen.
-#' @param jpegPlot should a jpeg file be produced? If \code{FALSE} a pdf file
+#' @param fileName A character string, the name of the outputfile that is
+#' created. If left empty the plot is written to the screen.
+#' @param jpegPlot Should a jpeg file be produced? If \code{FALSE} a pdf file
 #' is produced.
-#' @param xLab x-axis label.
-#' @param yLab y-axis label.
-#' @param plotType lines ("l") or dots ("d" or "p")
-#' @param xSig vector of integers, indicating which components in the vectors
+#' @param xLab A character string, the x-axis label.
+#' @param yLab A character string, the y-axis label.
+#' @param plotType The type of plot that is made, either a line plot ("l") or
+#' a dot plot ("d" or "p")
+#' @param xSig A vector of integers, indicating which components in the vectors
 #' xValues and yValues are significant.
-#' @param xEffects vector of integers, indicating which components in the vector
-#' xValues correspond to a real (known) effect.
-#' @param colPalette color palette used for plotting.
-#' @param chrBoundaries vector of chromosome boundaries, i.e. x-values on the
+#' @param xEffects A vector of integers, indicating which components in the
+#' vector xValues correspond to a real (known) effect.
+#' @param colPalette A color palette used for plotting.
+#' @param chrBoundaries A vector of chromosome boundaries, i.e. x-values on the
 #' same scale as xValues.
-#' @param yThr LOD-threshold.
-#' @param signPointsThickness thickness of the points that are false/true
-#' positives/negatives.
-#' @param ... other graphical parameters passed on to the actual plot function.
+#' @param yThr A numerical value for the LOD-threshold.
+#' @param signPointsThickness A numerical value giving the thickness of the
+#' points that are false/true positives/negatives.
+#' @param ... Other graphical parameters passed on to the actual plot function.
 #'
-#' @return a LOD-profile with LOD-scores per snip. Markers declared significant
+#' @return A LOD-profile with LOD-scores per snip. Markers declared significant
 #' get a red dot, markers with a real effect get a blue dot. If both significant
 #' and real effects are given false positives get an orange dot, true negatives
 #' a yellow dot and true positives a green dot.
@@ -44,7 +45,7 @@ manhattanPlot <- function(xValues,
                           jpegPlot = TRUE,
                           xLab = "Chromosomes",
                           yLab = expression(-log[10](p)),
-                          plotType = "l",
+                          plotType = c("l", "p", "d"),
                           xSig = integer(),
                           xEffects = integer(),
                           colPalette = rep(c("royalblue", "maroon"), 50),

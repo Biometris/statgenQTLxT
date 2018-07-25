@@ -12,28 +12,28 @@ createGWAS(GWAResult = NULL, signSnp = NULL, kin = NULL, thr = NULL,
 is.GWAS(x)
 }
 \arguments{
-\item{GWAResult}{optional data.frame or list of data.frames containing the
+\item{GWAResult}{An optional data.frame or list of data.frames containing the
 overall analysis results. Should a least contain columns \code{trait}, the
 evaluated trait, \code{snp}, the name of the SNP, \code{chr}, the chromosome
 number, \code{pos}, the position of the SNP on the chromosome,
 \code{pValue}, the p-values from the analysis and \code{LOD} the LOD-score.}
 
-\item{signSnp}{optional data.frame or list of data.frames containing
+\item{signSnp}{An optional data.frame or list of data.frames containing
 information on the significant SNPs and optionally the SNPs close to the
 significant SNPs. Should at least contain columns \code{trait}, the
 evaluated trait, \code{snp}, the name of the SNP, \code{pValue}, the p-values
 from the analysis and \code{LOD} the LOD-score.}
 
-\item{kin}{optional kinship matrix or list of chromosome specific kinship
+\item{kin}{An optional kinship matrix or list of chromosome specific kinship
 matrices.}
 
-\item{thr}{optional numeric value, the threshold used in performing the
+\item{thr}{An optional numerical value, the threshold used in performing the
 GWAS analysis.}
 
-\item{GWASInfo}{list containing extra information concering the GWAS
+\item{GWASInfo}{a list containing extra information concering the GWAS
 analysis.}
 
-\item{x}{\code{R} object}
+\item{x}{An \code{R} object}
 }
 \value{
 \code{createGWAS} returns an object of class GWAS, a list of the
