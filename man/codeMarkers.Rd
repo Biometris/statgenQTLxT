@@ -9,7 +9,8 @@ codeMarkers(gData, refAll = "minor", nMissGeno = 1, nMiss = 1,
   imputeType = "random", fixedValue = NULL, naStrings = NA)
 }
 \arguments{
-\item{gData}{an object of class \code{gData} containing at least \code{markers}.}
+\item{gData}{an object of class \code{gData} containing at least
+\code{markers}.}
 
 \item{refAll}{a character string indicating the reference allele used when
 recoding markers.\cr
@@ -18,9 +19,9 @@ allele. Alternatively a single character can be supplied as a reference
 allele for the whole set of SNPs, or a character vector with a reference
 allele per SNP.}
 
-\item{nMissGeno}{a numerical value between 0 and 1. genotypes with a fraction
-of missings higher then \code{nMissGeno} will be removed. Genotypes with
-only missing values will always be removed.}
+\item{nMissGeno}{a numerical value between 0 and 1. genotypes with a
+fraction of missings higher then \code{nMissGeno} will be removed. Genotypes
+with only missing values will always be removed.}
 
 \item{nMiss}{a numerical value between 0 and 1. SNPs with a fraction of
 missings higher then \code{nMiss} will be removed. SNPs with only missing
@@ -64,7 +65,8 @@ The function performs the following steps:\cr
 \item{replace strings in \code{naStrings} by \code{NA}.}
 \item{remove genotypes with a fraction of missing values higher than
 \code{nMissGeno}.}
-\item{remove SNPs with a fraction of missing values higher than \code{nMiss}.}
+\item{remove SNPs with a fraction of missing values higher than
+\code{nMiss}.}
 \item{recode SNPs to numerical values.}
 \item{remove SNPs with a minor allele frequency lower than \code{MAF}.}
 \item{optionally remove duplicate SNPs.}
@@ -85,7 +87,8 @@ markers <- matrix(c(
 "AA",   "AA",    NA,    "BB",    NA,    "AA",   "AA",   "AA",  "AA", "AA",
 "AA",    NA,     NA,    "BB",   "BB",   "BB",   "BB",   "BB",  "AA", "AA",
 "AA",    NA,    "AA",   "BB",   "BB",   "BB",   "AA",   "AA",  NA, "AA"),
-ncol = 10, byrow = TRUE, dimnames = list(paste0("IND", 1:10), paste0("SNP", 1:10)))
+ncol = 10, byrow = TRUE, dimnames = list(paste0("IND", 1:10),
+paste0("SNP", 1:10)))
 
 ## create object of class 'gData'.
 gData <- createGData(geno = markers)
@@ -94,11 +97,14 @@ gData <- createGData(geno = markers)
 gDataCoded1 <- codeMarkers(gData = gData, impute = FALSE)
 
 ## Code markers by reference alleles, impute missings by fixed value.
-gDataCoded2 <- codeMarkers(gData = gData, refAll = rep(x = c("A", "B"), times =  5),
-                           impute = TRUE, imputeType = "fixed", fixedValue = 1)
+gDataCoded2 <- codeMarkers(gData = gData,
+                           refAll = rep(x = c("A", "B"), times =  5),
+                           impute = TRUE, imputeType = "fixed",
+                           fixedValue = 1)
 
 ## Code markers by minor allele, impute by random value.
-gDataCoded3 <- codeMarkers(gData = gData, impute = TRUE, imputeType = "random")
+gDataCoded3 <- codeMarkers(gData = gData, impute = TRUE,
+                           imputeType = "random")
 
 }
 \references{

@@ -1,26 +1,31 @@
 #' Functions for calculating kinship matrices
 #'
-#' A collection of functions for calculating kinship matrices using different algorithms. The following
-#' algorithms are included: astle (Astle and Balding, 2009), GRM, Identity By State (IBS) and
-#' VanRaden (VanRaden, 2008).
+#' A collection of functions for calculating kinship matrices using different
+#' algorithms. The following algorithms are included: astle (Astle and Balding,
+#' 2009), GRM, Identity By State (IBS) and VanRaden (VanRaden, 2008).
 #'
-#' In all algorithms the input matrix \code{X} is first cleaned, i.e. markers with a variance of 0 are
-#' excluded from the calculation of the kinship matrix. Then some form of scaling is done which differs
-#' per algorithm. This gives a scaled matrix \code{Z}. The matrix \eqn{ZZ^t / denominator} is returned.
-#' By default the denominator is equal to the number of columns in \code{Z} for \code{astle}, \code{GRM}
-#' and \code{IBS} and \eqn{2 * p * (1-p)} where \eqn{p = colSums(X) / (2 * nrow(X))} for \code{vanRaden}.
-#' This denominator can be overwritten by the user, e.g. when computing kinship matrices by splitting
-#' \code{X} in smaller matrices and then adding the results together in the end.
+#' In all algorithms the input matrix \code{X} is first cleaned, i.e. markers
+#' with a variance of 0 are excluded from the calculation of the kinship matrix.
+#' Then some form of scaling is done which differs per algorithm. This gives a
+#' scaled matrix \code{Z}. The matrix \eqn{ZZ^t / denominator} is returned.
+#' By default the denominator is equal to the number of columns in \code{Z} for
+#' \code{astle}, \code{GRM} and \code{IBS} and \eqn{2 * p * (1-p)} where
+#' \eqn{p = colSums(X) / (2 * nrow(X))} for \code{vanRaden}. This denominator
+#' can be overwritten by the user, e.g. when computing kinship matrices by
+#' splitting \code{X} in smaller matrices and then adding the results together
+#' in the end.
 #'
-#' @param X an n x m marker matrix with genotypes in the rows and markers in the columns.
+#' @param X an n x m marker matrix with genotypes in the rows and markers in
+#' the columns.
 #' @param denominator an numeric value. See details.
 #'
 #' @return an n x n kinship matrix.
 #'
-#' @references Astle W., Balding D. J. (2009) Population structure and cryptic relatedness in genetic
-#' association studies, Stat. Sci., November 2009, Vol. 24, no. 4, p. 451–471.
-#' @references VanRaden P.M. (2008) Efficient methods to compute genomic predictions. J Dairy Sci,
-#' November 2008, Vol. 91 p. 4414–4423.
+#' @references Astle W., Balding D. J. (2009) Population structure and cryptic
+#' relatedness in genetic association studies, Stat. Sci., November 2009,
+#' Vol. 24, no. 4, p. 451–471.
+#' @references VanRaden P.M. (2008) Efficient methods to compute genomic
+#' predictions. J Dairy Sci, November 2008, Vol. 91 p. 4414–4423.
 #'
 #' @name kinship
 NULL

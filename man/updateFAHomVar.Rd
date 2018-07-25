@@ -7,8 +7,8 @@
 updateFAHomVar(Y = NULL, S = NULL, m, maxDiag = 10000)
 }
 \arguments{
-\item{Y}{an n x p matrix of observed phenotypes, on p traits or environments for n individuals.
-No missing values are allowed.}
+\item{Y}{an n x p matrix of observed phenotypes, on p traits or environments
+for n individuals. No missing values are allowed.}
 
 \item{S}{an p x p sample covariance matrix.}
 
@@ -20,7 +20,7 @@ No missing values are allowed.}
 a list containing the new value for the matrices W and P.
 }
 \description{
-Updata W and P used in the iteration process in the EMFA algorithm in case the variance
-is homogeneous.
+Updata W and P used in the iteration process in the EMFA algorithm in case
+the variance is homogeneous.
 }
 \keyword{internal}

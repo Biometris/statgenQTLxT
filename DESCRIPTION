@@ -4,9 +4,11 @@ Title: Genome Wide Association Studies in R
 Version: 0.0.0.9000
 Date: 2017-11-01
 Authors@R: c(
-    person("Bart-Jan", "van Rossum", email = "bart-jan.vanrossum@wur.nl", role = c("aut", "cre")),
+    person("Bart-Jan", "van Rossum", email = "bart-jan.vanrossum@wur.nl", 
+           role = c("aut", "cre")),
     person("Willem", "Kruijer", email = "willem.kruijer@wur.nl", role = "ctb"),
-    person("Maikel", "Verouden", email = "maikel.verouden@wur.nl", role = "ctb"))
+    person("Maikel", "Verouden", email = "maikel.verouden@wur.nl", 
+           role = "ctb"))
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: GPL-3
@@ -25,9 +27,10 @@ Imports: dplyr (>= 0.7.2),
     rlang (>= 0.1.2),
     magrittr,
     foreach
-Suggests: knitr,
+Suggests: covr,
+    knitr,
     rmarkdown,
     officer,
-    testthat,
-    rvg
+    rvg,
+    testthat
 VignetteBuilder: knitr

@@ -22,7 +22,8 @@ genomicPrediction <- function(gData,
                               environments = NULL,
                               training,
                               kin = NULL,
-                              kinshipMethod = c("astle", "GRM", "IBS", "vanRaden"),
+                              kinshipMethod = c("astle", "GRM", "IBS",
+                                                "vanRaden"),
                               keep = NULL) {
   ## If environments is null set environments to all environments in pheno.
   if (is.null(environments)) {
@@ -35,7 +36,8 @@ genomicPrediction <- function(gData,
     if ((is.character(traits) &&
          !all(traits %in% colnames(gData$pheno[[environment]]))) ||
         (is.numeric(traits) &&
-         (any(traits == 1) || any(traits > ncol(gData$pheno[[environment]]))))) {
+         (any(traits == 1) ||
+          any(traits > ncol(gData$pheno[[environment]]))))) {
       stop("traits should be columns in pheno.\n")
     }
   }

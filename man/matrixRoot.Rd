@@ -13,7 +13,7 @@ matrixRoot(X)
 a matrix Y such that \eqn{Y^2 = X}.
 }
 \description{
-Given an symmetric, positive definite matrix X a matrix Y is computed such that \eqn{Y^2 = X}.
-Computation is done using eigendecomposition of X.
+Given an symmetric, positive definite matrix X a matrix Y is computed such
+that \eqn{Y^2 = X}. Computation is done using eigendecomposition of X.
 }
 \keyword{internal}

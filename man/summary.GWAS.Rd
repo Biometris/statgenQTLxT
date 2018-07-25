@@ -11,8 +11,9 @@
 
 \item{...}{not used}
 
-\item{environments}{a vector of strings or numeric indices indicating for which environment the
-summary should be made. If \code{NULL} a summary is made for all environments.}
+\item{environments}{a vector of strings or numeric indices indicating for
+which environment the summary should be made. If \code{NULL} a summary is
+made for all environments.}
 }
 \description{
 Gives a summary for an object of S3 class \code{GWAS}.

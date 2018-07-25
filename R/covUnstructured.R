@@ -57,11 +57,14 @@ covUnstructured <- function(Y,
   nTrait <- length(traits)
   smpVar <- sapply(Y[-1], var)
   if (!is.null(X)) {
-    ## Define formula for fixed part. ` needed to accommodate - in variable names.
-    fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ `",
+    ## Define formula for fixed part. ` needed to accommodate - in
+    ## variable names.
+    fixed <- as.formula(paste0("cbind(",
+                               paste0(traits, collapse = ", "), ") ~ `",
                                paste(colnames(X)[-1], collapse = '` + `'), "`"))
   } else {
-    fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "), ") ~ 1"))
+    fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "),
+                               ") ~ 1"))
   }
   if (VeDiag) {
     rcov <- as.formula(~ diag(trait):units)
@@ -106,7 +109,8 @@ covPairwise <- function(Y,
     fixDiag <- FALSE
   }
   `%op%` <- getOper(parallel && foreach::getDoParWorkers() > 1)
-  Y <- tibble::rownames_to_column(as.data.frame(as.matrix(Y)), var = "genotype")
+  Y <- tibble::rownames_to_column(as.data.frame(as.matrix(Y)),
+                                  var = "genotype")
   if (!is.null(X)) {
     ## sommer cannot handle column names with special characters.
     ## Therefore Simplify column names in X.
@@ -178,7 +182,7 @@ covPairwise <- function(Y,
                             .combine = "cbind", .packages = "sommer") %op% {
                               modPW(i, j)
                             }
-  ## If there are only 2 traits pwVar is a vector, where it should be a matrix
+  ## If there are only 2 traits pwVar is a vector, where it should be a matrix.
   if (nTrait == 2) {
     pwVar <- t(t(pwVar))
   }

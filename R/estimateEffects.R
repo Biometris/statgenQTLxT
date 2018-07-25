@@ -36,8 +36,9 @@ estimateEffects <- function(Y,
                             K,
                             returnSe = TRUE,
                             estCom = FALSE,
-                            nChunks = min(ncol(X), ceiling(ncol(Y) * ncol(W) *
-                                                             ncol(X) / 50000))) {
+                            nChunks = min(ncol(X),
+                                          ceiling(ncol(Y) * ncol(W) *
+                                                    ncol(X) / 50000))) {
   ## Y, W and X might be from the Matrix class. This function needs standard
   ## matrices for its computations.
   Y <- as.matrix(Y)
@@ -118,7 +119,7 @@ estimateEffects <- function(Y,
   for (ch in chunks) {
     ## Compute chunk length.
     nsCh <- length(ch)
-    ## Compute position of first SNP in current chunk - used for filling results.
+    ## Compute position of first SNP in current chunk -used for filling results.
     snpPos0 <- ch[1] - 1
     ## Define SNP-dependent quantities.
     X2VinvX1Arr <- array(data = 0, dim = c(nc, nsCh, p ^ 2))

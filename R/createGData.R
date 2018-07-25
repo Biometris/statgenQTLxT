@@ -1,46 +1,59 @@
 #' S3 Class gData
 #'
-#' \code{createGData} creates an object of S3 class gData with genotypic and phenotypic data for usage in
-#' further analysis. All input to the function is optional, however at least one input should be
-#' provided. It is possible to provide an existing \code{gData} object as additional input in which case
-#' data is added to this object. Existing data will be overwritten with a warning.\cr\cr
+#' \code{createGData} creates an object of S3 class gData with genotypic and
+#' phenotypic data for usage in further analysis. All input to the function is
+#' optional, however at least one input should be provided. It is possible to
+#' provide an existing \code{gData} object as additional input in which case
+#' data is added to this object. Existing data will be overwritten with a
+#' warning.\cr\cr
 #' \code{is.gData} tests if an \code{R} object is of class \code{gData}.
 #'
-#' @param gData an optional gData object to be modified. If \code{NULL} a new gData object is created.
-#' @param geno matrix or data.frame with genotypes in the rows and markers in the columns. A matrix from
-#' the \code{matrix} in the base package may be provided as well as as matrix from the Matrix package. \cr
-#' If no row names are used they are taken from \code{pheno} (if supplied and dimension matches).
-#' If no column names are used the row names are taken from \code{map}
-#' (if supplied and dimension matches).
-#' @param map a data.frame with columns \code{chr} for chromosome and \code{pos} for position. Positions can
-#' be in basepair or centimorgan. They should not be cumulative over the chromosomes.
-#' Other columns are ignored. Marker names should be in the row names. These should match
-#' the marker names in \code{geno} (if supplied).
-#' @param kin a kinship matrix or list of kinship matrices with genotype in rows and colums.
-#' These matrices can be from the \code{matrix} class as defined in the base package or
-#' from the \code{dsyMatrix} class, the class of symmetric matrices in the Matrix package.\cr
+#' @param gData an optional gData object to be modified. If \code{NULL} a new
+#' gData object is created.
+#' @param geno matrix or data.frame with genotypes in the rows and markers in
+#' the columns. A matrix from the \code{matrix} in the base package may be
+#' provided as well as as matrix from the Matrix package. \cr
+#' If no row names are used they are taken from \code{pheno} (if supplied and
+#' dimension matches). If no column names are used the row names are taken
+#' from \code{map} (if supplied and dimension matches).
+#' @param map a data.frame with columns \code{chr} for chromosome and
+#' \code{pos} for position. Positions can be in basepair or centimorgan. They
+#' should not be cumulative over the chromosomes. Other columns are ignored.
+#' Marker names should be in the row names. These should match the marker names
+#' in \code{geno} (if supplied).
+#' @param kin a kinship matrix or list of kinship matrices with genotype in
+#' rows and colums. These matrices can be from the \code{matrix} class as
+#' defined in the base package or from the \code{dsyMatrix} class, the class
+#' of symmetric matrices in the Matrix package.\cr
 #' The genotypes should be identical to the genotypes in \code{geno}.\cr
-#' If a list of kinship matrices is provided these are supposed to be chromosome specific matrices.
-#' In that case their names should match those of the names of the chromosomes in \code{map} or in
-#' case no names are provided, the number of matrices should match the number of chromoses
+#' If a list of kinship matrices is provided these are supposed to be
+#' chromosome specific matrices. In that case their names should match those
+#' of the names of the chromosomes in \code{map} or in case no names are
+#' provided, the number of matrices should match the number of chromoses
 #' in \code{map} in which case default names are provided.
-#' @param pheno a data.frame or a list of data.frames with phenotypic data, with genotype in the
-#' first column \code{genotype} and traits in the following columns. The trait columns should
-#' be numerical columns only. A list of data.frames can be used for replications,
-#' i.e. different environments.
-#' @param covar a data.frame with extra covariates per genotype. Genotype should be in the rows.
+#' @param pheno a data.frame or a list of data.frames with phenotypic data,
+#' with genotype in the first column \code{genotype} and traits in the
+#' following columns. The trait columns should be numerical columns only.
+#' A list of data.frames can be used for replications, i.e. different
+#' environments.
+#' @param covar a data.frame with extra covariates per genotype. Genotype
+#' should be in the rows.
 #' @param x \code{R} object
 #'
-#' @return \code{createGData} returns an object of class \code{gData} with the following components:
-#' \item{\code{map}}{a data.frame containing map data. Map is sorted by chromosome and position.}
-#' \item{\code{markers}}{a sparse matrix from the Matrix package containing marker information in case
-#' of numerical genotypic data, a standard matrix otherwise.}
+#' @return \code{createGData} returns an object of class \code{gData} with the
+#' following components:
+#' \item{\code{map}}{a data.frame containing map data. Map is sorted by
+#' chromosome and position.}
+#' \item{\code{markers}}{a sparse matrix from the Matrix package containing
+#' marker information in case of numerical genotypic data, a standard matrix
+#' otherwise.}
 #' \item{\code{pheno}}{a list of data.frames containing phenotypic data}
-#' \item{\code{kinship}}{a kinship matrix of class \code{dsyMatrix} from the Matrix package.}
+#' \item{\code{kinship}}{a kinship matrix of class \code{dsyMatrix} from the
+#'  Matrix package.}
 #' \item{\code{covar}}{a data.frame with extra covariates.}
 #' \cr
-#' \code{is.gData} returns \code{TRUE} or \code{FALSE} depending on whether its argument
-#' is a \code{gData} object.
+#' \code{is.gData} returns \code{TRUE} or \code{FALSE} depending on whether
+#' its argument is a \code{gData} object.
 #'
 #' @author Bart-Jan van Rossum
 #'
@@ -52,14 +65,16 @@
 #' dimnames(geno) <- list(paste0("G", 1:3), paste0("M", 1:5))
 #'
 #' ## Construct map.
-#' map <- data.frame(chr = c(1, 1, 2, 2, 2), pos = 1:5, row.names = paste0("M", 1:5))
+#' map <- data.frame(chr = c(1, 1, 2, 2, 2), pos = 1:5,
+#'                   row.names = paste0("M", 1:5))
 #'
 #' ## Compute kinship matrix.
 #' kin <- IBS(geno)
 #'
 #' ## Create phenotypic data.
-#' pheno <- data.frame(paste0("G", 1:3), matrix(rnorm(n = 12, mean = 50, sd = 5), nrow = 3),
-#'  stringsAsFactors = FALSE)
+#' pheno <- data.frame(paste0("G", 1:3),
+#'                     matrix(rnorm(n = 12, mean = 50, sd = 5), nrow = 3),
+#'                     stringsAsFactors = FALSE)
 #' dimnames(pheno) = list(paste0("G", 1:3), c("genotype", paste0("T", 1:4)))
 #'
 #' ## Combine all data in gData object.
@@ -91,8 +106,10 @@ createGData <- function(gData = NULL,
     stop("Provided gData object should be of class gData.\n")
   }
   ## Check that at least one input argument, other than gData, is provided.
-  if (missing(geno) && missing(map) && missing(kin) && missing(pheno) && missing(covar)) {
-    stop("At least one of geno, map, kin, pheno and covar should be provided.\n")
+  if (missing(geno) && missing(map) && missing(kin) && missing(pheno) &&
+      missing(covar)) {
+    stop(paste("At least one of geno, map, kin, pheno and covar should",
+               "be provided.\n"))
   }
   ## Modify map
   if (!missing(map)) {
@@ -120,7 +137,8 @@ createGData <- function(gData = NULL,
         }
       }))
       rownames(map) <- paste0("chr", map$chr, "_", map$pos, suffix)
-      warning("map contains no marker names. Names constructed from chromosome and position.\n",
+      warning(paste("map contains no marker names. Names constructed from",
+                    "chromosome and position.\n"),
               call. = FALSE)
     }
   } else {
@@ -145,7 +163,7 @@ createGData <- function(gData = NULL,
         ## Add default names.
         names(pheno) <- sapply(X = 1:length(pheno), FUN = function(x) {
           paste0("Environment", x)
-          })
+        })
         message("pheno contains no environment names. Default names added.\n")
       } else {
         if (!isTRUE(all(sapply(X = names(pheno), FUN = nchar) > 0))) {
@@ -164,7 +182,7 @@ createGData <- function(gData = NULL,
     }
     if (!all(sapply(X = pheno, FUN = function(x) {
       colnames(x)[1] == "genotype"
-      }))) {
+    }))) {
       stop("First column in pheno should be genotype.\n")
     }
     ## Convert genotype to character.
@@ -194,31 +212,34 @@ createGData <- function(gData = NULL,
     }
     if (is.data.frame(geno) || is.matrix(geno)) {
       if (is.numeric(unlist(geno))) {
-      ## Convert geno to Matrix of class Matrix.
-      markers <- as(geno, "Matrix")
+        ## Convert geno to Matrix of class Matrix.
+        markers <- as(geno, "Matrix")
       } else {
         markers <- as.matrix(geno)
       }
     } else {
       markers <- geno
     }
-    ## Check for row names in markers. If not available take them from pheno or use default names.
+    ## Check for row names in markers. If not available take them from pheno or
+    ## use default names.
     if (all(rownames(markers) == as.character(1:nrow(markers)))) {
       if (missing(pheno) || is.null(pheno)) {
-        ## Default names are constructed as g001, g002, etc. with the number of 0 dependent on the
-        ## number of rows.
-        rownames(markers) <- paste0("g",
-                                    formatC(1:nrow(markers),
-                                            width = ceiling(log10(nrow(markers))),
-                                            flag = "0")
-                                    )
-        warning("geno contains no genotype names. Default names used.\n", call. = FALSE)
+        ## Default names are constructed as g001, g002, etc. with the number
+        ## of 0 dependent on the number of rows.
+        rownames(markers) <-
+          paste0("g", formatC(1:nrow(markers),
+                              width = ceiling(log10(nrow(markers))),
+                              flag = "0"))
+        warning("geno contains no genotype names. Default names used.\n",
+                call. = FALSE)
       } else {
         if (nrow(pheno[[1]]) == nrow(markers)) {
           rownames(markers) <- rownames(pheno[[1]])
-          warning("geno contains no genotype names. Names taken from pheno.\n", call. = FALSE)
+          warning("geno contains no genotype names. Names taken from pheno.\n",
+                  call. = FALSE)
         } else {
-          stop("geno contains no genotype names. Dimensions between geno and pheno differ.\n")
+          stop(paste("geno contains no genotype names. Dimensions between",
+                     "geno and pheno differ.\n"))
         }
       }
     } else {
@@ -231,13 +252,17 @@ createGData <- function(gData = NULL,
         stop("geno contains no marker names. Map not available.\n")
       }
       if (nrow(map) != ncol(markers)) {
-        stop("geno contains no marker names. Dimensions between geno and map differ.\n")
+        stop(paste("geno contains no marker names. Dimensions between geno",
+                   "and map differ.\n"))
       }
       colnames(markers) <- rownames(map)
-      warning("geno contains no marker names. Names taken from map.\n", call. = FALSE)
+      warning("geno contains no marker names. Names taken from map.\n",
+              call. = FALSE)
     } else if (!is.null(map)) {
-      if (any(!colnames(markers) %in% rownames(map[rownames(map) %in% colnames(markers), ]))) {
-        warning("not all markers in geno are in map. Extra markers are removed.\n", call. = FALSE)
+      if (any(!colnames(markers) %in%
+              rownames(map[rownames(map) %in% colnames(markers), ]))) {
+        warning(paste("not all markers in geno are in map. Extra markers",
+                      "will be removed.\n"), call. = FALSE)
       }
       markers <- markers[, colnames(markers) %in% rownames(map)]
     }
@@ -246,7 +271,7 @@ createGData <- function(gData = NULL,
     }
   } else {
     if (!is.null(gData$markers)) {
-    markers <- gData$markers
+      markers <- gData$markers
     } else {
       markers <- NULL
     }
@@ -258,24 +283,28 @@ createGData <- function(gData = NULL,
         !is.matrix(kin) &&
         !(is.list(kin) &&
           all(sapply(X = kin, FUN = function(x) {
-          inherits(x, "Matrix") || is.matrix(x)
-        })))) {
+            inherits(x, "Matrix") || is.matrix(x)
+          })))) {
       stop("kin should be a matrix or a list of matrices.\n")
     }
-    if (!is.null(map) && is.list(kin) && length(kin) != dplyr::n_distinct(map$chr)) {
-      stop("kin should be the same length as the number of chromosomes in map.\n")
+    if (!is.null(map) && is.list(kin) &&
+        length(kin) != dplyr::n_distinct(map$chr)) {
+      stop(paste("kin should be the same length as the number of",
+                 "chromosomes in map.\n"))
     }
     if (is.null(rownames(kin)) || is.null(colnames(kin))) {
       stop("row and column names in kin cannot be NULL.\n")
     }
     if ((!is.null(markers) && is.list(kin) &&
-        any(sapply(X = kin, FUN = function(x) {
-          !all(rownames(x) %in% rownames(markers)) || !all(colnames(x) %in% rownames(markers))
-        }))) ||
+         any(sapply(X = kin, FUN = function(x) {
+           !all(rownames(x) %in% rownames(markers)) ||
+             !all(colnames(x) %in% rownames(markers))
+         }))) ||
         (!is.null(markers) && !is.list(kin) &&
          (!all(rownames(kin) %in% rownames(markers)) ||
           !all(colnames(kin) %in% rownames(markers))))) {
-      stop("row and column names of kin should be in row and column names of geno.\n")
+      stop(paste("row and column names of kin should be in row and",
+                 "column names of geno.\n"))
     }
     ## Order as in geno.
     if (!is.null(names(kin)) && names(kin) != unique(map$chr)) {
@@ -317,12 +346,13 @@ createGData <- function(gData = NULL,
     }
     if (!all(sapply(X = covar, FUN = function(x) {
       is.numeric(x) || is.character(x) || is.factor(x)}))) {
-      stop("all columns in covar should be numeric, character or factor columns.\n")
+      stop(paste("all columns in covar should be numeric, character or",
+                 "factor columns.\n"))
     }
     ## Convert character columns to factors.
-    covar[sapply(covar, is.character)] <- lapply(X = covar[sapply(X = covar,
-                                                                  FUN = is.character)],
-                                                 FUN = as.factor)
+    covar[sapply(covar, is.character)] <-
+      lapply(X = covar[sapply(X = covar, FUN = is.character)],
+             FUN = as.factor)
     if (!is.null(gData$covar)) {
       warning("existing covar will be overwritten.\n", call. = FALSE)
     }

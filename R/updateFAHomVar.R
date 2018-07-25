@@ -1,7 +1,7 @@
 #' Update W and P in EMFA algorithm for homogeneous variance.
 #'
-#' Updata W and P used in the iteration process in the EMFA algorithm in case the variance
-#' is homogeneous.
+#' Updata W and P used in the iteration process in the EMFA algorithm in case
+#' the variance is homogeneous.
 #'
 #' @inheritParams EMFA
 #'
@@ -13,9 +13,13 @@
 #'
 #' @keywords internal
 
-updateFAHomVar <- function(Y = NULL, S = NULL, m, maxDiag = 1e4) {
+updateFAHomVar <- function(Y = NULL,
+                           S = NULL,
+                           m,
+                           maxDiag = 1e4) {
   if ((is.null(Y) && is.null(S)) || (!is.null(Y) && !is.null(S))) {
-    stop("Either the data (Y) or the sample covariance matrix (S) must be provided.\n")
+    stop(paste("Either the data (Y) or the sample covariance matrix (S)",
+               "must be provided.\n"))
   }
   if (m != round(m) || m < 1) {
     stop("m needs to be a positive integer")

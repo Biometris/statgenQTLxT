@@ -1,28 +1,34 @@
 #' S3 Class GWAS
 #'
-#' \code{createGWAS} creates an object of S3 class GWAS containing the results of a GWAS analysis.
-#' \code{GWAResult} and \code{signSnp} are both optional, however at least one of those should be provided
-#' as input.\cr
+#' \code{createGWAS} creates an object of S3 class GWAS containing the results
+#' of a GWAS analysis.
+#' \code{GWAResult} and \code{signSnp} are both optional, however at least one
+#' of those should be provided as input.\cr
 #' \code{summary} and \code{plot} functions are available.\cr\cr
 #' \code{is.gData} tests if an \code{R} object is of class \code{gData}.
 #'
-#' @param GWAResult optional data.frame or list of data.frames containing the overall analysis results.
-#' Should a least contain columns \code{trait}, the evaluated trait, \code{snp}, the name of the SNP,
-#' \code{chr}, the chromosome number, \code{pos}, the position of the SNP on the chromosome,
+#' @param GWAResult optional data.frame or list of data.frames containing the
+#' overall analysis results. Should a least contain columns \code{trait}, the
+#' evaluated trait, \code{snp}, the name of the SNP, \code{chr}, the chromosome
+#' number, \code{pos}, the position of the SNP on the chromosome,
 #' \code{pValue}, the p-values from the analysis and \code{LOD} the LOD-score.
-#' @param signSnp optional data.frame or list of data.frames containing information on the significant
-#' SNPs and optionally the SNPs close to the significant SNPs. Should at least contain columns
-#' \code{trait}, the evaluated trait, \code{snp}, the name of the SNP, \code{pValue}, the p-values
+#' @param signSnp optional data.frame or list of data.frames containing
+#' information on the significant SNPs and optionally the SNPs close to the
+#' significant SNPs. Should at least contain columns \code{trait}, the
+#' evaluated trait, \code{snp}, the name of the SNP, \code{pValue}, the p-values
 #' from the analysis and \code{LOD} the LOD-score.
-#' @param kin optional kinship matrix or list of chromosome specific kinship matrices.
-#' @param thr optional numeric value, the threshold used in performing the GWAS analysis.
-#' @param GWASInfo list containing extra information concering the GWAS analysis.
+#' @param kin optional kinship matrix or list of chromosome specific kinship
+#' matrices.
+#' @param thr optional numeric value, the threshold used in performing the
+#' GWAS analysis.
+#' @param GWASInfo list containing extra information concering the GWAS
+#' analysis.
 #' @param x \code{R} object
 #'
-#' @return \code{createGWAS} returns an object of class GWAS, a list of the input items.\cr\cr
-#' \code{is.gData} returns \code{TRUE} or \code{FALSE} depending on whether its
-#' argument is a \code{gData}
-#' object.
+#' @return \code{createGWAS} returns an object of class GWAS, a list of the
+#' input items.\cr\cr
+#' \code{is.GWAS} returns \code{TRUE} or \code{FALSE} depending on whether its
+#' argument is a \code{GWAS} object.
 #'
 #' @seealso \code{\link{summary.GWAS}}, \code{\link{plot.GWAS}}
 #'
@@ -43,7 +49,8 @@ createGWAS <- function(GWAResult = NULL,
   ## Check GWAResults
   if (!is.null(GWAResult)) {
     if (!is.data.frame(GWAResult) &&
-        !(is.list(GWAResult) && all(sapply(X = GWAResult, FUN = is.data.frame)))) {
+        !(is.list(GWAResult) &&
+          all(sapply(X = GWAResult, FUN = is.data.frame)))) {
       stop("GWAResult should be a data.frame or a list data.frames.\n")
     }
     if (is.data.frame(GWAResult)) {
@@ -51,8 +58,10 @@ createGWAS <- function(GWAResult = NULL,
       GWAResult <- list(GWAResult)
     }
     if (!all(sapply(GWAResult, FUN = function(x) {
-      all(c("trait", "snp", "chr", "pos", "pValue", "LOD") %in% colnames(x))}))) {
-      stop("GWAResult should contain columns trait, snp, chr, pos, pValue and LOD.\n")
+      all(c("trait", "snp", "chr", "pos", "pValue", "LOD") %in%
+          colnames(x))}))) {
+      stop(paste("GWAResult should contain columns trait, snp, chr, pos,",
+                 "pValue and LOD.\n"))
     }
   }
   ## Check signSnps
@@ -60,7 +69,7 @@ createGWAS <- function(GWAResult = NULL,
     if (!is.data.frame(signSnp) &&
         !(is.list(signSnp) && all(sapply(X = signSnp, FUN = function(x) {
           is.null(x) || is.data.frame(x)
-          })))) {
+        })))) {
       stop("signSnp should be a data.frame or a list of data.frames.\n")
     }
     if (is.data.frame(signSnp)) {
@@ -68,9 +77,10 @@ createGWAS <- function(GWAResult = NULL,
       signSnp <- list(signSnp)
     }
     if (!all(sapply(signSnp, FUN = function(x) {
-      is.null(x) ||
-      all(c("trait", "snp", "snpStatus", "pValue", "LOD") %in% colnames(x))}))) {
-      stop("signSnp should contain columns trait, snp, snpStatus, pValue and LOD.\n")
+      is.null(x) || all(c("trait", "snp", "snpStatus", "pValue", "LOD") %in%
+                        colnames(x))}))) {
+      stop(paste("signSnp should contain columns trait, snp, snpStatus,",
+                 "pValue and LOD.\n"))
     }
   }
   ## Check kin

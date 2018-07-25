@@ -4,12 +4,12 @@
 #'
 #' @inheritParams runMultiTraitGwas
 #'
-#' @param nPca an integer, the number of eigenvectors used for reducing the kinship matrix.
+#' @param nPca an integer, the number of eigenvectors used for reducing the k
+#' inship matrix.
 #'
 #' @return the reduced kinship matrix
 #'
 #' @keywords internal
-
 reduceKinship <- function(K, nPca) {
   w <- eigen(K, symmetric = TRUE)
   U <- w$vectors[, 1:nPca]

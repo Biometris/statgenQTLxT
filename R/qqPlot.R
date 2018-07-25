@@ -1,33 +1,34 @@
 #' qq-plot of observed versus expected LOD-scores
 #'
-#' Given a vector of pvalues, generate a qq-plot of observed LOD-scores versus expected LOD-scores.
-#' Code taken from Segura et al. and adapted
+#' Given a vector of pvalues, generate a qq-plot of observed LOD-scores versus
+#' expected LOD-scores. Code taken from Segura et al. and adapted
 #'
 #' @inheritParams manhattanPlot
 #'
-#' @param pValues a numeric vector of pValues. Missings are ignored when plotting.
+#' @param pValues a numeric vector of pValues. Missings are ignored when
+#' plotting.
 #'
-#' @references Segura et al. (2012) An efficient multi-locus mixed model approach for genome-wide
-#' association studies in structured populations
+#' @references Segura et al. (2012) An efficient multi-locus mixed model
+#' approach for genome-wide association studies in structured populations
 #'
 #' @import grDevices graphics
 #'
 #' @export
-
-## TO DO: example
-
 qqPlot <- function(pValues,
                    fileName = "",
                    jpegPlot = TRUE,
                    ...) {
   dotArgs <- list(...)
-  if (is.null(pValues) || !is.numeric(pValues) || any(pValues < 0) || any(pValues > 1)) {
+  if (is.null(pValues) || !is.numeric(pValues) || any(pValues < 0) ||
+      any(pValues > 1)) {
     stop("pValues should be an numeric vector with values between 0 and 1")
   }
-  if (fileName != "" && (is.null(fileName) || length(fileName) > 1 || !is.character(fileName))) {
+  if (fileName != "" && (is.null(fileName) || length(fileName) > 1 ||
+                         !is.character(fileName))) {
     stop("fileName cannot be empty")
   }
-  if (fileName != "" && (is.null(jpegPlot) || length(jpegPlot) > 1 || !is.logical(jpegPlot))) {
+  if (fileName != "" && (is.null(jpegPlot) || length(jpegPlot) > 1 ||
+                         !is.logical(jpegPlot))) {
     stop("jpegPlot should be a single logical")
   }
   if (fileName != "") {
@@ -71,14 +72,12 @@ qqPlot <- function(pValues,
   } else {
     ylab <- expression(Observed~~-log[10](p))
   }
-  do.call(plot, c(list(x = expected, y = observed, type = 'b', pch = pch, cex = cex,
-                       col = color,
-                       xlab = xlab, ylab = ylab,
-                       xlim = c(0, max(expected) + 1),
-                       ylim = c(0, pMax),
+  do.call(plot, c(list(x = expected, y = observed, type = 'b', pch = pch,
+                       cex = cex, col = color, xlab = xlab, ylab = ylab,
+                       xlim = c(0, max(expected) + 1), ylim = c(0, pMax),
                        main = main),
                   dotArgs[!names(dotArgs) %in% c("pch", "cex", "col", "main",
-                                                       "xlab", "ylab")]))
+                                                 "xlab", "ylab")]))
   abline(a = 0, b = 1, col = "blue")
   if (fileName != "") {
     dev.off()

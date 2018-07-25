@@ -15,14 +15,15 @@ manhattanPlot(xValues, yValues, map, fileName = "", jpegPlot = TRUE,
 
 \item{yValues}{a vector of LOD-scores.}
 
-\item{map}{a dataframe with at least the columns chr, the number of the chromosome
-and cumPos, the cumulative position of the snp the cumulative position of the snp
-starting from the first chromosome.}
+\item{map}{a dataframe with at least the columns chr, the number of the
+chromosome and cumPos, the cumulative position of the snp the cumulative
+position of the snp starting from the first chromosome.}
 
-\item{fileName}{name of the outputfile that is created. If left empty the plot is written
-to the screen.}
+\item{fileName}{name of the outputfile that is created. If left empty the
+plot is written to the screen.}
 
-\item{jpegPlot}{should a jpeg file be produced? If \code{FALSE} a pdf file is produced.}
+\item{jpegPlot}{should a jpeg file be produced? If \code{FALSE} a pdf file
+is produced.}
 
 \item{xLab}{x-axis label.}
 
@@ -30,29 +31,33 @@ to the screen.}
 
 \item{plotType}{lines ("l") or dots ("d" or "p")}
 
-\item{xSig}{vector of integers, indicating which components in the vectors xValues and
-yValues are significant.}
+\item{xSig}{vector of integers, indicating which components in the vectors
+xValues and yValues are significant.}
 
-\item{xEffects}{vector of integers, indicating which components in the vector xValues
-correspond to a real (known) effect.}
+\item{xEffects}{vector of integers, indicating which components in the vector
+xValues correspond to a real (known) effect.}
 
 \item{colPalette}{color palette used for plotting.}
 
-\item{chrBoundaries}{vector of chromosome boundaries, i.e. x-values on the same scale as xValues.}
+\item{chrBoundaries}{vector of chromosome boundaries, i.e. x-values on the
+same scale as xValues.}
 
 \item{yThr}{LOD-threshold.}
 
-\item{signPointsThickness}{thickness of the points that are false/true positives/negatives.}
+\item{signPointsThickness}{thickness of the points that are false/true
+positives/negatives.}
 
 \item{...}{other graphical parameters passed on to the actual plot function.}
 }
 \value{
-a LOD-profile with LOD-scores per snip. Markers declared significant get a red dot,
-markers with a real effect get a blue dot. If both significant and real effects are given
-false positives get an orange dot, true negatives a yellow dot and true positives a green dot.
+a LOD-profile with LOD-scores per snip. Markers declared significant
+get a red dot, markers with a real effect get a blue dot. If both significant
+and real effects are given false positives get an orange dot, true negatives
+a yellow dot and true positives a green dot.
 }
 \description{
-Given vectors of marker positions and corresponding LOD-scores plot a LOD-profile.
-Significant markers can be highlighted with red dots. If there are previously known
-marker effect also false positives and true negatives will be marked.
+Given vectors of marker positions and corresponding LOD-scores plot a
+LOD-profile. Significant markers can be highlighted with red dots. If there
+are previously known marker effect also false positives and true negatives
+will be marked.
 }

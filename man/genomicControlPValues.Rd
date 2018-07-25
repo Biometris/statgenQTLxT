@@ -16,17 +16,18 @@ genomicControlPValues(pVals, nObs, nCov = 0)
 \value{
 a list with two components:
 \itemize{
-\item{\code{pValues} a vector of p-values corrected by the genomic inflation factor, with the same NA's
-as the input}.
+\item{\code{pValues} a vector of p-values corrected by the genomic inflation
+factor, with the same NA's as the input}.
 \item{\code{inflation} the inflation factor}.
 }
 }
 \description{
-Correction of p-values based on the genomic inflation factor, as in Devlin and Roeder (1999). It is
-assumed that the p-values come from an F-test with df1 = 1 and df2 = nObs - nCov - 2.
+Correction of p-values based on the genomic inflation factor, as in Devlin
+and Roeder (1999). It is assumed that the p-values come from an F-test with
+df1 = 1 and df2 = nObs - nCov - 2.
 }
 \references{
-Devlin, B. and Roeder K. (1999) Genomic control for association studies. Biometrics,
-December 1999, Vol. 55(4), p. 997-1004.
+Devlin, B. and Roeder K. (1999) Genomic control for association
+studies. Biometrics, December 1999, Vol. 55(4), p. 997-1004.
 }
 \keyword{internal}

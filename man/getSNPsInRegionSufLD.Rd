@@ -7,23 +7,26 @@
 getSNPsInRegionSufLD(gData, snp, regionSize = 5000, minR2 = 0.5)
 }
 \arguments{
-\item{gData}{an object of class gData with at least the map and markers included.}
+\item{gData}{an object of class gData with at least the map and markers
+included.}
 
-\item{snp}{an integer indicating the index of the reference SNP within the map.}
+\item{snp}{an integer indicating the index of the reference SNP within
+the map.}
 
-\item{regionSize}{a numeric value indicating the size of the region on the chromosome in which to look
-for SNPs.}
+\item{regionSize}{a numeric value indicating the size of the region on
+the chromosome in which to look for SNPs.}
 
-\item{minR2}{a numeric value between 0 and 1 indicating the minimum LD (in terms of r^2) that the SNPs
-should have with the reference SNP.}
+\item{minR2}{a numeric value between 0 and 1 indicating the minimum
+LD (in terms of r^2) that the SNPs should have with the reference SNP.}
 }
 \value{
-an integer vector with indices of the SNPs that are within the given \code{regionSize} and
-have a minimum LD with the reference SNP.
+an integer vector with indices of the SNPs that are within the
+given \code{regionSize} and have a minimum LD with the reference SNP.
 }
 \description{
-\code{getSNPsInRegionSufLD} extracts the SNPs from a map file that are within a given distance
-of a reference SNP (on either side). Only those SNPs that are in sufficient linkage disequilibrium
-(LD) with the reference SNP are returned.
+\code{getSNPsInRegionSufLD} extracts the SNPs from a map file that are
+within a given distance of a reference SNP (on either side). Only those SNPs
+that are in sufficient linkage disequilibrium (LD) with the reference SNP
+are returned.
 }
 \keyword{internal}

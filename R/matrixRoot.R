@@ -1,7 +1,7 @@
 #' Compute Square root of a symmetric, positive definite matrix
 #'
-#' Given an symmetric, positive definite matrix X a matrix Y is computed such that \eqn{Y^2 = X}.
-#' Computation is done using eigendecomposition of X.
+#' Given an symmetric, positive definite matrix X a matrix Y is computed such
+#' that \eqn{Y^2 = X}. Computation is done using eigendecomposition of X.
 #'
 #' @param X a symmetric, positive definite matrix.
 #'
@@ -19,11 +19,11 @@ matrixRoot <- function(X) {
     stop("X should be a positive definite matrix.\n")
   }
   if (length(XEig$values) > 1) {
-    XSqrt <- as(XEig$vectors, "dgeMatrix") %*% Matrix::Diagonal(x = sqrt(XEig$values)) %*%
-      Matrix::solve(XEig$vectors)
+    XSqrt <- as(XEig$vectors, "dgeMatrix") %*%
+      Matrix::Diagonal(x = sqrt(XEig$values)) %*% Matrix::solve(XEig$vectors)
   } else {
-    XSqrt <- as(XEig$vectors, "dgeMatrix") %*% Matrix::Matrix(sqrt(XEig$values)) %*%
-      Matrix::solve(XEig$vectors)
+    XSqrt <- as(XEig$vectors, "dgeMatrix") %*%
+      Matrix::Matrix(sqrt(XEig$values)) %*% Matrix::solve(XEig$vectors)
   }
   return(XSqrt)
 }

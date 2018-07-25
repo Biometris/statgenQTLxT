@@ -1,40 +1,42 @@
 #' Create a manhattan plot
 #'
-#' Given vectors of marker positions and corresponding LOD-scores plot a LOD-profile.
-#' Significant markers can be highlighted with red dots. If there are previously known
-#' marker effect also false positives and true negatives will be marked.
+#' Given vectors of marker positions and corresponding LOD-scores plot a
+#' LOD-profile. Significant markers can be highlighted with red dots. If there
+#' are previously known marker effect also false positives and true negatives
+#' will be marked.
 #'
 #' @param xValues a vector of cumulative marker positions.
 #' @param yValues a vector of LOD-scores.
-#' @param map a dataframe with at least the columns chr, the number of the chromosome
-#' and cumPos, the cumulative position of the snp the cumulative position of the snp
-#' starting from the first chromosome.
-#' @param fileName name of the outputfile that is created. If left empty the plot is written
-#' to the screen.
-#' @param jpegPlot should a jpeg file be produced? If \code{FALSE} a pdf file is produced.
+#' @param map a dataframe with at least the columns chr, the number of the
+#' chromosome and cumPos, the cumulative position of the snp the cumulative
+#' position of the snp starting from the first chromosome.
+#' @param fileName name of the outputfile that is created. If left empty the
+#' plot is written to the screen.
+#' @param jpegPlot should a jpeg file be produced? If \code{FALSE} a pdf file
+#' is produced.
 #' @param xLab x-axis label.
 #' @param yLab y-axis label.
 #' @param plotType lines ("l") or dots ("d" or "p")
-#' @param xSig vector of integers, indicating which components in the vectors xValues and
-#' yValues are significant.
-#' @param xEffects vector of integers, indicating which components in the vector xValues
-#' correspond to a real (known) effect.
+#' @param xSig vector of integers, indicating which components in the vectors
+#' xValues and yValues are significant.
+#' @param xEffects vector of integers, indicating which components in the vector
+#' xValues correspond to a real (known) effect.
 #' @param colPalette color palette used for plotting.
-#' @param chrBoundaries vector of chromosome boundaries, i.e. x-values on the same scale as xValues.
+#' @param chrBoundaries vector of chromosome boundaries, i.e. x-values on the
+#' same scale as xValues.
 #' @param yThr LOD-threshold.
-#' @param signPointsThickness thickness of the points that are false/true positives/negatives.
+#' @param signPointsThickness thickness of the points that are false/true
+#' positives/negatives.
 #' @param ... other graphical parameters passed on to the actual plot function.
 #'
-#' @return a LOD-profile with LOD-scores per snip. Markers declared significant get a red dot,
-#' markers with a real effect get a blue dot. If both significant and real effects are given
-#' false positives get an orange dot, true negatives a yellow dot and true positives a green dot.
+#' @return a LOD-profile with LOD-scores per snip. Markers declared significant
+#' get a red dot, markers with a real effect get a blue dot. If both significant
+#' and real effects are given false positives get an orange dot, true negatives
+#' a yellow dot and true positives a green dot.
 #'
 #' @import grDevices graphics
 #'
 #' @export
-
-## TO DO: example
-
 manhattanPlot <- function(xValues,
                           yValues,
                           map,
@@ -51,25 +53,27 @@ manhattanPlot <- function(xValues,
                           signPointsThickness = 0.6,
                           ...) {
   ## Basic argument checks
-  if (is.null(xValues) || !is.numeric(xValues)) { #|| any(xValues != round(xValues))
-     stop("xValues should be an integer vector")
+  if (is.null(xValues) || !is.numeric(xValues)) {
+    stop("xValues should be an integer vector")
   }
   if (is.null(yValues) || !is.numeric(yValues)) {
     stop("yValues should be a numerical vector")
   }
-  if (fileName != "" && (is.null(fileName) || length(fileName) > 1 || !is.character(fileName))) {
+  if (fileName != "" && (is.null(fileName) || length(fileName) > 1 ||
+                         !is.character(fileName))) {
     stop("fileName cannot be empty")
   }
-  if (fileName != "" && (is.null(jpegPlot) || length(jpegPlot) > 1 || !is.logical(jpegPlot))) {
+  if (fileName != "" && (is.null(jpegPlot) || length(jpegPlot) > 1 ||
+                         !is.logical(jpegPlot))) {
     stop("jpegPlot should be a single logical")
   }
-  if (is.null(xSig) || !is.numeric(xSig)) { #|| any(xSig != round(xSig))
+  if (is.null(xSig) || !is.numeric(xSig)) {
     stop("xSig should be an integer vector")
   }
-  if (is.null(xEffects) || !is.numeric(xEffects)) { #|| any(xEffects != round(xEffects))
+  if (is.null(xEffects) || !is.numeric(xEffects)) {
     stop("xEffects should be an integer vector")
   }
-  if (is.null(chrBoundaries) || !is.numeric(chrBoundaries)) { # || any(chrBoundaries != round(chrBoundaries))
+  if (is.null(chrBoundaries) || !is.numeric(chrBoundaries)) {
     stop("chrBoundaries should be an integer vector")
   }
   if (!is.null(yThr) && (length(yThr) > 1)) {
@@ -143,7 +147,8 @@ manhattanPlot <- function(xValues,
     points(x = xValues[xEffects], y = yValues[xEffects],
            pch = 20,col = "blue", lwd = signPointsThickness)
   } else if (sum(xSig) != 0 && sum(xEffects) != 0) {
-    ## Add orange/yellow/green dots for false positives/ true negatives and true positives
+    ## Add orange/yellow/green dots for false positives/ true negatives and
+    ## true positives
     falsePos <- setdiff(xSig, xEffects)
     trueNeg <- setdiff(xEffects, xSig)
     truePos <- intersect(xSig, xEffects)

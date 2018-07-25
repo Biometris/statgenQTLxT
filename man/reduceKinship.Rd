@@ -7,7 +7,8 @@
 reduceKinship(K, nPca)
 }
 \arguments{
-\item{nPca}{an integer, the number of eigenvectors used for reducing the kinship matrix.}
+\item{nPca}{an integer, the number of eigenvectors used for reducing the k
+inship matrix.}
 }
 \value{
 the reduced kinship matrix

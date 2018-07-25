@@ -6,7 +6,6 @@
 #' @param ... not used
 #'
 #' @export
-
 summary.gData <- function(object, ...) {
   map <- object$map
   markers <- object$markers
@@ -37,7 +36,8 @@ summary.gData <- function(object, ...) {
         cat("\tEnvironment ", i, ":\n", sep = "")
       }
       cat("\t\tNumber of traits:", ncol(pheno[[i]]) - 1, "\n")
-      cat("\t\tNumber of genotypes:", dplyr::n_distinct(pheno[[i]]$genotype), "\n\n")
+      cat("\t\tNumber of genotypes:", dplyr::n_distinct(pheno[[i]]$genotype),
+          "\n\n")
       print(summary(pheno[[i]][, -1]))
       cat("\n")
     }

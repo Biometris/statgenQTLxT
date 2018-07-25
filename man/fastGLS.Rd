@@ -4,19 +4,22 @@
 \alias{fastGLS}
 \title{Fast Generalized Least Squares algoritm}
 \usage{
-fastGLS(y, X, Sigma, covs = NULL, nChunks = 10)
+fastGLS(y, X, Sigma, covs = NULL, nChunks = 50)
 }
 \arguments{
-\item{y}{a numeric vector of length n of phenotypic scores. No missing values allowed.}
+\item{y}{a numeric vector of length n of phenotypic scores. No missing
+values allowed.}
 
-\item{X}{an n x m matrix of marker-scores, n being the number of individuals, m the number of markers.
-no missing values allowed.}
+\item{X}{an n x m matrix of marker-scores, n being the number of
+individuals, m the number of markers. no missing values allowed.}
 
 \item{Sigma}{an n x n covariance matrix. No missing values allowed.}
 
-\item{covs}{an n x c matrix of covariates (NOT including an intercept). No missing values allowed.}
+\item{covs}{an n x c matrix of covariates (NOT including an intercept).
+No missing values allowed.}
 
-\item{nChunks}{an integer, the number of parts in which the calculations are split.}
+\item{nChunks}{an integer, the number of parts in which the calculations
+are split.}
 }
 \value{
 a data.frame with the following columns:
@@ -28,14 +31,16 @@ a data.frame with the following columns:
 }
 }
 \description{
-Compute statistics for the Generalized Least Squares (GLS) F-test based on the algorithm proposed by
-Segura (2012). Also the \eqn{R_LR^2} statistics as in Sun (2010) is computed.
+Compute statistics for the Generalized Least Squares (GLS) F-test based on
+the algorithm proposed by Segura (2012). Also the \eqn{R_LR^2} statistics
+as in Sun (2010) is computed.
 }
 \references{
-Segura et al. (2012) An efficient multi-locus mixed-model approach for genome-wide
-association studies in structured populations. Nature Genetics, June 2012, Vol. 44, p. 825–830.
+Segura et al. (2012) An efficient multi-locus mixed-model
+approach for genome-wide association studies in structured populations.
+Nature Genetics, June 2012, Vol. 44, p. 825–830.
 
-Sun et al. (2010) Variation explained in mixed-model association mapping.
-Heredity, February 2010, Vol. 105, p. 333–340.
+Sun et al. (2010) Variation explained in mixed-model association
+mapping. Heredity, February 2010, Vol. 105, p. 333–340.
 }
 \keyword{internal}

@@ -2,43 +2,48 @@
 #'
 #' Visualisation of the final set of QTLs selected after the multi-trait GWAS.
 #'
-#' Each horizontal line contains QTLs of one trait, phenotypic trait or environment.
-#' Option: Vertical white lines can indicate chromosome subdivision, genes of interest, known QTL, etc.
-#' Circle diameters are proportional to the absolute value of allelic effect.
-#' Colors indicate the direction of the effect: green when the allele increases the trait value, and blue
-#' when it decreases the value.
+#' Each horizontal line contains QTLs of one trait, phenotypic trait or
+#' environment. Option: Vertical white lines can indicate chromosome
+#' subdivision, genes of interest, known QTL, etc. Circle diameters are
+#' proportional to the absolute value of allelic effect. Colors indicate the
+#' direction of the effect: green when the allele increases the trait value,
+#' and blue when it decreases the value.
 #'
 #' @param data QTL data to be plotted
-#' @param chromosome a character indicating the data column containing the chromosome number.
-#' @param trait a character indicating the data column containing the trait name.
-#' @param snpEffect a character indicating the data column containing the snp effect.
-#' @param snpPosition a character indicating the data column containing the position of the snp on
-#' the chromosome.
-#' @param map a dataframe with at least the columns \code{chr}, the number of the chromosome
-#' and \code{pos}, the position of the snp on the chromosome. These are used for calculating the
-#' physical limits of the chromosome.
+#' @param chromosome a character indicating the data column containing the
+#' chromosome number.
+#' @param trait a character indicating the data column containing the trait
+#' name.
+#' @param snpEffect a character indicating the data column containing the snp
+#' effect.
+#' @param snpPosition a character indicating the data column containing the
+#' position of the snp on the chromosome.
+#' @param map a dataframe with at least the columns \code{chr}, the number of
+#' the chromosome and \code{pos}, the position of the snp on the chromosome.
+#' These are used for calculating the physical limits of the chromosome.
 #' @param normalize should the snpEffect be normalized?
-#' @param sortData should the data be sorted before plotting? Either false if no sorting should be done
-#' or a character indicating the data column on which the data should be sorted.
-#' @param binPositions an optional dataframe containing at leasts two columns, chromosome and position.
-#' Vertical lines are plotted at those positions.
+#' @param sortData should the data be sorted before plotting? Either
+#' \code{FALSE} if no sorting should be done or a character indicating the data
+#' column on which the data should be sorted.
+#' @param binPositions an optional dataframe containing at leasts two columns,
+#' chromosome and position. Vertical lines are plotted at those positions.
 #' @param printVertGrid Should default vertical grid lines be plotted.
 #' @param yLab y-axis label.
 #' @param exportPptx should the plot be exported to a .pptx file?
-#' @param pptxName name of the .pptx file to which the plot is exported. Ignored if exportPptx =
-#' \code{FALSE}.
+#' @param pptxName name of the .pptx file to which the plot is exported.
+#' Ignored if exportPptx = \code{FALSE}.
 #'
-#' @return A ggplot object is returned and plotted on screen. Optionally the plot is exported to pptx as well.
+#' @return A ggplot object is returned and plotted on screen. Optionally the
+#' plot is exported to pptx as well.
 #'
-#' @references Millet et al. (2016) Genome-wide analysis of yield in Europe: Allelic effects vary
-#' with drought and heat scenarios. Plant Physiology, October 2016, Vol. 172, p. 749–764
+#' @references Millet et al. (2016) Genome-wide analysis of yield in Europe:
+#' Allelic effects vary with drought and heat scenarios. Plant Physiology,
+#' October 2016, Vol. 172, p. 749–764
 #'
 #' @import grDevices
 #' @import graphics
 #'
 #' @export
-
-## TO DO: example
 qtlPlot <- function(data,
                     chromosome = "chr",
                     trait = "trait",
@@ -56,7 +61,8 @@ qtlPlot <- function(data,
   if (is.null(data) || !is.data.frame(data)) {
     stop("data should be a dataframe")
   }
-  if (is.null(chromosome) || length(chromosome) > 1 || !is.character(chromosome)) {
+  if (is.null(chromosome) || length(chromosome) > 1 ||
+      !is.character(chromosome)) {
     stop("chromosome should be a single character")
   }
   if (is.null(trait) || length(trait) > 1 || !is.character(trait)) {
@@ -65,7 +71,8 @@ qtlPlot <- function(data,
   if (is.null(snpEffect) || length(snpEffect) > 1 || !is.character(snpEffect)) {
     stop("snpEffect should be a single character")
   }
-  if (is.null(snpPosition) || length(snpPosition) > 1 || !is.character(snpPosition)) {
+  if (is.null(snpPosition) || length(snpPosition) > 1 ||
+      !is.character(snpPosition)) {
     stop("snpPosition should be a single character")
   }
   if (is.null(map) || !is.data.frame(map)) {
@@ -81,10 +88,12 @@ qtlPlot <- function(data,
   if (!is.null(binPositions) && (!is.data.frame(binPositions))) {
     stop("binPositions should be either NULL or an dataframe")
   }
-  if (is.null(exportPptx) || length(exportPptx) > 1 || !is.logical(exportPptx)) {
+  if (is.null(exportPptx) || length(exportPptx) > 1 ||
+      !is.logical(exportPptx)) {
     stop("exportPptx should be a single logical")
   }
-  if (exportPptx && (is.null(pptxName) || length(pptxName) > 1 || !is.character(pptxName))) {
+  if (exportPptx && (is.null(pptxName) || length(pptxName) > 1 ||
+                     !is.character(pptxName))) {
     stop("pptxName cannot be empty")
   }
   ## Check that all necessary columns are in the data
@@ -100,7 +109,8 @@ qtlPlot <- function(data,
   requiredCheckMap <- requiredColumnsMap %in% colnames(map)
   if (!all(requiredCheckMap)) {
     stop("map lacks the following columns: ",
-         paste0(requiredColumnsMap[!requiredCheckMap], collapse = ", "), ".\n\n")
+         paste0(requiredColumnsMap[!requiredCheckMap], collapse = ", "),
+         ".\n\n")
   }
   ## Check that all necessary columns are in the bin file
   if (!is.null(binPositions)) {
@@ -108,7 +118,8 @@ qtlPlot <- function(data,
     requiredCheckBin <- requiredColumnsBin %in% colnames(map)
     if (!all(requiredCheckBin)) {
       stop("binPositions lacks the following columns: ",
-           paste0(requiredColumnsBin[!requiredCheckBin], collapse = ", "), ".\n\n")
+           paste0(requiredColumnsBin[!requiredCheckBin], collapse = ", "),
+           ".\n\n")
     }
   } else {
     binPositions <- data.frame(pos = integer())
@@ -117,8 +128,10 @@ qtlPlot <- function(data,
   if (normalize) {
     data$eff <- sapply(X = 1:nrow(data), FUN = function(x) {
       (data[x, snpEffect] -
-         mean(data[data[trait] == as.character(data[x, trait]), snpEffect], na.rm = TRUE)) /
-        sd(data[data[trait] == as.character(data[x, trait]), snpEffect], na.rm = TRUE)
+         mean(data[data[trait] == as.character(data[x, trait]), snpEffect],
+              na.rm = TRUE)) /
+        sd(data[data[trait] == as.character(data[x, trait]), snpEffect],
+           na.rm = TRUE)
     })
   } else data$eff <- data[[snpEffect]]
   if (is.character(sortData)) {
@@ -131,19 +144,22 @@ qtlPlot <- function(data,
   ## This ensures plotting of all chromosomes
   limitsLow <- aggregate(x = map$pos, by = list(map$chr), FUN = min)
   limitsHigh <- aggregate(x = map$pos, by = list(map$chr), FUN = max)
-  ## Empty dataframe with 2 lines per chromosomes and as many columns as the QTL dataframe
+  ## Empty dataframe with 2 lines per chromosomes and as many columns as the QTL
+  ## dataframe
   limits <- data.frame(matrix(ncol = ncol(data), nrow = 2 * nrow(limitsLow)))
   names(limits) <- names(data)
   ## Trait and sort have to be filled. Value is not important
   limits[trait] <- data[1, trait]
   limits$sort <- data[1, "sort"]
-  ## Set eff to suppress warnings in printing. Setting it to -Inf ensures nothing is plotted
+  ## Set eff to suppress warnings in printing. Setting it to -Inf ensures
+  ## nothing is plotted
   limits$eff <- -Inf
   limits[, c(chromosome, snpPosition)] <- rbind(limitsLow, limitsHigh)
   data <- rbind(data, limits)
   ## Select and rename relevant columns for plotting
   plotData <- dplyr::select(data, trait = trait, chromosome = chromosome,
-                            snpEffect = snpEffect, snpPosition = snpPosition, sort, eff)
+                            snpEffect = snpEffect, snpPosition = snpPosition,
+                            sort, eff)
   ## Add a column with the allelic effect direction (for points color)
   plotData$color <- ifelse(plotData$eff != -Inf,
                            ifelse(plotData$eff > 0, "pos", "neg"),
@@ -155,20 +171,25 @@ qtlPlot <- function(data,
   ## Create theme for plot
   qtlPlotTheme <-
     ggplot2::theme(plot.background = ggplot2::element_blank(),
-                   panel.grid.major.x = ggplot2::element_line(color =
-                                                                ifelse(printVertGrid, "white", "gray")),
+                   panel.grid.major.x =
+                     ggplot2::element_line(color = ifelse(printVertGrid,
+                                                          "white", "gray")),
                    panel.grid.major.y = ggplot2::element_line(color = "white"),
                    panel.grid.minor = ggplot2::element_blank(),
-                   plot.title = ggplot2::element_text(size = 20, face = "bold", vjust = 2) ,
+                   plot.title = ggplot2::element_text(size = 20, face = "bold",
+                                                      vjust = 2) ,
                    axis.ticks = ggplot2::element_blank(),
                    panel.border = ggplot2::element_blank(),
                    axis.line = ggplot2::element_blank(),
                    legend.position = "none",
                    panel.background = ggplot2::element_rect(fill = "gray"),
                    axis.text.x = ggplot2::element_text(size = 0),
-                   axis.text.y = ggplot2::element_text(size = 13 , color = "black"),
-                   axis.title.x = ggplot2::element_text(size = 20, color = "navyblue"),
-                   axis.title.y = ggplot2::element_text(size = 20, color = "navyblue"),
+                   axis.text.y = ggplot2::element_text(size = 13 ,
+                                                       color = "black"),
+                   axis.title.x = ggplot2::element_text(size = 20,
+                                                        color = "navyblue"),
+                   axis.title.y = ggplot2::element_text(size = 20,
+                                                        color = "navyblue"),
                    strip.background = ggplot2::element_rect(fill = "gray40"),
                    strip.text = ggplot2::element_text(),
                    strip.text.x = ggplot2::element_text(size = 14),
@@ -177,11 +198,13 @@ qtlPlot <- function(data,
   qtlPlot <-
     ggplot2::ggplot(data = plotData,
                     ggplot2::aes(x = snpPosition,
-                                 ## Y data is sorted in reverse order because of the way ggplot plots
+                                 ## Y data is sorted in reverse order because
+                                 ## of the way ggplot plots.
                                  y = reorder(trait, -sort),
-                                 ## Point size proportional to (absolute value of) allelic effect
+                                 ## Point size proportional to (absolute value
+                                 ## of) allelic effect.
                                  size = abs(eff),
-                                 ## Point color depends on the effect direction
+                                 ## Point color depends on the effect direction.
                                  color = factor(color)))  +
     ## use custom made theme
     qtlPlotTheme +
@@ -196,7 +219,8 @@ qtlPlot <- function(data,
     ggplot2::geom_point(alpha = I(0.7), na.rm = TRUE) +
     ## Split of the plot according to the chromosomes on the x axis
     ggplot2::facet_grid(". ~ chromosome",
-                        ## Do not resize the x axis (otherwise every chromosome has the same size)
+                        ## Do not resize the x axis (otherwise every chromosome
+                        ## has the same size)
                         scales = "free",
                         ## Do not add extra space between two facets
                         space = "free",

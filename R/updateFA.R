@@ -6,18 +6,18 @@
 #' @param WStart a p x p matrix or dataframe containing starting values for W.
 #' @param m an integer. The order of the model.
 #' @param PStart a p x p matrix or dataframe containing starting values for P.
-#' @param hetVar should an extra diagonal part be added in the model for the precision matrix?
+#' @param hetVar should an extra diagonal part be added in the model for the
+#' precision matrix?
 #' @param maxDiag a numerical value for the maximum value of the diagonal of P.
-#' @param tolerance a numerical value. The iterating process stops if the sum of the difference for P
-#' and W between two steps gets lower than this value.
+#' @param tolerance a numerical value. The iterating process stops if the sum
+#' of the difference for P and W between two steps gets lower than this value.
 #' @param maxIter a numerical value for the maximum number of iterations.
 #' @param printProgress should progress be printed during iterations?
 #'
-#' @return a list containing the new matrices W and P after the iteration process and the number
-#' of iterations.
+#' @return a list containing the new matrices W and P after the iteration
+#' process and the number of iterations.
 #'
 #' @keywords internal
-
 updateFA <- function(Y,
                      WStart = NULL,
                      m = ifelse(is.null(WStart), 2, ncol(WStart)),
@@ -28,28 +28,27 @@ updateFA <- function(Y,
                      maxIter = 100L,
                      printProgress = FALSE) {
   ## Check input
-  #Y <- as.matrix(Y)
   if (anyNA(Y)) {
-    stop('Y cannot contain missing values.\n')
+    stop("Y cannot contain missing values.\n")
   }
   p <- ncol(Y)
   n <- nrow(Y)
   if (!is.null(PStart)) {
-    #stopifnot(class(PStart) %in% c('matrix','data.frame'))
     stopifnot(ncol(PStart) == p & nrow(PStart) == p)
   }
   if (!is.null(WStart)) {
-    #stopifnot(class(WStart) %in% c('matrix','data.frame'))
     stopifnot(nrow(WStart) == p)
     if (ncol(WStart) != m) {
-      stop('m needs to be equal to the number of columns of WStart.')
+      stop("m needs to be equal to the number of columns of WStart.")
     }
     if (is.null(PStart)) {
-      stop('WStart and PStart should be either both NULL (default), or both have a sensible value.')
+      stop(paste("WStart and PStart should be either both NULL (default),",
+                 "or both have a sensible value."))
     }
   } else {
     if (!is.null(PStart)) {
-      stop('WStart and PStart should be either both NULL (default), or both have a sensible value.')
+      stop(paste("WStart and PStart should be either both NULL (default),",
+                 "or both have a sensible value."))
     }
   }
   if (m != round(m) || m < 1) {
@@ -63,7 +62,8 @@ updateFA <- function(Y,
     a <- eigen(Matrix::crossprod(Y) / n, symmetric = TRUE)
     sigma2 <- mean(a$values[-(1:m)])
     PStart <- Matrix::Diagonal(n = p, x = 1 / sigma2)
-    WStart <- a$vectors[, 1:m] %*% Matrix::Diagonal(x = sqrt(a$values[1:m] - sigma2))
+    WStart <- a$vectors[, 1:m] %*%
+      Matrix::Diagonal(x = sqrt(a$values[1:m] - sigma2))
   }
   W <- WStart
   P <- PStart
@@ -76,7 +76,8 @@ updateFA <- function(Y,
       if (hetVar) {
         B <- as.numeric(Matrix::crossprod(W, P %*% W)) # m x m
         Sigma <- 1 / (1 + B) # m x m
-        M1 <- Sigma * as.numeric(Matrix::crossprod(W, Matrix::tcrossprod(P, Y))) # m x n
+        M1 <- Sigma *
+          as.numeric(Matrix::crossprod(W, Matrix::tcrossprod(P, Y))) # m x n
       } else {
         B <- P[1, 1] * as.numeric(Matrix::crossprod(W)) # m x m
         Sigma <- 1 / (1 + B) # m x m
@@ -105,13 +106,16 @@ updateFA <- function(Y,
       } else {
         B <- P[1, 1] * Matrix::crossprod(W) # m x m
         Sigma <- Matrix::solve(Matrix::Diagonal(n = m) + B) # m x m
-        M1 <- P[1, 1] * Matrix::tcrossprod(Matrix::tcrossprod(Sigma, W), Y) # m x n
+        M1 <- P[1, 1] *
+          Matrix::tcrossprod(Matrix::tcrossprod(Sigma, W), Y) # m x n
       }
       A <- Matrix::solve(n * Sigma + Matrix::tcrossprod(M1))  # m x m
       WNew <- Matrix::crossprod(Y, Matrix::crossprod(M1, A)) # p x m
       if (hetVar) {
         D1 <- Matrix::colSums(Y ^ 2)
-        D2 <- Matrix::diag(Matrix::tcrossprod(WNew %*% (n * Sigma + Matrix::tcrossprod(M1)), WNew))
+        D2 <- Matrix::diag(
+          Matrix::tcrossprod(WNew %*% (n * Sigma + Matrix::tcrossprod(M1)),
+                             WNew))
         D3 <- Matrix::diag(WNew %*% M1 %*% Y)
         DTot <-  D1 + D2 - 2 * D3
         PNew <- P

@@ -7,7 +7,8 @@
 #' \item{replace strings in \code{naStrings} by \code{NA}.}
 #' \item{remove genotypes with a fraction of missing values higher than
 #' \code{nMissGeno}.}
-#' \item{remove SNPs with a fraction of missing values higher than \code{nMiss}.}
+#' \item{remove SNPs with a fraction of missing values higher than
+#' \code{nMiss}.}
 #' \item{recode SNPs to numerical values.}
 #' \item{remove SNPs with a minor allele frequency lower than \code{MAF}.}
 #' \item{optionally remove duplicate SNPs.}
@@ -15,16 +16,17 @@
 #' \item{repeat steps 5. and 6. if missing values are imputed.}
 #' }
 #'
-#' @param gData an object of class \code{gData} containing at least \code{markers}.
+#' @param gData an object of class \code{gData} containing at least
+#' \code{markers}.
 #' @param refAll a character string indicating the reference allele used when
 #' recoding markers.\cr
 #' If "minor" then the recoding is done using the minor allele as reference
 #' allele. Alternatively a single character can be supplied as a reference
 #' allele for the whole set of SNPs, or a character vector with a reference
 #' allele per SNP.
-#' @param nMissGeno a numerical value between 0 and 1. genotypes with a fraction
-#' of missings higher then \code{nMissGeno} will be removed. Genotypes with
-#' only missing values will always be removed.
+#' @param nMissGeno a numerical value between 0 and 1. genotypes with a
+#' fraction of missings higher then \code{nMissGeno} will be removed. Genotypes
+#' with only missing values will always be removed.
 #' @param nMiss a numerical value between 0 and 1. SNPs with a fraction of
 #' missings higher then \code{nMiss} will be removed. SNPs with only missing
 #' values will always be removed.
@@ -67,7 +69,8 @@
 #' "AA",   "AA",    NA,    "BB",    NA,    "AA",   "AA",   "AA",  "AA", "AA",
 #' "AA",    NA,     NA,    "BB",   "BB",   "BB",   "BB",   "BB",  "AA", "AA",
 #' "AA",    NA,    "AA",   "BB",   "BB",   "BB",   "AA",   "AA",  NA, "AA"),
-#' ncol = 10, byrow = TRUE, dimnames = list(paste0("IND", 1:10), paste0("SNP", 1:10)))
+#' ncol = 10, byrow = TRUE, dimnames = list(paste0("IND", 1:10),
+#' paste0("SNP", 1:10)))
 #'
 #' ## create object of class 'gData'.
 #' gData <- createGData(geno = markers)
@@ -76,11 +79,14 @@
 #' gDataCoded1 <- codeMarkers(gData = gData, impute = FALSE)
 #'
 #' ## Code markers by reference alleles, impute missings by fixed value.
-#' gDataCoded2 <- codeMarkers(gData = gData, refAll = rep(x = c("A", "B"), times =  5),
-#'                            impute = TRUE, imputeType = "fixed", fixedValue = 1)
+#' gDataCoded2 <- codeMarkers(gData = gData,
+#'                            refAll = rep(x = c("A", "B"), times =  5),
+#'                            impute = TRUE, imputeType = "fixed",
+#'                            fixedValue = 1)
 #'
 #' ## Code markers by minor allele, impute by random value.
-#' gDataCoded3 <- codeMarkers(gData = gData, impute = TRUE, imputeType = "random")
+#' gDataCoded3 <- codeMarkers(gData = gData, impute = TRUE,
+#'                            imputeType = "random")
 #'
 #' @export
 codeMarkers <- function(gData,
@@ -96,11 +102,12 @@ codeMarkers <- function(gData,
                         naStrings = NA) {
   ## Checks.
   if (missing(gData) || !is.gData(gData) || is.null(gData$markers)) {
-    stop("gData should be a valid gData object with at least markers included.\n")
+    stop(paste("gData should be a valid gData object with at least",
+               "markers included.\n"))
   }
   if (length(refAll) > 1 && !length(refAll) == ncol(gData$markers)) {
-    stop("number of reference alleles should either be 1 or equal to the amount
-         of SNPs in markers.\n")
+    stop(paste("number of reference alleles should either be 1 or equal to",
+               "the amount of SNPs in markers.\n"))
   }
   if (is.null(nMissGeno) || length(nMissGeno) > 1 || !is.numeric(nMissGeno) ||
       !dplyr::between(x = nMissGeno, left = 0, right = 1)) {
@@ -114,11 +121,13 @@ codeMarkers <- function(gData,
                         !dplyr::between(x = MAF, left = 0, right = 1))) {
     stop("MAF should be a single numerical value between 0 and 1.\n")
   }
-  if (!is.null(keep) && (!is.character(keep) || !all(keep %in% colnames(gData$markers)))) {
+  if (!is.null(keep) && (!is.character(keep) ||
+                         !all(keep %in% colnames(gData$markers)))) {
     stop("all items in keep should be SNPs in markers.\n")
   }
   if (impute) {
-    if (length(imputeType) > 1 && !imputeType %in% c("fixed", "random", "beagle")) {
+    if (length(imputeType) > 1 &&
+        !imputeType %in% c("fixed", "random", "beagle")) {
       stop("imputeType should be one of fixed, random or beagle.\n")
     }
     if (imputeType == "fixed" && is.null(fixedValue)) {
@@ -159,11 +168,12 @@ codeMarkers <- function(gData,
       ## Set first allele per SNP as reference allele.
       firstAlls <- sapply(X = alleles, FUN = "[[", 1)
       ## Split either on punctuation or on single letters.
-      refAlls <- sapply(X = strsplit(x = firstAlls,
-                                     split = ifelse(length(grep(pattern = "[[:punct:]]",
-                                                                x = firstAlls)) == 0,
-                                                    "", "[[:punct:]]")),
-                        FUN = "[[", 1)
+      refAlls <-
+        sapply(X = strsplit(x = firstAlls,
+                            split = ifelse(length(grep(pattern = "[[:punct:]]",
+                                                       x = firstAlls)) == 0,
+                                           "", "[[:punct:]]")),
+               FUN = "[[", 1)
       ## Get maximum number of alleles.
       maxAll <- unname(nchar(gsub(pattern = "[[:punct:]]",
                                   replacement = "",
@@ -184,12 +194,13 @@ codeMarkers <- function(gData,
     }
     markersRecoded <- as.matrix(markersRecoded)
     markersRecoded <- matrix(as.numeric(markersRecoded),
-                            nrow = nrow(markersClean),
-                            dimnames = dimnames(markersClean))
+                             nrow = nrow(markersClean),
+                             dimnames = dimnames(markersClean))
     if (refAll[1] == "minor") {
       ## Correct for position of minor allele.
       markersRecoded[, colMeans(markersRecoded, na.rm = TRUE) > maxAll / 2] <-
-        maxAll - markersRecoded[, colMeans(markersRecoded, na.rm = TRUE) > maxAll / 2]
+        maxAll -
+        markersRecoded[, colMeans(markersRecoded, na.rm = TRUE) > maxAll / 2]
     }
   }
   ## Remove markers with low MAF.
@@ -225,28 +236,22 @@ codeMarkers <- function(gData,
       ## Replace missing values by random value based on probabilities per SNP.
       snpNA <- apply(X = markersRecoded, MARGIN = 2, FUN = anyNA)
       hom <- maxAll == 2 && any(markersRecoded == 1, na.rm = TRUE)
-      markersRecoded[, snpNA] <- apply(X = markersRecoded[, snpNA], MARGIN = 2,
-                                       FUN = function(x) {
-                                         p <- mean(x, na.rm = TRUE) / maxAll
-                                         if (hom) {
-                                           ## At least one heterozygous markers.
-                                           ## Imputation may add more.
-                                           x[is.na(x)] <- sample(x = 0:maxAll,
-                                                                 size = sum(is.na(x)),
-                                                                 replace = TRUE,
-                                                                 prob = choose(maxAll,
-                                                                               0:maxAll) *
-                                                                   (1 - p) ^ (maxAll:0) *
-                                                                   p ^ (0:maxAll))
-                                         } else {
-                                           ## only homozygous markers.
-                                           x[is.na(x)] <- sample(x = c(0, 2),
-                                                                 size = sum(is.na(x)),
-                                                                 replace = TRUE,
-                                                                 prob = c(1 - p, p))
-                                         }
-                                         return(x)
-                                       })
+      markersRecoded[, snpNA] <-
+        apply(X = markersRecoded[, snpNA], MARGIN = 2, FUN = function(x) {
+          p <- mean(x, na.rm = TRUE) / maxAll
+          if (hom) {
+            ## At least one heterozygous marker. Imputation may add more.
+            x[is.na(x)] <- sample(x = 0:maxAll, size = sum(is.na(x)),
+                                  replace = TRUE,
+                                  prob = choose(maxAll, 0:maxAll) *
+                                    (1 - p) ^ (maxAll:0) * p ^ (0:maxAll))
+          } else {
+            ## only homozygous markers.
+            x[is.na(x)] <- sample(x = c(0, 2), size = sum(is.na(x)),
+                                  replace = TRUE, prob = c(1 - p, p))
+          }
+          return(x)
+        })
     } else if (imputeType == "beagle") {
       ## Imputation of missing values using beagle software.
       if (!dir.exists("beagle")) {
@@ -260,7 +265,7 @@ codeMarkers <- function(gData,
                               rownames(map),
                               map$pos,
                               map$pos) %>%
-      dplyr::arrange(.data$map.chr, .data$map.pos)
+        dplyr::arrange(.data$map.chr, .data$map.pos)
       ## Beagle doesn't accept duplicate map entries. To get around this
       ## duplicate entries are made distinct by adding 1 to the position.
       while (anyDuplicated(mapBeagle[, c(1, 4)])) {
@@ -281,13 +286,15 @@ codeMarkers <- function(gData,
       all01 <- "0/1"
       all11 <- "1/1"
       all10 <- "1/0"
-      markersBeagle <- as.data.frame(t(markersRecoded), stringsAsFactors = FALSE)
+      markersBeagle <- as.data.frame(t(markersRecoded),
+                                     stringsAsFactors = FALSE)
       markersBeagle[markersBeagle == 0] <- all00
       markersBeagle[markersBeagle == 1] <- all01
       markersBeagle[markersBeagle == 2] <- all11
       markersBeagle[markersBeagle == -1] <- all10
       ## Write markers to vcf file.
-      vcfBeagle <- cbind(data.frame(CHROM = mapBeagle[, 1], POS = mapBeagle[, 4],
+      vcfBeagle <- cbind(data.frame(CHROM = mapBeagle[, 1],
+                                    POS = mapBeagle[, 4],
                                     ID = rownames(map), REF = "A", ALT = "G",
                                     QUAL = ".", FILTER = "PASS", INFO = ".",
                                     FORMAT = "GT", stringsAsFactors = FALSE),
@@ -329,7 +336,8 @@ codeMarkers <- function(gData,
     if (refAll[1] == "minor") {
       ## Correct for position of minor allele after imputation.
       markersRecoded[, colMeans(markersRecoded, na.rm = TRUE) > maxAll / 2] <-
-        maxAll - markersRecoded[, colMeans(markersRecoded, na.rm = TRUE) > maxAll / 2]
+        maxAll -
+        markersRecoded[, colMeans(markersRecoded, na.rm = TRUE) > maxAll / 2]
     }
     ## Remove markers with low MAF after imputation.
     if (!is.null(MAF)) {
@@ -347,19 +355,20 @@ codeMarkers <- function(gData,
       randOrder <- c(c(1:ncol(markersRecoded))[snpKeep],
                      sample(x = c(1:ncol(markersRecoded))[!snpKeep]))
       markersDedup <- unique(markersRecoded[, randOrder], MARGIN = 2)
-      markersRecoded <- cbind(markersRecoded[, colnames(markersRecoded[, snpKeep])
-                                             [!colnames(markersRecoded[, snpKeep])
-                                               %in% colnames(markersDedup)],
-                                             drop = FALSE],
-                              markersDedup)
+      markersRecoded <-
+        cbind(markersRecoded[, colnames(markersRecoded[, snpKeep])
+                             [!colnames(markersRecoded[, snpKeep]) %in%
+                                 colnames(markersDedup)], drop = FALSE],
+              markersDedup)
     }
   }
   if (removeDuplicates) {
     ## Columns are put in random order when removing duplicates.
     ## Reorder these columns.
-    markersRecoded <- markersRecoded[, colnames(markersOrig)[colnames(markersOrig) %in%
-                                             colnames(markersRecoded)],
-                                     drop = FALSE]
+    markersRecoded <-
+      markersRecoded[, colnames(markersOrig)[colnames(markersOrig) %in%
+                                               colnames(markersRecoded)],
+                     drop = FALSE]
   }
   ## Return gData object with recoded and imputed markers.
   ## SuppressWarnnings needed since original geno will be overwritten.

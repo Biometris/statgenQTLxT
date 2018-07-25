@@ -6,129 +6,151 @@
 \usage{
 runSingleTraitGwas(gData, traits = NULL, environments = NULL,
   covar = NULL, snpCovariates = NULL, kin = NULL,
-  kinshipMethod = "astle", remlAlgo = 1, GLSMethod = 1, useMAF = TRUE,
-  MAF = 0.01, MAC = 10, genomicControl = FALSE, thrType = 1,
-  alpha = 0.05, LODThr = 4, nSnpLOD = 10, sizeInclRegion = 0, minR2)
+  kinshipMethod = c("astle", "GRM", "IBS", "vanRaden"), remlAlgo = 1,
+  GLSMethod = 1, useMAF = TRUE, MAF = 0.01, MAC = 10,
+  genomicControl = FALSE, thrType = 1, alpha = 0.05, LODThr = 4,
+  nSnpLOD = 10, sizeInclRegion = 0, minR2)
 }
 \arguments{
-\item{gData}{an object of class \code{gData} containing at least \code{map}, \code{markers} and
-\code{pheno}.}
+\item{gData}{an object of class \code{gData} containing at least \code{map},
+\code{markers} and \code{pheno}.}
 
-\item{traits}{a vector of traits on which to run GWAS. These can be either numeric indices or
-character names of columns in \code{pheno}. If \code{NULL} GWAS is run on all traits.}
+\item{traits}{a vector of traits on which to run GWAS. These can be either
+numeric indices or character names of columns in \code{pheno}. If \code{NULL}
+GWAS is run on all traits.}
 
-\item{environments}{a vector of environments on which to run GWAS. These can be either numeric indices or
-character names of list items in \code{pheno}. If \code{NULL} GWAS is run for all environments.}
+\item{environments}{a vector of environments on which to run GWAS. These can
+be either numeric indices or character names of list items in \code{pheno}.
+If \code{NULL} GWAS is run for all environments.}
 
-\item{covar}{an optional vector of covariates taken into account when running GWAS. These can be either
-numeric indices or character names of columns in \code{covar} in \code{gData}. If \code{NULL} no
-covariates are used.}
+\item{covar}{an optional vector of covariates taken into account when
+running GWAS. These can be either numeric indices or character names of
+columns in \code{covar} in \code{gData}. If \code{NULL} no covariates are
+used.}
 
-\item{snpCovariates}{an optional character vector of snps to be included as covariates.}
+\item{snpCovariates}{an optional character vector of snps to be included as
+covariates.}
 
-\item{kin}{an optional kinship matrix or list of kinship matrices. These matrices can be from the
-\code{matrix} class as defined in the base package or from the \code{dsyMatrix} class, the
-class of symmetric matrices in the Matrix package.\cr
-If \code{GLSMethod} = 1 then one matrix should be provided, if \code{GLSMethod} = 2 a list of
-chromosome specific matrices of lenght equal to the number of chromosomes in \code{map}
-in \code{gData}.\cr
+\item{kin}{an optional kinship matrix or list of kinship matrices. These
+matrices can be from the \code{matrix} class as defined in the base package
+or from the \code{dsyMatrix} class, the class of symmetric matrices in the
+Matrix package.\cr
+If \code{GLSMethod} = 1 then one matrix should be provided, if
+\code{GLSMethod} = 2 a list of chromosome specific matrices of lenght equal
+to the number of chromosomes in \code{map} in \code{gData}.\cr
 If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
-If both \code{kin} is provided and \code{gData} contains a matrix \code{kinship} then
-\code{kin} is used.}
+If both \code{kin} is provided and \code{gData} contains a matrix
+\code{kinship} then \code{kin} is used.}
 
-\item{kinshipMethod}{an optional character indicating the method used for calculating the kinship
-matrix(ces). Currently "astle" (Astle and Balding, 2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008)
-are supported. If a kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
+\item{kinshipMethod}{an optional character indicating the method used for
+calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
+2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
+kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 \code{kinshipMethod} is ignored.}
 
-\item{remlAlgo}{an integer indicating the algorithm used to estimate the variance components.
+\item{remlAlgo}{an integer indicating the algorithm used to estimate the
+variance components.
 \enumerate{
 \item{EMMA}
 \item{Newton-Raphson using sommer package}
 }}
 
-\item{GLSMethod}{an integer indicating the method used to estimate the marker effects.
+\item{GLSMethod}{an integer indicating the method used to estimate the marker
+effects.
 \enumerate{
 \item{using one kinship matrix.}
 \item{using chromosome specific kinship matrices.}
 }}
 
-\item{useMAF}{should the minor allele frequency be used for selecting SNPs for the analysis.
-If \code{FALSE} the minor allele count is used instead.}
+\item{useMAF}{should the minor allele frequency be used for selecting SNPs
+for the analysis. If \code{FALSE} the minor allele count is used instead.}
 
-\item{MAF}{A numerical value between 0 and 1. SNPs with minor allele frequency below
-this value are not taken into account for the analysis, i.e. p-values and effect sizes are
-put to missing (NA). Ignored if \code{useMAF} is \code{FALSE}.}
+\item{MAF}{A numerical value between 0 and 1. SNPs with minor allele
+frequency below this value are not taken into account for the analysis,
+i.e. p-values and effect sizes are put to missing (NA). Ignored if
+\code{useMAF} is \code{FALSE}.}
 
-\item{MAC}{A numerical value. SNPs with minor allele count below this value are not
-taken into account for the analysis, i.e. p-values and effect sizes are put to missing (NA).
-Ignored if \code{useMAF} is \code{TRUE}.}
+\item{MAC}{A numerical value. SNPs with minor allele count below this value
+are not taken into account for the analysis, i.e. p-values and effect sizes
+are put to missing (NA). Ignored if \code{useMAF} is \code{TRUE}.}
 
-\item{genomicControl}{should genomic control correction as in Devlin and Roeder (1999) be applied?}
+\item{genomicControl}{should genomic control correction as in Devlin and
+Roeder (1999) be applied?}
 
-\item{thrType}{an integer indicating the type of threshold used for the selection of candidate
-loci.
+\item{thrType}{an integer indicating the type of threshold used for the
+selection of candidate loci.
 \enumerate{
-\item{Bonferroni; a LOD-threshold of \eqn{-log10(alpha/p)}, where p is the number of markers and alpha
-can be specified in \code{alpha}.}
+\item{Bonferroni; a LOD-threshold of \eqn{-log10(alpha/p)}, where p is the
+number of markers and alpha can be specified in \code{alpha}.}
 \item{a self-chosen LOD-threshold, specied in \code{LODThr}.}
-\item{the LOD-threshold is chosen such the the SNPs with the \code{nSnpLOD} smallest p-values are selected.
-\code{nSnpLOD} can be specified.}
+\item{the LOD-threshold is chosen such the the SNPs with the \code{nSnpLOD}
+smallest p-values are selected. \code{nSnpLOD} can be specified.}
 }}
 
-\item{alpha}{a numerical value used for calculating the LOD-threshold for \code{thrType} = 1.}
+\item{alpha}{a numerical value used for calculating the LOD-threshold for
+\code{thrType} = 1.}
 
-\item{LODThr}{a numerical value used as a LOD-threshold when \code{thrType} = 2.}
+\item{LODThr}{a numerical value used as a LOD-threshold when
+\code{thrType} = 2.}
 
-\item{nSnpLOD}{a numerical value indicating the number of SNPs with the smallest p-values that
-are selected when \code{thrType} = 3.}
+\item{nSnpLOD}{a numerical value indicating the number of SNPs with the
+smallest p-values that are selected when \code{thrType} = 3.}
 
-\item{sizeInclRegion}{an integer. Should the results for SNPs close to significant SNPs
-be included? If so, the size of the region in centimorgan or base pairs. Otherwise 0.}
+\item{sizeInclRegion}{an integer. Should the results for SNPs close to
+significant SNPs be included? If so, the size of the region in centimorgan
+or base pairs. Otherwise 0.}
 
-\item{minR2}{A numerical value between 0 and 1. Restricts the SNPs included in the region close
-to significant SNPs to only those SNPs that are in sufficient Linkage Disequilibruim (LD) with
-the significant snp, where LD is measured in terms of r^2. If for example
-\code{sizeInclRegion} = 200000 and \code{minR2} = 0.5, then for every significant SNP
-also those SNPs whose LD (\eqn{r^2}) with the significant SNP is at least 0.5 AND which are
-at most 200kb away from this significant snp are included. Ignored if \code{sizeInclRegion} = 0.}
+\item{minR2}{A numerical value between 0 and 1. Restricts the SNPs included
+in the region close to significant SNPs to only those SNPs that are in
+sufficient Linkage Disequilibruim (LD) with the significant snp, where LD
+is measured in terms of r^2. If for example \code{sizeInclRegion} = 200000
+and \code{minR2} = 0.5, then for every significant SNP also those SNPs whose
+LD (\eqn{r^2}) with the significant SNP is at least 0.5 AND which are at
+most 200kb away from this significant snp are included. Ignored if
+\code{sizeInclRegion} = 0.}
 }
 \value{
 an object of class \code{\link{GWAS}}.
 }
 \description{
-\code{runSingleTraitGwas} performs a single-trait Genome Wide Association Study (GWAS) on phenotypic and
-genotypic data contained in a \code{gData} object. A covariance matrix is computed using the EMMA algorithm
-(Kang et al., 2008) or the Newton-Raphson algorithm (Tunnicliffe, 1989) in the \code{sommer}
-package. Then a Generalized Least Squares (GLS) method is used for estimating the marker effects and
-corresponding p-values. This is done using either one kinship matrix for all chromosomes or different
-chromosome specific kinship matrices for each chromosome. Significant SNPs are selected based on a user
-defined threshold.
+\code{runSingleTraitGwas} performs a single-trait Genome Wide Association
+Study (GWAS) on phenotypic and genotypic data contained in a \code{gData}
+object. A covariance matrix is computed using the EMMA algorithm (Kang et
+al., 2008) or the Newton-Raphson algorithm (Tunnicliffe, 1989) in the
+\code{sommer} package. Then a Generalized Least Squares (GLS) method is used
+for estimating the marker effects and corresponding p-values. This is done
+using either one kinship matrix for all chromosomes or different chromosome
+specific kinship matrices for each chromosome. Significant SNPs are selected
+based on a user defined threshold.
 }
 \references{
-Astle W., Balding D. J. (2009) Population structure and cryptic relatedness in genetic
-association studies, Stat. Sci., November 2009, Vol. 24, no. 4, p. 451–471.
+Astle W., Balding D. J. (2009) Population structure and cryptic
+relatedness in genetic association studies, Stat. Sci., November 2009,
+Vol. 24, no. 4, p. 451–471.
 
-Devlin, B. and Roeder K. (1999) Genomic control for association studies. Biometrics,
-December 1999, Vol. 55(4), p. 997-1004.
+Devlin, B. and Roeder K. (1999) Genomic control for association
+studies. Biometrics, December 1999, Vol. 55(4), p. 997-1004.
 
-Kang et al. (2008) Efficient Control of Population Structure in Model Organism
-Association Mapping. Genetics, March 2008, Vol. 178, no. 3, p. 1709-1723.
+Kang et al. (2008) Efficient Control of Population Structure in
+Model Organism Association Mapping. Genetics, March 2008, Vol. 178, no. 3,
+p. 1709-1723.
 
-Rincent et al. (2014) Recovering power in association mapping panels with variable
-levels of linkage disequilibrium. Genetics, May 2014. Vol. 197. p. 375–387.
+Rincent et al. (2014) Recovering power in association mapping
+panels with variable levels of linkage disequilibrium. Genetics, May 2014.
+Vol. 197. p. 375–387.
 
-Segura et al. (2012) An efficient multi-locus mixed-model approach for genome-wide
-association studies in structured populations. Nature Genetics, June 2012, Vol. 44, p. 825–830.
+Segura et al. (2012) An efficient multi-locus mixed-model
+approach for genome-wide association studies in structured populations.
+Nature Genetics, June 2012, Vol. 44, p. 825–830.
 
-Sun et al. (2010) Variation explained in mixed-model association mapping.
-Heredity, February 2010, Vol. 105, p. 333–340.
+Sun et al. (2010) Variation explained in mixed-model association
+mapping. Heredity, February 2010, Vol. 105, p. 333–340.
 
-Tunnicliffe W. (1989) On the use of marginal likelihood in time series model estimation.
-JRSS, Vol.51(1), p.15-27.
+Tunnicliffe W. (1989) On the use of marginal likelihood in time
+series model estimation. JRSS, Vol.51(1), p.15-27.
 
-VanRaden P.M. (2008) Efficient methods to compute genomic predictions. J Dairy Sci,
-November 2008, Vol. 91 p. 4414–4423.
+VanRaden P.M. (2008) Efficient methods to compute genomic
+predictions. J Dairy Sci, November 2008, Vol. 91 p. 4414–4423.
 }
 \seealso{
 \code{\link{GWAS}}, \code{\link{kinship}}

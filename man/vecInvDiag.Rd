@@ -15,12 +15,14 @@ tracePInvDiag(x, y)
 \item{y}{a numeric vector}
 }
 \value{
-for \code{vecInvDiag} a matrix defined by \eqn{(I + x \otimes y)^{-1}}, for
-\code{tracePInvDiag} a matrix containing the column sums of \eqn{(I + x \otimes y)^{-1}}.
+for \code{vecInvDiag} a matrix defined by
+\eqn{(I + x \otimes y)^{-1}}, for \code{tracePInvDiag} a matrix containing
+the column sums of \eqn{(I + x \otimes y)^{-1}}.
 }
 \description{
-\code{vecInvDiag} is a helper function for quickly computing \eqn{(I + x \otimes y)^{-1}},
-\code{tracePInvDiag} for quickly computing column sums of \eqn{(I + x \otimes y)^{-1}}. Both are used
-in the penalized EM algorithm.
+\code{vecInvDiag} is a helper function for quickly computing
+\eqn{(I + x \otimes y)^{-1}},
+\code{tracePInvDiag} for quickly computing column sums of
+\eqn{(I + x \otimes y)^{-1}}. Both are used in the penalized EM algorithm.
 }
 \keyword{internal}

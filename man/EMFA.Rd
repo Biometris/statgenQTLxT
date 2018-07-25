@@ -10,14 +10,15 @@ EMFA(Y, K, X = Matrix::Matrix(rep(1, nrow(K))), CmHet = FALSE,
   stopIfDecreasing = FALSE, computeLogLik = FALSE)
 }
 \arguments{
-\item{Y}{an n x p matrix of observed phenotypes, on p traits or environments for n individuals.
-No missing values are allowed.}
+\item{Y}{an n x p matrix of observed phenotypes, on p traits or environments
+for n individuals. No missing values are allowed.}
 
 \item{K}{an n x n kinship matrix.}
 
-\item{X}{an n x c covariate matrix, c being the number of covariates and n being the number
-of genotypes. c has to be at least one (typically an intercept). No missing values are allowed.
-If not provided a vector of 1s is used.}
+\item{X}{an n x c covariate matrix, c being the number of covariates and n
+being the number of genotypes. c has to be at least one (typically
+an intercept). No missing values are allowed. If not provided a vector of 1s
+is used.}
 
 \item{CmHet}{should an extra diagonal part be added in the model for the
 precision matrix Cm?}
@@ -25,26 +26,29 @@ precision matrix Cm?}
 \item{DmHet}{should an extra diagonal part be added in the model for the
 precision matrix Dm?}
 
-\item{tolerance}{a numerical value. The iterating process stops if the difference in conditional
-log-likelihood between two consecutive iterations drops below tolerance.}
+\item{tolerance}{a numerical value. The iterating process stops if the
+difference in conditional log-likelihood between two consecutive iterations
+drops below tolerance.}
 
 \item{maxIter}{a numerical value for the maximum number of iterations.}
 
-\item{CmStart}{a p x p matrix containing starting values for the precision matrix Cm.}
+\item{CmStart}{a p x p matrix containing starting values for the precision
+matrix Cm.}
 
-\item{DmStart}{a p x p matrix containing starting values for the precision matrix Dm.}
+\item{DmStart}{a p x p matrix containing starting values for the precision
+matrix Dm.}
 
 \item{mG}{an integer. The order of the genetic part of the model.}
 
 \item{mE}{an integer. The order of the environmental part of the model.}
 
-\item{maxDiag}{a numical value. The maximal value of the diagonal elements in the precision matrices
-Cm and Dm (ignoring the low-rank part W W^t)}
+\item{maxDiag}{a numical value. The maximal value of the diagonal elements
+in the precision matrices Cm and Dm (ignoring the low-rank part W W^t)}
 
 \item{prediction}{should predicted values for Y be returned?}
 
-\item{stopIfDecreasing}{should the iterating process stop if after 50 iterations the
-log-likelihood decreases between two consecutive iterations?}
+\item{stopIfDecreasing}{should the iterating process stop if after 50
+iterations the log-likelihood decreases between two consecutive iterations?}
 
 \item{computeLogLik}{should the log-likelihood be returned?}
 }
@@ -57,18 +61,20 @@ A list containing the following components
 \item{\code{logLik2} log-likelihood as in Zhou and Stephens (2014)}
 \item{\code{nIter} the number of iterations.}
 \item{\code{converged} did the algorithm converge?}
-\item{\code{decreased} did the algorithm stop because the log-likelihood decreased
-between iterations.}
+\item{\code{decreased} did the algorithm stop because the log-likelihood
+decreased between iterations.}
 }
 }
 \description{
-Implementation of the factor analytic variation of the EM algoritm as proposed by Dahl et al. (2013).
+Implementation of the factor analytic variation of the EM algoritm as
+proposed by Dahl et al. (2013).
 }
 \references{
-Dahl et al. (2013). Network inference in matrix-variate Gaussian models with
-non-independent noise. arXiv preprint arXiv:1312.1622.
+Dahl et al. (2013). Network inference in matrix-variate Gaussian
+models with non-independent noise. arXiv preprint arXiv:1312.1622.
 
-Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
-genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
+Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
+mixed model algorithms for genome-wide association studies. Nature Methods,
+February 2014, Vol. 11, p. 407–409
 }
 \keyword{internal}

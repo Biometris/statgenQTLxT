@@ -80,7 +80,8 @@ runMultiTraitGwas <- function(gData,
                               covar = NULL,
                               snpCovariates = NULL,
                               kin = NULL,
-                              kinshipMethod = "astle",
+                              kinshipMethod = c("astle", "GRM", "IBS",
+                                                "vanRaden"),
                               GLSMethod = 1,
                               subsetMarkers = FALSE,
                               markerSubset = "",
@@ -121,7 +122,8 @@ runMultiTraitGwas <- function(gData,
                                  length(environments) > 1)) {
     stop("environments should be a single numeric or character value.\n")
   }
-  if ((is.character(environments) && !all(environments %in% names(gData$pheno))) ||
+  if ((is.character(environments) &&
+       !all(environments %in% names(gData$pheno))) ||
       (is.numeric(environments) && any(environments > length(gData$pheno)))) {
     stop("environments should be list items in pheno.\n")
   }
@@ -152,25 +154,24 @@ runMultiTraitGwas <- function(gData,
   if (is.numeric(covar)) {
     covar <- colnames(gData$covar)[covar]
   }
-  if (!is.null(snpCovariates) && !all(snpCovariates %in% colnames(gData$markers))) {
+  if (!is.null(snpCovariates) &&
+      !all(snpCovariates %in% colnames(gData$markers))) {
     stop("All snpCovariates should be in markers.\n")
   }
   if (GLSMethod == 1 && !is.null(kin) && !(inherits(kin, "Matrix") ||
                                            is.matrix(kin))) {
     stop("kin should be a matrix.\n")
   }
-  if (GLSMethod == 2 && !is.null(kin) && (!is.list(kin) ||
-                                          !all(sapply(kin, FUN = function(k) {
-                                            is.matrix(k) ||
-                                              inherits(k, "Matrix")})) ||
-                                          length(kin) != dplyr::n_distinct(gData$map$chr))) {
+  if (GLSMethod == 2 && !is.null(kin) &&
+      (!is.list(kin) || !all(sapply(kin, FUN = function(k) {
+        is.matrix(k) || inherits(k, "Matrix")})) ||
+       length(kin) != dplyr::n_distinct(gData$map$chr))) {
     stop(paste("kin should be a list of matrices of length equal to the number",
                "of chromosomes in the map.\n"))
   }
   if ((GLSMethod == 1 && is.null(gData$kinship) && is.null(kin)) ||
       GLSMethod == 2 && is.null(kin)) {
-    kinshipMethod <- match.arg(kinshipMethod,
-                               choices = c("astle", "GRM", "IBS", "vanRaden"))
+    kinshipMethod <- match.arg(kinshipMethod)
   }
   if (subsetMarkers && markerSubset == "") {
     stop("If subsetting markers, markerSubset cannot be empty.\n")
@@ -210,7 +211,8 @@ runMultiTraitGwas <- function(gData,
   if (covModel %in% c(4)) {
     stopifnot(snpCovariates == "")
   }
-  ## Make sure that when subsetting markers snpCovariates are included in the subset
+  ## Make sure that when subsetting markers snpCovariates are included in
+  ## the subset
   if (subsetMarkers) {
     if (!is.null(snpCovariates)) {
       if (!all(which(colnames(markers) %in% snpCovariates) %in% markerSubset)) {
@@ -232,7 +234,7 @@ runMultiTraitGwas <- function(gData,
                           covar = covar, snpCovariates = snpCovariates)
   phenoEnvir <- phenoExp$phenoEnvir
   covarEnvir <- phenoExp$covarEnvir
-  ## Convert pheno and covariates to format suitable for fitting variance components.
+  ## Convert pheno and covariates to format suitable for fitting var components.
   X <- cbind(rep(1, nrow(phenoEnvir)),
              as(as.matrix(phenoEnvir[covarEnvir]), "dgeMatrix"))
   rownames(X) <- phenoEnvir$genotype
@@ -246,8 +248,9 @@ runMultiTraitGwas <- function(gData,
     }
   }
   Y <- as(as.matrix(tibble::column_to_rownames(
-    tibble::remove_rownames(phenoEnvir[, !colnames(phenoEnvir) %in% covarEnvir]),
-    var = "genotype")), "dgeMatrix")
+    tibble::remove_rownames(phenoEnvir[, !colnames(phenoEnvir) %in%
+                                         covarEnvir]), var = "genotype")),
+    "dgeMatrix")
   if (anyNA(Y)) {
     stop("Phenotypic data cannot contain any missing values.\n")
   }
@@ -523,16 +526,18 @@ runMultiTraitGwas <- function(gData,
                                       Ve = VeRed[[which(chrs == chr)]], Dk = Dk)
       }
       mapRedChr <- mapRed[mapRed$chr == chr, ]
-      markersRedChr <- markersRed[, colnames(markersRed) %in% rownames(mapRedChr),
-                                  drop = FALSE]
+      markersRedChr <-
+        markersRed[, colnames(markersRed) %in% rownames(mapRedChr),
+                   drop = FALSE]
       allFreqChr <- Matrix::colMeans(markersRedChr) / max(markersRedChr)
       segMarkers <- which(allFreqChr < MAF | allFreqChr > 1 - MAF)
       snpCovChr <- snpCovariates[snpCovariates %in% colnames(markersRedChr)]
       ## Add snpCovariates to segregating markers.
-      excludedMarkers <- union(c(segMarkers, ncol(markersRed) + 1),
-                               computeExcludedMarkers(snpCovariates = snpCovChr,
-                                                      markersRed = markersRedChr,
-                                                      allFreq = allFreqChr))
+      excludedMarkers <-
+        union(c(segMarkers, ncol(markersRed) + 1),
+              computeExcludedMarkers(snpCovariates = snpCovChr,
+                                     markersRed = markersRedChr,
+                                     allFreq = allFreqChr))
       if (length(snpCovChr) > 0) {
         effEstSnpCov <- estimateEffects(Y = Y, W = XRed,
                                         X = markersRedChr[, snpCovChr,
@@ -595,9 +600,10 @@ runMultiTraitGwas <- function(gData,
   ## Collect info.
   GWASInfo <- list(call = match.call(),
                    MAF = MAF,
-                   GLSMethod = factor(GLSMethod, levels = c(1, 2),
-                                      labels = c("single kinship matrix",
-                                                 "chromosome specific kinship matrices")),
+                   GLSMethod =
+                     factor(GLSMethod, levels = c(1, 2),
+                            labels = c("single kinship matrix",
+                                       "chromosome specific kinship matrices")),
                    varComp = list(Vg = Vg, Ve = Ve))
   return(createGWAS(GWAResult = setNames(list(GWAResult),
                                          names(gData$pheno)[environment]),

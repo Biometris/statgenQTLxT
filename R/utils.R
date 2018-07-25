@@ -24,12 +24,13 @@ expandPheno <- function(gData,
     factorCovs <- which(sapply(X = gData$covar[covar], FUN = is.factor))
     if (length(factorCovs) > 0) {
       ## Create dummy variables without intercept.
-      covFormula <- as.formula(paste("genotype ~ ", paste(covar[factorCovs],
-                                                          collapse = "+")))
-      extraCov <- as.data.frame(suppressWarnings(model.matrix(object = covFormula,
-                                                              data = droplevels(phenoEnvir))))[, -1]
+      covFormula <- as.formula(paste("genotype ~ ",
+                                     paste(covar[factorCovs], collapse = "+")))
+      extraCov <- as.data.frame(suppressWarnings(
+        model.matrix(object = covFormula, data = droplevels(phenoEnvir))))[, -1]
       ## Add dummy variables to pheno data.
-      phenoEnvir <- cbind(phenoEnvir[, -which(colnames(phenoEnvir) %in% names(factorCovs))],
+      phenoEnvir <- cbind(phenoEnvir[, -which(colnames(phenoEnvir) %in%
+                                                names(factorCovs))],
                           extraCov)
       ## Modify covar to suit newly defined columns
       covarEnvir <- c(covar[-factorCovs], colnames(extraCov))
@@ -54,19 +55,21 @@ expandPheno <- function(gData,
 ## Compute chromosome specific kinship matrices.
 chrSpecKin <- function(gData,
                        kinshipMethod) {
-  chrs <- unique(gData$map$chr[rownames(gData$map) %in% colnames(gData$markers)])
+  chrs <- unique(gData$map$chr[rownames(gData$map) %in%
+                                 colnames(gData$markers)])
   if (length(chrs) == 1) {
-    stop("Chromosome specific kinship calculation not possible since map contains
-      only 1 chromosome.\n")
+    stop(paste("Chromosome specific kinship calculation not possible since",
+               "map contains only 1 chromosome.\n"))
   }
   ## Create list of zero matrices.
-  KChr <- setNames(replicate(n = length(chrs),
-                             Matrix::Matrix(data = 0, nrow = nrow(gData$markers),
-                                            ncol = nrow(gData$markers),
-                                            dimnames = list(rownames(gData$markers),
-                                                            rownames(gData$markers))),
-                             simplify = FALSE),
-                   paste0("KChr", chrs))
+  KChr <- setNames(
+    replicate(n = length(chrs),
+              Matrix::Matrix(data = 0, nrow = nrow(gData$markers),
+                             ncol = nrow(gData$markers),
+                             dimnames = list(rownames(gData$markers),
+                                             rownames(gData$markers))),
+              simplify = FALSE),
+    paste0("KChr", chrs))
   ## Create vector of marker numbers per chromosome.
   nMrkChr <- setNames(numeric(length = length(chrs)), chrs)
   for (chr in chrs) {

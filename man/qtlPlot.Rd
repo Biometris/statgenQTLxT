@@ -12,26 +12,30 @@ qtlPlot(data, chromosome = "chr", trait = "trait", snpEffect = "effect",
 \arguments{
 \item{data}{QTL data to be plotted}
 
-\item{chromosome}{a character indicating the data column containing the chromosome number.}
+\item{chromosome}{a character indicating the data column containing the
+chromosome number.}
 
-\item{trait}{a character indicating the data column containing the trait name.}
+\item{trait}{a character indicating the data column containing the trait
+name.}
 
-\item{snpEffect}{a character indicating the data column containing the snp effect.}
+\item{snpEffect}{a character indicating the data column containing the snp
+effect.}
 
-\item{snpPosition}{a character indicating the data column containing the position of the snp on
-the chromosome.}
+\item{snpPosition}{a character indicating the data column containing the
+position of the snp on the chromosome.}
 
-\item{map}{a dataframe with at least the columns \code{chr}, the number of the chromosome
-and \code{pos}, the position of the snp on the chromosome. These are used for calculating the
-physical limits of the chromosome.}
+\item{map}{a dataframe with at least the columns \code{chr}, the number of
+the chromosome and \code{pos}, the position of the snp on the chromosome.
+These are used for calculating the physical limits of the chromosome.}
 
 \item{normalize}{should the snpEffect be normalized?}
 
-\item{sortData}{should the data be sorted before plotting? Either false if no sorting should be done
-or a character indicating the data column on which the data should be sorted.}
+\item{sortData}{should the data be sorted before plotting? Either
+\code{FALSE} if no sorting should be done or a character indicating the data
+column on which the data should be sorted.}
 
-\item{binPositions}{an optional dataframe containing at leasts two columns, chromosome and position.
-Vertical lines are plotted at those positions.}
+\item{binPositions}{an optional dataframe containing at leasts two columns,
+chromosome and position. Vertical lines are plotted at those positions.}
 
 \item{printVertGrid}{Should default vertical grid lines be plotted.}
 
@@ -39,23 +43,26 @@ Vertical lines are plotted at those positions.}
 
 \item{exportPptx}{should the plot be exported to a .pptx file?}
 
-\item{pptxName}{name of the .pptx file to which the plot is exported. Ignored if exportPptx =
-\code{FALSE}.}
+\item{pptxName}{name of the .pptx file to which the plot is exported.
+Ignored if exportPptx = \code{FALSE}.}
 }
 \value{
-A ggplot object is returned and plotted on screen. Optionally the plot is exported to pptx as well.
+A ggplot object is returned and plotted on screen. Optionally the
+plot is exported to pptx as well.
 }
 \description{
 Visualisation of the final set of QTLs selected after the multi-trait GWAS.
 }
 \details{
-Each horizontal line contains QTLs of one trait, phenotypic trait or environment.
-Option: Vertical white lines can indicate chromosome subdivision, genes of interest, known QTL, etc.
-Circle diameters are proportional to the absolute value of allelic effect.
-Colors indicate the direction of the effect: green when the allele increases the trait value, and blue
-when it decreases the value.
+Each horizontal line contains QTLs of one trait, phenotypic trait or
+environment. Option: Vertical white lines can indicate chromosome
+subdivision, genes of interest, known QTL, etc. Circle diameters are
+proportional to the absolute value of allelic effect. Colors indicate the
+direction of the effect: green when the allele increases the trait value,
+and blue when it decreases the value.
 }
 \references{
-Millet et al. (2016) Genome-wide analysis of yield in Europe: Allelic effects vary
-with drought and heat scenarios. Plant Physiology, October 2016, Vol. 172, p. 749–764
+Millet et al. (2016) Genome-wide analysis of yield in Europe:
+Allelic effects vary with drought and heat scenarios. Plant Physiology,
+October 2016, Vol. 172, p. 749–764
 }

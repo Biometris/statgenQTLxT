@@ -5,43 +5,49 @@
 \title{Perform multi-trait GWAS}
 \usage{
 runMultiTraitGwas(gData, environments = NULL, covar = NULL,
-  snpCovariates = NULL, kin = NULL, kinshipMethod = "astle",
-  GLSMethod = 1, subsetMarkers = FALSE, markerSubset = "", MAF = 0.01,
-  fitVarComp = TRUE, covModel = 1, VeDiag = TRUE, tolerance = 1e-06,
-  maxIter = 2e+05, maxDiag = 10000, mG = 1, mE = 1, CmHet = TRUE,
-  DmHet = TRUE, stopIfDecreasing = TRUE, computeLogLik = TRUE,
-  Vg = NULL, Ve = NULL, reduceK = FALSE, nPca = NULL, estCom = FALSE,
-  parallel = FALSE)
+  snpCovariates = NULL, kin = NULL, kinshipMethod = c("astle", "GRM",
+  "IBS", "vanRaden"), GLSMethod = 1, subsetMarkers = FALSE,
+  markerSubset = "", MAF = 0.01, fitVarComp = TRUE, covModel = 1,
+  VeDiag = TRUE, tolerance = 1e-06, maxIter = 2e+05, maxDiag = 10000,
+  mG = 1, mE = 1, CmHet = TRUE, DmHet = TRUE, stopIfDecreasing = TRUE,
+  computeLogLik = TRUE, Vg = NULL, Ve = NULL, reduceK = FALSE,
+  nPca = NULL, estCom = FALSE, parallel = FALSE)
 }
 \arguments{
-\item{gData}{an object of class \code{gData} containing at least \code{map}, \code{markers} and
-\code{pheno}.}
+\item{gData}{an object of class \code{gData} containing at least \code{map},
+\code{markers} and \code{pheno}.}
 
-\item{environments}{a vector of environments on which to run GWAS. These can be either numeric indices or
-character names of list items in \code{pheno}. If \code{NULL} GWAS is run for all environments.}
+\item{environments}{a vector of environments on which to run GWAS. These can
+be either numeric indices or character names of list items in \code{pheno}.
+If \code{NULL} GWAS is run for all environments.}
 
-\item{covar}{an optional vector of covariates taken into account when running GWAS. These can be either
-numeric indices or character names of columns in \code{covar} in \code{gData}. If \code{NULL} no
-covariates are used.}
+\item{covar}{an optional vector of covariates taken into account when
+running GWAS. These can be either numeric indices or character names of
+columns in \code{covar} in \code{gData}. If \code{NULL} no covariates are
+used.}
 
-\item{snpCovariates}{an optional character vector of snps to be included as covariates.}
+\item{snpCovariates}{an optional character vector of snps to be included as
+covariates.}
 
-\item{kin}{an optional kinship matrix or list of kinship matrices. These matrices can be from the
-\code{matrix} class as defined in the base package or from the \code{dsyMatrix} class, the
-class of symmetric matrices in the Matrix package.\cr
-If \code{GLSMethod} = 1 then one matrix should be provided, if \code{GLSMethod} = 2 a list of
-chromosome specific matrices of lenght equal to the number of chromosomes in \code{map}
-in \code{gData}.\cr
+\item{kin}{an optional kinship matrix or list of kinship matrices. These
+matrices can be from the \code{matrix} class as defined in the base package
+or from the \code{dsyMatrix} class, the class of symmetric matrices in the
+Matrix package.\cr
+If \code{GLSMethod} = 1 then one matrix should be provided, if
+\code{GLSMethod} = 2 a list of chromosome specific matrices of lenght equal
+to the number of chromosomes in \code{map} in \code{gData}.\cr
 If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
-If both \code{kin} is provided and \code{gData} contains a matrix \code{kinship} then
-\code{kin} is used.}
+If both \code{kin} is provided and \code{gData} contains a matrix
+\code{kinship} then \code{kin} is used.}
 
-\item{kinshipMethod}{an optional character indicating the method used for calculating the kinship
-matrix(ces). Currently "astle" (Astle and Balding, 2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008)
-are supported. If a kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
+\item{kinshipMethod}{an optional character indicating the method used for
+calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
+2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
+kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 \code{kinshipMethod} is ignored.}
 
-\item{GLSMethod}{an integer indicating the method used to estimate the marker effects.
+\item{GLSMethod}{an integer indicating the method used to estimate the marker
+effects.
 \enumerate{
 \item{using one kinship matrix.}
 \item{using chromosome specific kinship matrices.}
@@ -52,9 +58,10 @@ are supported. If a kinship matrix is supplied either in \code{gData} or in para
 \item{markerSubset}{numeric or character vector used for subsetting the
 markers. Ignored if subsetMarkers = \code{FALSE}.}
 
-\item{MAF}{A numerical value between 0 and 1. SNPs with minor allele frequency below
-this value are not taken into account for the analysis, i.e. p-values and effect sizes are
-put to missing (NA). Ignored if \code{useMAF} is \code{FALSE}.}
+\item{MAF}{A numerical value between 0 and 1. SNPs with minor allele
+frequency below this value are not taken into account for the analysis,
+i.e. p-values and effect sizes are put to missing (NA). Ignored if
+\code{useMAF} is \code{FALSE}.}
 
 \item{fitVarComp}{should the variance components be fitted? If \code{FALSE}
 they should be supplied in Vg and Ve}

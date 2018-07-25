@@ -7,14 +7,16 @@
 emmaEigenR(K, X)
 }
 \arguments{
-\item{K}{an optional kinship matrix. If \code{NULL} then matrix \code{kinship} in \code{gData} is used.
-If both \code{K} is provided and \code{gData} contains a matrix \code{kinship} then \code{K} is used.}
+\item{K}{an optional kinship matrix. If \code{NULL} then matrix
+\code{kinship} in \code{gData} is used. If both \code{K} is provided and
+\code{gData} contains a matrix \code{kinship} then \code{K} is used.}
 
-\item{X}{a q x n covariate matrix, q being the number of covariates and n being the number
-of genotypes. q has to be at least one (typically an intercept).}
+\item{X}{a q x n covariate matrix, q being the number of covariates and n
+being the number of genotypes. q has to be at least one (typically an
+intercept).}
 }
 \description{
-Helper functions for computing REML estimates of genetic and residual variance components
-using the EMMA algorithm.
+Helper functions for computing REML estimates of genetic and residual
+variance components using the EMMA algorithm.
 }
 \keyword{internal}

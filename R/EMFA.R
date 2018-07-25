@@ -1,29 +1,34 @@
 #' Factor analytic variation of EM algoritm
 #'
-#' Implementation of the factor analytic variation of the EM algoritm as proposed by Dahl et al. (2013).
+#' Implementation of the factor analytic variation of the EM algoritm as
+#' proposed by Dahl et al. (2013).
 #'
-#' @param Y an n x p matrix of observed phenotypes, on p traits or environments for n individuals.
-#' No missing values are allowed.
+#' @param Y an n x p matrix of observed phenotypes, on p traits or environments
+#' for n individuals. No missing values are allowed.
 #' @param K an n x n kinship matrix.
-#' @param X an n x c covariate matrix, c being the number of covariates and n being the number
-#' of genotypes. c has to be at least one (typically an intercept). No missing values are allowed.
-#' If not provided a vector of 1s is used.
+#' @param X an n x c covariate matrix, c being the number of covariates and n
+#' being the number of genotypes. c has to be at least one (typically
+#' an intercept). No missing values are allowed. If not provided a vector of 1s
+#' is used.
 #' @param CmHet should an extra diagonal part be added in the model for the
 #' precision matrix Cm?
 #' @param DmHet should an extra diagonal part be added in the model for the
 #' precision matrix Dm?
-#' @param tolerance a numerical value. The iterating process stops if the difference in conditional
-#' log-likelihood between two consecutive iterations drops below tolerance.
+#' @param tolerance a numerical value. The iterating process stops if the
+#' difference in conditional log-likelihood between two consecutive iterations
+#' drops below tolerance.
 #' @param maxIter a numerical value for the maximum number of iterations.
-#' @param CmStart a p x p matrix containing starting values for the precision matrix Cm.
-#' @param DmStart a p x p matrix containing starting values for the precision matrix Dm.
+#' @param CmStart a p x p matrix containing starting values for the precision
+#' matrix Cm.
+#' @param DmStart a p x p matrix containing starting values for the precision
+#' matrix Dm.
 #' @param mG an integer. The order of the genetic part of the model.
 #' @param mE an integer. The order of the environmental part of the model.
-#' @param maxDiag a numical value. The maximal value of the diagonal elements in the precision matrices
-#' Cm and Dm (ignoring the low-rank part W W^t)
+#' @param maxDiag a numical value. The maximal value of the diagonal elements
+#' in the precision matrices Cm and Dm (ignoring the low-rank part W W^t)
 #' @param prediction should predicted values for Y be returned?
-#' @param stopIfDecreasing should the iterating process stop if after 50 iterations the
-#' log-likelihood decreases between two consecutive iterations?
+#' @param stopIfDecreasing should the iterating process stop if after 50
+#' iterations the log-likelihood decreases between two consecutive iterations?
 #' @param computeLogLik should the log-likelihood be returned?
 #'
 #' @return A list containing the following components
@@ -34,19 +39,19 @@
 #' \item{\code{logLik2} log-likelihood as in Zhou and Stephens (2014)}
 #' \item{\code{nIter} the number of iterations.}
 #' \item{\code{converged} did the algorithm converge?}
-#' \item{\code{decreased} did the algorithm stop because the log-likelihood decreased
-#' between iterations.}
+#' \item{\code{decreased} did the algorithm stop because the log-likelihood
+#' decreased between iterations.}
 #' }
 #'
-#' @references Dahl et al. (2013). Network inference in matrix-variate Gaussian models with
-#' non-independent noise. arXiv preprint arXiv:1312.1622.
-#' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear mixed model algorithms for
-#' genome-wide association studies. Nature Methods, February 2014, Vol. 11, p. 407–409
+#' @references Dahl et al. (2013). Network inference in matrix-variate Gaussian
+#' models with non-independent noise. arXiv preprint arXiv:1312.1622.
+#' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
+#' mixed model algorithms for genome-wide association studies. Nature Methods,
+#' February 2014, Vol. 11, p. 407–409
 #'
 #' @importFrom methods as
 #'
 #' @keywords internal
-
 EMFA <- function(Y,
                  K,
                  X = Matrix::Matrix(rep(1, nrow(K))),
@@ -68,8 +73,8 @@ EMFA <- function(Y,
   }
   if (missing(K) || !(is.matrix(K) || inherits(K, "Matrix")) ||
       nrow(K) != nrow(Y) || ncol(K) != nrow(Y) || anyNA(K)) {
-    stop("K should be a matrix without missing values with the same number of rows
-      and columns as the number of rows in Y.\n")
+    stop(paste("K should be a matrix without missing values with the same",
+               "number of rows and columns as the number of rows in Y.\n"))
   }
   if (!(is.matrix(X) || inherits(X, "Matrix")) || anyNA(X)) {
     stop("X should be a matrix without missing values.\n")
@@ -123,7 +128,8 @@ EMFA <- function(Y,
     Ug <- as(eigenC$vectors[, 1:mG], "dgeMatrix")
     psiG <- mean(eigenC$values[-(1:mG)])
     if (mG > 1) {
-      rootLambdaG <- matrixRoot(Matrix::Diagonal(x = eigenC$values[1:mG] - psiG))
+      rootLambdaG <- matrixRoot(
+        Matrix::Diagonal(x = eigenC$values[1:mG] - psiG))
     } else {
       rootLambdaG <- as(sqrt(eigenC$values[1:mG] - psiG), "dgeMatrix")
     }
@@ -140,7 +146,8 @@ EMFA <- function(Y,
     Ue <- as(eigenD$vectors[, 1:mE], "dgeMatrix")
     psiE <- mean(eigenD$values[-(1:mE)])
     if (mE > 1) {
-      rootLambdaE <- matrixRoot(Matrix::Diagonal(x = eigenD$values[1:mE] - psiE))
+      rootLambdaE <- matrixRoot(
+        Matrix::Diagonal(x = eigenD$values[1:mE] - psiE))
     } else {
       rootLambdaE <- as(sqrt(eigenD$values[1:mE] - psiE), "dgeMatrix")
     }
@@ -168,8 +175,10 @@ EMFA <- function(Y,
     lambda2 <- w2$values
     if (nc > 0) {
       tUYminXb <- Matrix::crossprod(Uk, Y - X %*% B)
-      S1 <- vecInvDiag(x = lambda1, y = w$values) * (tUYminXb %*% matrixRoot(Dm) %*% Q1)
-      S2 <- vecInvDiag(x = lambda2, y = 1 / w$values) * (tUYminXb %*% matrixRoot(Cm) %*% Q2)
+      S1 <- vecInvDiag(x = lambda1, y = w$values) *
+        (tUYminXb %*% matrixRoot(Dm) %*% Q1)
+      S2 <- vecInvDiag(x = lambda2, y = 1 / w$values) *
+        (tUYminXb %*% matrixRoot(Cm) %*% Q2)
     } else {
       S1 <- vecInvDiag(x = lambda1, y = w$values) *
         Matrix::crossprod(Uk, Y %*% matrixRoot(Dm) %*% Q1)
@@ -215,7 +224,8 @@ EMFA <- function(Y,
       WgNew <- NULL
       CmNew  <- PgNew
     } else {
-      ## When rank(Omega) = Q, A should be the Q x p matrix such that Omega = A^t A / Q
+      ## When rank(Omega) = Q, A should be the Q x p matrix such that
+      ## Omega = A^t A / Q
       A <- matrixRoot(Omega2)
       A <- A * sqrt(nrow(A))
       if (!CmHet) {
@@ -248,7 +258,8 @@ EMFA <- function(Y,
       WeNew <- NULL
       DmNew  <- PeNew
     } else {
-      ## When rank(Omega) = Q, A should be the Q x p matrix such that Omega = A^t A / Q
+      ## When rank(Omega) = Q, A should be the Q x p matrix such that
+      ## Omega = A^t A / Q
       A <- matrixRoot(Omega1)
       A <- A * sqrt(nrow(A))
       if (!DmHet) {
@@ -266,8 +277,10 @@ EMFA <- function(Y,
     }
     ## Compute log-likelihood and check stopping criteria
     ELogLikOld <- ELogLikCm + ELogLikDm
-    ELogLikCm <- n * (Matrix::determinant(Cm)[[1]][1] - sum(Matrix::diag(Cm %*% Omega2)))
-    ELogLikDm <- n * (Matrix::determinant(Dm)[[1]][1] - sum(Matrix::diag(Dm %*% Omega1)))
+    ELogLikCm <- n * (Matrix::determinant(Cm)[[1]][1] -
+                        sum(Matrix::diag(Cm %*% Omega2)))
+    ELogLikDm <- n * (Matrix::determinant(Dm)[[1]][1] -
+                        sum(Matrix::diag(Dm %*% Omega1)))
     ELogLik <- ELogLikCm + ELogLikDm
     if (stopIfDecreasing && iter > 50) {
       if (ELogLik < ELogLikOld - 0.1) {
@@ -293,7 +306,8 @@ EMFA <- function(Y,
   }
   ## Compute log-likelihood
   if (computeLogLik) {
-    VInvArray <- makeVInvArray(Vg <- Matrix::solve(Cm), Ve <- Matrix::solve(Dm), Dk = Dk)
+    VInvArray <- makeVInvArray(Vg <- Matrix::solve(Cm), Ve <- Matrix::solve(Dm),
+                               Dk = Dk)
     VArray <- makeVArray(Vg = Vg, Ve = Ve, Dk = Dk)
     if (nc > 0) {
       XTransformed <- Matrix::crossprod(X, Uk)

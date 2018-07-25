@@ -11,8 +11,8 @@ covPairwise(Y, K, X = NULL, fixDiag = FALSE, corMat = FALSE,
   parallel = FALSE)
 }
 \arguments{
-\item{Y}{an n x p matrix of observed phenotypes, on p traits or environments for n individuals.
-No missing values are allowed.}
+\item{Y}{an n x p matrix of observed phenotypes, on p traits or environments
+for n individuals. No missing values are allowed.}
 
 \item{K}{an n x n kinship matrix.}
 

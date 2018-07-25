@@ -17,20 +17,21 @@ updateFA(Y, WStart = NULL, m = ifelse(is.null(WStart), 2, ncol(WStart)),
 
 \item{PStart}{a p x p matrix or dataframe containing starting values for P.}
 
-\item{hetVar}{should an extra diagonal part be added in the model for the precision matrix?}
+\item{hetVar}{should an extra diagonal part be added in the model for the
+precision matrix?}
 
 \item{maxDiag}{a numerical value for the maximum value of the diagonal of P.}
 
-\item{tolerance}{a numerical value. The iterating process stops if the sum of the difference for P
-and W between two steps gets lower than this value.}
+\item{tolerance}{a numerical value. The iterating process stops if the sum
+of the difference for P and W between two steps gets lower than this value.}
 
 \item{maxIter}{a numerical value for the maximum number of iterations.}
 
 \item{printProgress}{should progress be printed during iterations?}
 }
 \value{
-a list containing the new matrices W and P after the iteration process and the number
-of iterations.
+a list containing the new matrices W and P after the iteration
+process and the number of iterations.
 }
 \description{
 Updata W and P used in the iteration process in the EMFA algorithm.
