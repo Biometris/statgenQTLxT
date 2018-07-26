@@ -128,7 +128,7 @@ createGData <- function(gData = NULL,
     if (all(rownames(map) == as.character(1:nrow(map)))) {
       ## If no marker name in input compute them from chromosome and position.
       ## Names are made unique if necessary by adding a suffix _1, _2, etc.
-      replicates <- dplyr::count(map, map$chr, map$pos)$n
+      replicates <- aggregate(chr ~ chr + pos, data = map, FUN = length)$chr
       suffix <- unlist(sapply(X = replicates, FUN = function(n) {
         if (n == 1) {
           return("")
@@ -288,7 +288,7 @@ createGData <- function(gData = NULL,
       stop("kin should be a matrix or a list of matrices.\n")
     }
     if (!is.null(map) && is.list(kin) &&
-        length(kin) != dplyr::n_distinct(map$chr)) {
+        length(kin) != length(unique(map$chr))) {
       stop(paste("kin should be the same length as the number of",
                  "chromosomes in map.\n"))
     }
@@ -396,7 +396,7 @@ summary.gData <- function(object, ...) {
   if (!is.null(map)) {
     cat("map\n")
     cat("\tNumber of markers:", nrow(map), "\n")
-    cat("\tNumber of chromosomes:", dplyr::n_distinct(map$chr), "\n\n")
+    cat("\tNumber of chromosomes:", length(unique(map$chr)), "\n\n")
   }
   if (!is.null(markers)) {
     cat("markers\n")
@@ -417,7 +417,7 @@ summary.gData <- function(object, ...) {
         cat("\tEnvironment ", i, ":\n", sep = "")
       }
       cat("\t\tNumber of traits:", ncol(pheno[[i]]) - 1, "\n")
-      cat("\t\tNumber of genotypes:", dplyr::n_distinct(pheno[[i]]$genotype),
+      cat("\t\tNumber of genotypes:", length(unique(pheno[[i]]$genotype)),
           "\n\n")
       print(summary(pheno[[i]][, -1]))
       cat("\n")

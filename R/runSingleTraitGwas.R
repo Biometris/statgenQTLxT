@@ -203,7 +203,7 @@ runSingleTraitGwas <- function(gData,
   if (GLSMethod == 2 && !is.null(kin) &&
       (!is.list(kin) || !all(sapply(kin, FUN = function(k) {
         is.matrix(k) || inherits(k, "Matrix")})) ||
-       length(kin) != dplyr::n_distinct(gData$map$chr))) {
+       length(kin) != length(unique(gData$map$chr)))) {
     stop(paste("kin should be a list of matrices of length equal to the",
                "number of chromosomes in the map.\n"))
   }
@@ -289,11 +289,6 @@ runSingleTraitGwas <- function(gData,
   }
   ## Compute max value in markers
   maxScore <- min(max(gData$markers, na.rm = TRUE), 2)
-  # allele frequencies based on all genotypes (trait-independent)
-  allFreqTot <- Matrix::colMeans(gData$markers, na.rm = TRUE)
-  if (maxScore == 2) {
-    allFreqTot <- allFreqTot / 2
-  }
   ## Define data.frames for total results.
   GWATot <- signSnpTot <- varCompTot <- LODThrTot <- inflationFactorTot <-
     setNames(vector(mode = "list", length = length(environments)),

@@ -148,10 +148,10 @@ summary.GWAS <- function(object, ..., environments = NULL) {
     ## Print traits.
     cat("\tTraits analysed:", paste(traits, collapse = ", "), "\n\n")
     ## Print SNP numbers.
-    cat("\tData are available for", dplyr::n_distinct(GWAResult$snp),
+    cat("\tData are available for", length(unique(GWAResult$snp)),
         "SNPs.\n")
     if (!is.null(GWASInfo$MAF)) {
-      cat("\t", dplyr::n_distinct(GWAResult$snp[is.na(GWAResult$pValue)]),
+      cat("\t", length(unique(GWAResult$snp[is.na(GWAResult$pValue)])),
           "of them were not analyzed because their minor allele frequency is",
           "below", GWASInfo$MAF, "\n\n")
     }
@@ -310,10 +310,9 @@ plot.GWAS <- function(x, ...,
     addPos <- data.frame(chr = chrBnd[, 1],
                          add = c(0, cumsum(chrBnd[, 2]))[1:nrow(chrBnd)],
                          stringsAsFactors = FALSE)
-    map <- dplyr::select(GWAResult, .data$snp, .data$chr, .data$pos,
-                         .data$LOD) %>%
-      dplyr::inner_join(addPos, by = "chr") %>%
-      dplyr::mutate(cumPos = .data$pos + .data$add)
+    map <- GWAResult[, c("snp", "chr", "pos", "LOD")]
+    map <- merge(map, addPos, by = "chr")
+    map$cumPos <- map$pos + map$add
     ## Extract numbers of significant SNPs.
     if (!is.null(signSnp)) {
       if (is.null(dotArgs$yThr)) {

@@ -110,15 +110,15 @@ codeMarkers <- function(gData,
                "the amount of SNPs in markers.\n"))
   }
   if (is.null(nMissGeno) || length(nMissGeno) > 1 || !is.numeric(nMissGeno) ||
-      !dplyr::between(x = nMissGeno, left = 0, right = 1)) {
+      nMissGeno < 0 || nMissGeno > 1) {
     stop("nMissGeno should be a single numerical value between 0 and 1.\n")
   }
   if (is.null(nMiss) || length(nMiss) > 1 || !is.numeric(nMiss) ||
-      !dplyr::between(x = nMiss, left = 0, right = 1)) {
+      nMiss < 0 || nMiss > 1) {
     stop("nMiss should be a single numerical value between 0 and 1.\n")
   }
   if (!is.null(MAF) && (length(MAF) > 1 || !is.numeric(MAF) ||
-                        !dplyr::between(x = MAF, left = 0, right = 1))) {
+                        MAF < 0 || MAF > 1)) {
     stop("MAF should be a single numerical value between 0 and 1.\n")
   }
   if (!is.null(keep) && (!is.character(keep) ||
@@ -205,8 +205,8 @@ codeMarkers <- function(gData,
   }
   ## Remove markers with low MAF.
   if (!is.null(MAF)) {
-    snpMAF <- dplyr::between(x = colMeans(markersRecoded, na.rm = TRUE),
-                             left = maxAll * MAF, right = maxAll * (1 - MAF))
+    snpMAFs <- colMeans(markersRecoded, na.rm = TRUE)
+    snpMAF <- snpMAFs >= maxAll * MAF & snpMAFs <= maxAll * (1 - MAF)
     markersRecoded <- markersRecoded[, snpMAF | snpKeep, drop = FALSE]
     snpKeep <- snpKeep[snpMAF | snpKeep]
   }
@@ -264,8 +264,8 @@ codeMarkers <- function(gData,
       mapBeagle <- data.frame(map$chr,
                               rownames(map),
                               map$pos,
-                              map$pos) %>%
-        dplyr::arrange(.data$map.chr, .data$map.pos)
+                              map$pos)
+      mapBeagle <- mapBeagle[order(mapBeagle$map.chr, mapBeagle$map.pos), ]
       ## Beagle doesn't accept duplicate map entries. To get around this
       ## duplicate entries are made distinct by adding 1 to the position.
       while (anyDuplicated(mapBeagle[, c(1, 4)])) {
@@ -341,8 +341,8 @@ codeMarkers <- function(gData,
     }
     ## Remove markers with low MAF after imputation.
     if (!is.null(MAF)) {
-      snpMAF <- dplyr::between(colMeans(markersRecoded, na.rm = TRUE),
-                               maxAll * MAF, maxAll * (1 - MAF))
+      snpMAFs <- colMeans(markersRecoded, na.rm = TRUE)
+      snpMAF <- snpMAFs >= maxAll * MAF & snpMAFs <= maxAll * (1 - MAF)
       markersRecoded <- markersRecoded[, snpMAF | snpKeep, drop = FALSE]
       snpKeep <- snpKeep[snpMAF | snpKeep]
     }

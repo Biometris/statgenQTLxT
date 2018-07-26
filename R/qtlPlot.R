@@ -157,17 +157,16 @@ qtlPlot <- function(data,
   limits[, c(chromosome, snpPosition)] <- rbind(limitsLow, limitsHigh)
   data <- rbind(data, limits)
   ## Select and rename relevant columns for plotting
-  plotData <- dplyr::select(data, trait = trait, chromosome = chromosome,
-                            snpEffect = snpEffect, snpPosition = snpPosition,
-                            sort, eff)
+  plotDat <- data[, c(trait, chromosome, snpEffect, snpPosition, "sort", "eff")]
+  colnames(plotDat)[1:4] <-
+    c("trait", "chromosome", "snpEffect", "snpPosition")
   ## Add a column with the allelic effect direction (for points color)
-  plotData$color <- ifelse(plotData$eff != -Inf,
-                           ifelse(plotData$eff > 0, "pos", "neg"),
-                           NA)
+  plotDat$color <- ifelse(plotDat$eff != -Inf,
+                          ifelse(plotDat$eff > 0, "pos", "neg"), NA)
   ## Redefine trait as factor to keep traits in order as they appeared in
   ## original data when plotting.
-  plotData$trait <- factor(plotData$trait, levels = unique(plotData$trait))
-  plotData <- droplevels(plotData)
+  plotDat$trait <- factor(plotDat$trait, levels = unique(plotDat$trait))
+  plotDat <- droplevels(plotDat)
   ## Create theme for plot
   qtlPlotTheme <-
     ggplot2::theme(plot.background = ggplot2::element_blank(),
@@ -196,7 +195,7 @@ qtlPlot <- function(data,
                    strip.text.y = ggplot2::element_text(size = 0))
   ## Create the plot object
   qtlPlot <-
-    ggplot2::ggplot(data = plotData,
+    ggplot2::ggplot(data = plotDat,
                     ggplot2::aes(x = snpPosition,
                                  ## Y data is sorted in reverse order because
                                  ## of the way ggplot plots.
@@ -235,18 +234,18 @@ qtlPlot <- function(data,
     if (requireNamespace("officer", quietly = TRUE) &&
         requireNamespace("rvg", quietly = TRUE)) {
       ## Create empty .pptx file
-      pptOut <- officer::read_pptx() %>%
+      pptOut <- officer::read_pptx()
         ## Add new slide (always necessary)
-        officer::add_slide(layout = "Title and Content",
-                           master = "Office Theme") %>%
-        ## Add plot to the document
-        rvg::ph_with_vg_at(ggobj = qtlPlot, left = 0.9, top = 0.9,
-                           width = 8, height = 6.4) %>%
-        ## Add date to slide
-        officer::ph_with_text(type = "dt",
-                              str = format(Sys.Date(),"%B %d, %Y")) %>%
-        ##Write .pptx
-        print(target = pptxName)
+      pptOut <- officer::add_slide(x = pptOut, layout = "Title and Content",
+                                   master = "Office Theme")
+      ## Add plot to the document
+      pptOut <- rvg::ph_with_vg_at(x = pptOut, ggobj = qtlPlot, left = 0.9,
+                                   top = 0.9, width = 8, height = 6.4)
+      ## Add date to slide
+      pptOut <- officer::ph_with_text(x = pptOut, type = "dt",
+                                      str = format(Sys.Date(),"%B %d, %Y"))
+      ##Write .pptx
+      print(pptOut, target = pptxName)
     }
     else {
       message("Package officer needs to be installed to be able to export

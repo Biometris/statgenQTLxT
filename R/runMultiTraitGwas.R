@@ -165,7 +165,7 @@ runMultiTraitGwas <- function(gData,
   if (GLSMethod == 2 && !is.null(kin) &&
       (!is.list(kin) || !all(sapply(kin, FUN = function(k) {
         is.matrix(k) || inherits(k, "Matrix")})) ||
-       length(kin) != dplyr::n_distinct(gData$map$chr))) {
+       length(kin) != length(unique(gData$map$chr)))) {
     stop(paste("kin should be a list of matrices of length equal to the number",
                "of chromosomes in the map.\n"))
   }
@@ -458,18 +458,6 @@ runMultiTraitGwas <- function(gData,
                                  dimnames = list(colnames(markersRed),
                                                  colnames(Y)))
   markersRed <- markersRed[rownames(Y), ]
-  GWAResult <- data.frame(trait = NA,
-                          snp = rownames(mapRed),
-                          mapRed,
-                          pValue = NA,
-                          LOD = NA,
-                          effect = NA,
-                          effectSe = NA,
-                          pValueWald = NA,
-                          LODWald = NA,
-                          allFreq = allFreq,
-                          row.names = rownames(mapRed),
-                          stringsAsFactors = FALSE)
   ## Run GWAS.
   if (GLSMethod == 1) {
     segMarkers <- which(allFreq < MAF | allFreq > 1 - MAF)
@@ -569,34 +557,41 @@ runMultiTraitGwas <- function(gData,
     }
   }
   ## Convert effects and effectsSe to long format and merge.
-  effectsTot <- reshape2::melt(effects) %>%
-    dplyr::inner_join(reshape2::melt(effectsSe), by = c("Var1", "Var2")) %>%
-    dplyr::mutate(Var1 = as.character(.data$Var1),
-                  Var2 = as.character(.data$Var2))
+  effectsLong <- reshape2::melt(effects)
+  effectsSeLong <- reshape2::melt(effectsSe)
+  effectsTot <- merge(effectsLong, effectsSeLong, by = c("Var1", "Var2"))
+  ## Melt creates factors. Reconvert trait to character.
+  effectsTot$Var1 <- as.character(effectsTot$Var1)
+  effectsTot$Var2 <- as.character(effectsTot$Var2)
   ## Bind common effects, SE, and pvalues together.
   if (estCom) {
     comDat <- cbind(pValuesCom, effectsCom, effectsComSe, pValuesQtlE)
     comDat <- as.data.frame(comDat)
     comDat$snp <- rownames(comDat)
   }
+  ## Set up a data.frame for storing results containing map info and
+  ## allele frequencies.
+  GWAResult <- data.frame(snp = rownames(mapRed), mapRed, allFreq = allFreq,
+                          row.names = rownames(mapRed),
+                          stringsAsFactors = FALSE)
   ## Merge the effects and effectsSe to the results
-  GWAResult <- dplyr::inner_join(GWAResult, effectsTot,
-                                 by = c("snp" = "Var2")) %>%
-    dplyr::inner_join(data.frame(snp = names(pValues), pValues,
-                                 stringsAsFactors = FALSE), by = "snp")
+  GWAResult <- merge(GWAResult, effectsTot, by.x = "snp", by.y = "Var2")
+  GWAResult <- merge(GWAResult, data.frame(snp = names(pValues), pValues,
+                                           stringsAsFactors = FALSE),
+                     by = "snp")
   if (estCom) {
-    GWAResult <- dplyr::inner_join(GWAResult, comDat, by = "snp")
+    GWAResult <- merge(GWAResult, comDat, by = "snp")
   }
-  GWAResult <- dplyr::mutate(.data = GWAResult,
-                             LOD = -log10(.data$pValues)) %>%
-    ## Select and compute relevant columns.
-    ## Melt creates factors. Reconvert trait to character.
-    dplyr::select(.data$snp, trait = .data$Var1, .data$chr, .data$pos,
-                  pValue = .data$pValues, .data$LOD, effect = .data$value.x,
-                  effectSe = .data$value.y, .data$allFreq,
-                  .data$pValuesCom, .data$effectsCom, .data$effectsComSe,
-                  .data$pValuesQtlE) %>%
-    dplyr::arrange(.data$trait, .data$chr, .data$pos)
+  GWAResult$LOD <- -log10(GWAResult$pValues)
+  ## Select and compute relevant columns.
+  relCols <- c("snp", "Var1", "chr", "pos", "pValues", "LOD", "value.x",
+               "value.y", "allFreq", if (estCom) {c("pValuesCom", "effectsCom",
+               "effectsComSe", "pValuesQtlE")})
+  GWAResult <- GWAResult[, relCols]
+  colnames(GWAResult)[colnames(GWAResult) %in% c("Var1", "pValues", "value.x",
+                                                 "value.y")] <-
+    c("trait", "pValue", "effect", "effectSe")
+  GWAResult <- GWAResult[order(GWAResult$trait, GWAResult$chr, GWAResult$pos), ]
   ## Collect info.
   GWASInfo <- list(call = match.call(),
                    MAF = MAF,
