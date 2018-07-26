@@ -271,8 +271,6 @@ runSingleTraitGwas <- function(gData,
                     markers = gData$markers, kinshipMethod = kinshipMethod)
   } else if (GLSMethod == 2) {
     ## Compute kinship matrices per chromosome. Only needs to be done once.
-    chrs <- unique(gData$map$chr[rownames(gData$map) %in%
-                                   colnames(gData$markers)])
     KChr <- computeKin(GLSMethod = 2, kin = kin, gData = gData,
                        markers = gData$markers, map = gData$map,
                        kinshipMethod = kinshipMethod)
@@ -310,147 +308,33 @@ runSingleTraitGwas <- function(gData,
                                     c("genotype", trait, covarEnvir)]
       ## Select genotypes where trait is not missing.
       nonMissing <- unique(phenoEnvirTrait$genotype)
+      nonMissingRepId <- phenoEnvirTrait$genotype
       if (GLSMethod == 1) {
         kinshipRed <- K[nonMissing, nonMissing]
-      }
-      nonMissingRepId <- phenoEnvirTrait$genotype
-      ## Estimate variance components.
-      if (GLSMethod == 1) {
-        if (!isTRUE(all.equal(kinshipRed, Matrix::Diagonal(nrow(kinshipRed)),
-                              check.names = FALSE))) {
-          if (remlAlgo == 1) {
-            ## emma algorithm takes covariates from gData.
-            gDataEmma <-
-              createGData(pheno = phenoEnvirTrait[, c("genotype", trait)],
-                          covar = if (is.null(covarEnvir)) {
-                            NULL
-                          } else {
-                            as.data.frame(phenoEnvirTrait[covarEnvir],
-                                          row.names = phenoEnvirTrait$genotype)
-                          })
-            remlObj <- runEmma(gData = gDataEmma, trait = trait,
-                               environment = 1, covar = covarEnvir,
-                               K = kinshipRed)
-            ## Compute varcov matrix using var components.
-            varCompEnvir[[trait]] <- remlObj[[1]]
-            vcovMatrix <- remlObj[[1]][1] * remlObj[[2]] +
-              Matrix::Diagonal(n = nrow(remlObj[[2]]), x = remlObj[[1]][2])
-            rownames(vcovMatrix) <- colnames(vcovMatrix) <-
-              rownames(remlObj[[2]])
-          } else if (remlAlgo == 2) {
-            ## Construct the formula for the fixed part of the model.
-            if (!is.null(covarEnvir)) {
-              ## Define formula for fixed part. ` needed to accommodate -
-              ## in variable names.
-              fixed <- as.formula(paste0(trait," ~ `",
-                                         paste0(covarEnvir, collapse = "` + `"),
-                                         "`"))
-            } else {
-              fixed <- as.formula(paste(trait, " ~ 1"))
-            }
-            ## Fit mmer2 model.
-            sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
-                                       random = ~ g(genotype),
-                                       G = list(genotype = kinshipRed),
-                                       silent = TRUE, date.warning = FALSE)
-            ## Compute varcov matrix using var components from model.
-            varComp <- sommerFit$var.comp
-            sommerK <- kinshipRed[nonMissingRepId, nonMissingRepId]
-            varCompEnvir[[trait]] <- setNames(
-              unlist(varComp)[c(1, length(unlist(varComp)))], c("Vg", "Ve"))
-            vcovMatrix <- unlist(varComp)[1] * sommerK +
-              Matrix::Diagonal(n = nrow(sommerK),
-                               x = unlist(varComp)[length(unlist(varComp))])
-          }
-          if (any(eigen(vcovMatrix, symmetric = TRUE,
-                        only.values = TRUE)$values <= 1e-8))
-            vcovMatrix <- Matrix::nearPD(vcovMatrix)$mat
-        } else {
-          ## Kinship matrix is computationally identical to identity matrix.
-          vcovMatrix <- Matrix::Diagonal(nrow(phenoEnvirTrait))
-        }
+        chrs <- NULL
       } else if (GLSMethod == 2) {
-        varCompEnvir[[trait]] <- vcovMatrix <- vector(mode = "list",
-                                                      length = length(chrs))
-        names(varCompEnvir[[trait]]) <- paste("chr", chrs)
-        ## emma algorithm takes covariates from gData.
-        if (remlAlgo == 1) {
-          gDataEmma <-
-            createGData(pheno = phenoEnvirTrait[, c("genotype", trait)],
-                        covar = if (is.null(covarEnvir)) {
-                          NULL
-                        } else {
-                          as.data.frame(phenoEnvirTrait[covarEnvir],
-                                        row.names = phenoEnvirTrait$genotype)
-                        })
-          for (chr in chrs) {
-            ## Get chromosome specific kinship.
-            KinshipRedChr <- KChr[[which(chrs == chr)]][nonMissing, nonMissing]
-            ## Compute variance components using chromosome specific kinship.
-            remlObj <- runEmma(gData = gDataEmma, trait = trait,
-                               environment = 1, covar = covarEnvir,
-                               K = KinshipRedChr)
-            ## Compute varcov matrix using var components.
-            varCompEnvir[[trait]][[which(chrs == chr)]] <- remlObj[[1]]
-            vcovMatrixChr <- remlObj[[1]][1] * remlObj[[2]] +
-              remlObj[[1]][2] * Matrix::Diagonal(nrow(remlObj[[2]]))
-            rownames(vcovMatrixChr) <- colnames(vcovMatrixChr) <-
-              rownames(remlObj[[2]])
-            vcovMatrix[[which(chrs == chr)]] <- vcovMatrixChr
-          }
-        } else if (remlAlgo == 2) {
-          if (!is.null(covarEnvir)) {
-            ## Define formula for fixed part. ` needed to accommodate -
-            ## in variable names.
-            fixed <- as.formula(paste0(trait," ~ `",
-                                       paste0(covarEnvir, collapse = "` + `"),
-                                       "`"))
-          } else {
-            fixed <- as.formula(paste(trait, " ~ 1"))
-          }
-          for (chr in chrs) {
-            ## Get chromosome specific kinship.
-            KinshipRedChr <- KChr[[which(chrs == chr)]][nonMissing, nonMissing]
-            ## Fit mmer2 model using chromosome specific kinship.
-            sommerFit <- sommer::mmer2(fixed = fixed, data = phenoEnvirTrait,
-                                       random = ~ g(genotype),
-                                       G = list(genotype = KinshipRedChr),
-                                       silent = TRUE, date.warning = FALSE)
-            ## Compute varcov matrix using var components from model.
-            varComp <- sommerFit$var.comp
-            sommerK <- KinshipRedChr[nonMissingRepId, nonMissingRepId]
-            varCompEnvir[[trait]][[which(chrs == chr)]] <- setNames(
-              unlist(varComp)[c(1, length(unlist(varComp)))],
-              c("Vg", "Ve"))
-            vcovMatrix[[which(chrs == chr)]] <- unlist(varComp)[1] * sommerK +
-              unlist(varComp)[length(unlist(varComp))] *
-              Matrix::Diagonal(n = nrow(sommerK))
-          }
-        }
-        vcovMatrix <- lapply(vcovMatrix, FUN = function(vc) {
-          if (any(eigen(vc, symmetric = TRUE,
-                        only.values = TRUE)$values <= 1e-8)) {
-            Matrix::nearPD(vc)$mat
-          } else {
-            vc
-          }
-        })
+           chrs <- unique(gData$map$chr[rownames(gData$map) %in%
+                                          colnames(gData$markers)])
       }
+      ## Estimate variance components.
+      vc <- estVarComp(GLSMethod = GLSMethod, remlAlgo = remlAlgo,
+                       trait = trait, phenoEnvirTrait = phenoEnvirTrait,
+                       covarEnvir = covarEnvir, K = kinshipRed, chrs = chrs,
+                       KChr = KChr, nonMissing = nonMissing,
+                       nonMissingRepId = nonMissingRepId)
+      varCompEnvir[[trait]] <- vc$varComp
+      vcovMatrix <- vc$vcovMatrix
       ## Compute allele frequencies based on genotypes for which phenotypic
       ## data is available.
       markersRed <- gData$markers[nonMissing, colnames(gData$markers) %in%
                                     rownames(gData$map)]
       mapRed <- gData$map[rownames(gData$map) %in% colnames(markersRed), ]
-      allFreq <- Matrix::colMeans(markersRed, na.rm = TRUE)
+      allFreq <- Matrix::colMeans(markersRed, na.rm = TRUE) / maxScore
       if (!useMAF) {
         MAF <- MAC / length(nonMissing) - 1e-5
       }
       ## Determine segregating markers. Exclude snps used as covariates.
-      segMarkers <- which(allFreq >= maxScore * MAF &
-                            allFreq <= maxScore * (1 - MAF))
-      if (maxScore == 2) {
-        allFreq <- allFreq / 2
-      }
+      segMarkers <- which(allFreq >= MAF & allFreq <= (1 - MAF))
       ## Define data.frame for results.
       GWAResult <- data.frame(snp = rownames(mapRed),
                               mapRed,
@@ -461,6 +345,7 @@ runSingleTraitGwas <- function(gData,
                               RLR2 = NA,
                               allFreq = allFreq,
                               stringsAsFactors = FALSE)
+      ## Define single column matrix with trait non missing values.
       y <- as(phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing),
                               trait], "dgeMatrix")
       if (GLSMethod == 1) {
@@ -502,13 +387,9 @@ runSingleTraitGwas <- function(gData,
           markersRedChr <- markersRed[, which(colnames(markersRed) %in%
                                                 rownames(mapRedChr)),
                                       drop = FALSE]
-          allFreqChr <- Matrix::colMeans(markersRedChr, na.rm = TRUE)
+          allFreqChr <- Matrix::colMeans(markersRedChr, na.rm = TRUE) / maxScore
           ## Determine segregating markers. Exclude snps used as covariates.
-          segMarkersChr <- which(allFreqChr >= maxScore * MAF &
-                                   allFreqChr <= maxScore * (1 - MAF))
-          if (maxScore == 2) {
-            allFreqChr <- allFreqChr / 2
-          }
+          segMarkersChr <- which(allFreqChr >= MAF & allFreqChr <= (1 - MAF))
           ## Exclude snpCovariates from segregating markers.
           exclude <- computeExcludedMarkers(snpCovariates = snpCovariates,
                                             markersRed = markersRedChr,
@@ -524,8 +405,7 @@ runSingleTraitGwas <- function(gData,
             ## Define covariate matrix Z.
             Z <- as(
               as.matrix(phenoEnvirTrait[which(phenoEnvirTrait$genotype %in%
-                                                nonMissing),
-                                        covarEnvir]),
+                                                nonMissing), covarEnvir]),
               "dgeMatrix")
           }
           GLSResult <- fastGLS(y = y, X = X,
@@ -538,13 +418,11 @@ runSingleTraitGwas <- function(gData,
           for (snpCovariate in intersect(snpCovariates,
                                          colnames(markersRedChr))) {
             GLSResultSnpCov <-
-              fastGLS(y = y,
-                      X = markersRed[nonMissingRepId, snpCovariate,
-                                     drop = FALSE],
+              fastGLS(y = y, X = markersRed[nonMissingRepId, snpCovariate,
+                                            drop = FALSE],
                       Sigma = vcovMatrix[[which(chrs == chr)]],
                       covs = Z[, which(colnames(Z) != snpCovariate),
-                               drop = FALSE],
-                      nChunks = 1)
+                               drop = FALSE], nChunks = 1)
             GWAResult[snpCovariate,
                       c("pValue", "effect", "effectSe", "RLR2")] <-
               GLSResultSnpCov

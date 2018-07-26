@@ -234,9 +234,10 @@ runEmma <- function(gData,
       (n - q)
   }
   maxVe <- maxVg * maxDelta
-  return(list(varcomp = c(Vg = maxVg, Ve = maxVe), K = K))
+  vcovMatrix <- maxVg * K + Matrix::Diagonal(n = nrow(K), x = maxVe)
+  rownames(vcovMatrix) <- colnames(vcovMatrix) <- rownames(K)
+  return(list(varComp = c(Vg = maxVg, Ve = maxVe), vcovMatrix = vcovMatrix))
 }
-
 
 #' EMMA helper functions
 #'
