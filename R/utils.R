@@ -52,6 +52,47 @@ expandPheno <- function(gData,
   return(list(phenoEnvir = phenoEnvir, covarEnvir = covarEnvir))
 }
 
+## Helper function for computing (or extracting kinship matrices)
+## 1 - If kin is supplied use kin
+## 2 - Get kin from gData object
+## 3 - Compute kin from markers (and map for GLSMethod 2)
+computeKin <- function(GLSMethod,
+                       kin,
+                       gData,
+                       markers,
+                       map,
+                       kinshipMethod) {
+  if (GLSMethod == 1) {
+    if (!is.null(kin)) {
+      ## kin is supplied as input. Convert to dsyMatrix.
+      K <- as(kin, "dsyMatrix")
+    } else {
+      if (!is.null(gData$kinship)) {
+        ## Get kin from gData object.
+        K <- gData$kinship
+      } else {
+        ## Compute K from markers.
+        K <- do.call(kinshipMethod, list(X = markers))
+      }
+    }
+  } else if (GLSMethod == 2) {
+    if (!is.null(kin)) {
+      ## kin is supplied as input. Convert to dsyMatrices.
+      K <- lapply(X = kin, FUN = as, Class = "dsyMatrix")
+    } else {
+      ## Get kin from gData object.
+      if (!is.null(gData$kinship)) {
+        K <- gData$kinship
+      } else {
+        ## Compute chromosome specific kinship matrices.
+        K <- chrSpecKin(gData = createGData(geno = markers, map = map),
+                        kinshipMethod = kinshipMethod)
+      }
+    }
+  }
+  return(K)
+}
+
 ## Compute chromosome specific kinship matrices.
 chrSpecKin <- function(gData,
                        kinshipMethod) {

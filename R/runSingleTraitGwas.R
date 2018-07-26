@@ -265,27 +265,17 @@ runSingleTraitGwas <- function(gData,
     thrType <- 1
     warning("Invalid value for thrType. thrType set to 1.\n")
   }
-  ## Compute kinship matrix.
-  if (GLSMethod == 1 && is.null(gData$kinship) && is.null(kin)) {
-    kin <- do.call(kinshipMethod, list(X = gData$markers))
-  }
-  ## Compute kinship matrices per chromosome. Only needs to be done once.
-  if (GLSMethod == 2) {
+  if (GLSMethod == 1) {
+    ## Compute kinship matrix.
+    K <- computeKin(GLSMethod = 1, kin = kin, gData = gData,
+                    markers = gData$markers, kinshipMethod = kinshipMethod)
+  } else if (GLSMethod == 2) {
+    ## Compute kinship matrices per chromosome. Only needs to be done once.
     chrs <- unique(gData$map$chr[rownames(gData$map) %in%
                                    colnames(gData$markers)])
-    if (!is.null(kin)) {
-      ## kin is supplied. Set KChr to kin.
-      KChr <- lapply(X = kin, FUN = function(k) {
-        if (is.matrix(k)) {
-          as(k, "dsyMatrix")
-        } else {
-          k
-        }
-      })
-    } else {
-      ## Compute chromosome specific kinship matrices.
-      KChr <- chrSpecKin(gData = gData, kinshipMethod = kinshipMethod)
-    }
+    KChr <- computeKin(GLSMethod = 2, kin = kin, gData = gData,
+                       markers = gData$markers, map = gData$map,
+                       kinshipMethod = kinshipMethod)
   }
   ## Compute max value in markers
   maxScore <- min(max(gData$markers, na.rm = TRUE), 2)
@@ -321,14 +311,7 @@ runSingleTraitGwas <- function(gData,
       ## Select genotypes where trait is not missing.
       nonMissing <- unique(phenoEnvirTrait$genotype)
       if (GLSMethod == 1) {
-        if (is.null(kin)) {
-          kinshipRed <- gData$kinship[nonMissing, nonMissing]
-        } else {
-          if (is.matrix(kin)) {
-            kin <- as(kin, "dsyMatrix")
-          }
-          kinshipRed <- kin[nonMissing, nonMissing]
-        }
+        kinshipRed <- K[nonMissing, nonMissing]
       }
       nonMissingRepId <- phenoEnvirTrait$genotype
       ## Estimate variance components.
@@ -677,11 +660,7 @@ runSingleTraitGwas <- function(gData,
   return(createGWAS(GWAResult = GWATot,
                     signSnp = signSnpTot,
                     kin = if (GLSMethod == 1) {
-                      if (is.null(kin)) {
-                        gData$kinship
-                      } else {
-                        kin
-                      }
+                      K
                     } else {
                       KChr
                     },

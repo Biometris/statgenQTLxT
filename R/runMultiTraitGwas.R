@@ -254,50 +254,30 @@ runMultiTraitGwas <- function(gData,
   if (anyNA(Y)) {
     stop("Phenotypic data cannot contain any missing values.\n")
   }
-  ## Compute kinship matrix.
   if (GLSMethod == 1) {
-    if (is.null(kin)) {
-      if (!is.null(gData$kinship)) {
-        K <- gData$kinship
-      } else {
-        K <- do.call(kinshipMethod, list(X = gData$markers))
-      }
-    } else if (is.matrix(kin)) {
-      K <- as(kin, "dsyMatrix")
-    } else {
-      K <- kin
-    }
-  } else if (GLSMethod == 2) {
-    ## Compute kinship matrices per chromosome. Only needs to be done once.
-    chrs <- unique(mapRed$chr[rownames(mapRed) %in% colnames(markersRed)])
-    if (!is.null(kin)) {
-      ## K is supplied. Set KChr to K.
-      KChr <- lapply(kin, FUN = function(k) {
-        if (is.matrix(k)) {
-          as(k, "dsyMatrix")
-        } else {
-          k
-        }
-      })
-    } else {
-      ## Compute chromosome specific kinship matrices.
-      KChr <- chrSpecKin(gData = createGData(geno = markersRed, map = mapRed),
-                         kinshipMethod = kinshipMethod)
-    }
-  }
-  if (GLSMethod == 1) {
+    ## Compute kinship matrix.
+    K <- computeKin(GLSMethod = 1, kin = kin, gData = gData,
+                    markers = markersRed, kinshipMethod = kinshipMethod)
     K <- K[rownames(K) %in% rownames(Y), colnames(K) %in% rownames(Y)]
+    if (reduceK) {
+      K <- reduceKinship(K = K, nPca = nPca)
+    }
     Y <- Y[rownames(Y) %in% rownames(K), ]
     X <- X[rownames(X) %in% rownames(K), , drop = FALSE]
   } else if (GLSMethod == 2) {
+    ## Compute kinship matrices per chromosome. Only needs to be done once.
+    chrs <- unique(mapRed$chr[rownames(mapRed) %in% colnames(markersRed)])
+    KChr <- computeKin(GLSMethod = 2, kin = kin, gData = gData,
+                       markers = markersRed, map = mapRed,
+                       kinshipMethod = kinshipMethod)
     KChr <- lapply(X = KChr, FUN = function(x) {
       x[rownames(x) %in% rownames(Y), colnames(x) %in% rownames(Y)]
     })
+    if (reduceK) {
+      KChr <- lapply(X = KChr, FUN = reduceKinship, nPca = nPca)
+    }
     Y <- Y[rownames(Y) %in% rownames(KChr[[1]]), ]
     X <- X[rownames(X) %in% rownames(KChr[[1]]), , drop = FALSE]
-  }
-  if (reduceK) {
-    K <- reduceKinship(K = K, nPca = nPca)
   }
   ## fit variance components
   if (fitVarComp) {
@@ -585,8 +565,9 @@ runMultiTraitGwas <- function(gData,
   GWAResult$LOD <- -log10(GWAResult$pValues)
   ## Select and compute relevant columns.
   relCols <- c("snp", "Var1", "chr", "pos", "pValues", "LOD", "value.x",
-               "value.y", "allFreq", if (estCom) {c("pValuesCom", "effectsCom",
-               "effectsComSe", "pValuesQtlE")})
+               "value.y", "allFreq",
+               if (estCom) {c("pValuesCom", "effectsCom", "effectsComSe",
+                              "pValuesQtlE")})
   GWAResult <- GWAResult[, relCols]
   colnames(GWAResult)[colnames(GWAResult) %in% c("Var1", "pValues", "value.x",
                                                  "value.y")] <-
@@ -604,11 +585,7 @@ runMultiTraitGwas <- function(gData,
                                          names(gData$pheno)[environment]),
                     signSnp = NULL,
                     kin = if (GLSMethod == 1) {
-                      if (is.null(kin)) {
-                        gData$kinship
-                      } else {
-                        K
-                      }
+                      K
                     } else {
                       KChr
                     },
