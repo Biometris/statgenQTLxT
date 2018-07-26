@@ -136,7 +136,7 @@ runSingleTraitGwas <- function(gData,
                                LODThr = 4,
                                nSnpLOD = 10,
                                sizeInclRegion = 0,
-                               minR2) {
+                               minR2 = 0.5) {
   ## Checks.
   if (missing(gData) || !is.gData(gData) || is.null(gData$map) ||
       is.null(gData$markers) || is.null(gData$pheno)) {
@@ -460,52 +460,12 @@ runSingleTraitGwas <- function(gData,
       }
       LODThrEnvir[trait] <- LODThr
       ## Select the SNPs whose LOD-scores is above the threshold
-      signSnpNr <- which(!is.na(GWAResult$LOD) & GWAResult$LOD >= LODThr)
-      if (length(signSnpNr) > 0) {
-        if (sizeInclRegion > 0) {
-          snpSelection <-
-            unlist(sapply(X = signSnpNr, FUN = getSNPsInRegionSufLD,
-                          ## Create new minimal gData object to match map and
-                          ## markers used for SNP selection.
-                          gData = createGData(map = mapRed, geno = markersRed),
-                          regionSize = sizeInclRegion, minR2 = minR2))
-          snpSelection <- sort(union(snpSelection, signSnpNr))
-          snpStatus <- rep(paste("within", sizeInclRegion / 1000 ,
-                                 "kb of a significant snp"),
-                           length(snpSelection))
-          snpStatus[snpSelection %in% signSnpNr] <- "significant snp"
-        } else {
-          snpSelection <- signSnpNr
-          snpStatus <- rep("significant snp", length(signSnpNr))
-        }
-        if (GLSMethod %in% 1:2) {
-          effect <- GWAResult$effect[snpSelection]
-          ## Compute variance of marker scores, based on genotypes for which
-          ## phenotypic data is available. For inbreeders, this depends on
-          ## maxScore. It is therefore scaled to marker scores 0, 1 (or 0, 0.5,
-          ## 1 if there are heterozygotes)
-          snpVar <- 4 * effect ^ 2 *
-            apply(X = markersRed[, snpSelection, drop = FALSE], MARGIN = 2,
-                  FUN = var) / maxScore ^ 2
-          propSnpVar <- snpVar / as.numeric(var(phenoEnvirTrait[trait]))
-        }
-        ## Create data.frame with significant snps.
-        GWAResultSel <- GWAResult[snpSelection, ]
-        signSnp <- data.frame(
-          snp = GWAResultSel$snp,
-          chr = GWAResultSel$chr,
-          pos = GWAResultSel$pos,
-          pValue = GWAResultSel$pValue,
-          LOD = GWAResultSel$LOD,
-          snpStatus = as.factor(snpStatus),
-          allFreq = allFreq[snpSelection],
-          effect = GWAResultSel$effect,
-          effectSe = GWAResultSel$effectSe,
-          RLR2 = GWAResultSel$RLR2,
-          propSnpVar = propSnpVar,
-          stringsAsFactors = FALSE)
-        signSnpTotEnvir[[trait]] <- signSnp
-      }
+      signSnpTotEnvir[[trait]] <-
+        extrSignSnps(GWAResult = GWAResult, LODThr = LODThr,
+                     sizeInclRegion = sizeInclRegion, minR2 = minR2,
+                     mapRed = mapRed, markersRed = markersRed,
+                     maxScore = maxScore, phenoEnvirTrait = phenoEnvirTrait,
+                     trait = trait)
       GWATotEnvir[[trait]] <- GWAResult
     } # end for (trait in traits)
     GWATot[[match(environment, environments)]] <-

@@ -40,8 +40,8 @@
 #' \itemize{
 #' \item{\code{varcomp} a vector of genetic variance Vg and residual variance
 #' Ve}
-#' \item{\code{K} the kinship matrix used in the algorithm (entries for missing
-#' values in the original kinship matrix are filtered out.)}
+#' \item{\code{vcovMatrix} The variance covariance matrix corresponding to
+#' the computed variances.}
 #' }
 #' @references Kang et al. (2008) (Efficient Control of Population Structure in
 #' Model Organism Association Mapping. Genetics, March 2008, Vol. 178, no. 3,

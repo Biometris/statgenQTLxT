@@ -1,3 +1,51 @@
+#' @keywords internal
+extrSignSnps <- function(GWAResult,
+                         LODThr,
+                         sizeInclRegion,
+                         minR2,
+                         mapRed,
+                         markersRed,
+                         maxScore,
+                         phenoEnvirTrait,
+                         trait) {
+  signSnpNr <- which(!is.na(GWAResult$LOD) & GWAResult$LOD >= LODThr)
+  if (length(signSnpNr) > 0) {
+    if (sizeInclRegion > 0) {
+      snpSelection <-
+        unlist(sapply(X = signSnpNr, FUN = getSNPsInRegionSufLD,
+                      ## Create new minimal gData object to match map and
+                      ## markers used for SNP selection.
+                      gData = createGData(map = mapRed, geno = markersRed),
+                      regionSize = sizeInclRegion, minR2 = minR2))
+      snpSelection <- sort(union(snpSelection, signSnpNr))
+      snpStatus <- rep(paste("within", sizeInclRegion / 1000,
+                             "kb of a significant snp"),
+                       length(snpSelection))
+      snpStatus[snpSelection %in% signSnpNr] <- "significant snp"
+    } else {
+      snpSelection <- signSnpNr
+      snpStatus <- rep("significant snp", length(signSnpNr))
+    }
+    effect <- GWAResult$effect[snpSelection]
+    ## Compute variance of marker scores, based on genotypes for which
+    ## phenotypic data is available. For inbreeders, this depends on
+    ## maxScore. It is therefore scaled to marker scores 0, 1 (or 0, 0.5,
+    ## 1 if there are heterozygotes)
+    snpVar <- 4 * effect ^ 2 *
+      apply(X = markersRed[, snpSelection, drop = FALSE], MARGIN = 2,
+            FUN = var) / maxScore ^ 2
+    propSnpVar <- snpVar / as.numeric(var(phenoEnvirTrait[trait]))
+    ## Create data.frame with significant snps.
+    GWAResultSel <- GWAResult[snpSelection, ]
+    signSnp <- data.frame(GWAResult[snpSelection, ],
+                          snpStatus = as.factor(snpStatus),
+                          propSnpVar = propSnpVar, stringsAsFactors = FALSE)
+  } else {
+    signSnp <- data.frame()
+  }
+  return(signSnp)
+}
+
 #' get the SNPs close to a given SNP with sufficient LD
 #'
 #' \code{getSNPsInRegionSufLD} extracts the SNPs from a map file that are
@@ -16,8 +64,6 @@
 #'
 #' @return An integer vector with indices of the SNPs that are within the
 #' given \code{regionSize} and have a minimum LD with the reference SNP.
-#'
-#' @import stats
 #'
 #' @keywords internal
 getSNPsInRegionSufLD <- function(gData,
@@ -52,3 +98,4 @@ getSNPsInRegionSufLD <- function(gData,
   candidateSnpsNames <- names(which(R2[, 1] > minR2))
   return(which(rownames(gData$map) %in% candidateSnpsNames))
 }
+
