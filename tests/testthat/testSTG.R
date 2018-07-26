@@ -21,9 +21,9 @@ result01 <- runSingleTraitGwas(gData = gDataTest)$GWAResult
 result1 <- runSingleTraitGwas(gData = gDataTest,
                               environments = 1, covar = "V1")$GWAResult
 result2 <- runSingleTraitGwas(gData = gDataTest,
-                              environments = 1, snpCovariates = "M2")$GWAResult
+                              environments = 1, snpCov = "M2")$GWAResult
 result3 <- runSingleTraitGwas(gData = gDataTest, environments = 1,
-                              covar = "V1", snpCovariates = "M2")$GWAResult
+                              covar = "V1", snpCov = "M2")$GWAResult
 
 test_that("runSingleTraitGwas produces output with correct dimensions", {
   expect_length(result0, 1)

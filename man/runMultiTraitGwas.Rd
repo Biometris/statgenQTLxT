@@ -4,14 +4,14 @@
 \alias{runMultiTraitGwas}
 \title{Perform multi-trait GWAS}
 \usage{
-runMultiTraitGwas(gData, environments = NULL, covar = NULL,
-  snpCovariates = NULL, kin = NULL, kinshipMethod = c("astle", "GRM",
-  "IBS", "vanRaden"), GLSMethod = 1, subsetMarkers = FALSE,
-  markerSubset = "", MAF = 0.01, fitVarComp = TRUE, covModel = 1,
-  VeDiag = TRUE, tolerance = 1e-06, maxIter = 2e+05, maxDiag = 10000,
-  mG = 1, mE = 1, CmHet = TRUE, DmHet = TRUE, stopIfDecreasing = TRUE,
-  computeLogLik = TRUE, Vg = NULL, Ve = NULL, reduceK = FALSE,
-  nPca = NULL, estCom = FALSE, parallel = FALSE)
+runMultiTraitGwas(gData, environments = NULL, covar = NULL, snpCov = NULL,
+  kin = NULL, kinshipMethod = c("astle", "GRM", "IBS", "vanRaden"),
+  GLSMethod = 1, subsetMarkers = FALSE, markerSubset = "", MAF = 0.01,
+  fitVarComp = TRUE, covModel = 1, VeDiag = TRUE, tolerance = 1e-06,
+  maxIter = 2e+05, maxDiag = 10000, mG = 1, mE = 1, CmHet = TRUE,
+  DmHet = TRUE, stopIfDecreasing = TRUE, computeLogLik = TRUE,
+  Vg = NULL, Ve = NULL, reduceK = FALSE, nPca = NULL, estCom = FALSE,
+  parallel = FALSE)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},
@@ -26,7 +26,7 @@ running GWAS. These can be either numeric indices or character names of
 columns in \code{covar} in \code{gData}. If \code{NULL} no covariates are
 used.}
 
-\item{snpCovariates}{An optional character vector of snps to be included as
+\item{snpCov}{An optional character vector of snps to be included as
 covariates.}
 
 \item{kin}{An optional kinship matrix or list of kinship matrices. These

@@ -1,19 +1,18 @@
-#' @keywords internal
-
 ## Add covariates and snpCovariates to phenotypic data and convert covariate
 ## factors to dummy varables.
+#' @keywords internal
 expandPheno <- function(gData,
-                        environment,
+                        env,
                         covar,
-                        snpCovariates) {
+                        snpCov) {
   ## Add covariates to pheno data.
   if (is.null(covar)) {
-    phenoEnvir <- gData$pheno[[environment]]
+    phenoEnvir <- gData$pheno[[env]]
     covarEnvir <- NULL
   } else {
     ## Append covariates to pheno data. Merge to remove values from pheno that
     ## are missing in covar.
-    phenoEnvir <- merge(gData$pheno[[environment]], gData$covar[covar],
+    phenoEnvir <- merge(gData$pheno[[env]], gData$covar[covar],
                         by.x = "genotype", by.y = "row.names")
     ## Remove rows from phenoEnvir with missing covar check if there are
     ## missing values.
@@ -38,16 +37,15 @@ expandPheno <- function(gData,
       covarEnvir <- covar
     }
   }
-  if (!is.null(snpCovariates)) {
+  if (!is.null(snpCov)) {
     ## Add snp covariates to covar.
-    covarEnvir <- c(covarEnvir, snpCovariates)
+    covarEnvir <- c(covarEnvir, snpCov)
     ## Add snp covariates to pheno data.
-    phenoEnvir <- merge(phenoEnvir, as.matrix(gData$markers[, snpCovariates,
+    phenoEnvir <- merge(phenoEnvir, as.matrix(gData$markers[, snpCov,
                                                             drop = FALSE]),
                         by.x = "genotype", by.y = "row.names")
     colnames(phenoEnvir)[(ncol(phenoEnvir) -
-                            length(snpCovariates) + 1):ncol(phenoEnvir)] <-
-      snpCovariates
+                            length(snpCov) + 1):ncol(phenoEnvir)] <- snpCov
   }
   return(list(phenoEnvir = phenoEnvir, covarEnvir = covarEnvir))
 }
@@ -137,21 +135,20 @@ chrSpecKin <- function(gData,
 }
 
 ## Select markers to be excluded from GWAS scan.
-computeExcludedMarkers <- function(snpCovariates,
+computeExcludedMarkers <- function(snpCov,
                                    markersRed,
                                    allFreq) {
   exclude <- integer()
-  if (any(snpCovariates %in% colnames(markersRed))) {
-    snpCovariateNumbers <- which(colnames(markersRed) %in% snpCovariates)
-    for (snp in snpCovariateNumbers) {
+  if (any(snpCov %in% colnames(markersRed))) {
+    snpCovNumbers <- which(colnames(markersRed) %in% snpCov)
+    for (snp in snpCovNumbers) {
       ## Rough selection based on allele frequency. Done for speed.
       candidates <- which(allFreq == allFreq[snp])
       ## Exclude all snps that are identical to snps in snpCovariates.
       snpInfo <- as.numeric(markersRed[, snp])
       exclude <- union(exclude,
                        candidates[apply(X = markersRed[, candidates],
-                                        MARGIN = 2,
-                                        FUN = function(x) {
+                                        MARGIN = 2, FUN = function(x) {
                                           identical(as.numeric(x), snpInfo)
                                         })])
     }

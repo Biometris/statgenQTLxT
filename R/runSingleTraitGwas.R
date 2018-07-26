@@ -22,7 +22,7 @@
 #' running GWAS. These can be either numeric indices or character names of
 #' columns in \code{covar} in \code{gData}. If \code{NULL} no covariates are
 #' used.
-#' @param snpCovariates An optional character vector of snps to be included as
+#' @param snpCov An optional character vector of snps to be included as
 #' covariates.
 #' @param kin An optional kinship matrix or list of kinship matrices. These
 #' matrices can be from the \code{matrix} class as defined in the base package
@@ -121,7 +121,7 @@ runSingleTraitGwas <- function(gData,
                                traits = NULL,
                                environments = NULL,
                                covar = NULL,
-                               snpCovariates = NULL,
+                               snpCov = NULL,
                                kin = NULL,
                                kinshipMethod = c("astle", "GRM", "IBS",
                                                  "vanRaden"),
@@ -166,12 +166,11 @@ runSingleTraitGwas <- function(gData,
   if (!is.null(traits) && !is.numeric(traits) && !is.character(traits)) {
     stop("traits should be a numeric or character vector.\n")
   }
-  for (environment in environments) {
+  for (env in environments) {
     if ((is.character(traits) &&
-         !all(traits %in% colnames(gData$pheno[[environment]]))) ||
+         !all(traits %in% colnames(gData$pheno[[env]]))) ||
         (is.numeric(traits) &&
-         (any(traits == 1) ||
-          any(traits > ncol(gData$pheno[[environment]]))))) {
+         (any(traits == 1) || any(traits > ncol(gData$pheno[[env]]))))) {
       stop("traits should be columns in pheno.\n")
     }
   }
@@ -186,9 +185,9 @@ runSingleTraitGwas <- function(gData,
   if (is.numeric(covar)) {
     covar <- colnames(gData$covar)[covar]
   }
-  if (!is.null(snpCovariates) &&
-      !all(snpCovariates %in% colnames(gData$markers))) {
-    stop("All snpCovariates should be in markers.\n")
+  if (!is.null(snpCov) &&
+      !all(snpCov %in% colnames(gData$markers))) {
+    stop("All snpCov should be in markers.\n")
   }
   if (is.null(remlAlgo) || length(remlAlgo) > 1 || !is.numeric(remlAlgo)) {
     stop("remlAlgo should be a single numerical value.\n")
@@ -281,19 +280,19 @@ runSingleTraitGwas <- function(gData,
   GWATot <- signSnpTot <- varCompTot <- LODThrTot <- inflationFactorTot <-
     setNames(vector(mode = "list", length = length(environments)),
              names(gData$pheno)[environments])
-  for (environment in environments) {
+  for (env in environments) {
     ## Add covariates to phenotypic data.
-    phenoExp <- expandPheno(gData = gData, environment = environment,
-                            covar = covar, snpCovariates = snpCovariates)
+    phenoExp <- expandPheno(gData = gData, env = env, covar = covar,
+                            snpCov = snpCov)
     phenoEnvir <- phenoExp$phenoEnvir
     covarEnvir <- phenoExp$covarEnvir
     ## If traits is given as numeric convert to character.
     if (is.numeric(traits)) {
-      traits <- colnames(gData$pheno[[environment]])[traits]
+      traits <- colnames(gData$pheno[[env]])[traits]
     }
     ## If no traits supplied extract them from pheno data.
     if (is.null(traits)) {
-      traits <- colnames(gData$pheno[[environment]])[-1]
+      traits <- colnames(gData$pheno[[env]])[-1]
     }
     LODThrEnvir <- inflationFactorEnvir <-
       setNames(numeric(length = length(traits)), traits)
@@ -335,22 +334,16 @@ runSingleTraitGwas <- function(gData,
       }
       ## Determine segregating markers. Exclude snps used as covariates.
       segMarkers <- which(allFreq >= MAF & allFreq <= (1 - MAF))
-      ## Define data.frame for results.
-      GWAResult <- data.frame(snp = rownames(mapRed),
-                              mapRed,
-                              pValue = NA,
-                              LOD = NA,
-                              effect = NA,
-                              effectSe = NA,
-                              RLR2 = NA,
-                              allFreq = allFreq,
-                              stringsAsFactors = FALSE)
+      ## Create data.frame for results.
+      GWAResult <- data.frame(snp = rownames(mapRed), mapRed, pValue = NA,
+                              LOD = NA, effect = NA, effectSe = NA, RLR2 = NA,
+                              allFreq = allFreq, stringsAsFactors = FALSE)
       ## Define single column matrix with trait non missing values.
       y <- as(phenoEnvirTrait[which(phenoEnvirTrait$genotype %in% nonMissing),
                               trait], "dgeMatrix")
       if (GLSMethod == 1) {
         ## Exclude snpCovariates from segregating markers.
-        exclude <- computeExcludedMarkers(snpCovariates = snpCovariates,
+        exclude <- computeExcludedMarkers(snpCov = snpCov,
                                           markersRed = markersRed,
                                           allFreq = allFreq)
         ## The following is based on the genotypes, not the replicates:
@@ -368,7 +361,7 @@ runSingleTraitGwas <- function(gData,
         GWAResult[setdiff(segMarkers, exclude),
                   c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
         ## Compute p-values and effects for snpCovariates using fastGLS.
-        for (snpCovariate in snpCovariates) {
+        for (snpCovariate in snpCov) {
           GLSResultSnpCov <-
             fastGLS(y = y,
                     X = markersRed[nonMissingRepId, snpCovariate, drop = FALSE],
@@ -391,7 +384,7 @@ runSingleTraitGwas <- function(gData,
           ## Determine segregating markers. Exclude snps used as covariates.
           segMarkersChr <- which(allFreqChr >= MAF & allFreqChr <= (1 - MAF))
           ## Exclude snpCovariates from segregating markers.
-          exclude <- computeExcludedMarkers(snpCovariates = snpCovariates,
+          exclude <- computeExcludedMarkers(snpCov = snpCov,
                                             markersRed = markersRedChr,
                                             allFreq = allFreqChr)
           ## Remove excluded snps from segreg markers for current chromosome.
@@ -415,8 +408,7 @@ runSingleTraitGwas <- function(gData,
                     c("pValue", "effect", "effectSe", "RLR2")] <-
             GLSResult
           ## Compute pvalues and effects for snpCovariates using fastGLS.
-          for (snpCovariate in intersect(snpCovariates,
-                                         colnames(markersRedChr))) {
+          for (snpCovariate in intersect(snpCov, colnames(markersRedChr))) {
             GLSResultSnpCov <-
               fastGLS(y = y, X = markersRed[nonMissingRepId, snpCovariate,
                                             drop = FALSE],
@@ -468,17 +460,16 @@ runSingleTraitGwas <- function(gData,
                      trait = trait)
       GWATotEnvir[[trait]] <- GWAResult
     } # end for (trait in traits)
-    GWATot[[match(environment, environments)]] <-
+    GWATot[[match(env, environments)]] <-
       as.data.frame(dplyr::bind_rows(GWATotEnvir, .id = "trait"))
-    signSnpTot[[match(environment, environments)]] <-
+    signSnpTot[[match(env, environments)]] <-
       as.data.frame(dplyr::bind_rows(signSnpTotEnvir, .id = "trait"))
     signSnpTot <- lapply(signSnpTot, FUN = function(x) {
       if (is.null(x) || nrow(x) == 0) NULL else x
     })
-    varCompTot[[match(environment, environments)]] <- varCompEnvir
-    LODThrTot[[match(environment, environments)]] <- LODThrEnvir
-    inflationFactorTot[[match(environment, environments)]] <-
-      inflationFactorEnvir
+    varCompTot[[match(env, environments)]] <- varCompEnvir
+    LODThrTot[[match(env, environments)]] <- LODThrEnvir
+    inflationFactorTot[[match(env, environments)]] <- inflationFactorEnvir
   } # end for (environment in environments)
   ## Collect info.
   GWASInfo <- list(call = match.call(),

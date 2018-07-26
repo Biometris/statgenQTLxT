@@ -5,11 +5,11 @@
 \title{Perform single-trait GWAS}
 \usage{
 runSingleTraitGwas(gData, traits = NULL, environments = NULL,
-  covar = NULL, snpCovariates = NULL, kin = NULL,
-  kinshipMethod = c("astle", "GRM", "IBS", "vanRaden"), remlAlgo = 1,
-  GLSMethod = 1, useMAF = TRUE, MAF = 0.01, MAC = 10,
-  genomicControl = FALSE, thrType = 1, alpha = 0.05, LODThr = 4,
-  nSnpLOD = 10, sizeInclRegion = 0, minR2)
+  covar = NULL, snpCov = NULL, kin = NULL, kinshipMethod = c("astle",
+  "GRM", "IBS", "vanRaden"), remlAlgo = 1, GLSMethod = 1, useMAF = TRUE,
+  MAF = 0.01, MAC = 10, genomicControl = FALSE, thrType = 1,
+  alpha = 0.05, LODThr = 4, nSnpLOD = 10, sizeInclRegion = 0,
+  minR2 = 0.5)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},
@@ -28,7 +28,7 @@ running GWAS. These can be either numeric indices or character names of
 columns in \code{covar} in \code{gData}. If \code{NULL} no covariates are
 used.}
 
-\item{snpCovariates}{An optional character vector of snps to be included as
+\item{snpCov}{An optional character vector of snps to be included as
 covariates.}
 
 \item{kin}{An optional kinship matrix or list of kinship matrices. These

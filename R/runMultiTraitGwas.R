@@ -74,11 +74,10 @@
 #' @importFrom rlang .data
 #'
 #' @export
-
 runMultiTraitGwas <- function(gData,
                               environments = NULL,
                               covar = NULL,
-                              snpCovariates = NULL,
+                              snpCov = NULL,
                               kin = NULL,
                               kinshipMethod = c("astle", "GRM", "IBS",
                                                 "vanRaden"),
@@ -154,8 +153,8 @@ runMultiTraitGwas <- function(gData,
   if (is.numeric(covar)) {
     covar <- colnames(gData$covar)[covar]
   }
-  if (!is.null(snpCovariates) &&
-      !all(snpCovariates %in% colnames(gData$markers))) {
+  if (!is.null(snpCov) &&
+      !all(snpCov %in% colnames(gData$markers))) {
     stop("All snpCovariates should be in markers.\n")
   }
   if (GLSMethod == 1 && !is.null(kin) && !(inherits(kin, "Matrix") ||
@@ -209,15 +208,15 @@ runMultiTraitGwas <- function(gData,
     stop("If the kinship matrix is to be reduced, nPca cannot be NULL.\n")
   }
   if (covModel %in% c(4)) {
-    stopifnot(snpCovariates == "")
+    stopifnot(snpCov == "")
   }
   ## Make sure that when subsetting markers snpCovariates are included in
   ## the subset
   if (subsetMarkers) {
-    if (!is.null(snpCovariates)) {
-      if (!all(which(colnames(markers) %in% snpCovariates) %in% markerSubset)) {
+    if (!is.null(snpCov)) {
+      if (!all(which(colnames(markers) %in% snpCov) %in% markerSubset)) {
         markerSubset <- union(markerSubset,
-                              which(colnames(markers) %in% snpCovariates))
+                              which(colnames(markers) %in% snpCov))
         cat('snpCovariates have been added to the marker-subset \n')
       }
     }
@@ -228,10 +227,10 @@ runMultiTraitGwas <- function(gData,
     mapRed <- map[rownames(map) %in% colnames(markers), ]
   }
   ## Keep option open for extension to multiple environments.
-  environment <- environments
+  env <- environments
   ## Add covariates to phenotypic data.
-  phenoExp <- expandPheno(gData = gData, environment = environment,
-                          covar = covar, snpCovariates = snpCovariates)
+  phenoExp <- expandPheno(gData = gData, env = env, covar = covar,
+                          snpCov = snpCov)
   phenoEnvir <- phenoExp$phenoEnvir
   covarEnvir <- phenoExp$covarEnvir
   ## Convert pheno and covariates to format suitable for fitting var components.
@@ -239,12 +238,12 @@ runMultiTraitGwas <- function(gData,
              as(as.matrix(phenoEnvir[covarEnvir]), "dgeMatrix"))
   rownames(X) <- phenoEnvir$genotype
   ## Add snpCovariates to X
-  if (!is.null(snpCovariates)) {
-    if (ncol(X) == length(snpCovariates)) {
+  if (!is.null(snpCov)) {
+    if (ncol(X) == length(snpCov)) {
       XRed <- Matrix::Matrix(nrow = nrow(X), ncol = 0,
                              dimnames = list(rownames(X)))
     } else {
-      XRed <- X[, 1:(ncol(X) - length(snpCovariates)), drop = FALSE]
+      XRed <- X[, 1:(ncol(X) - length(snpCov)), drop = FALSE]
     }
   }
   Y <- as(as.matrix(tibble::column_to_rownames(
@@ -292,7 +291,7 @@ runMultiTraitGwas <- function(gData,
                                      X[, -1, drop = FALSE]
                                    },
                                    fixDiag = FALSE, VeDiag = VeDiag)
-        if (!is.null(snpCovariates)) {
+        if (!is.null(snpCov)) {
           ## Sommer always adds an intercept so remove it from XRed.
           varCompRed <- covUnstructured(Y = Y, K = K,
                                         X = if (ncol(XRed) == 1) {
@@ -310,7 +309,7 @@ runMultiTraitGwas <- function(gData,
                                  X[, -1, drop = FALSE],
                                fixDiag = FALSE, corMat = FALSE,
                                parallel = parallel)
-        if (!is.null(snpCovariates)) {
+        if (!is.null(snpCov)) {
           ## Sommer always adds an intercept so remove it from XRed.
           varCompRed <- covPairwise(Y = Y, K = K,
                                     X = if (ncol(XRed) == 1) NULL else
@@ -326,7 +325,7 @@ runMultiTraitGwas <- function(gData,
                         DmHet = DmHet, maxDiag = maxDiag,
                         stopIfDecreasing = stopIfDecreasing,
                         computeLogLik = computeLogLik)
-        if (!is.null(snpCovariates)) {
+        if (!is.null(snpCov)) {
           ## Without snpCovariates.
           varCompRed <- EMFA(Y = Y, K = K, X = XRed, maxIter = maxIter,
                              tolerance = tolerance, mG = mG, mE = mE,
@@ -347,7 +346,7 @@ runMultiTraitGwas <- function(gData,
       }
       Vg <- varComp$Vg
       Ve <- varComp$Ve
-      if (!is.null(snpCovariates)) {
+      if (!is.null(snpCov)) {
         VgRed <- varCompRed$Vg
         VeRed <- varCompRed$Ve
       }
@@ -361,7 +360,7 @@ runMultiTraitGwas <- function(gData,
                           X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
                           fixDiag = FALSE, VeDiag = VeDiag)
         }, simplify = FALSE)
-        if (!is.null(snpCovariates)) {
+        if (!is.null(snpCov)) {
           ## Sommer always adds an intercept so remove it from XRed.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
             covUnstructured(Y = Y,
@@ -380,7 +379,7 @@ runMultiTraitGwas <- function(gData,
                       X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
                       fixDiag = FALSE, corMat = TRUE, parallel = parallel)
         }, simplify = FALSE)
-        if (!is.null(snpCovariates)) {
+        if (!is.null(snpCov)) {
           ## Sommer always adds an intercept so remove it from XRed.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
             covPairwise(Y = Y,
@@ -400,7 +399,7 @@ runMultiTraitGwas <- function(gData,
                stopIfDecreasing = stopIfDecreasing,
                computeLogLik = computeLogLik)
         }, simplify = FALSE)
-        if (!is.null(snpCovariates)) {
+        if (!is.null(snpCov)) {
           ## Without snpCovariates.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
             EMFA(Y = Y, K = KChr[[which(chrs == chr)]], X = XRed,
@@ -424,7 +423,7 @@ runMultiTraitGwas <- function(gData,
                      paste("chr", chrs))
       Ve <- setNames(lapply(X = varComp, FUN = function(x) {x[[2]]}),
                      paste("chr", chrs))
-      if (!is.null(snpCovariates)) {
+      if (!is.null(snpCov)) {
         VgRed <- lapply(X = varCompRed, FUN = function(x) {x[[1]]})
         VeRed <- lapply(X = varCompRed, FUN = function(x) {x[[2]]})
       }
@@ -443,12 +442,12 @@ runMultiTraitGwas <- function(gData,
     segMarkers <- which(allFreq < MAF | allFreq > 1 - MAF)
     ## Add snpCovariates to segregating markers.
     excludedMarkers <- union(c(segMarkers, ncol(markersRed) + 1),
-                             computeExcludedMarkers(snpCovariates = snpCovariates,
+                             computeExcludedMarkers(snpCov = snpCov,
                                                     markersRed = markersRed,
                                                     allFreq = allFreq))
-    if (!is.null(snpCovariates)) {
+    if (!is.null(snpCov)) {
       effEstSnpCov <- estimateEffects(Y = Y, W = XRed,
-                                      X = markersRed[, snpCovariates,
+                                      X = markersRed[, snpCov,
                                                      drop = FALSE],
                                       Vg = Vg, Ve = Ve, K = K, estCom = estCom)
     }
@@ -456,24 +455,24 @@ runMultiTraitGwas <- function(gData,
                               X = markersRed[, -excludedMarkers],
                               Vg = Vg, Ve = Ve, K = K, estCom = estCom)
     pValues <- c(effEst$pVals,
-                 if (!is.null(snpCovariates)) effEstSnpCov$pVals)
+                 if (!is.null(snpCov)) effEstSnpCov$pVals)
     effects <- cbind(effEst$effects,
-                     if (!is.null(snpCovariates)) effEstSnpCov$effects)
+                     if (!is.null(snpCov)) effEstSnpCov$effects)
     effectsSe <- cbind(effEst$effectsSe,
-                       if (!is.null(snpCovariates)) effEstSnpCov$effectsSe)
+                       if (!is.null(snpCov)) effEstSnpCov$effectsSe)
     pValuesCom <- c(effEst$pValsCom,
-                    if (!is.null(snpCovariates)) effEstSnpCov$pValsCom)
+                    if (!is.null(snpCov)) effEstSnpCov$pValsCom)
     effectsCom <- c(effEst$effectsCom,
-                    if (!is.null(snpCovariates)) effEstSnpCov$effects)
+                    if (!is.null(snpCov)) effEstSnpCov$effects)
     effectsComSe <- c(effEst$effectsComSe,
-                      if (!is.null(snpCovariates)) effEstSnpCov$effectsComSe)
+                      if (!is.null(snpCov)) effEstSnpCov$effectsComSe)
     pValuesQtlE <- c(effEst$pValsQtlE,
-                     if (!is.null(snpCovariates)) effEstSnpCov$pValsQtlE)
+                     if (!is.null(snpCov)) effEstSnpCov$pValsQtlE)
   } else if (GLSMethod == 2) {
     pValues <- pValuesCom <- pValuesQtlE <- numeric()
     ## Create an empty matrix with traits as header.
     effects <- effectsSe <- effectsCom <- effectsComSe <-
-      t(gData$pheno[[environment]][FALSE, -1])
+      t(gData$pheno[[env]][FALSE, -1])
     for (chr in chrs) {
       w <- eigen(KChr[[which(chrs == chr)]], symmetric = TRUE)
       Dk <- w$values
@@ -486,7 +485,7 @@ runMultiTraitGwas <- function(gData,
       VInvArray <- makeVInvArray(Vg = Vg[[which(chrs == chr)]],
                                  Ve = Ve[[which(chrs == chr)]],
                                  Dk = Dk)
-      if (!is.null(snpCovariates)) {
+      if (!is.null(snpCov)) {
         if (ncol(XRed) > 0) {
           XtRed <- Matrix::crossprod(XRed, Uk)
         }
@@ -499,11 +498,11 @@ runMultiTraitGwas <- function(gData,
                    drop = FALSE]
       allFreqChr <- Matrix::colMeans(markersRedChr) / max(markersRedChr)
       segMarkers <- which(allFreqChr < MAF | allFreqChr > 1 - MAF)
-      snpCovChr <- snpCovariates[snpCovariates %in% colnames(markersRedChr)]
+      snpCovChr <- snpCov[snpCov %in% colnames(markersRedChr)]
       ## Add snpCovariates to segregating markers.
       excludedMarkers <-
         union(c(segMarkers, ncol(markersRed) + 1),
-              computeExcludedMarkers(snpCovariates = snpCovChr,
+              computeExcludedMarkers(snpCov = snpCovChr,
                                      markersRed = markersRedChr,
                                      allFreq = allFreqChr))
       if (length(snpCovChr) > 0) {
@@ -527,13 +526,13 @@ runMultiTraitGwas <- function(gData,
       effectsSe <- cbind(effectsSe, effEst$effectsSe,
                          if (length(snpCovChr) > 0) effEstSnpCov$effectsSe)
       pValuesCom <- c(pValuesCom, effEst$pValsCom,
-                      if (!is.null(snpCovariates)) effEstSnpCov$pValsCom)
+                      if (!is.null(snpCov)) effEstSnpCov$pValsCom)
       effectsCom <- c(effectsCom, effEst$effectsCom,
-                      if (!is.null(snpCovariates)) effEstSnpCov$effects)
+                      if (!is.null(snpCov)) effEstSnpCov$effects)
       effectsComSe <- c(effectsComSe, effEst$effectsComSe,
-                        if (!is.null(snpCovariates)) effEstSnpCov$effectsComSe)
+                        if (!is.null(snpCov)) effEstSnpCov$effectsComSe)
       pValuesQtlE <- c(pValuesQtlE, effEst$pValsQtlE,
-                       if (!is.null(snpCovariates)) effEstSnpCov$pValsQtlE)
+                       if (!is.null(snpCov)) effEstSnpCov$pValsQtlE)
     }
   }
   ## Convert effects and effectsSe to long format and merge.
@@ -582,7 +581,7 @@ runMultiTraitGwas <- function(gData,
                                        "chromosome specific kinship matrices")),
                    varComp = list(Vg = Vg, Ve = Ve))
   return(createGWAS(GWAResult = setNames(list(GWAResult),
-                                         names(gData$pheno)[environment]),
+                                         names(gData$pheno)[env]),
                     signSnp = NULL,
                     kin = if (GLSMethod == 1) {
                       K
