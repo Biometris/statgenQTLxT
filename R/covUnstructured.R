@@ -39,12 +39,13 @@ covUnstructured <- function(Y,
     warning("fixDiag = TRUE not implemented yet. Value set to FALSE")
     fixDiag <- FALSE
   }
-  Y <- cbind(rownames(Y), as.data.frame(as.matrix(Y)), stringsAsFactors = FALSE)
+  Y <- cbind(genotype = rownames(Y), as.data.frame(as.matrix(Y)),
+             stringsAsFactors = FALSE)
   if (!is.null(X)) {
     ## sommer cannot handle column names with special characters.
     ## Therefore Simplify column names in X.
     colnames(X) <- make.names(colnames(X), unique = TRUE)
-    X <- cbind(rownames(X), as.data.frame(as.matrix(X)),
+    X <- cbind(genotype = rownames(X), as.data.frame(as.matrix(X)),
                stringsAsFactors = FALSE)
     dat <- merge(Y, X, by = "genotype")
   } else {
@@ -71,12 +72,12 @@ covUnstructured <- function(Y,
     rcov <- as.formula(~ us(trait):units)
   }
   ## Fit model.
-  sommerFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
-                             rcov = rcov, data = dat, G = list(genotype = K),
-                             silent = TRUE, date.warning = FALSE)
+  modFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
+                          rcov = rcov, data = dat, G = list(genotype = K),
+                          silent = TRUE, date.warning = FALSE)
   ## Extract components from fitted model.
-  VgMat <- sommerFit$var.comp[[1]]
-  VeMat <- sommerFit$var.comp[[2]]
+  VgMat <- modFit$var.comp[[1]]
+  VeMat <- modFit$var.comp[[2]]
   ## Keep diagonal for Vg and Ve away from 0.
   diag(VgMat)[diag(VgMat) <= 0] <- 1e-3 * smpVar[diag(VgMat) <= 0]
   diag(VeMat)[diag(VeMat) <= 0] <- 1e-3 * smpVar[diag(VeMat) <= 0]
@@ -108,12 +109,13 @@ covPairwise <- function(Y,
     fixDiag <- FALSE
   }
   `%op%` <- getOper(parallel && foreach::getDoParWorkers() > 1)
-  Y <- cbind(rownames(Y), as.data.frame(as.matrix(Y)), stringsAsFactors = FALSE)
+  Y <- cbind(genotype = rownames(Y), as.data.frame(as.matrix(Y)),
+             stringsAsFactors = FALSE)
   if (!is.null(X)) {
     ## sommer cannot handle column names with special characters.
     ## Therefore Simplify column names in X.
     colnames(X) <- make.names(colnames(X), unique = TRUE)
-    X <- cbind(rownames(X), as.data.frame(as.matrix(X)),
+    X <- cbind(genotype = rownames(X), as.data.frame(as.matrix(X)),
                stringsAsFactors = FALSE)
     dat <- merge(Y, X, by = "genotype")
   } else {
@@ -135,12 +137,12 @@ covPairwise <- function(Y,
       fixed <- as.formula(paste(traits[i], " ~ 1"))
     }
     ## Fit model.
-    sommerFit <- sommer::mmer2(fixed = fixed, random = ~ g(genotype),
-                               data = dat, G = list(genotype = K),
-                               silent = TRUE, date.warning = FALSE)
+    modFit <- sommer::mmer2(fixed = fixed, random = ~ g(genotype), data = dat,
+                            G = list(genotype = K), silent = TRUE,
+                            date.warning = FALSE)
     ## Extract components from fitted model.
-    VgVec[i] <- as.numeric(sommerFit$var.comp[[1]])
-    VeVec[i] <- as.numeric(sommerFit$var.comp[[2]])
+    VgVec[i] <- as.numeric(modFit$var.comp[[1]])
+    VeVec[i] <- as.numeric(modFit$var.comp[[2]])
   }
   ## Keep diagonal for Vg and Ve away from 0.
   VgVec[VgVec <= 0] <- 1e-3 * smpVar[VgVec <= 0]

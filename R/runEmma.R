@@ -117,34 +117,32 @@ runEmma <- function(gData,
     stop("eps should be a single numerical value.\n")
   }
   ## Add column genotype to environment.
-  phenoEnvir <- gData$pheno[[environment]]
+  phEnv <- gData$pheno[[environment]]
   ## Remove data with missings in trait or any of the covars.
-  nonMissing <- phenoEnvir$genotype[!is.na(phenoEnvir[trait])]
-  nonMissingId <- which(!is.na(phenoEnvir[trait]))
+  nonMiss <- phEnv$genotype[!is.na(phEnv[trait])]
+  nonMissId <- which(!is.na(phEnv[trait]))
   if (!is.null(covar)) {
-    misCov <-
-      rownames(gData$covar)[which(rowSums(is.na(gData$covar[covar])) == 0)]
-    nonMissing <- nonMissing[nonMissing %in% misCov]
-    nonMissingId <- intersect(nonMissingId,
-                              which(phenoEnvir$genotype %in% misCov))
+    misCov <- rownames(gData$covar)[rowSums(is.na(gData$covar[covar])) == 0]
+    nonMiss <- nonMiss[nonMiss %in% misCov]
+    nonMissId <- intersect(nonMissId, which(phEnv$genotype %in% misCov))
   }
   if (is.null(K)) {
-    K <- gData$kinship[nonMissing, nonMissing]
+    K <- gData$kinship[nonMiss, nonMiss]
   } else {
-    K <- K[nonMissing, nonMissing]
+    K <- K[nonMiss, nonMiss]
   }
-  y <- as(phenoEnvir[nonMissingId, trait], "dgeMatrix")
+  y <- as(phEnv[nonMissId, trait], "dgeMatrix")
   ## Define intercept.
-  X <- Matrix::Matrix(data = 1, nrow = length(nonMissing), ncol = 1)
+  X <- Matrix::Matrix(data = 1, nrow = length(nonMiss), ncol = 1)
   if (!is.null(covar)) {
     ## Add covars to intercept.
-    X <- Matrix::cbind2(X, as(as.matrix(gData$covar[nonMissing, covar]),
+    X <- Matrix::cbind2(X, as(as.matrix(gData$covar[nonMiss, covar]),
                               "dgeMatrix"))
   }
   if (!is.null(snpName)) {
     ## Add extra snp to intercept + covars.
-    X <- Matrix::cbind2(X, as.numeric(gData$markers[phenoEnvir$genotype,
-                                                    snpName][nonMissing]))
+    X <- Matrix::cbind2(X, as.numeric(gData$markers[phEnv$genotype,
+                                                    snpName][nonMiss]))
   }
   ## Check resulting X for singularity.
   if (!inherits(try(Matrix::solve(Matrix::crossprod(X)), silent = TRUE),

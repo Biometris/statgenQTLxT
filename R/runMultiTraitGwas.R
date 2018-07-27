@@ -205,9 +205,6 @@ runMultiTraitGwas <- function(gData,
   if (reduceK && is.null(nPca)) {
     stop("If the kinship matrix is to be reduced, nPca cannot be NULL.\n")
   }
-  if (covModel %in% c(4)) {
-    stopifnot(snpCov == "")
-  }
   ## Make sure that when subsetting markers snpCovariates are included in
   ## the subset
   if (subsetMarkers) {
@@ -215,7 +212,7 @@ runMultiTraitGwas <- function(gData,
       if (!all(which(colnames(markers) %in% snpCov) %in% markerSubset)) {
         markerSubset <- union(markerSubset,
                               which(colnames(markers) %in% snpCov))
-        cat('snpCovariates have been added to the marker-subset \n')
+        cat("snpCovariates have been added to the marker-subset\n")
       }
     }
     markersRed <- markers[, markerSubset]
@@ -227,14 +224,13 @@ runMultiTraitGwas <- function(gData,
   ## Keep option open for extension to multiple environments.
   env <- environments
   ## Add covariates to phenotypic data.
-  phenoExp <- expandPheno(gData = gData, env = env, covar = covar,
-                          snpCov = snpCov)
-  phenoEnvir <- phenoExp$phenoEnvir
-  covarEnvir <- phenoExp$covarEnvir
+  phExp <- expandPheno(gData = gData, env = env, covar = covar,
+                       snpCov = snpCov)
+  phEnv <- phExp$phEnv
+  covEnv <- phExp$covEnv
   ## Convert pheno and covariates to format suitable for fitting var components.
-  X <- cbind(rep(1, nrow(phenoEnvir)),
-             as(as.matrix(phenoEnvir[covarEnvir]), "dgeMatrix"))
-  rownames(X) <- phenoEnvir$genotype
+  X <- cbind(rep(1, nrow(phEnv)), as(as.matrix(phEnv[covEnv]), "dgeMatrix"))
+  rownames(X) <- phEnv$genotype
   ## Add snpCovariates to X
   if (!is.null(snpCov)) {
     if (ncol(X) == length(snpCov)) {
@@ -245,7 +241,7 @@ runMultiTraitGwas <- function(gData,
     }
   }
   ## Construct Y from pheno data in gData.
-  Y <- phenoEnvir[, !colnames(phenoEnvir) %in% covarEnvir]
+  Y <- phEnv[, !colnames(phEnv) %in% covEnv]
   rownames(Y) <- Y[["genotype"]]
   Y <- as(as.matrix(Y[, -which(colnames(Y) == "genotype")]), "dgeMatrix")
   if (anyNA(Y)) {
@@ -417,16 +413,14 @@ runMultiTraitGwas <- function(gData,
           return(delta * K %*% solve((delta * K + diag(nrow(Y))), matrix(i)))})
         varComp <- list(Vg = cov(GBLUP), Ve = cov(Y - GBLUP))
       }
-      Vg <- setNames(lapply(X = varComp, FUN = function(x) {x[[1]]}),
-                     paste("chr", chrs))
-      Ve <- setNames(lapply(X = varComp, FUN = function(x) {x[[2]]}),
-                     paste("chr", chrs))
+      Vg <- setNames(lapply(X = varComp, FUN = "[[", 1), paste("chr", chrs))
+      Ve <- setNames(lapply(X = varComp, FUN = "[[", 2), paste("chr", chrs))
       if (!is.null(snpCov)) {
-        VgRed <- lapply(X = varCompRed, FUN = function(x) {x[[1]]})
-        VeRed <- lapply(X = varCompRed, FUN = function(x) {x[[2]]})
+        VgRed <- lapply(X = varCompRed, FUN = "[[", 1)
+        VeRed <- lapply(X = varCompRed, FUN = "[[", 2)
       }
-    }
-  }
+    } #end GLSMethod 2
+  } #end varComp
   ## Create data.frame and matrices for storing GWAS Results.
   nn <- nrow(mapRed)
   allFreq <- Matrix::colMeans(markersRed[rownames(Y),
