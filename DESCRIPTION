@@ -17,7 +17,6 @@ LazyData: true
 RoxygenNote: 6.0.1
 Imports: ggplot2 (>= 2.2.1),
     heritability (>= 1.2),
-    MASS (>= 7.3-47),
     Matrix (>= 1.2-10),
     methods,
     reshape2 (>= 1.4.2),
