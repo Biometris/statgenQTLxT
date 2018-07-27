@@ -332,9 +332,10 @@ runSingleTraitGwas <- function(gData,
       ## Determine segregating markers. Exclude snps used as covariates.
       segMarkers <- which(allFreq >= MAF & allFreq <= (1 - MAF))
       ## Create data.frame for results.
-      GWAResult <- data.frame(snp = rownames(mapRed), mapRed, pValue = NA,
-                              LOD = NA, effect = NA, effectSe = NA, RLR2 = NA,
-                              allFreq = allFreq, stringsAsFactors = FALSE)
+      GWAResult <- data.frame(trait = trait, snp = rownames(mapRed), mapRed,
+                              pValue = NA, LOD = NA, effect = NA, effectSe = NA,
+                              RLR2 = NA, allFreq = allFreq,
+                              stringsAsFactors = FALSE)
       ## Define single column matrix with trait non missing values.
       y <- as(phEnvTr[which(phEnvTr$genotype %in% nonMiss), trait], "dgeMatrix")
       if (GLSMethod == 1) {
@@ -451,10 +452,10 @@ runSingleTraitGwas <- function(gData,
                      maxScore = maxScore, pheno = phEnvTr, trait = trait)
       GWATotEnv[[trait]] <- GWAResult
     } # end for (trait in traits)
-    GWATot[[match(env, environments)]] <-
-      as.data.frame(dplyr::bind_rows(GWATotEnv, .id = "trait"))
-    signSnpTot[[match(env, environments)]] <-
-      as.data.frame(dplyr::bind_rows(signSnpTotEnv, .id = "trait"))
+    ## Bind data together for results and significant SNPs.
+    GWATot[[match(env, environments)]] <- dfBind(GWATotEnv)
+    signSnpTot[[match(env, environments)]] <- dfBind(signSnpTotEnv)
+    ## No significant SNPs should return NULL instead of data.frame().
     signSnpTot <- lapply(signSnpTot, FUN = function(x) {
       if (is.null(x) || nrow(x) == 0) NULL else x
     })

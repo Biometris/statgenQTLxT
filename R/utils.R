@@ -153,6 +153,22 @@ computeExcludedMarkers <- function(snpCov,
   return(exclude)
 }
 
+## Helper function for row binding data.frames with diffent columns
+#' @keywords internal
+dfBind <- function(dfList) {
+  ## Get variable names from all data.frames.
+  allNms <- unique(unlist(lapply(dfList, names)))
+  ## rbind all data.frames setting values for missing columns to NA.
+  do.call(rbind,
+          c(lapply(X = dfList, FUN = function(x) {
+            nwDat <- sapply(X = setdiff(allNms, names(x)), FUN = function(y) {
+              NA
+              })
+            data.frame(c(x, nwDat), stringsAsFactors = FALSE)
+          }), make.row.names = FALSE)
+  )
+}
+
 ## Helper function for accessing parallel computing functions.
 getOper <- function(x) {
   if (x) {
