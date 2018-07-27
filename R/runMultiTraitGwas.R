@@ -140,8 +140,6 @@ runMultiTraitGwas <- function(gData,
   }
   markers <- gData$markers
   map <- gData$map
-  ## Construct Y from pheno data in gData. Remove rownames first since
-  ## column_to_rownames doesn't overwrite existing rownames.
   if (!is.null(covar) && !is.numeric(covar) && !is.character(covar)) {
     stop("covar should be a numeric or character vector.\n")
   }
@@ -246,10 +244,10 @@ runMultiTraitGwas <- function(gData,
       XRed <- X[, 1:(ncol(X) - length(snpCov)), drop = FALSE]
     }
   }
-  Y <- as(as.matrix(tibble::column_to_rownames(
-    tibble::remove_rownames(phenoEnvir[, !colnames(phenoEnvir) %in%
-                                         covarEnvir]), var = "genotype")),
-    "dgeMatrix")
+  ## Construct Y from pheno data in gData.
+  Y <- phenoEnvir[, !colnames(phenoEnvir) %in% covarEnvir]
+  rownames(Y) <- Y[["genotype"]]
+  Y <- as(as.matrix(Y[, -which(colnames(Y) == "genotype")]), "dgeMatrix")
   if (anyNA(Y)) {
     stop("Phenotypic data cannot contain any missing values.\n")
   }

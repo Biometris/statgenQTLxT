@@ -39,14 +39,13 @@ covUnstructured <- function(Y,
     warning("fixDiag = TRUE not implemented yet. Value set to FALSE")
     fixDiag <- FALSE
   }
-  Y <- tibble::rownames_to_column(as.data.frame(as.matrix(Y)),
-                                  var = "genotype")
+  Y <- cbind(rownames(Y), as.data.frame(as.matrix(Y)), stringsAsFactors = FALSE)
   if (!is.null(X)) {
     ## sommer cannot handle column names with special characters.
     ## Therefore Simplify column names in X.
     colnames(X) <- make.names(colnames(X), unique = TRUE)
-    X <- tibble::rownames_to_column(as.data.frame(as.matrix(X)),
-                                    var = "genotype")
+    X <- cbind(rownames(X), as.data.frame(as.matrix(X)),
+               stringsAsFactors = FALSE)
     dat <- merge(Y, X, by = "genotype")
   } else {
     dat <- Y
@@ -109,14 +108,13 @@ covPairwise <- function(Y,
     fixDiag <- FALSE
   }
   `%op%` <- getOper(parallel && foreach::getDoParWorkers() > 1)
-  Y <- tibble::rownames_to_column(as.data.frame(as.matrix(Y)),
-                                  var = "genotype")
+  Y <- cbind(rownames(Y), as.data.frame(as.matrix(Y)), stringsAsFactors = FALSE)
   if (!is.null(X)) {
     ## sommer cannot handle column names with special characters.
     ## Therefore Simplify column names in X.
     colnames(X) <- make.names(colnames(X), unique = TRUE)
-    X <- tibble::rownames_to_column(as.data.frame(as.matrix(X)),
-                                    var = "genotype")
+    X <- cbind(rownames(X), as.data.frame(as.matrix(X)),
+               stringsAsFactors = FALSE)
     dat <- merge(Y, X, by = "genotype")
   } else {
     dat <- Y
