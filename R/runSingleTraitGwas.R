@@ -340,9 +340,8 @@ runSingleTraitGwas <- function(gData,
       y <- as(phEnvTr[which(phEnvTr$genotype %in% nonMiss), trait], "dgeMatrix")
       if (GLSMethod == 1) {
         ## Exclude snpCovariates from segregating markers.
-        exclude <- computeExcludedMarkers(snpCov = snpCov,
-                                          markersRed = markersRed,
-                                          allFreq = allFreq)
+        exclude <- exclMarkers(snpCov = snpCov, markers = markersRed,
+                               allFreq = allFreq)
         ## The following is based on the genotypes, not the replicates:
         X <- markersRed[nonMissRepId, setdiff(segMarkers, exclude)]
         if (length(covEnv) == 0) {
@@ -380,9 +379,8 @@ runSingleTraitGwas <- function(gData,
           ## Determine segregating markers. Exclude snps used as covariates.
           segMarkersChr <- which(allFreqChr >= MAF & allFreqChr <= (1 - MAF))
           ## Exclude snpCovariates from segregating markers.
-          exclude <- computeExcludedMarkers(snpCov = snpCov,
-                                            markersRed = markersRedChr,
-                                            allFreq = allFreqChr)
+          exclude <- exclMarkers(snpCov = snpCov, markers = markersRedChr,
+                                 allFreq = allFreqChr)
           ## Remove excluded snps from segreg markers for current chromosome.
           segMarkersChr <- setdiff(intersect(segMarkersChr,
                                              which(mapRedChr$chr == chr)),

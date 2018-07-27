@@ -132,19 +132,19 @@ chrSpecKin <- function(gData,
 }
 
 ## Select markers to be excluded from GWAS scan.
-computeExcludedMarkers <- function(snpCov,
-                                   markersRed,
-                                   allFreq) {
+exclMarkers <- function(snpCov,
+                        markers,
+                        allFreq) {
   exclude <- integer()
-  if (any(snpCov %in% colnames(markersRed))) {
-    snpCovNumbers <- which(colnames(markersRed) %in% snpCov)
+  if (any(snpCov %in% colnames(markers))) {
+    snpCovNumbers <- which(colnames(markers) %in% snpCov)
     for (snp in snpCovNumbers) {
       ## Rough selection based on allele frequency. Done for speed.
       candidates <- which(allFreq == allFreq[snp])
       ## Exclude all snps that are identical to snps in snpCovariates.
-      snpInfo <- as.numeric(markersRed[, snp])
+      snpInfo <- as.numeric(markers[, snp])
       exclude <- union(exclude,
-                       candidates[apply(X = markersRed[, candidates],
+                       candidates[apply(X = markers[, candidates],
                                         MARGIN = 2, FUN = function(x) {
                                           identical(as.numeric(x), snpInfo)
                                         })])

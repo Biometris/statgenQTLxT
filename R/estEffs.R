@@ -28,17 +28,16 @@
 #' February 2014, Vol. 11, p. 407–409
 #'
 #' @keywords internal
-estimateEffects <- function(Y,
-                            W = matrix(data = 1, nrow = nrow(Y)),
-                            X,
-                            Vg,
-                            Ve,
-                            K,
-                            returnSe = TRUE,
-                            estCom = FALSE,
-                            nChunks = min(ncol(X),
-                                          ceiling(ncol(Y) * ncol(W) *
-                                                    ncol(X) / 50000))) {
+estEffs <- function(Y,
+                    W = matrix(data = 1, nrow = nrow(Y)),
+                    X,
+                    Vg,
+                    Ve,
+                    K,
+                    returnSe = TRUE,
+                    estCom = FALSE,
+                    nChunks = min(ncol(X), ceiling(ncol(Y) * ncol(W) *
+                                                     ncol(X) / 50000))) {
   ## Y, W and X might be from the Matrix class. This function needs standard
   ## matrices for its computations.
   Y <- as.matrix(Y)
@@ -225,18 +224,61 @@ estimateEffects <- function(Y,
     }
   }
   ## Construct output.
-  out <- list(effects = Eff)
+  out <- list(effs = Eff)
   if (returnSe) {
-    out$effectsSe <- EffSe
+    out$effsSe <- EffSe
     out$pVals <- pVals
   }
   if (estCom) {
-    out$effectsCom <- EffCom
+    out$effsCom <- EffCom
     if (returnSe) {
-      out$effectsComSe <- EffSeCom
-      out$pValsCom <- pValsCom
-      out$pValsQtlE <- pValsQtlE
+      out$effsComSe <- EffSeCom
+      out$pValCom <- pValsCom
+      out$pValQtlE <- pValsQtlE
     }
   }
   return(out)
 }
+
+## Helper function for estimating effect.
+## Function is a wrapper around estEffs, usefull for usage in chromosome
+## specific calculations.
+#' @keywords internal
+estEffTot <- function(markers,
+                      X,
+                      Y,
+                      K,
+                      XRed,
+                      Vg,
+                      Ve,
+                      snpCov,
+                      allFreq,
+                      MAF,
+                      estCom) {
+  segMarkers <- which(allFreq < MAF | allFreq > 1 - MAF)
+  ## Add snpCovariates to segregating markers.
+  excludedMarkers <- union(c(segMarkers, ncol(markers) + 1),
+                           exclMarkers(snpCov = snpCov, markers = markers,
+                                       allFreq = allFreq))
+  if (!is.null(snpCov)) {
+    effEstSnpCov <- estEffs(Y = Y, W = XRed,
+                            X = markers[, snpCov, drop = FALSE], Vg = Vg,
+                            Ve = Ve, K = K, estCom = estCom)
+  } else {
+    ## Set to NULL so binding can be done in next step.
+    effEstSnpCov <- NULL
+  }
+  effEst <- estEffs(Y = Y, W = X, X = markers[, -excludedMarkers], Vg = Vg,
+                    Ve = Ve, K = K, estCom = estCom)
+  pValues <- c(effEst$pVals, effEstSnpCov$pVals)
+  effs <- cbind(effEst$effs, effEstSnpCov$effs)
+  effsSe <- cbind(effEst$effsSe, effEstSnpCov$effsSe)
+  pValCom <- c(effEst$pValCom, effEstSnpCov$pValCom)
+  effsCom <- c(effEst$effsCom, effEstSnpCov$effsCom)
+  effsComSe <- c(effEst$effsComSe, effEstSnpCov$effsComSe)
+  pValQtlE <- c(effEst$pValQtlE, effEstSnpCov$pValQtlE)
+  return(list(pValues = pValues, effs = effs, effsSe = effsSe,
+              pValCom = pValCom, effsCom = effsCom, effsComSe = effsComSe,
+              pValQtlE = pValQtlE))
+}
+
