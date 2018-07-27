@@ -34,3 +34,13 @@ test_that("function exclMarkers functions properly", {
   expect_equal(exclMarkers(snpCov = c("SNP1", "SNP2", "SNP3"),
                            markers = markers, allFreq = allFreq), c(1, 3, 2))
 })
+
+test_that("function matrixRoot functions properly", {
+  M1 <- Matrix::Matrix(1:4, nrow = 2)
+  M2 <- Matrix::Matrix(c(1:2, 2:1), nrow = 2)
+  expect_error(matrixRoot(M1), "should be a symmetric matrix")
+  expect_error(matrixRoot(M2), "should be a positive definite matrix")
+  expect_equal(as.numeric(matrixRoot(Matrix::crossprod(M2))), c(2, 1, 1, 2))
+})
+
+
