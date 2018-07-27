@@ -144,7 +144,7 @@ exclMarkers <- function(snpCov,
       ## Exclude all snps that are identical to snps in snpCovariates.
       snpInfo <- as.numeric(markers[, snp])
       exclude <- union(exclude,
-                       candidates[apply(X = markers[, candidates],
+                       candidates[apply(X = markers[, candidates, drop = FALSE],
                                         MARGIN = 2, FUN = function(x) {
                                           identical(as.numeric(x), snpInfo)
                                         })])

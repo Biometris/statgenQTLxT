@@ -22,7 +22,6 @@ Imports: ggplot2 (>= 2.2.1),
     methods,
     reshape2 (>= 1.4.2),
     sommer (>= 3.4),
-    rlang (>= 0.1.2),
     foreach
 Suggests: covr,
     knitr,

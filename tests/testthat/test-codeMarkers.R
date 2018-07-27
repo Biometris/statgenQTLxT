@@ -2,9 +2,8 @@ context("Test codeMarkers function.")
 
 set.seed(1234)
 markers <- matrix(c("AA", "AB", "AA", "AB", NA, "AA", NA, "AA",
-                    "AA", "BB", "AB", "BB"),
-                  ncol = 4, byrow = TRUE, dimnames = list(paste0("IND", 1:3),
-                                          paste0("SNP", 1:4)))
+                    "AA", "BB", "AB", "BB"), ncol = 4, byrow = TRUE,
+                  dimnames = list(paste0("IND", 1:3), paste0("SNP", 1:4)))
 gData <- createGData(geno = markers)
 
 test_that(paste("codeMarkers produces correct results when no imputation,",

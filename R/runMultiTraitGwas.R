@@ -71,8 +71,6 @@
 #' mixed model algorithms for genome-wide association studies. Nature Methods,
 #' February 2014, Vol. 11, p. 407–409.
 #'
-#' @importFrom rlang .data
-#'
 #' @export
 runMultiTraitGwas <- function(gData,
                               environments = NULL,

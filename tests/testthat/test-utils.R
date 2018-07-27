@@ -1,0 +1,36 @@
+context("utils")
+
+test_that("function dfBind copies columns properly", {
+  df1 <- data.frame(a = 1:2, b = 1:2)
+  df2 <- data.frame(a = 1:2, c = 1:2)
+  df3 <- data.frame(c = 1:2, d = 1:2)
+  expect_equal(colnames(dfBind(list(df1, df1))), c("a", "b"))
+  expect_equal(colnames(dfBind(list(df1, df2))), c("a", "b", "c"))
+  expect_equal(colnames(dfBind(list(df1, df3))), c("a", "b", "c", "d"))
+  expect_equal(colnames(dfBind(list(df1, df2, df3))), c("a", "b", "c", "d"))
+})
+
+test_that("function dfBind inserts NAs for missing columns", {
+  df1 <- data.frame(a = 1:2, b = 1:2)
+  df2 <- data.frame(a = 1:2, c = 1:2)
+  expect_equivalent(unlist(dfBind(list(df1, df2))),
+                    c(1, 2, 1, 2, 1, 2, NA, NA, NA, NA, 1, 2))
+  expect_equivalent(unlist(dfBind(list(df1, df2, df1))),
+                    c(1, 2, 1, 2, 1,2, 1, 2, NA, NA, 1, 2, NA, NA, 1, 2, NA, NA))
+})
+
+test_that("function exclMarkers functions properly", {
+  markers <- matrix(c(0, 1, 0, 1, 2, 1, 0, 1, 0, 2, 1, 2), ncol = 4,
+                    dimnames = list(paste0("IND", 1:3), paste0("SNP", 1:4)))
+  allFreq <- colMeans(markers, na.rm = TRUE)
+  expect_length(exclMarkers(snpCov = NULL, markers = markers,
+                            allFreq = allFreq), 0)
+  expect_equal(exclMarkers(snpCov = "SNP2", markers = markers,
+                           allFreq = allFreq), 2)
+  expect_equal(exclMarkers(snpCov = "SNP1", markers = markers,
+                           allFreq = allFreq), c(1, 3))
+  expect_equal(exclMarkers(snpCov = c("SNP1", "SNP3"), markers = markers,
+                           allFreq = allFreq), c(1, 3))
+  expect_equal(exclMarkers(snpCov = c("SNP1", "SNP2", "SNP3"),
+                           markers = markers, allFreq = allFreq), c(1, 3, 2))
+})
