@@ -315,7 +315,7 @@ EMFA <- function(Y,
       XTransformed <- data.frame()
     }
     logLik <- LLDiag(Matrix::crossprod(Y, Uk), X = XTransformed,
-                     VLst = VLst, VInvLst = VInvLst)
+                     vLst = VLst, vInvLst = VInvLst)
   } else {
     logLik <- NA
   }
@@ -562,31 +562,38 @@ updateFAHomVar <- function(Y = NULL,
 #' @keywords internal
 LLDiag <- function(Y,
                    X = data.frame(),
-                   VLst,
-                   VInvLst) {
+                   vLst,
+                   vInvLst) {
   nc <- nrow(X)
   n <- ncol(Y)
   p <- nrow(Y)
-  ## Compute scalair part.
-  qScal <- sum(sapply(X = 1:n, FUN = function(i) {
+  ## Define function for faster computation of scalar part.
+  scalFunc <- function(i) {
     as.numeric(Matrix::crossprod(Y[, i, drop = FALSE],
-                                 VInvLst[[i]] %*% Y[, i, drop = FALSE]))
-  }))
+                                 vInvLst[[i]] %*% Y[, i, drop = FALSE]))
+  }
+  ## Compute scalair part.
+  qScal <- sum(sapply(X = 1:n, FUN = scalFunc))
   quadFormPart <- -0.5 * qScal
   if (nc > 0) {
+    ## Define functions for faster computation of q and Q.
+    qVecFunc <- function(i) {
+      as.numeric(Matrix::kronecker(X[, i, drop = FALSE],
+                                   vInvLst[[i]] %*% Y[, i, drop = FALSE]))
+    }
+    qMatFunc <- function(i) {
+      as.numeric(Matrix::kronecker(Matrix::tcrossprod(X[, i, drop = FALSE]),
+                                   vInvLst[[i]]))
+    }
     ## Compute q, Q and quadratic part.
-    qVec <- rowSums(sapply(X = 1:n, FUN = function(i) {
-      kronecker(X[, i], VInvLst[[i]] %*% Y[, i])
-    }))
-    QMatrix <- matrix(rowSums(sapply(X = 1:n, FUN = function(i) {
-      kronecker(tcrossprod(X[, i]), VInvLst[[i]])
-    })), ncol = p * nc)
+    qVec <- rowSums(sapply(X = 1:n, FUN = qVecFunc))
+    QMatrix <- matrix(rowSums(sapply(X = 1:n, FUN = qMatFunc)), ncol = p * nc)
     quadFormPart <- quadFormPart + 0.5 *
       as.numeric(crossprod(qVec, solve(QMatrix, qVec)))
   }
   ## Compute determinant part.
   detPart <- -0.5 * sum(sapply(X = 1:n, FUN = function(i) {
-    Matrix::determinant(VLst[[i]])[[1]][1]
+    Matrix::determinant(vLst[[i]])[[1]][1]
   }))
   return(quadFormPart + detPart)
 }
@@ -621,17 +628,20 @@ LLQuadFormDiag <- function(Y,
   p <- nrow(Y)
   ## Define function for faster computation of scalar part.
   scalFunc <- function(i) {
-    as.numeric(crossprod(Y[, i], vInvLst[[i]] %*% Y[, i]))
+    as.numeric(Matrix::crossprod(Y[, i, drop = FALSE],
+                                 vInvLst[[i]] %*% Y[, i, drop = FALSE]))
   }
   ## Compute scalair part.
   qScal <- sum(sapply(X = 1:n, FUN = scalFunc))
   if (nc > 0) {
     ## Define functions for faster computation of q and Q.
     qVecFunc <- function(i) {
-      kronecker(X[, i], vInvLst[[i]] %*% Y[, i])
+      as.numeric(Matrix::kronecker(X[, i, drop = FALSE],
+                                   vInvLst[[i]] %*% Y[, i, drop = FALSE]))
     }
     qMatFunc <- function(i) {
-      kronecker(tcrossprod(X[, i]), vInvLst[[i]])
+      as.numeric(Matrix::kronecker(Matrix::tcrossprod(X[, i, drop = FALSE]),
+                                   vInvLst[[i]]))
     }
     ## Compute q and Q.
     if (p == 1 && nc == 1) {
@@ -683,7 +693,7 @@ makeVInvLst <- function(Vg,
                         Ve,
                         Dk) {
   VInvLst <- sapply(X = Dk, FUN = function(Dk_i) {
-    solve(Dk_i * Vg + Ve)
+    Matrix::solve(Dk_i * Vg + Ve)
   }, simplify = FALSE)
   return(VInvLst)
 }

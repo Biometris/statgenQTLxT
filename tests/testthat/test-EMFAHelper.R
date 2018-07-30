@@ -38,3 +38,33 @@ test_that("makeVInvLst functions properly", {
                  0.666666666666667))
   expect_equal(vInvLst[[2]], solve(2 * Vg + Ve))
 })
+
+Vg2 <- Matrix::Matrix(c(0.7, 0.3, 0.3, 0.7), nrow = 2)
+Ve2 <- Matrix::Matrix(c(0.9, 0.1, 0.1, 0.9), nrow = 2)
+vLst2 <- makeVLst(Vg2, Ve2, Dk)
+vInvLst2 <- makeVInvLst(Vg2, Ve2, Dk)
+test_that("makeVLst and makeVInvLst retain class", {
+  expect_is(vLst2[[1]], "Matrix")
+  expect_is(vInvLst2[[1]], "Matrix")
+})
+
+Y <- Matrix::Matrix(1:6, nrow = 2)
+X <- Matrix::Matrix(1:3, nrow = 1)
+test_that("LLDiag functions properly", {
+  llDiag <- LLDiag(Y = Y, vLst = vLst2, vInvLst = vInvLst2)
+  expect_is(llDiag, "numeric")
+  expect_length(llDiag, 1)
+  expect_equal(llDiag, -15.5221797651405)
+  llDiag2 <- LLDiag(Y = Y, X = X, vLst = vLst2, vInvLst = vInvLst2)
+  expect_equal(llDiag2, -2.38746869986328)
+})
+
+test_that("LLDiag functions properly", {
+  llQFDiag <- LLQuadFormDiag(Y = Y, vInvLst = vInvLst2)
+  expect_is(llQFDiag, "numeric")
+  expect_length(llQFDiag, 1)
+  expect_equal(llQFDiag, 26.5208333333333)
+  llQFDiag2 <- LLQuadFormDiag(Y = Y, X = X, vInvLst = vInvLst2)
+  expect_equal(llQFDiag2, -663.561705739926)
+})
+
