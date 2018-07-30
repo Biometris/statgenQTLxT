@@ -62,21 +62,20 @@ estEffs <- function(Y,
   X <- t(X) %*% Uk
   ## Square each element of X.
   X2 <- X ^ 2
-  # Define vInvArr
-  vInvArr <- makeVInvArray(Vg = Vg, Ve = Ve , Dk = Dk)
-  ## create a second instance of vInvArr, in matrix form.
-  vInvArrRed <- vInvArr
-  dim(vInvArrRed) <- c(n, p ^ 2)
+  # Define vInvLst
+  vInvLst <- makeVInvLst(Vg = Vg, Ve = Ve , Dk = Dk)
+  ## create a second instance of vInvLst, in matrix form.
+  vInvMat <- matrix(unlist(vInvLst), nrow = length(vInvLst), byrow = TRUE)
   ## Compute quantities that are independent of the SNPs.
   VBeta <- matrix(rowSums(sapply(X = 1:n, FUN = function(i) {
-    kronecker(tcrossprod(W[, i]), vInvArr[i, , ])
+    kronecker(tcrossprod(W[, i]), vInvLst[[i]])
   })), ncol = p * nc)
   v <- rowSums(sapply(X = 1:n, FUN = function(i) {
-    kronecker(W[, i], vInvArr[i, , ] %*% Y[, i])
+    kronecker(W[, i], vInvLst[[i]] %*% Y[, i])
   }))
   ## VInvY is used is several equations so is computed once here.
   VInvY <- sapply(X = 1:n, FUN = function(i) {
-    vInvArr[i, , ] %*% Y[, i]
+    vInvLst[[i]] %*% Y[, i]
   })
   ## Define output for effects.
   Eff <- matrix(data = 0, nrow = p, ncol = ns,
@@ -87,7 +86,7 @@ estEffs <- function(Y,
     ## Compute SS0 for null model with the trait specific means only.
     est0 <- solve(VBeta, v)
     fitMean0 <- matrix(est0, ncol = length(est0) / p) %*% W
-    SS0 <- LLQuadFormDiag(Y = Y - fitMean0, vInvArr = vInvArr)
+    SS0 <- LLQuadFormDiag(Y = Y - fitMean0, vInvLst = vInvLst)
     ## Compute VQ
     VQ <- numeric(p * nc)
     for (c in 1:nc) {
@@ -103,8 +102,8 @@ estEffs <- function(Y,
     EffCom <- setNames(numeric(ns), snpNames)
     ## Compute chunk independent quantities.
     s1 <- colSums(VInvY)
-    s2 <- apply(X = vInvArr, MARGIN = 1, FUN = sum)
-    S3 <- t(apply(X = vInvArr, MARGIN = 1, FUN = rowSums))
+    s2 <- sapply(X = vInvLst, FUN = sum)
+    S3 <- t(sapply(X = vInvLst, FUN = rowSums))
     if (returnSe) {
       ## Define outputs for SE of common effects and SS for common effects.
       EffSeCom <- EffCom
@@ -124,10 +123,10 @@ estEffs <- function(Y,
     X2VinvX1Arr <- array(data = 0, dim = c(nc, nsCh, p ^ 2))
     ## Fill X2VinvX1Arr by looping over covariates.
     for (cv in 1:nc) {
-      X2VinvX1Arr[cv, , ] <- X[ch, ] %*% (vInvArrRed * as.numeric(W[cv, ]))
+      X2VinvX1Arr[cv, , ] <- X[ch, ] %*% (vInvMat * as.numeric(W[cv, ]))
     }
     ## Compute VBeta and V per SNP - computation only depends on individuals.
-    VBetaSnp <- X2[ch, ] %*% vInvArrRed
+    VBetaSnp <- X2[ch, ] %*% vInvMat
     VSnp <- tcrossprod(X[ch, ], VInvY)
     if (returnSe) {
       ## Compute VSnpQ by looping over individuals.
