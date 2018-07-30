@@ -125,8 +125,8 @@ covPW <- function(Y,
     if (!is.null(X)) {
       ## Define formula for fixed part. ` needed to accommodate - in varnames.
       fixed <- as.formula(paste0(traits[i], " ~ `",
-                                paste(colnames(X)[-1], collapse = '` + `'),
-                                "`"))
+                                 paste(colnames(X)[-1], collapse = '` + `'),
+                                 "`"))
     } else {
       fixed <- as.formula(paste(traits[i], " ~ 1"))
     }

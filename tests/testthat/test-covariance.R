@@ -73,8 +73,10 @@ test_that("option veDiag functions properly in covUnstr", {
                  0.00308230698921089))
 })
 
+## Test for covPW give different results in cran check on gitlab then in
+## RStudio. Therefore tolerance is added.
 covpw <- covPW(Y = Y, K = K)
-test_that("covUnstr produces correct output structure", {
+test_that("covPW produces correct output structure", {
   expect_is(covpw, "list")
   expect_length(covpw, 2)
   expect_named(covpw, c("Vg", "Ve"))
@@ -82,26 +84,30 @@ test_that("covUnstr produces correct output structure", {
   expect_is(covpw[[2]], "dpoMatrix")
 })
 
-test_that("covUnstr produces correct results", {
+test_that("covPW produces correct results", {
   expect_equal(as.numeric(covpw[[1]]),
                c(0.653764571577872, 1.2104145588217, 0.0176273841980339,
                  1.2104145588217, 2.24850717412422, 0.182115998322076,
-                 0.0176273841980339, 0.182115998322076, 2.98725317772489))
+                 0.0176273841980339, 0.182115998322076, 2.98725317772489),
+               tolerance = 1e-5)
   expect_equal(as.numeric(covpw[[2]]),
                c(2.13126590943264, 0.257790587862521, 0.0656276328231413,
                  0.257790587862521, 0.524127476824658, 0.436109022403954,
-                 0.0656276328231413, 0.436109022403954, 0.373928447720833))
+                 0.0656276328231413, 0.436109022403954, 0.373928447720833),
+               tolerance = 1e-5)
 })
 
-test_that("adding covariates to covpw functions properly", {
+test_that("adding covariates to covPW functions properly", {
   covpwCov <- covPW(Y = Y, K = K, X = X)
   expect_equal(as.numeric(covpwCov[[1]]),
                c(0.00212922033234732, 0, 0, 0, 2.17712568801086,
-                 -0.244324079784721, 0, -0.244324079784721, 1.0843761087518))
+                 -0.244324079784721, 0, -0.244324079784721, 1.0843761087518),
+               tolerance = 1e-5)
   expect_equal(as.numeric(covpwCov[[2]]),
                c(2.28252977136244, 0.616822992788182, 0.761736077650586,
                  0.616822992788182, 0.349737535988451, 0.337231268115985,
-                 0.761736077650586, 0.337231268115985, 0.348508698409624))
+                 0.761736077650586, 0.337231268115985, 0.348508698409624),
+               tolerance = 1e-5)
 })
 
 test_that("option fixDiag functions properly in covPW", {
@@ -114,9 +120,10 @@ test_that("option corMat functions properly in covPW", {
   expect_equal(as.numeric(covPWcor[[1]]),
                c(1, 0.708184590486365, -0.85516690643881, 0.708184590486365,
                  1, -0.971587193712504, -0.85516690643881, -0.971587193712504,
-                 1))
+                 1), tolerance = 1e-5)
   expect_equal(as.numeric(covPWcor[[2]]),
                c(1, -0.83472028965713, -0.999997857170303, -0.83472028965713,
                  1, 0.835851093737417, -0.999997857170303, 0.835851093737417,
-                 1))
+                 1), tolerance = 1e-5)
 })
+
