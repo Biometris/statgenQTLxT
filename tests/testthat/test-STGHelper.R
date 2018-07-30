@@ -15,64 +15,64 @@ colnames(X) <- rownames(map) <- paste0("M", 1:3)
 gDataTest <- createGData(map = map, geno = X, kin = Sigma, pheno = pheno,
                          covar = as.data.frame(covs))
 
-test_that("runEmma produces correct results with default settings", {
-  expect_equivalent(runEmma(gData = gDataTest, trait = 2, environment = 1)[[1]],
+test_that("EMMA produces correct results with default settings", {
+  expect_equivalent(EMMA(gData = gDataTest, trait = 2, environment = 1)[[1]],
                     c(0.0214570264923801, 1.85343825287729))
-  expect_equivalent(runEmma(gData = gDataTest, trait = "X1",
-                            environment = 1)[[1]],
+  expect_equivalent(EMMA(gData = gDataTest, trait = "X1",
+                         environment = 1)[[1]],
                     c(0.0214570264923801, 1.85343825287729))
-  expect_equivalent(runEmma(gData = gDataTest, trait = "X1",
-                            environment = "pheno")[[1]],
+  expect_equivalent(EMMA(gData = gDataTest, trait = "X1",
+                         environment = "pheno")[[1]],
                     c(0.0214570264923801, 1.85343825287729))
-  expect_equivalent(runEmma(gData = gDataTest, trait = 2,
-                            environment = 1, K = Sigma)[[1]],
+  expect_equivalent(EMMA(gData = gDataTest, trait = 2,
+                         environment = 1, K = Sigma)[[1]],
                     c(0.0214570264923801, 1.85343825287729))
 })
 
-test_that("runEmma produces correct results with covariates", {
-  expect_equivalent(runEmma(gData = gDataTest, trait = 2,
-                            environment = 1, covar = 1)[[1]],
+test_that("EMMA produces correct results with covariates", {
+  expect_equivalent(EMMA(gData = gDataTest, trait = 2,
+                         environment = 1, covar = 1)[[1]],
                     c(8.76962021955844e-05, 1.93163739799549))
-  expect_equivalent(runEmma(gData = gDataTest, trait = 2,
-                            environment = 1, covar = "V1")[[1]],
+  expect_equivalent(EMMA(gData = gDataTest, trait = 2,
+                         environment = 1, covar = "V1")[[1]],
                     c(8.76962021955844e-05, 1.93163739799549))
-  expect_equivalent(runEmma(gData = gDataTest, trait = 2,
-                            environment = 1, K = Sigma, covar = 1)[[1]],
+  expect_equivalent(EMMA(gData = gDataTest, trait = 2,
+                         environment = 1, K = Sigma, covar = 1)[[1]],
                     c(8.76962021955844e-05, 1.93163739799549))
-  expect_equivalent(runEmma(gData = gDataTest, trait = 2,
-                            environment = 1, snpName = "M1")[[1]],
+  expect_equivalent(EMMA(gData = gDataTest, trait = 2,
+                         environment = 1, snpName = "M1")[[1]],
                     c(0.199457967788946, 1.82420297857926))
-  expect_equivalent(runEmma(gData = gDataTest, trait = 2,
-                            environment = 1, K = Sigma, snpName = "M1")[[1]],
+  expect_equivalent(EMMA(gData = gDataTest, trait = 2,
+                         environment = 1, K = Sigma, snpName = "M1")[[1]],
                     c(0.199457967788946, 1.82420297857926))
-  expect_equivalent(runEmma(gData = gDataTest, trait = 2,
-                            environment = 1, covar = 1, snpName = "M1")[[1]],
+  expect_equivalent(EMMA(gData = gDataTest, trait = 2,
+                         environment = 1, covar = 1, snpName = "M1")[[1]],
                     c(0.140158216807375, 1.71023973698722))
-  expect_equivalent(runEmma(gData = gDataTest, trait = 2, environment = 1,
-                            K = Sigma, covar = 1, snpName = "M1")[[1]],
+  expect_equivalent(EMMA(gData = gDataTest, trait = 2, environment = 1,
+                         K = Sigma, covar = 1, snpName = "M1")[[1]],
                     c(0.140158216807375, 1.71023973698722))
 })
 
-test_that("extra options in runEmma don't significantly change results", {
+test_that("extra options in EMMA don't significantly change results", {
   ## Compute base value
-  runEmma0 <- runEmma(gData = gDataTest, trait = 2, environment = 1)[[1]]
-  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1,
-                       nGrids = 50)[[1]], runEmma0, tolerance = 1e-6)
-  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1,
-                       nGrids = 500)[[1]], runEmma0, tolerance = 1e-6)
-  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1,
-                       lLim = -100)[[1]], runEmma0, tolerance = 1e-6)
-  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1,
-                       lLim = -20)[[1]], runEmma0, tolerance = 1e-6)
-  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1,
-                       uLim = 20)[[1]], runEmma0, tolerance = 1e-6)
-  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1,
-                       uLim = 100)[[1]],    runEmma0, tolerance = 1e-6)
-  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1,
-                       eps = 1e-5)[[1]], runEmma0, tolerance = 1e-6)
-  expect_equal(runEmma(gData = gDataTest, trait = 2, environment = 1,
-                       nGrids = 500, lLim = -100, uLim = 100)[[1]],
-               runEmma0, tolerance = 1e-6)
+  EMMA0 <- EMMA(gData = gDataTest, trait = 2, environment = 1)[[1]]
+  expect_equal(EMMA(gData = gDataTest, trait = 2, environment = 1,
+                    nGrids = 50)[[1]], EMMA0, tolerance = 1e-6)
+  expect_equal(EMMA(gData = gDataTest, trait = 2, environment = 1,
+                    nGrids = 500)[[1]], EMMA0, tolerance = 1e-6)
+  expect_equal(EMMA(gData = gDataTest, trait = 2, environment = 1,
+                    lLim = -100)[[1]], EMMA0, tolerance = 1e-6)
+  expect_equal(EMMA(gData = gDataTest, trait = 2, environment = 1,
+                    lLim = -20)[[1]], EMMA0, tolerance = 1e-6)
+  expect_equal(EMMA(gData = gDataTest, trait = 2, environment = 1,
+                    uLim = 20)[[1]], EMMA0, tolerance = 1e-6)
+  expect_equal(EMMA(gData = gDataTest, trait = 2, environment = 1,
+                    uLim = 100)[[1]], EMMA0, tolerance = 1e-6)
+  expect_equal(EMMA(gData = gDataTest, trait = 2, environment = 1,
+                    eps = 1e-5)[[1]], EMMA0, tolerance = 1e-6)
+  expect_equal(EMMA(gData = gDataTest, trait = 2, environment = 1,
+                    nGrids = 500, lLim = -100, uLim = 100)[[1]],
+               EMMA0, tolerance = 1e-6)
 })
 
 test_that("emmaEigenR produces correct results", {
@@ -132,19 +132,36 @@ test_that("fastGLS is independent of dimensions and number of chunks", {
                        nChunks = 2)[1:2, ])
 })
 
-test_that("genomicControlPValues produces correct new p-values", {
-  expect_equal(genomicControlPValues(pVals = .5, nObs = 10)[[1]], 0.5)
-  expect_equal(genomicControlPValues(pVals = c(0.25, 0.5), nObs = 10)[[1]],
+test_that("function exclMarkers functions properly", {
+  markers <- matrix(c(0, 1, 0, 1, 2, 1, 0, 1, 0, 2, 1, 2), ncol = 4,
+                    dimnames = list(paste0("IND", 1:3), paste0("SNP", 1:4)))
+  allFreq <- colMeans(markers, na.rm = TRUE)
+  expect_length(exclMarkers(snpCov = NULL, markers = markers,
+                            allFreq = allFreq), 0)
+  expect_equal(exclMarkers(snpCov = "SNP2", markers = markers,
+                           allFreq = allFreq), 2)
+  expect_equal(exclMarkers(snpCov = "SNP1", markers = markers,
+                           allFreq = allFreq), c(1, 3))
+  expect_equal(exclMarkers(snpCov = c("SNP1", "SNP3"), markers = markers,
+                           allFreq = allFreq), c(1, 3))
+  expect_equal(exclMarkers(snpCov = c("SNP1", "SNP2", "SNP3"),
+                           markers = markers, allFreq = allFreq), c(1, 3, 2))
+})
+
+
+test_that("genCtrlPVals produces correct new p-values", {
+  expect_equal(genCtrlPVals(pVals = .5, nObs = 10)[[1]], 0.5)
+  expect_equal(genCtrlPVals(pVals = c(0.25, 0.5), nObs = 10)[[1]],
                c(0.410638105484779, 0.63432328826532))
-  expect_equal(genomicControlPValues(pVals = c(0.25, 0.5), nObs = 1e6)[[1]],
+  expect_equal(genCtrlPVals(pVals = c(0.25, 0.5), nObs = 1e6)[[1]],
                c(0.410588927034021, 0.629472060364479))
 })
 
-test_that("genomicControlPValues produces correct inflation factor", {
-  expect_equal(genomicControlPValues(pVals = .5, nObs = 10)[[2]], 1)
-  expect_equal(genomicControlPValues(pVals = c(0.25, 0.5), nObs = 10)[[2]],
+test_that("genCtrlPVals produces correct inflation factor", {
+  expect_equal(genCtrlPVals(pVals = .5, nObs = 10)[[2]], 1)
+  expect_equal(genCtrlPVals(pVals = c(0.25, 0.5), nObs = 10)[[2]],
                2.04152779518634)
-  expect_equal(genomicControlPValues(pVals = c(0.25, 0.5), nObs = 1e6)[[2]],
+  expect_equal(genCtrlPVals(pVals = c(0.25, 0.5), nObs = 1e6)[[2]],
                1.95438310682772)
 })
 

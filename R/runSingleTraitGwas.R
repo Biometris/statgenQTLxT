@@ -418,8 +418,8 @@ runSingleTraitGwas <- function(gData,
         GWAResult$effect <- 0.5 * GWAResult$effect
       }
       ## Calculate the genomic inflation factor.
-      GC <- genomicControlPValues(pVals = GWAResult$pValue,
-                                  nObs = length(nonMiss), nCov = length(covEnv))
+      GC <- genCtrlPVals(pVals = GWAResult$pValue, nObs = length(nonMiss),
+                         nCov = length(covEnv))
       inflationFactorEnv[trait] <- GC$inflation
       ## Rescale p-values.
       if (genomicControl) {

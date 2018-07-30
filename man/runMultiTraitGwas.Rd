@@ -4,13 +4,14 @@
 \alias{runMultiTraitGwas}
 \title{Perform multi-trait GWAS}
 \usage{
-runMultiTraitGwas(gData, environments = NULL, covar = NULL, snpCov = NULL,
-  kin = NULL, kinshipMethod = c("astle", "GRM", "IBS", "vanRaden"),
-  GLSMethod = 1, subsetMarkers = FALSE, markerSubset = "", MAF = 0.01,
-  fitVarComp = TRUE, covModel = 1, VeDiag = TRUE, tolerance = 1e-06,
-  maxIter = 2e+05, maxDiag = 10000, mG = 1, mE = 1, CmHet = TRUE,
-  DmHet = TRUE, stopIfDecreasing = TRUE, computeLogLik = TRUE,
-  Vg = NULL, Ve = NULL, reduceK = FALSE, nPca = NULL, estCom = FALSE,
+runMultiTraitGwas(gData, environments = NULL, covar = NULL,
+  snpCov = NULL, kin = NULL, kinshipMethod = c("astle", "GRM", "IBS",
+  "vanRaden"), GLSMethod = 1, subsetMarkers = FALSE,
+  markerSubset = "", MAF = 0.01, fitVarComp = TRUE, covModel = 1,
+  VeDiag = TRUE, tolerance = 1e-06, maxIter = 2e+05,
+  maxDiag = 10000, mG = 1, mE = 1, CmHet = TRUE, DmHet = TRUE,
+  stopIfDecreasing = TRUE, computeLogLik = TRUE, Vg = NULL,
+  Ve = NULL, reduceK = FALSE, nPca = NULL, estCom = FALSE,
   parallel = FALSE)
 }
 \arguments{

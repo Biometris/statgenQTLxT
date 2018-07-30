@@ -276,38 +276,34 @@ runMultiTraitGwas <- function(gData,
       if (covModel == 1) {
         ## Unstructured models.
         ## Sommer always adds an intercept so remove it from X.
-        varComp <- covUnstructured(Y = Y, K = K,
-                                   X = if (ncol(X) == 1) {
-                                     NULL
-                                   } else {
-                                     X[, -1, drop = FALSE]
-                                   },
-                                   fixDiag = FALSE, VeDiag = VeDiag)
+        varComp <- covUnstr(Y = Y, K = K, X = if (ncol(X) == 1) {
+          NULL
+        } else {
+          X[, -1, drop = FALSE]
+        }, fixDiag = FALSE, VeDiag = VeDiag)
         if (!is.null(snpCov)) {
           ## Sommer always adds an intercept so remove it from XRed.
-          varCompRed <- covUnstructured(Y = Y, K = K,
-                                        X = if (ncol(XRed) == 1) {
-                                          NULL
-                                        } else {
-                                          XRed[, -1, drop = FALSE]
-                                        },
-                                        fixDiag = FALSE, VeDiag = VeDiag)
+          varCompRed <- covUnstr(Y = Y, K = K, X = if (ncol(XRed) == 1) {
+            NULL
+          } else {
+            XRed[, -1, drop = FALSE]
+          }, fixDiag = FALSE, VeDiag = VeDiag)
         }
       } else if (covModel == 2) {
         ## Unstructured (pairwise) models.
         ## Sommer always adds an intercept so remove it from X.
-        varComp <- covPairwise(Y = Y, K = K,
-                               X = if (ncol(X) == 1) NULL else
-                                 X[, -1, drop = FALSE],
-                               fixDiag = FALSE, corMat = FALSE,
-                               parallel = parallel)
+        varComp <- covPW(Y = Y, K = K, X = if (ncol(X) == 1) {
+          NULL
+        } else {
+          X[, -1, drop = FALSE]
+        }, fixDiag = FALSE, corMat = FALSE, parallel = parallel)
         if (!is.null(snpCov)) {
           ## Sommer always adds an intercept so remove it from XRed.
-          varCompRed <- covPairwise(Y = Y, K = K,
-                                    X = if (ncol(XRed) == 1) NULL else
-                                      XRed[, -1, drop = FALSE],
-                                    fixDiag = FALSE, corMat = FALSE,
-                                    parallel = parallel)
+          varCompRed <- covPW(Y = Y, K = K, X = if (ncol(XRed) == 1) {
+            NULL
+          } else {
+            XRed[, -1, drop = FALSE]
+          }, fixDiag = FALSE, corMat = FALSE, parallel = parallel)
         }
       } else if (covModel == 3) {
         ## FA models.
@@ -347,38 +343,39 @@ runMultiTraitGwas <- function(gData,
         ## Unstructured models.
         ## Sommer always adds an intercept so remove it from X.
         varComp <- sapply(X = chrs, FUN = function(chr) {
-          covUnstructured(Y = Y,
-                          K = KChr[[which(chrs == chr)]],
-                          X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
-                          fixDiag = FALSE, VeDiag = VeDiag)
+          covUnstr(Y = Y, K = KChr[[which(chrs == chr)]],
+                   X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
+                   fixDiag = FALSE, VeDiag = VeDiag)
         }, simplify = FALSE)
         if (!is.null(snpCov)) {
           ## Sommer always adds an intercept so remove it from XRed.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
-            covUnstructured(Y = Y,
-                            K = KChr[[which(chrs == chr)]],
-                            X = if (ncol(XRed) == 1) NULL else
-                              XRed[, -1, drop = FALSE],
-                            fixDiag = FALSE, VeDiag = VeDiag)
+            covUnstr(Y = Y, K = KChr[[which(chrs == chr)]],
+                     X = if (ncol(XRed) == 1) NULL else
+                       XRed[, -1, drop = FALSE], fixDiag = FALSE,
+                     VeDiag = VeDiag)
           }, simplify = FALSE)
         }
       } else if (covModel == 2) {
         ## Unstructured (pairwise) models.
         ## Sommer always adds an intercept so remove it from X.
         varComp <- sapply(X = chrs, FUN = function(chr) {
-          covPairwise(Y = Y,
-                      K = KChr[[which(chrs == chr)]],
-                      X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
-                      fixDiag = FALSE, corMat = TRUE, parallel = parallel)
+          covPW(Y = Y, K = KChr[[which(chrs == chr)]],
+                X = if (ncol(X) == 1) {
+                  NULL
+                } else {
+                  X[, -1, drop = FALSE]
+                }, fixDiag = FALSE, corMat = TRUE, parallel = parallel)
         }, simplify = FALSE)
         if (!is.null(snpCov)) {
           ## Sommer always adds an intercept so remove it from XRed.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
-            covPairwise(Y = Y,
-                        K = KChr[[which(chrs == chr)]],
-                        X = if (ncol(XRed) == 1) NULL else
-                          XRed[, -1, drop = FALSE],
-                        fixDiag = FALSE, corMat = TRUE, parallel = parallel)
+            covPW(Y = Y, K = KChr[[which(chrs == chr)]],
+                  X = if (ncol(XRed) == 1) {
+                    NULL
+                  } else {
+                    XRed[, -1, drop = FALSE]
+                  }, fixDiag = FALSE, corMat = TRUE, parallel = parallel)
           }, simplify = FALSE)
         }
       } else if (covModel == 3) {

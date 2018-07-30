@@ -6,8 +6,8 @@
 \alias{is.GWAS}
 \title{S3 Class GWAS}
 \usage{
-createGWAS(GWAResult = NULL, signSnp = NULL, kin = NULL, thr = NULL,
-  GWASInfo = NULL)
+createGWAS(GWAResult = NULL, signSnp = NULL, kin = NULL,
+  thr = NULL, GWASInfo = NULL)
 
 is.GWAS(x)
 }

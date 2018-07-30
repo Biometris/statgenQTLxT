@@ -131,28 +131,6 @@ chrSpecKin <- function(gData,
   return(KChr)
 }
 
-## Select markers to be excluded from GWAS scan.
-exclMarkers <- function(snpCov,
-                        markers,
-                        allFreq) {
-  exclude <- integer()
-  if (any(snpCov %in% colnames(markers))) {
-    snpCovNumbers <- which(colnames(markers) %in% snpCov)
-    for (snp in snpCovNumbers) {
-      ## Rough selection based on allele frequency. Done for speed.
-      candidates <- which(allFreq == allFreq[snp])
-      ## Exclude all snps that are identical to snps in snpCovariates.
-      snpInfo <- as.numeric(markers[, snp])
-      exclude <- union(exclude,
-                       candidates[apply(X = markers[, candidates, drop = FALSE],
-                                        MARGIN = 2, FUN = function(x) {
-                                          identical(as.numeric(x), snpInfo)
-                                        })])
-    }
-  }
-  return(exclude)
-}
-
 #' Row bind data.frames
 #'
 #' Helper function for row binding data.frames with diffent columns.
@@ -202,6 +180,25 @@ matrixRoot <- function(X) {
   return(XSqrt)
 }
 
+#' Reduce the kinship matrix
+#'
+#' The kinship matrix is reduced using nPca eigenvectors of K.
+#'
+#' @inheritParams runMultiTraitGwas
+#'
+#' @param nPca An integer, the number of eigenvectors used for reducing the k
+#' inship matrix.
+#'
+#' @return The reduced kinship matrix
+#'
+#' @keywords internal
+reduceKinship <- function(K, nPca) {
+  w <- eigen(K, symmetric = TRUE)
+  U <- w$vectors[, 1:nPca]
+  S <- diag(w$values[1:nPca])
+  KRed <- U %*% S %*% t(U)
+  return(KRed)
+}
 
 ## Helper function for accessing parallel computing functions.
 getOper <- function(x) {

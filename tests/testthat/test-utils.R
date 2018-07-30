@@ -19,22 +19,6 @@ test_that("function dfBind inserts NAs for missing columns", {
                     c(1, 2, 1, 2, 1,2, 1, 2, NA, NA, 1, 2, NA, NA, 1, 2, NA, NA))
 })
 
-test_that("function exclMarkers functions properly", {
-  markers <- matrix(c(0, 1, 0, 1, 2, 1, 0, 1, 0, 2, 1, 2), ncol = 4,
-                    dimnames = list(paste0("IND", 1:3), paste0("SNP", 1:4)))
-  allFreq <- colMeans(markers, na.rm = TRUE)
-  expect_length(exclMarkers(snpCov = NULL, markers = markers,
-                            allFreq = allFreq), 0)
-  expect_equal(exclMarkers(snpCov = "SNP2", markers = markers,
-                           allFreq = allFreq), 2)
-  expect_equal(exclMarkers(snpCov = "SNP1", markers = markers,
-                           allFreq = allFreq), c(1, 3))
-  expect_equal(exclMarkers(snpCov = c("SNP1", "SNP3"), markers = markers,
-                           allFreq = allFreq), c(1, 3))
-  expect_equal(exclMarkers(snpCov = c("SNP1", "SNP2", "SNP3"),
-                           markers = markers, allFreq = allFreq), c(1, 3, 2))
-})
-
 test_that("function matrixRoot functions properly", {
   M1 <- Matrix::Matrix(1:4, nrow = 2)
   M2 <- Matrix::Matrix(c(1:2, 2:1), nrow = 2)

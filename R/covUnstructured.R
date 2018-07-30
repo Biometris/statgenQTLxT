@@ -1,7 +1,7 @@
 #' Compute unstructured covariance
 #'
 #' Compute unstructured covariance pairwise using \code{covPairwise} or using a
-#' single model using \code{covUnstructured}.
+#' single model using \code{covUnstr}.
 #'
 #' @inheritParams EMFA
 
@@ -23,11 +23,11 @@
 #' @importFrom foreach %dopar%
 #'
 #' @keywords internal
-covUnstructured <- function(Y,
-                            K,
-                            X = NULL,
-                            fixDiag = FALSE,
-                            VeDiag = FALSE) {
+covUnstr <- function(Y,
+                     K,
+                     X = NULL,
+                     fixDiag = FALSE,
+                     VeDiag = FALSE) {
   ## Check input.
   if (missing(Y) || !(is.matrix(Y) || inherits(Y, "Matrix"))) {
     stop("Y should be a matrix")
@@ -89,14 +89,14 @@ covUnstructured <- function(Y,
   return(list(Vg = VgMat, Ve = VeMat))
 }
 
-#' @rdname covUnstructured
+#' @rdname covUnstr
 #' @keywords internal
-covPairwise <- function(Y,
-                        K,
-                        X = NULL,
-                        fixDiag = FALSE,
-                        corMat = FALSE,
-                        parallel = FALSE) {
+covPW <- function(Y,
+                  K,
+                  X = NULL,
+                  fixDiag = FALSE,
+                  corMat = FALSE,
+                  parallel = FALSE) {
   ## Check input.
   if (missing(Y) || !(is.matrix(Y) || inherits(Y, "Matrix"))) {
     stop("Y should be a matrix")

@@ -5,11 +5,11 @@
 \title{Perform single-trait GWAS}
 \usage{
 runSingleTraitGwas(gData, traits = NULL, environments = NULL,
-  covar = NULL, snpCov = NULL, kin = NULL, kinshipMethod = c("astle",
-  "GRM", "IBS", "vanRaden"), remlAlgo = 1, GLSMethod = 1, useMAF = TRUE,
-  MAF = 0.01, MAC = 10, genomicControl = FALSE, thrType = 1,
-  alpha = 0.05, LODThr = 4, nSnpLOD = 10, sizeInclRegion = 0,
-  minR2 = 0.5)
+  covar = NULL, snpCov = NULL, kin = NULL,
+  kinshipMethod = c("astle", "GRM", "IBS", "vanRaden"), remlAlgo = 1,
+  GLSMethod = 1, useMAF = TRUE, MAF = 0.01, MAC = 10,
+  genomicControl = FALSE, thrType = 1, alpha = 0.05, LODThr = 4,
+  nSnpLOD = 10, sizeInclRegion = 0, minR2 = 0.5)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},

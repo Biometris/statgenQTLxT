@@ -368,4 +368,360 @@ tracePInvDiag <- function(x, y) {
   return(z)
 }
 
+#' Update W and P in EMFA algorithm
+#'
+#' Updata W and P used in the iteration process in the EMFA algorithm.
+#'
+#' @param Y An n x p matrix or data.frame.
+#' @param WStart A p x p matrix or data.frame containing starting values for W.
+#' @param m An integer. The order of the model.
+#' @param PStart A p x p matrix or data.frame containing starting values for P.
+#' @param hetVar Should an extra diagonal part be added in the model for the
+#' precision matrix?
+#' @param maxDiag A numerical value for the maximum value of the diagonal of P.
+#' @param tolerance A numerical value. The iterating process stops if the sum
+#' of the difference for P and W between two steps gets lower than this value.
+#' @param maxIter A numerical value for the maximum number of iterations.
+#' @param printProgress Should progress be printed during iterations?
+#'
+#' @return A list containing the new matrices W and P after the iteration
+#' process and the number of iterations.
+#'
+#' @keywords internal
+updateFA <- function(Y,
+                     WStart = NULL,
+                     m = ifelse(is.null(WStart), 2, ncol(WStart)),
+                     PStart = NULL,
+                     hetVar = FALSE,
+                     maxDiag = 1e4,
+                     tolerance = 1e-4,
+                     maxIter = 100L,
+                     printProgress = FALSE) {
+  ## Check input
+  if (anyNA(Y)) {
+    stop("Y cannot contain missing values.\n")
+  }
+  p <- ncol(Y)
+  n <- nrow(Y)
+  if (!is.null(PStart)) {
+    stopifnot(ncol(PStart) == p & nrow(PStart) == p)
+  }
+  if (!is.null(WStart)) {
+    stopifnot(nrow(WStart) == p)
+    if (ncol(WStart) != m) {
+      stop("m needs to be equal to the number of columns of WStart.")
+    }
+    if (is.null(PStart)) {
+      stop(paste("WStart and PStart should be either both NULL (default),",
+                 "or both have a sensible value."))
+    }
+  } else {
+    if (!is.null(PStart)) {
+      stop(paste("WStart and PStart should be either both NULL (default),",
+                 "or both have a sensible value."))
+    }
+  }
+  if (m != round(m) || m < 1) {
+    stop("m needs to be a positive integer.")
+  }
+  if (m >= p) {
+    stop("m needs to be smaller than the number of variables.")
+  }
+  ## Set start values for P and W.
+  if (is.null(WStart)) {
+    a <- eigen(Matrix::crossprod(Y) / n, symmetric = TRUE)
+    sigma2 <- mean(a$values[-(1:m)])
+    PStart <- Matrix::Diagonal(n = p, x = 1 / sigma2)
+    WStart <- a$vectors[, 1:m] %*%
+      Matrix::Diagonal(x = sqrt(a$values[1:m] - sigma2))
+  }
+  W <- WStart
+  P <- PStart
+  ## Set start values for iterations and difference.
+  iter <- 1
+  totalDiff <- Inf
+  ## EM
+  while (totalDiff > tolerance & iter < maxIter) {
+    if (m == 1) {
+      if (hetVar) {
+        B <- as.numeric(Matrix::crossprod(W, P %*% W)) # m x m
+        Sigma <- 1 / (1 + B) # m x m
+        M1 <- Sigma *
+          as.numeric(Matrix::crossprod(W, Matrix::tcrossprod(P, Y))) # m x n
+      } else {
+        B <- P[1, 1] * as.numeric(Matrix::crossprod(W)) # m x m
+        Sigma <- 1 / (1 + B) # m x m
+        M1 <- P[1, 1] * Sigma * as.numeric(Matrix::t(Y %*% W)) # m x n
+      }
+      A <- 1 / (n * Sigma + sum(M1 ^ 2))  # m x m
+      WNew <- A * Matrix::crossprod(Y, M1) # p x m
+      if (hetVar) {
+        D1 <- Matrix::colSums(Y ^ 2)
+        D2 <- (n * Sigma + sum(M1 ^ 2)) * as.numeric(WNew) ^ 2
+        D3 <- Matrix::diag(WNew %*% M1 %*% Y)
+        DTot <-  D1 + D2 - 2 * D3
+        PNew <- P
+        Matrix::diag(PNew) <- n / DTot
+      } else {
+        dataNew <- Matrix::t(Y) - WNew %*% M1 # p x n
+        SNew <- Matrix::tcrossprod(dataNew) / n
+        PNew <- P
+        Matrix::diag(PNew) <- 1 / mean(Matrix::diag(SNew))
+      }
+    } else {
+      if (hetVar) {
+        B <- Matrix::crossprod(W, P %*% W) # m x m
+        Sigma <- Matrix::solve(Matrix::Diagonal(n = m) + B) # m x m
+        M1 <- Sigma %*% Matrix::crossprod(W, Matrix::tcrossprod(P, Y)) # m x n
+      } else {
+        B <- P[1, 1] * Matrix::crossprod(W) # m x m
+        Sigma <- Matrix::solve(Matrix::Diagonal(n = m) + B) # m x m
+        M1 <- P[1, 1] *
+          Matrix::tcrossprod(Matrix::tcrossprod(Sigma, W), Y) # m x n
+      }
+      A <- Matrix::solve(n * Sigma + Matrix::tcrossprod(M1))  # m x m
+      WNew <- Matrix::crossprod(Y, Matrix::crossprod(M1, A)) # p x m
+      if (hetVar) {
+        D1 <- Matrix::colSums(Y ^ 2)
+        D2 <- Matrix::diag(
+          Matrix::tcrossprod(WNew %*% (n * Sigma + Matrix::tcrossprod(M1)),
+                             WNew))
+        D3 <- Matrix::diag(WNew %*% M1 %*% Y)
+        DTot <-  D1 + D2 - 2 * D3
+        PNew <- P
+        Matrix::diag(PNew) <- n / DTot
+      } else {
+        dataNew <- Matrix::t(Y) - WNew %*% M1 # p x n
+        SNew <- Matrix::tcrossprod(dataNew) / n
+        PNew <- P
+        Matrix::diag(PNew) <- 1 / mean(Matrix::diag(SNew))
+      }
+    }
+    Matrix::diag(PNew)[Matrix::diag(PNew) > maxDiag] <- maxDiag
+    PDiff <- sum(abs(as.numeric(PNew) - as.numeric(P)))
+    WDiff <- sum(abs(as.numeric(WNew) - as.numeric(W)))
+    totalDiff <- PDiff + WDiff
+    if (printProgress) {
+      cat("Iteration ", iter, " : ", PDiff, "  ", WDiff, "\n")
+    }
+    ## Set values for next iteration
+    P <- PNew
+    W <- WNew
+    iter <- iter + 1
+  }
+  return(list(W = W, P = P, n.iter = iter))
+}
+
+#' Update W and P in EMFA algorithm for homogeneous variance.
+#'
+#' Updata W and P used in the iteration process in the EMFA algorithm in case
+#' the variance is homogeneous.
+#'
+#' @inheritParams EMFA
+#'
+#' @param S An p x p sample covariance matrix.
+#' @param m An integer. The order of the model.
+#' @param maxDiag A numerical value for the maximum value of sigma2.
+#'
+#' @return A list containing the new value for the matrices W and P.
+#'
+#' @keywords internal
+updateFAHomVar <- function(Y = NULL,
+                           S = NULL,
+                           m,
+                           maxDiag = 1e4) {
+  if ((is.null(Y) && is.null(S)) || (!is.null(Y) && !is.null(S))) {
+    stop(paste("Either the data (Y) or the sample covariance matrix (S)",
+               "must be provided.\n"))
+  }
+  if (m != round(m) || m < 1) {
+    stop("m needs to be a positive integer")
+  }
+  ## If S is not in imput, compute S from Y.
+  if (!is.null(Y)) {
+    if (anyNA(Y)) {
+      stop("Y cannot contain missing values.\n")
+    }
+    n <- nrow(Y)
+    Y <- as(scale(Y, scale = FALSE), "dgeMatrix")
+    S <- Matrix::crossprod(Y) / n
+  }
+  p <- ncol(S)
+  a <- eigen(S, symmetric = TRUE)
+  if (m >= p) {
+    stop("m needs to be smaller than the number of variables.\n")
+  }
+  sigma2 <- max(mean(a$values[-(1:m)]), 1 / maxDiag)
+  ## Split cases for extra robustness.
+  if (m == 1) {
+    W <- as(a$vectors[, 1] * sqrt(a$values[1] - sigma2), "dgeMatrix")
+  } else {
+    W <- a$vectors[, 1:m] %*% Matrix::Diagonal(x = sqrt(a$values[1:m] - sigma2))
+  }
+  return(list(W = W, P = Matrix::Diagonal(n = p, x = 1 / sigma2)))
+}
+
+#' Compute log-likelihood
+#'
+#' Compute \eqn{t(y) * P * y}, part of the log-likelihood functions from
+#' equation 26 and 27 in Zhou and Stephens (2014) using equation 50.
+#' Equation 56, 57 and 58 are used to do the actual computations.
+#'
+#' It is assumed that X and Y have already been rotated by Uk, where Uk is such
+#' that the kinship matrix K equals \eqn{K = Uk * Dk * t(Uk)}.\cr
+#' The original X and Y are right multiplied by Uk, e.g. \code{Y <- Y * Uk}.
+#' See Zhou and Stephens (2014), supplement.\cr
+#' It is these rotated versions that are the input of this function.
+#'
+#' @inheritParams estEffs
+#'
+#' @param X An optional c x n covariate matrix, c being the number of
+#' covariates and n being the number of genotypes. c has to be at least one
+#' (typically an intercept). No missing values are allowed.
+#' @param VArray An n x p x p dimensional array obtained as an output from the
+#' function \code{\link{makeVArray}}. It contains for each genotype l the
+#' p x p matrix \eqn{v_l} (in the notation of Zhou and Stephens)
+#'
+#' @return A numerical value for the \eqn{t(y) * P * y} part of the
+#' log-likelihood function.
+#'
+#' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
+#' mixed model algorithms for genome-wide association studies. Nature Methods,
+#' February 2014, Vol. 11, p. 407–409
+#'
+#' @keywords internal
+LLDiag <- function(Y,
+                   X = data.frame(),
+                   VArray,
+                   VInvArray) {
+  nc <- nrow(X)
+  n <- ncol(Y)
+  p <- nrow(Y)
+  ## Compute scalair part.
+  qScal <- sum(sapply(X = 1:n, FUN = function(i) {
+    as.numeric(Matrix::crossprod(Y[, i, drop = FALSE], VInvArray[i, , ] %*%
+                                   Y[, i, drop = FALSE]))
+  }))
+  quadFormPart <- -0.5 * qScal
+  if (nc > 0) {
+    ## Compute q, Q and quadratic part.
+    qVec <- rowSums(sapply(X = 1:n, FUN = function(i) {
+      kronecker(X[, i], VInvArray[i, , ] %*% Y[, i])
+    }))
+    QMatrix <- matrix(rowSums(sapply(X = 1:n, FUN = function(i) {
+      kronecker(tcrossprod(X[, i]), VInvArray[i, ,])
+    })), ncol = p * nc)
+    quadFormPart <- quadFormPart + 0.5 *
+      as.numeric(crossprod(qVec, solve(QMatrix, qVec)))
+  }
+  ## Compute determinant part.
+  detPart <- -0.5 * sum(sapply(X = 1:n, FUN = function(i) {
+    Matrix::determinant(VArray[i, , ])[[1]][1]
+  }))
+  return(quadFormPart + detPart)
+}
+
+#' Compute tYPY as in Zhou and Stephens eqn. 50.
+#'
+#' Compute \eqn{t(y) * P * y}, part of the log-likelihood functions from
+#' equation 26 and 27 in Zhou and Stephens using equation 50. Equation 56, 57
+#' and 58 are used to do the actual computations.
+#'
+#' It is assumed that X and Y have already been rotated by Uk, where Uk is such
+#' that the kinship matrix K equals \eqn{K = Uk * Dk * t(Uk)}.\cr
+#' The original X and Y are right multiplied by Uk, e.g. \code{Y <- Y * Uk}.
+#' See Zhou and Stephens (2014), supplement.\cr
+#' It is these rotated versions that are the input of this function.
+#'
+#' @inheritParams estEffs
+#'
+#' @param X An optional c x n covariate matrix, c being the number of covariates
+#' and n being the number of genotypes. c has to be at least one
+#' (typically an intercept). No missing values are allowed.
+#'
+#' @return A numerical value for the \eqn{t(y) * P * y} part of the
+#' log-likelihood function.
+#'
+#' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
+#' mixed model algorithms for genome-wide association studies. Nature Methods,
+#' February 2014, Vol. 11, p. 407–409
+#'
+#' @keywords internal
+LLQuadFormDiag <- function(Y,
+                           X = data.frame(),
+                           vInvArr) {
+  nc <- nrow(X)
+  n <- ncol(Y)
+  p <- nrow(Y)
+  ## Define functions for faster computation of scalar part, q and Q.
+  scalFunc <- function(i) {
+    as.numeric(crossprod(Y[, i], vInvArr[i, ,] %*% Y[, i]))
+  }
+  qVecFunc <- function(i) {
+    kronecker(X[, i], vInvArr[i, ,] %*% Y[, i])
+  }
+  qMatFunc <- function(i) {
+    kronecker(tcrossprod(X[, i]), vInvArr[i, ,])
+  }
+  ## Compute scalair part.
+  qScal <- sum(sapply(X = 1:n, FUN = scalFunc))
+  if (nc > 0) {
+    ## Compute q and Q.
+    if (p == 1 && nc == 1) {
+      qVec <- sum(sapply(X = 1:n, FUN = qVecFunc))
+      QMatrix <- sum(sapply(X = 1:n, FUN = qMatFunc))
+    } else {
+      qVec  <- rowSums(sapply(X = 1:n, FUN = qVecFunc))
+      QMatrix <- matrix(rowSums(sapply(X = 1:n, FUN = qMatFunc)), ncol = p * nc)
+    }
+    ## Compute quadratic part.
+    quadFormPart <- qScal - as.numeric(crossprod(qVec %*% solve(QMatrix, qVec)))
+  } else {
+    quadFormPart <- qScal
+  }
+  return(quadFormPart)
+}
+
+#' Create array of (inverted) variance matrices
+#'
+#' As in Zhou and Stephens, supplement page 13, create the array of (inverted)
+#' variance matrices for the transformed genotypes per individual as given by
+#' equation 4.
+#'
+#' @param Vg A p x p symmetric matrix of genetic variance components
+#' @param Ve A p x p symmetric matrix of environmental variance components
+#' @param Dk A vector of length n containing the eigenvalues obtained by the
+#' eigen-decomposition of the kinship matrix K: \eqn{K = Uk * Dk * t(Uk)}
+#'
+#' @return A list of n p x p matrices \eqn{v_l} where \eqn{v_l =
+#' Dk_{l,l} * Vg + Ve \forall l = 1, ..., n}.\cr
+#' When using \code{makeVInvArray} the output matrices are inverted.
+#'
+#' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
+#' mixed model algorithms for genome-wide association studies. Nature Methods,
+#' February 2014, Vol. 11, p. 407–409.
+#'
+#' @keywords internal
+makeVArray <- function(Vg,
+                       Ve,
+                       Dk) {
+  n <- length(Dk)
+  p <- ncol(Vg)
+  VArray <- array(dim = c(n, p, p))
+  for (i in 1:n) {
+    VArray[i, , ] <- as.matrix(Dk[i] * Vg + Ve)
+  }
+  return(VArray)
+}
+
+#' @rdname makeVArray
+makeVInvArray <- function(Vg, Ve, Dk) {
+  n <- length(Dk)
+  p <- ncol(Vg)
+  VInvArray <- array(dim = c(n, p, p))
+  for (i in 1:n) {
+    VInvArray[i, , ] <- solve(Dk[i] * Vg + Ve)
+  }
+  return(VInvArray)
+}
 

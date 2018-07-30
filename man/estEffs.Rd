@@ -5,8 +5,8 @@
 \title{Estimates for covariates}
 \usage{
 estEffs(Y, W = matrix(data = 1, nrow = nrow(Y)), X, Vg, Ve, K,
-  returnSe = TRUE, estCom = FALSE, nChunks = min(ncol(X), ceiling(ncol(Y)
-  * ncol(W) * ncol(X)/50000)))
+  returnSe = TRUE, estCom = FALSE, nChunks = min(ncol(X),
+  ceiling(ncol(Y) * ncol(W) * ncol(X)/50000)))
 }
 \arguments{
 \item{Y}{An n x p matrix of observed phenotypes, on p traits or environments
