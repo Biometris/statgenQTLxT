@@ -59,7 +59,7 @@ test_that("LLDiag functions properly", {
   expect_equal(llDiag2, -2.38746869986328)
 })
 
-test_that("LLDiag functions properly", {
+test_that("LLQuadFormDiag functions properly", {
   llQFDiag <- LLQuadFormDiag(Y = Y, vInvLst = vInvLst2)
   expect_is(llQFDiag, "numeric")
   expect_length(llQFDiag, 1)

@@ -4,15 +4,19 @@
 \alias{LLQuadFormDiag}
 \title{Compute tYPY as in Zhou and Stephens eqn. 50.}
 \usage{
-LLQuadFormDiag(Y, X = data.frame(), vInvArr)
+LLQuadFormDiag(Y, X = data.frame(), vInvLst)
 }
 \arguments{
 \item{Y}{An n x p matrix of observed phenotypes, on p traits or environments
 for n genotypes. No missing values are allowed.}
 
-\item{X}{An optional c x n covariate matrix, c being the number of covariates
-and n being the number of genotypes. c has to be at least one
+\item{X}{An optional c x n covariate matrix, c being the number of
+covariates and n being the number of genotypes. c has to be at least one
 (typically an intercept). No missing values are allowed.}
+
+\item{vInvLst}{A list of n pxp matrices obtained as an output from the
+function \code{\link{makeVInvLst}}. It contains for each genotype l the
+p x p matrix \eqn{v_l ^ {-1}} (in the notation of Zhou and Stephens).}
 }
 \value{
 A numerical value for the \eqn{t(y) * P * y} part of the

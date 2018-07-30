@@ -10,7 +10,7 @@ updateFAHomVar(Y = NULL, S = NULL, m, maxDiag = 10000)
 \item{Y}{An n x p matrix of observed phenotypes, on p traits or environments
 for n individuals. No missing values are allowed.}
 
-\item{S}{An p x p sample covariance matrix.}
+\item{S}{A p x p sample covariance matrix.}
 
 \item{m}{An integer. The order of the model.}
 

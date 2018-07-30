@@ -4,7 +4,7 @@
 \alias{LLDiag}
 \title{Compute log-likelihood}
 \usage{
-LLDiag(Y, X = data.frame(), VLst, VInvLst)
+LLDiag(Y, X = data.frame(), vLst, vInvLst)
 }
 \arguments{
 \item{Y}{An n x p matrix of observed phenotypes, on p traits or environments
@@ -14,9 +14,13 @@ for n genotypes. No missing values are allowed.}
 covariates and n being the number of genotypes. c has to be at least one
 (typically an intercept). No missing values are allowed.}
 
-\item{VLst}{An n x p x p dimensional array obtained as an output from the
+\item{vLst}{A list of n pxp matrices obtained as an output from the
 function \code{\link{makeVLst}}. It contains for each genotype l the
 p x p matrix \eqn{v_l} (in the notation of Zhou and Stephens)}
+
+\item{vInvLst}{A list of n pxp matrices obtained as an output from the
+function \code{\link{makeVInvLst}}. It contains for each genotype l the
+p x p matrix \eqn{v_l ^ {-1}} (in the notation of Zhou and Stephens).}
 }
 \value{
 A numerical value for the \eqn{t(y) * P * y} part of the

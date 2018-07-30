@@ -23,7 +23,7 @@ Dk_l * Vg + Ve \forall l = 1, ..., n}.\cr
 When using \code{makeVInvLst} the output matrices are inverted.
 }
 \description{
-As in Zhou and Stephens, supplement page 13, create the array of (inverted)
+As in Zhou and Stephens, supplement page 13, create the list of (inverted)
 variance matrices for the transformed genotypes per individual as given by
 equation 4.
 }

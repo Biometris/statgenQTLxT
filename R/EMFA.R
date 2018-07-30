@@ -340,7 +340,7 @@ EMFA <- function(Y,
 
 #' Update W and P in EMFA algorithm
 #'
-#' Updata W and P used in the iteration process in the EMFA algorithm.
+#' Update W and P used in the iteration process in the EMFA algorithm.
 #'
 #' @param Y An n x p matrix or data.frame.
 #' @param WStart A p x p matrix or data.frame containing starting values for W.
@@ -489,7 +489,7 @@ updateFA <- function(Y,
 #'
 #' @inheritParams EMFA
 #'
-#' @param S An p x p sample covariance matrix.
+#' @param S A p x p sample covariance matrix.
 #' @param m An integer. The order of the model.
 #' @param maxDiag A numerical value for the maximum value of sigma2.
 #'
@@ -507,7 +507,7 @@ updateFAHomVar <- function(Y = NULL,
   if (m != round(m) || m < 1) {
     stop("m needs to be a positive integer")
   }
-  ## If S is not in imput, compute S from Y.
+  ## If S is not in input, compute S from Y.
   if (!is.null(Y)) {
     if (anyNA(Y)) {
       stop("Y cannot contain missing values.\n")
@@ -548,9 +548,12 @@ updateFAHomVar <- function(Y = NULL,
 #' @param X An optional c x n covariate matrix, c being the number of
 #' covariates and n being the number of genotypes. c has to be at least one
 #' (typically an intercept). No missing values are allowed.
-#' @param VLst A list of n pxp matrices obtained as an output from the
+#' @param vLst A list of n pxp matrices obtained as an output from the
 #' function \code{\link{makeVLst}}. It contains for each genotype l the
 #' p x p matrix \eqn{v_l} (in the notation of Zhou and Stephens)
+#' @param vInvLst A list of n pxp matrices obtained as an output from the
+#' function \code{\link{makeVInvLst}}. It contains for each genotype l the
+#' p x p matrix \eqn{v_l ^ {-1}} (in the notation of Zhou and Stephens).
 #'
 #' @return A numerical value for the \eqn{t(y) * P * y} part of the
 #' log-likelihood function.

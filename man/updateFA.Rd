@@ -34,6 +34,6 @@ A list containing the new matrices W and P after the iteration
 process and the number of iterations.
 }
 \description{
-Updata W and P used in the iteration process in the EMFA algorithm.
+Update W and P used in the iteration process in the EMFA algorithm.
 }
 \keyword{internal}

@@ -5,11 +5,11 @@
 #'
 #' @inheritParams EMFA
 
-#' @param X A covariate matrix, c being the number of covariates and n being the
-#' number of genotypes.
+#' @param X An n x c covariate matrix, c being the number of covariates and n
+#' being the number of genotypes.
 #' @param fixDiag Should the diagonal of the covariate matrix be fixed during
 #' calculations? -- NOT YET IMPLEMENTED
-#' @param VeDiag Should Ve be a diagonale matrix?
+#' @param VeDiag Should Ve be a diagonal matrix?
 #' @param corMat Should the output be a correlation matrix instead of a
 #' covariance matrix?
 #' @param parallel Should the computation of variance components be done in
@@ -39,23 +39,23 @@ covUnstr <- function(Y,
     warning("fixDiag = TRUE not implemented yet. Value set to FALSE")
     fixDiag <- FALSE
   }
-  Y <- cbind(genotype = rownames(Y), as.data.frame(as.matrix(Y)),
-             stringsAsFactors = FALSE)
+  ## Add genotype to data to be used in fitting model.
+  ## This silently converts Y to a data.frame.
+  dat <- cbind(genotype = rownames(Y), as.data.frame(as.matrix(Y)),
+               stringsAsFactors = FALSE)
   if (!is.null(X)) {
     ## sommer cannot handle column names with special characters.
     ## Therefore Simplify column names in X.
     colnames(X) <- make.names(colnames(X), unique = TRUE)
     X <- cbind(genotype = rownames(X), as.data.frame(as.matrix(X)),
                stringsAsFactors = FALSE)
-    dat <- merge(Y, X, by = "genotype")
-  } else {
-    dat <- Y
+    dat <- merge(dat, X, by = "genotype")
   }
   ## Restrict K to genotypes in Y.
-  K <- K[unique(Y$genotype), unique(Y$genotype)]
-  traits <- colnames(Y)[-1]
+  K <- K[unique(dat$genotype), unique(dat$genotype)]
+  traits <- colnames(Y)
   nTrait <- length(traits)
-  smpVar <- sapply(Y[-1], var)
+  smpVar <- apply(X = Y, MARGIN = 2, FUN = var)
   if (!is.null(X)) {
     ## Define formula for fixed part. ` needed to accommodate - in
     ## variable names.
@@ -66,11 +66,7 @@ covUnstr <- function(Y,
     fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "),
                                ") ~ 1"))
   }
-  if (VeDiag) {
-    rcov <- as.formula(~ diag(trait):units)
-  } else {
-    rcov <- as.formula(~ us(trait):units)
-  }
+  rcov <- as.formula(ifelse(VeDiag, "~diag(trait):units", "~us(trait):units"))
   ## Fit model.
   modFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
                           rcov = rcov, data = dat, G = list(genotype = K),
@@ -109,28 +105,26 @@ covPW <- function(Y,
     fixDiag <- FALSE
   }
   `%op%` <- getOper(parallel && foreach::getDoParWorkers() > 1)
-  Y <- cbind(genotype = rownames(Y), as.data.frame(as.matrix(Y)),
-             stringsAsFactors = FALSE)
+  dat <- cbind(genotype = rownames(Y), as.data.frame(as.matrix(Y)),
+               stringsAsFactors = FALSE)
   if (!is.null(X)) {
     ## sommer cannot handle column names with special characters.
     ## Therefore Simplify column names in X.
     colnames(X) <- make.names(colnames(X), unique = TRUE)
     X <- cbind(genotype = rownames(X), as.data.frame(as.matrix(X)),
                stringsAsFactors = FALSE)
-    dat <- merge(Y, X, by = "genotype")
-  } else {
-    dat <- Y
+    dat <- merge(dat, X, by = "genotype")
   }
   ## Restrict K to genotypes in Y.
-  K <- K[unique(Y$genotype), unique(Y$genotype)]
-  traits <- colnames(Y)[-1]
+  K <- K[unique(dat$genotype), unique(dat$genotype)]
+  traits <- colnames(Y)
   nTrait <- length(traits)
-  smpVar <- sapply(Y[-1], var)
+  smpVar <- apply(X = Y, MARGIN = 2, FUN = var)
   VgVec <- VeVec <- vector(mode = "numeric", length = nTrait)
   for (i in 1:nTrait) {
     if (!is.null(X)) {
       ## Define formula for fixed part. ` needed to accommodate - in varnames.
-      fixed <- as.formula(paste(traits[i], " ~ `",
+      fixed <- as.formula(paste0(traits[i], " ~ `",
                                 paste(colnames(X)[-1], collapse = '` + `'),
                                 "`"))
     } else {
@@ -171,11 +165,9 @@ covPW <- function(Y,
                             data = dat[, c("genotype", traits[i], traits[j],
                                            colnames(X)[-1])],
                             G = list(genotype = K),
-                            init = list(diag(VgVec[c(i, j)]),
-                                        diag(VeVec[c(i, j)])),
                             silent = TRUE, date.warning = FALSE)
-    return(c(modFit$var.comp[[1]][1,2],
-             modFit$var.comp[[2]][1,2]))
+    return(c(modFit$var.comp[[1]][1, 2],
+             modFit$var.comp[[2]][1, 2]))
   }
   comb <- combn(x = seq_along(traits), m = 2)
   pwVar <- foreach::foreach(i = comb[1, ], j = comb[2, ],
