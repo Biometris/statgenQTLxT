@@ -19,6 +19,14 @@ test_that("function dfBind inserts NAs for missing columns", {
                     c(1, 2, 1, 2, 1,2, 1, 2, NA, NA, 1, 2, NA, NA, 1, 2, NA, NA))
 })
 
+test_that(paste("function dfBind removes empty data.frames lists from",
+                "input before binding"), {
+                  df1 <- data.frame(a = 1:2, b = 1:2)
+                  expect_equal(dfBind(list(data.frame(), df1)), df1)
+                  expect_equal(dfBind(list(df1, data.frame())), df1)
+                  expect_null(dfBind(list(data.frame())))
+                })
+
 test_that("function matrixRoot functions properly", {
   M1 <- Matrix::Matrix(1:4, nrow = 2)
   M2 <- Matrix::Matrix(c(1:2, 2:1), nrow = 2)

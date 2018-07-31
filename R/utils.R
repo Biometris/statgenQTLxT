@@ -139,6 +139,11 @@ chrSpecKin <- function(gData,
 #'
 #' @keywords internal
 dfBind <- function(dfList) {
+  ## Filter empty data.frames from dfList
+  dfList <- Filter(f = function(x) nrow(x) > 0, x = dfList)
+  if (length(dfList) == 0) {
+    return(NULL)
+  }
   ## Get variable names from all data.frames.
   allNms <- unique(unlist(lapply(dfList, names)))
   ## rbind all data.frames setting values for missing columns to NA.
