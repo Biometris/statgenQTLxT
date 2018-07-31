@@ -365,7 +365,7 @@ runMultiTraitGwas <- function(gData,
                   NULL
                 } else {
                   X[, -1, drop = FALSE]
-                }, fixDiag = FALSE, corMat = TRUE, parallel = parallel)
+                }, fixDiag = FALSE, corMat = FALSE, parallel = parallel)
         }, simplify = FALSE)
         if (!is.null(snpCov)) {
           ## Sommer always adds an intercept so remove it from XRed.
@@ -375,7 +375,7 @@ runMultiTraitGwas <- function(gData,
                     NULL
                   } else {
                     XRed[, -1, drop = FALSE]
-                  }, fixDiag = FALSE, corMat = TRUE, parallel = parallel)
+                  }, fixDiag = FALSE, corMat = FALSE, parallel = parallel)
           }, simplify = FALSE)
         }
       } else if (covModel == 3) {
