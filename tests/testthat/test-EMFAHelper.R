@@ -1,5 +1,62 @@
 context("EMFA Helper functions")
 
+test_that("startValPW functions properly", {
+  C <- Matrix::Matrix(c(2,1,1,2), nrow = 2)
+  expect_null(startValPW(C = C, m = 0, p = 2)[[1]])
+  startVal <- startValPW(C = C, m = 1, p = 2)
+  expect_is(startVal, "list")
+  expect_named(startVal, c("W", "P"))
+  expect_is(startVal[[1]], "Matrix")
+  expect_equal(dim(startVal[[1]]), c(2, 1))
+  expect_equal(dim(startVal[[2]]), c(2, 2))
+  expect_equal(as.numeric(startVal[[1]]),
+               c(-0.577350269189626, 0.577350269189626))
+  expect_equal(as.numeric(startVal[[2]]), c(3, 0, 0, 3))
+})
+
+C <- Matrix::Matrix(c(2,1,1,2), nrow = 2)
+Omega <- Matrix::Matrix(c(0.5, 0.3, 0.3, 0.5), nrow = 2)
+startVal <- startValPW(C = C, m = 1, p = 2)
+W <- startVal$W
+P <- startVal$P
+pr0 <- updatePrec(m = 0, p = 2, Omega = Omega, W = W, P = P, het = FALSE,
+                  maxDiag = 1e5)
+pr1 <- updatePrec(m = 1, p = 2, Omega = Omega, W = W, P = P, het = FALSE,
+                  maxDiag = 1e5)
+test_that("updatePrec produces correct output structure", {
+  expect_is(pr1, "list")
+  expect_named(pr1, c("CNew", "WNew", "PNew"))
+  expect_is(pr1[[1]], "dsyMatrix")
+  expect_is(pr1[[2]], "dgeMatrix")
+  expect_is(pr1[[3]], "ddiMatrix")
+  expect_equal(dim(pr1[[1]]), c(2, 2))
+  expect_equal(dim(pr1[[2]]), c(2, 1))
+  expect_equal(dim(pr1[[3]]), c(2, 2))
+  expect_null(pr0[[2]])
+  expect_equal(pr0[[1]], pr0[[3]])
+})
+
+test_that("updatePrec functions properly", {
+  expect_equal(as.numeric(pr0[[1]]), c(2, 0, 0, 2))
+  expect_equal(as.numeric(pr1[[1]]), c(3.125, -1.875, -1.875, 3.125))
+  expect_equal(as.numeric(pr1[[2]]), c(0.547722557505166, 0.547722557505166))
+  expect_equal(as.numeric(pr1[[3]]), c(5, 0, 0, 5))
+})
+
+test_that("option het in updatePrec functions properly", {
+  pr0a <- updatePrec(m = 0, p = 2, Omega = Omega, W = W, P = P, het = TRUE,
+                     maxDiag = 1e5)
+  pr1a <- updatePrec(m = 1, p = 2, Omega = Omega, W = W, P = P, het = TRUE,
+                     maxDiag = 1e5)
+  expect_equal(as.numeric(pr0a[[1]]), c(2, 0, 0, 2))
+  expect_equal(as.numeric(pr1a[[1]]),
+               c(2, 2.57226643639495e-09, 2.57226643639495e-09, 2))
+  expect_equal(as.numeric(pr1a[[2]]),
+               c(-2.53587580354153e-05, 2.53587580354153e-05))
+  expect_equal(as.numeric(pr1a[[3]]),
+               c(2.00000000257227, 0, 0, 2.00000000257227))
+})
+
 test_that("vecInvDiag functions properly", {
   vid <- vecInvDiag(1:2, 3:5)
   expect_is(vid, "matrix")

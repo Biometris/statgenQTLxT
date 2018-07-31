@@ -20,7 +20,7 @@ for n individuals. No missing values are allowed.}
 A list containing the new value for the matrices W and P.
 }
 \description{
-Updata W and P used in the iteration process in the EMFA algorithm in case
+Update W and P used in the iteration process in the EMFA algorithm in case
 the variance is homogeneous.
 }
 \keyword{internal}

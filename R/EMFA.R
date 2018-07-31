@@ -123,70 +123,44 @@ EMFA <- function(Y,
   }
   ## The model is Cm^{-1} = P^{-1} + W W^t
   ## Given a starting value for Cm, set starting values for P and W
-  if (mG > 0) {
-    eigenC <- eigen(Matrix::solve(Cm), symmetric = TRUE)
-    Ug <- as(eigenC$vectors[, 1:mG], "dgeMatrix")
-    psiG <- mean(eigenC$values[-(1:mG)])
-    if (mG > 1) {
-      rootLambdaG <- matrixRoot(
-        Matrix::Diagonal(x = eigenC$values[1:mG] - psiG))
-    } else {
-      rootLambdaG <- as(sqrt(eigenC$values[1:mG] - psiG), "dgeMatrix")
-    }
-    Wg <- Ug %*% rootLambdaG
-    Pg <- Matrix::Diagonal(n = p, x = 1 / psiG)
-  } else {
-    Wg <- NULL
-    Pg <- NULL
-  }
+  gStart <- startValPW(C = Cm, m = mG, p = p)
+  Wg <- gStart$W
+  Pg <- gStart$P
   ## The model is Dm^{-1} = P^{-1} + W W^t
   ## Given a starting value for Dm, set starting values for P and W
-  if (mE > 0) {
-    eigenD <- eigen(Matrix::solve(Dm), symmetric = TRUE)
-    Ue <- as(eigenD$vectors[, 1:mE], "dgeMatrix")
-    psiE <- mean(eigenD$values[-(1:mE)])
-    if (mE > 1) {
-      rootLambdaE <- matrixRoot(
-        Matrix::Diagonal(x = eigenD$values[1:mE] - psiE))
-    } else {
-      rootLambdaE <- as(sqrt(eigenD$values[1:mE] - psiE), "dgeMatrix")
-    }
-    We <- Ue %*% rootLambdaE
-    Pe <- Matrix::Diagonal(n = p, x = 1 / psiE)
-  } else {
-    We <- NULL
-    Pe <- NULL
-  }
-  ## Set starting values.
+  eStart <- startValPW(C = Dm, m = mE, p = p)
+  We <- eStart$W
+  Pe <- eStart$P
+  ## Set further starting values.
   continue <- TRUE
   decreased <- FALSE
   iter <- 1
-  ELogLikCm <- ELogLikDm <- -Inf
+  ELogLik <- -Inf
   mu <- Matrix::Matrix(data = 0, nrow = n, ncol = p)
   ## EM following the notation of Dahl et al.
   while (continue && iter < maxIter) {
-    DmSqrtInv <- matrixRoot(Matrix::solve(Dm))
+    DmSqrt <- matrixRoot(Dm)
+    DmSqrtInv <- Matrix::solve(DmSqrt)
     w1 <- eigen(DmSqrtInv %*% Cm %*% DmSqrtInv, symmetric = TRUE)
     Q1 <- as(w1$vectors, "dgeMatrix")
-    lambda1 <- w1$values
-    CmSqrtInv <- matrixRoot(Matrix::solve(Cm))
+    CmSqrt <- matrixRoot(Cm)
+    CmSqrtInv <- Matrix::solve(CmSqrt)
     w2 <- eigen(CmSqrtInv %*% Dm %*% CmSqrtInv, symmetric = TRUE)
     Q2 <- as(w2$vectors, "dgeMatrix")
-    lambda2 <- w2$values
     if (nc > 0) {
       tUYminXb <- Matrix::crossprod(Uk, Y - X %*% B)
-      S1 <- vecInvDiag(x = lambda1, y = w$values) *
-        (tUYminXb %*% matrixRoot(Dm) %*% Q1)
-      S2 <- vecInvDiag(x = lambda2, y = 1 / w$values) *
-        (tUYminXb %*% matrixRoot(Cm) %*% Q2)
+      S1 <- vecInvDiag(x = w1$values, y = w$values) *
+        (tUYminXb %*% DmSqrt %*% Q1)
+      S2 <- vecInvDiag(x = w2$values, y = 1 / w$values) *
+        (tUYminXb %*% CmSqrt %*% Q2)
     } else {
-      S1 <- vecInvDiag(x = lambda1, y = w$values) *
-        Matrix::crossprod(Uk, Y %*% matrixRoot(Dm) %*% Q1)
-      S2 <- vecInvDiag(x = lambda2, y = 1 / w$values) *
-        Matrix::crossprod(Uk, Y %*% matrixRoot(Cm) %*% Q2)
+      S1 <- vecInvDiag(x = w1$values, y = w$values) *
+        Matrix::crossprod(Uk, Y %*% DmSqrt %*% Q1)
+      S2 <- vecInvDiag(x = w2$values, y = 1 / w$values) *
+        Matrix::crossprod(Uk, Y %*% CmSqrt %*% Q2)
     }
-    trP1 <- tracePInvDiag(x = lambda1, y = w$values)
-    trP2 <- tracePInvDiag(x = lambda2, y = 1 / w$values)
+    trP1 <- tracePInvDiag(x = w1$values, y = w$values)
+    trP2 <- tracePInvDiag(x = w2$values, y = 1 / w$values)
     if (p > 1) {
       part1 <- DmSqrtInv %*% Q1 %*% Matrix::Diagonal(x = trP1) %*%
         Matrix::crossprod(Q1, DmSqrtInv)
@@ -208,75 +182,13 @@ EMFA <- function(Y,
     Omega1 <- Matrix::forceSymmetric((part1 + part3) / n)
     Omega2 <- Matrix::forceSymmetric((part2 + part4) / n)
     ## Update Cm
-    if (mG == 0) {
-      ## Recall that the model is Cm^{-1} = P^{-1} + W W^t.
-      ## when mG == 0, W = 0 and Cm = P
-      if (p > 1) {
-        if (CmHet) {
-          PgNew <- Matrix::Diagonal(x = pmin(maxDiag, 1 / Matrix::diag(Omega2)))
-        } else {
-          tau <- min(maxDiag, p / sum(Matrix::diag(Omega2)))
-          PgNew <- Matrix::Diagonal(n = p, x = tau)
-        }
-      } else {
-        PgNew <- Matrix::Matrix(1 / as.numeric(Omega2))
-      }
-      WgNew <- NULL
-      CmNew  <- PgNew
-    } else {
-      ## When rank(Omega) = Q, A should be the Q x p matrix such that
-      ## Omega = A^t A / Q
-      A <- matrixRoot(Omega2)
-      A <- A * sqrt(nrow(A))
-      if (!CmHet) {
-        CmNewOutput <- updateFAHomVar(S = Omega2, m = mG)
-      } else {
-        CmNewOutput <- updateFA(Y = A,
-                                WStart = Wg,
-                                PStart = Pg,
-                                hetVar = CmHet,
-                                maxDiag = maxDiag)
-      }
-      WgNew <- CmNewOutput$W
-      PgNew <- CmNewOutput$P
-      CmNew <- Matrix::solve(Matrix::solve(PgNew) + Matrix::tcrossprod(WgNew))
-    }
+    CmUpd <- updatePrec(m = mG, p = p, Omega = Omega2, W = Wg, P = Pg,
+                        het = CmHet, maxDiag = maxDiag)
     ## Update Dm
-    if (mE == 0) {
-      ## Recall that the model is Dm^{-1} = P^{-1} + W W^t.
-      ## when mE == 0, W = 0 and Cm = P
-      if (p > 1) {
-        if (DmHet) {
-          PeNew <- Matrix::Diagonal(x = pmin(maxDiag, 1 / diag(Omega1)))
-        } else {
-          tau <- min(maxDiag, p / sum(Matrix::diag(Omega1)))
-          PeNew <- Matrix::Diagonal(n = p, x = tau)
-        }
-      } else {
-        PeNew <- Matrix::Matrix(1 / as.numeric(Omega1))
-      }
-      WeNew <- NULL
-      DmNew  <- PeNew
-    } else {
-      ## When rank(Omega) = Q, A should be the Q x p matrix such that
-      ## Omega = A^t A / Q
-      A <- matrixRoot(Omega1)
-      A <- A * sqrt(nrow(A))
-      if (!DmHet) {
-        DmNewOutput <- updateFAHomVar(S = Omega1, m = mE)
-      } else {
-        DmNewOutput <- updateFA(Y = A,
-                                WStart = We,
-                                PStart = Pe,
-                                hetVar = DmHet,
-                                maxDiag = maxDiag)
-      }
-      WeNew <- DmNewOutput$W
-      PeNew <- DmNewOutput$P
-      DmNew <- Matrix::solve(Matrix::solve(PeNew) + Matrix::tcrossprod(WeNew))
-    }
-    ## Compute log-likelihood and check stopping criteria
-    ELogLikOld <- ELogLikCm + ELogLikDm
+    DmUpd <- updatePrec(m = mE, p = p, Omega = Omega1, W = We, P = Pe,
+                        het = DmHet, maxDiag = maxDiag)
+    ## Compute log-likelihood and check stopping criteria.
+    ELogLikOld <- ELogLik
     ELogLikCm <- n * (Matrix::determinant(Cm)[[1]][1] -
                         sum(Matrix::diag(Cm %*% Omega2)))
     ELogLikDm <- n * (Matrix::determinant(Dm)[[1]][1] -
@@ -289,25 +201,25 @@ EMFA <- function(Y,
       }
     }
     if (iter %% 1000 == 0) {
-      CmDiff <- sum(abs(CmNew - Cm))
-      DmDiff <- sum(abs(DmNew - Dm))
+      CmDiff <- sum(abs(CmUpd$CNew - Cm))
+      DmDiff <- sum(abs(DmUpd$CNew - Dm))
       cat("Iteration ", iter, " : ", CmDiff, "  ", DmDiff, "    ", ELogLik,"\n")
     }
-    ## Update values for next iteration
-    ## Prevent that Cm, Dm become asymmetric because of numerical inaccuracies
-    Cm <- Matrix::forceSymmetric(CmNew)
-    Dm <- Matrix::forceSymmetric(DmNew)
-    Wg <- WgNew
-    We <- WeNew
-    Pg <- PgNew
-    Pe <- PeNew
+    ## Update values for next iteration.
+    ## Prevent that Cm, Dm become asymmetric because of numerical inaccuracies.
+    Cm <- Matrix::forceSymmetric(CmUpd$CNew)
+    Dm <- Matrix::forceSymmetric(DmUpd$CNew)
+    Wg <- CmUpd$WNew
+    We <- DmUpd$WNew
+    Pg <- CmUpd$PNew
+    Pe <- DmUpd$PNew
     continue <- abs(ELogLik - ELogLikOld) >= tolerance && continue
     iter <- iter + 1
   }
   ## Compute log-likelihood
   if (computeLogLik) {
     VInvLst <- makeVInvLst(Vg <- Matrix::solve(Cm), Ve <- Matrix::solve(Dm),
-                             Dk = Dk)
+                           Dk = Dk)
     VLst <- makeVLst(Vg = Vg, Ve = Ve, Dk = Dk)
     if (nc > 0) {
       XTransformed <- Matrix::crossprod(X, Uk)
@@ -336,6 +248,89 @@ EMFA <- function(Y,
   Ve = Matrix::solve(Dm)
   colnames(Vg) <- rownames(Vg) <- colnames(Ve) <- rownames(Ve) <- colnames(Y)
   return(list(Vg = Vg, Ve = Ve))
+}
+
+#' Helper function for computing starting values
+#'
+#' Helper function for computing starting values for P and W.
+#'
+#' @param C A precision matrix.
+#' @param m An integer, the order of the model.
+#' @param p An integer, the number of traits or genotypes.
+#'
+#' @keywords internal
+startValPW <- function(C,
+                       m,
+                       p) {
+  if (m > 0) {
+    eig <- eigen(Matrix::solve(C), symmetric = TRUE)
+    U <- as(eig$vectors[, 1:m], "dgeMatrix")
+    psi <- mean(eig$values[-(1:m)])
+    if (m > 1) {
+      rootLambda <- matrixRoot(Matrix::Diagonal(x = eig$values[1:m] - psi))
+    } else {
+      rootLambda <- as(sqrt(eig$values[1:m] - psi), "dgeMatrix")
+    }
+    W <- U %*% rootLambda
+    P <- Matrix::Diagonal(n = p, x = 1 / psi)
+  } else {
+    W <- NULL
+    P <- NULL
+  }
+  return(list(W = W, P = P))
+}
+
+#' Helper function for updating precision matrix.
+#'
+#' Helper function for updating the precision matrices in the EMFA algorithm.
+#'
+#' @param m An integer, the order of the model.
+#' @param p An integer, the number of traits or genotypes.
+#' @param Omega A computed matrix for the current step in the algoritm.
+#' @param W A model matrix for the current step in the algorithm.
+#' @param P A model matrix for the current step in the algorithm.
+#' @param het Should an extra diagonal part be added in the model for the
+#' precision matrix.
+#' @param maxDiag A numerical value for the maximum value of sigma2.
+#'
+#' @keywords internal
+updatePrec <- function(m,
+                       p,
+                       Omega,
+                       W,
+                       P,
+                       het,
+                       maxDiag) {
+  if (m == 0) {
+    ## Recall that the model is C^{-1} = P^{-1} + W W^t.
+    ## when m == 0, W = 0 and Cm = P.
+    if (p > 1) {
+      if (het) {
+        PNew <- Matrix::Diagonal(x = pmin(maxDiag, 1 / Matrix::diag(Omega)))
+      } else {
+        tau <- min(maxDiag, p / sum(Matrix::diag(Omega)))
+        PNew <- Matrix::Diagonal(n = p, x = tau)
+      }
+    } else {
+      PNew <- Matrix::Matrix(1 / as.numeric(Omega))
+    }
+    WNew <- NULL
+    CNew <- PNew
+  } else {
+    ## When rank(Omega) = Q, A should be the Q x p matrix such that
+    ## Omega = A^t A / Q.
+    A <- matrixRoot(Omega) * sqrt(nrow(Omega))
+    if (het) {
+      CNewOut <- updateFA(Y = A, WStart = W, PStart = P, hetVar = het,
+                          maxDiag = maxDiag)
+    } else {
+      CNewOut <- updateFAHomVar(S = Omega, m = m)
+    }
+    WNew <- CNewOut$W
+    PNew <- CNewOut$P
+    CNew <- Matrix::solve(Matrix::solve(PNew) + Matrix::tcrossprod(WNew))
+  }
+  return(list(CNew = CNew, WNew = WNew, PNew = PNew))
 }
 
 #' Update W and P in EMFA algorithm
@@ -484,7 +479,7 @@ updateFA <- function(Y,
 
 #' Update W and P in EMFA algorithm for homogeneous variance.
 #'
-#' Updata W and P used in the iteration process in the EMFA algorithm in case
+#' Update W and P used in the iteration process in the EMFA algorithm in case
 #' the variance is homogeneous.
 #'
 #' @inheritParams EMFA

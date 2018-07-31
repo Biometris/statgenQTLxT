@@ -63,19 +63,20 @@ estEffs <- function(Y,
   ## Square each element of X.
   X2 <- X ^ 2
   # Define vInvLst
-  vInvLst <- makeVInvLst(Vg = Vg, Ve = Ve , Dk = Dk)
+  vInvLst <- makeVInvLst(Vg = Vg, Ve = Ve, Dk = Dk)
   ## create a second instance of vInvLst, in matrix form.
-  vInvMat <- matrix(unlist(vInvLst), nrow = length(vInvLst), byrow = TRUE)
+  vInvMat <- matrix(sapply(X = vInvLst, FUN = as.numeric),
+                    nrow = length(vInvLst), byrow = TRUE)
   ## Compute quantities that are independent of the SNPs.
   VBeta <- matrix(rowSums(sapply(X = 1:n, FUN = function(i) {
-    kronecker(tcrossprod(W[, i]), vInvLst[[i]])
+    as.numeric(kronecker(tcrossprod(W[, i]), vInvLst[[i]]))
   })), ncol = p * nc)
   v <- rowSums(sapply(X = 1:n, FUN = function(i) {
-    kronecker(W[, i], vInvLst[[i]] %*% Y[, i])
+    as.numeric(kronecker(W[, i], vInvLst[[i]] %*% Y[, i]))
   }))
   ## VInvY is used is several equations so is computed once here.
   VInvY <- sapply(X = 1:n, FUN = function(i) {
-    vInvLst[[i]] %*% Y[, i]
+    as.numeric(vInvLst[[i]] %*% Y[, i])
   })
   ## Define output for effects.
   Eff <- matrix(data = 0, nrow = p, ncol = ns,
@@ -103,7 +104,7 @@ estEffs <- function(Y,
     ## Compute chunk independent quantities.
     s1 <- colSums(VInvY)
     s2 <- sapply(X = vInvLst, FUN = sum)
-    S3 <- t(sapply(X = vInvLst, FUN = rowSums))
+    S3 <- t(sapply(X = vInvLst, FUN = Matrix::rowSums))
     if (returnSe) {
       ## Define outputs for SE of common effects and SS for common effects.
       EffSeCom <- EffCom
