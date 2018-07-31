@@ -1,4 +1,4 @@
-context("Test helper functions for single trait GWAS.")
+context("STG Helper functions")
 
 set.seed(1234)
 y <- 1:10

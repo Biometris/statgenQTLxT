@@ -1,4 +1,4 @@
-context("Test of kinship functions")
+context("kinship functions")
 
 test_that("kinship functions give correct output", {
   X <- matrix(c(1, 0, 0, 1), nrow = 2)

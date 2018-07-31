@@ -1,4 +1,4 @@
-context("Test codeMarkers function.")
+context("codeMarkers")
 
 set.seed(1234)
 markers <- matrix(c("AA", "AB", "AA", "AB", NA, "AA", NA, "AA",

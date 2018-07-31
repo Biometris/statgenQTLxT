@@ -270,7 +270,7 @@ runMultiTraitGwas <- function(gData,
     Y <- Y[rownames(Y) %in% rownames(KChr[[1]]), ]
     X <- X[rownames(X) %in% rownames(KChr[[1]]), , drop = FALSE]
   }
-  ## fit variance components
+  ## fit variance components.
   if (fitVarComp) {
     if (GLSMethod == 1) {
       if (covModel == 1) {

@@ -1,4 +1,4 @@
-context("Test single trait GWAS function")
+context("single trait GWAS")
 
 set.seed(1234)
 y <- 1:10
