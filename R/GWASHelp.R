@@ -14,16 +14,16 @@ estVarComp <- function(GLSMethod,
                        nonMiss,
                        nonMissRepId) {
   ## Estimate variance components.
-  if (GLSMethod == 1) {
+  if (GLSMethod == "single") {
     if (isTRUE(all.equal(K, Matrix::Diagonal(nrow(K)), check.names = FALSE))) {
       ## Kinship matrix is computationally identical to identity matrix.
       vcovMatrix <- Matrix::Diagonal(nrow(pheno))
     }
-  } else if (GLSMethod == 2) {
+  } else if (GLSMethod == "multi") {
     varComp <- vcovMatrix <-
       setNames(vector(mode = "list", length = length(chrs)), paste("chr", chrs))
   }
-  if (remlAlgo == 1) {
+  if (remlAlgo == "EMMA") {
     ## emma algorithm takes covariates from gData.
     gDataEmma <-
       createGData(pheno = pheno[, c("genotype", trait)],
@@ -32,13 +32,13 @@ estVarComp <- function(GLSMethod,
                   } else {
                     as.data.frame(pheno[covar], row.names = pheno$genotype)
                   })
-    if (GLSMethod == 1) {
+    if (GLSMethod == "single") {
       remlObj <- EMMA(gData = gDataEmma, trait = trait, environment = 1,
                       covar = covar, K = K)
       ## Extract varComp and vcovMatrix
       varComp <- remlObj$varComp
       vcovMatrix <- remlObj$vcovMatrix
-    } else if (GLSMethod == 2) {
+    } else if (GLSMethod == "multi") {
       for (chr in chrs) {
         ## Get chromosome specific kinship.
         K <- KChr[[which(chrs == chr)]][nonMiss, nonMiss]
@@ -50,7 +50,7 @@ estVarComp <- function(GLSMethod,
         vcovMatrix[[which(chrs == chr)]] <- remlObj$vcovMatrix
       }
     }
-  } else if (remlAlgo == 2) {
+  } else if (remlAlgo == "NR") {
     if (!is.null(covar)) {
       ## Construct the formula for the fixed part of the model.
       ## Define formula for fixed part. ` needed to accommodate -
@@ -60,7 +60,7 @@ estVarComp <- function(GLSMethod,
     } else {
       fixed <- as.formula(paste(trait, " ~ 1"))
     }
-    if (GLSMethod == 1) {
+    if (GLSMethod == "single") {
       ## Fit model.
       modFit <- sommer::mmer2(fixed = fixed, data = pheno,
                               random = ~ g(genotype), G = list(genotype = K),
@@ -76,7 +76,7 @@ estVarComp <- function(GLSMethod,
       if (any(eigen(vcovMatrix, symmetric = TRUE,
                     only.values = TRUE)$values <= 1e-8))
         vcovMatrix <- Matrix::nearPD(vcovMatrix)$mat
-    } else if (GLSMethod == 2) {
+    } else if (GLSMethod == "multi") {
       for (chr in chrs) {
         ## Get chromosome specific kinship.
         K <- KChr[[which(chrs == chr)]][nonMiss, nonMiss]

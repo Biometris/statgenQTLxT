@@ -1,7 +1,7 @@
 #' Perform multi-trait GWAS
 #'
 #' \code{runMultiTraitGwas} performs a multi-trait Genome Wide Association
-#' Study (GWAS) on phenotypic and' genotypic data contained in a \code{gData}
+#' Study (GWAS) on phenotypic and'genotypic data contained in a \code{gData}
 #' object.
 #'
 #' @inheritParams runSingleTraitGwas
@@ -11,36 +11,32 @@
 #' markers. Ignored if subsetMarkers = \code{FALSE}.
 #' @param fitVarComp Should the variance components be fitted? If \code{FALSE}
 #' they should be supplied in Vg and Ve
-#' @param covModel An integer value for the model used when fitting the variance
-#'  components.
-#' \enumerate{
-#' \item{unstructured for both Vg and Ve (as in Zhou and Stephens (2014))}
-#' \item{unstructered for both Vg and Ve (pairwise, as in Furlotte and Eskin
-#' (2013))}
-#' \item{factor-analytic for both Vg and Ve}
-#' \item{approximate ...(as in Kruijer et al. (2015))}
-#' }
-#' Ignored if fitVarComp = \code{FALSE}
-#' @param VeDiag Should there be environmental correlations if covModel = 1 or
-#' 2? If traits are measured on the same individuals put \code{FALSE}.
+#' @param covModel An character string indictating the model used when fitting
+#' the variance components. Either \code{unst} for unstructured for both Vg and
+#' Ve (as in Zhou and Stephens (2014)), \code{pw} for unstructered for both Vg
+#' and Ve (pairwise, as in Furlotte and Eskin (2013)) or \code{fa} for
+#' factor-analytic for both Vg and Ve.\cr
+#' Ignored if \code{fitVarComp} = \code{FALSE}
+#' @param VeDiag Should there be environmental correlations if covModel = "unst"
+#' or "pw"? If traits are measured on the same individuals put \code{FALSE}.
 #' @param tolerance A numerical value. Used when fitting the factor analytical
-#' model if covModel = 3. See \code{\link{EMFA}}.
+#' model if covModel = "fa". See \code{\link{EMFA}}.
 #' @param maxIter An integer. Used when fitting the factor analytical model if
-#' covModel = 3. See \code{\link{EMFA}}.
+#' covModel = "fa". See \code{\link{EMFA}}.
 #' @param maxDiag A numerical value. Used when fitting the factor analytical
-#' model if covModel = 3. See \code{\link{EMFA}}.
+#' model if covModel = "fa". See \code{\link{EMFA}}.
 #' @param mG An integer. Used when fitting the factor analytical model if
-#' covModel = 3. See \code{\link{EMFA}}.
+#' covModel = "fa". See \code{\link{EMFA}}.
 #' @param mE An integer. Used when fitting the factor analytical model if
-#' covModel = 3. See \code{\link{EMFA}}.
+#' covModel = "fa". See \code{\link{EMFA}}.
 #' @param CmHet A boolean. Used when fitting the factor analytical model if
-#' covModel = 3. See \code{\link{EMFA}}.
+#' covModel = "fa". See \code{\link{EMFA}}.
 #' @param DmHet A boolean. Used when fitting the factor analytical model if
-#' covModel = 3. See \code{\link{EMFA}}.
+#' covModel = "fa". See \code{\link{EMFA}}.
 #' @param stopIfDecreasing A boolean. Used when fitting the factor analytical
-#' model if covModel = 3. See \code{\link{EMFA}}.
+#' model if covModel = "fa". See \code{\link{EMFA}}.
 #' @param computeLogLik A boolean. Used when fitting the factor analytical model
-#' if covModel = 3. See \code{\link{EMFA}}.
+#' if covModel = "fa". See \code{\link{EMFA}}.
 #' @param Vg An optional matrix with genotypic variance components. Vg should
 #' have row names column names corresponding to the column names of Y. It may
 #' contain additional rows and colums which will be ignored. Ignored if
@@ -55,8 +51,8 @@
 #' kinship matrix. Ignored if reduceK = \code{FALSE}.
 #' @param estCom Should the common SNP-effect model be fitted?
 #' @param parallel Should the computation of variance components be done in
-#' parallel? Only used if \code{covModel = 2}. A parallel computing environment
-#' has to be setup by the user.
+#' parallel? Only used if \code{covModel = "pw"}. A parallel computing
+#' environment has to be setup by the user.
 #'
 #' @return An object of class \code{\link{GWAS}}.
 #'
@@ -79,12 +75,12 @@ runMultiTraitGwas <- function(gData,
                               kin = NULL,
                               kinshipMethod = c("astle", "GRM", "IBS",
                                                 "vanRaden"),
-                              GLSMethod = 1,
+                              GLSMethod = c("single", "multi"),
                               subsetMarkers = FALSE,
                               markerSubset = "",
                               MAF = 0.01,
                               fitVarComp = TRUE,
-                              covModel = 1,
+                              covModel = c("unst", "pw", "fa"),
                               VeDiag = TRUE,
                               tolerance = 1e-6,
                               maxIter = 2e5,
@@ -149,15 +145,17 @@ runMultiTraitGwas <- function(gData,
   if (is.numeric(covar)) {
     covar <- colnames(gData$covar)[covar]
   }
+  GLSMethod <- match.arg(GLSMethod)
+  covModel <- match.arg(covModel)
   if (!is.null(snpCov) &&
       !all(snpCov %in% colnames(gData$markers))) {
     stop("All snpCovariates should be in markers.\n")
   }
-  if (GLSMethod == 1 && !is.null(kin) && !(inherits(kin, "Matrix") ||
-                                           is.matrix(kin))) {
+  if (GLSMethod == "single" && !is.null(kin) && !(inherits(kin, "Matrix") ||
+                                                  is.matrix(kin))) {
     stop("kin should be a matrix.\n")
   }
-  if (GLSMethod == 2 && !is.null(kin) &&
+  if (GLSMethod == "multi" && !is.null(kin) &&
       (!is.list(kin) || !all(sapply(kin, FUN = function(k) {
         is.matrix(k) || inherits(k, "Matrix")})) ||
        length(kin) != length(unique(gData$map$chr)))) {
@@ -192,10 +190,8 @@ runMultiTraitGwas <- function(gData,
     Ve <- Ve[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
     colnames(Vg) <- rownames(Vg) <- NULL
     colnames(Ve) <- rownames(Ve) <- NULL
-  } else {
-    if (is.null(covModel)) {
+  } else if (is.null(covModel)) {
       stop("If variance components are computed, covModel cannot be NULL.\n")
-    }
   }
   if (reduceK && is.null(nPca)) {
     stop("If the kinship matrix is to be reduced, nPca cannot be NULL.\n")
@@ -242,9 +238,9 @@ runMultiTraitGwas <- function(gData,
   if (anyNA(Y)) {
     stop("Phenotypic data cannot contain any missing values.\n")
   }
-  if (GLSMethod == 1) {
+  if (GLSMethod == "single") {
     ## Compute kinship matrix.
-    K <- computeKin(GLSMethod = 1, kin = kin, gData = gData,
+    K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
                     markers = markersRed, kinshipMethod = kinshipMethod)
     K <- K[rownames(K) %in% rownames(Y), colnames(K) %in% rownames(Y)]
     if (reduceK) {
@@ -252,10 +248,10 @@ runMultiTraitGwas <- function(gData,
     }
     Y <- Y[rownames(Y) %in% rownames(K), ]
     X <- X[rownames(X) %in% rownames(K), , drop = FALSE]
-  } else if (GLSMethod == 2) {
+  } else if (GLSMethod == "multi") {
     ## Compute kinship matrices per chromosome. Only needs to be done once.
     chrs <- unique(mapRed$chr[rownames(mapRed) %in% colnames(markersRed)])
-    KChr <- computeKin(GLSMethod = 2, kin = kin, gData = gData,
+    KChr <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
                        markers = markersRed, map = mapRed,
                        kinshipMethod = kinshipMethod)
     KChr <- lapply(X = KChr, FUN = function(x) {
@@ -269,8 +265,8 @@ runMultiTraitGwas <- function(gData,
   }
   ## fit variance components.
   if (fitVarComp) {
-    if (GLSMethod == 1) {
-      if (covModel == 1) {
+    if (GLSMethod == "single") {
+      if (covModel == "unst") {
         ## Unstructured models.
         ## Sommer always adds an intercept so remove it from X.
         varComp <- covUnstr(Y = Y, K = K, X = if (ncol(X) == 1) {
@@ -286,7 +282,7 @@ runMultiTraitGwas <- function(gData,
             XRed[, -1, drop = FALSE]
           }, fixDiag = FALSE, VeDiag = VeDiag)
         }
-      } else if (covModel == 2) {
+      } else if (covModel == "pw") {
         ## Unstructured (pairwise) models.
         ## Sommer always adds an intercept so remove it from X.
         varComp <- covPW(Y = Y, K = K, X = if (ncol(X) == 1) {
@@ -302,7 +298,7 @@ runMultiTraitGwas <- function(gData,
             XRed[, -1, drop = FALSE]
           }, fixDiag = FALSE, corMat = FALSE, parallel = parallel)
         }
-      } else if (covModel == 3) {
+      } else if (covModel == "fa") {
         ## FA models.
         ## Including snpCovariates.
         varComp <- EMFA(Y = Y, K = K, X = X, maxIter = maxIter,
@@ -318,16 +314,6 @@ runMultiTraitGwas <- function(gData,
                              computeLogLik = computeLogLik,
                              stopIfDecreasing = stopIfDecreasing)
         }
-      } else if (covModel == 4) {
-        ## ??
-        geno <- rownames(Y)
-        GBLUP <- sapply(as.matrix(Y), function(i) {
-          outH2 <- heritability::marker_h2_means(data.vector = i,
-                                                 geno.vector = geno,
-                                                 K = as.matrix(K))
-          delta <- outH2$va / outH2$ve
-          return(delta * K %*% solve((delta * K + diag(nrow(Y))), matrix(i)))})
-        varComp <- list(Vg = cov(GBLUP), Ve = cov(Y - GBLUP))
       }
       Vg <- varComp$Vg
       Ve <- varComp$Ve
@@ -335,8 +321,8 @@ runMultiTraitGwas <- function(gData,
         VgRed <- varCompRed$Vg
         VeRed <- varCompRed$Ve
       }
-    } else if (GLSMethod == 2) {
-      if (covModel == 1) {
+    } else if (GLSMethod == "multi") {
+      if (covModel == "unst") {
         ## Unstructured models.
         ## Sommer always adds an intercept so remove it from X.
         varComp <- sapply(X = chrs, FUN = function(chr) {
@@ -353,7 +339,7 @@ runMultiTraitGwas <- function(gData,
                      VeDiag = VeDiag)
           }, simplify = FALSE)
         }
-      } else if (covModel == 2) {
+      } else if (covModel == "pw") {
         ## Unstructured (pairwise) models.
         ## Sommer always adds an intercept so remove it from X.
         varComp <- sapply(X = chrs, FUN = function(chr) {
@@ -375,7 +361,7 @@ runMultiTraitGwas <- function(gData,
                   }, fixDiag = FALSE, corMat = FALSE, parallel = parallel)
           }, simplify = FALSE)
         }
-      } else if (covModel == 3) {
+      } else if (covModel == "fa") {
         ## FA models.
         ## Including snpCovariates.
         varComp <- sapply(X = chrs, FUN = function(chr) {
@@ -395,15 +381,6 @@ runMultiTraitGwas <- function(gData,
                  computeLogLik = computeLogLik)
           }, simplify = FALSE)
         }
-      } else if (covModel == 4) {
-        ## ??
-        geno <- rownames(Y)
-        GBLUP <- sapply(as.data.frame(Y), function(i) {
-          outH2 <- heritability::marker_h2_means(data.vector = i,
-                                                 geno.vector = geno, K = K)
-          delta <- outH2$va / outH2$ve
-          return(delta * K %*% solve((delta * K + diag(nrow(Y))), matrix(i)))})
-        varComp <- list(Vg = cov(GBLUP), Ve = cov(Y - GBLUP))
       }
       Vg <- setNames(lapply(X = varComp, FUN = "[[", 1), paste("chr", chrs))
       Ve <- setNames(lapply(X = varComp, FUN = "[[", 2), paste("chr", chrs))
@@ -411,18 +388,18 @@ runMultiTraitGwas <- function(gData,
         VgRed <- lapply(X = varCompRed, FUN = "[[", 1)
         VeRed <- lapply(X = varCompRed, FUN = "[[", 2)
       }
-    } #end GLSMethod 2
+    } #end GLSMethod multi
   } #end varComp
   allFreq <- Matrix::colMeans(markersRed[rownames(Y),
                                          rownames(mapRed)]) / max(markersRed)
   markersRed <- markersRed[rownames(Y), ]
   ## Run GWAS.
-  if (GLSMethod == 1) {
+  if (GLSMethod == "single") {
     estEffRes <- estEffTot(markers = markersRed, X = X, Y = Y, K = K,
                            XRed = XRed, Vg = Vg, Ve = Ve, snpCov = snpCov,
                            allFreq = allFreq, MAF = MAF, estCom = estCom)
     list2env(estEffRes, envir = environment())
-  } else if (GLSMethod == 2) {
+  } else if (GLSMethod == "multi") {
     pValues <- pValCom <- pValQtlE <- numeric()
     ## Create an empty matrix with traits as header.
     effs <- effsSe <- effsCom <- effsComSe <- t(gData$pheno[[env]][FALSE, -1])
@@ -487,15 +464,13 @@ runMultiTraitGwas <- function(gData,
   ## Collect info.
   GWASInfo <- list(call = match.call(),
                    MAF = MAF,
-                   GLSMethod =
-                     factor(GLSMethod, levels = c(1, 2),
-                            labels = c("single kinship matrix",
-                                       "chromosome specific kinship matrices")),
+                   GLSMethod = GLSMethod,
+                   covModel = covModel,
                    varComp = list(Vg = Vg, Ve = Ve))
   return(createGWAS(GWAResult = setNames(list(GWAResult),
                                          names(gData$pheno)[env]),
                     signSnp = NULL,
-                    kin = if (GLSMethod == 1) {
+                    kin = if (GLSMethod == "single") {
                       K
                     } else {
                       KChr

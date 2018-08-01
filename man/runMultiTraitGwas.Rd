@@ -6,13 +6,13 @@
 \usage{
 runMultiTraitGwas(gData, environments = NULL, covar = NULL,
   snpCov = NULL, kin = NULL, kinshipMethod = c("astle", "GRM", "IBS",
-  "vanRaden"), GLSMethod = 1, subsetMarkers = FALSE,
-  markerSubset = "", MAF = 0.01, fitVarComp = TRUE, covModel = 1,
-  VeDiag = TRUE, tolerance = 1e-06, maxIter = 2e+05,
-  maxDiag = 10000, mG = 1, mE = 1, CmHet = TRUE, DmHet = TRUE,
-  stopIfDecreasing = TRUE, computeLogLik = TRUE, Vg = NULL,
-  Ve = NULL, reduceK = FALSE, nPca = NULL, estCom = FALSE,
-  parallel = FALSE)
+  "vanRaden"), GLSMethod = c("single", "multi"), subsetMarkers = FALSE,
+  markerSubset = "", MAF = 0.01, fitVarComp = TRUE,
+  covModel = c("unst", "pw", "fa"), VeDiag = TRUE, tolerance = 1e-06,
+  maxIter = 2e+05, maxDiag = 10000, mG = 1, mE = 1, CmHet = TRUE,
+  DmHet = TRUE, stopIfDecreasing = TRUE, computeLogLik = TRUE,
+  Vg = NULL, Ve = NULL, reduceK = FALSE, nPca = NULL,
+  estCom = FALSE, parallel = FALSE)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},
@@ -34,9 +34,9 @@ covariates.}
 matrices can be from the \code{matrix} class as defined in the base package
 or from the \code{dsyMatrix} class, the class of symmetric matrices in the
 Matrix package.\cr
-If \code{GLSMethod} = 1 then one matrix should be provided, if
-\code{GLSMethod} = 2 a list of chromosome specific matrices of lenght equal
-to the number of chromosomes in \code{map} in \code{gData}.\cr
+If \code{GLSMethod} = "single" then one matrix should be provided, if
+\code{GLSMethod} = "multi" a list of chromosome specific matrices of lenght
+equal to the number of chromosomes in \code{map} in \code{gData}.\cr
 If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
 If both \code{kin} is provided and \code{gData} contains a matrix
 \code{kinship} then \code{kin} is used.}
@@ -47,12 +47,9 @@ calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
 kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 \code{kinshipMethod} is ignored.}
 
-\item{GLSMethod}{An integer indicating the method used to estimate the marker
-effects.
-\enumerate{
-\item{using one kinship matrix.}
-\item{using chromosome specific kinship matrices.}
-}}
+\item{GLSMethod}{A character string indicating the method used to estimate
+the marker effects. Either \code{single} for using a single kinship matrix.
+or \code{multi} for using chromosome specific kinship matrices.}
 
 \item{subsetMarkers}{Should the marker data be subsetted?}
 
@@ -67,46 +64,42 @@ i.e. p-values and effect sizes are put to missing (NA). Ignored if
 \item{fitVarComp}{Should the variance components be fitted? If \code{FALSE}
 they should be supplied in Vg and Ve}
 
-\item{covModel}{An integer value for the model used when fitting the variance
- components.
-\enumerate{
-\item{unstructured for both Vg and Ve (as in Zhou and Stephens (2014))}
-\item{unstructered for both Vg and Ve (pairwise, as in Furlotte and Eskin
-(2013))}
-\item{factor-analytic for both Vg and Ve}
-\item{approximate ...(as in Kruijer et al. (2015))}
-}
-Ignored if fitVarComp = \code{FALSE}}
+\item{covModel}{An character string indictating the model used when fitting
+the variance components. Either \code{unst} for unstructured for both Vg and
+Ve (as in Zhou and Stephens (2014)), \code{pw} for unstructered for both Vg
+and Ve (pairwise, as in Furlotte and Eskin (2013)) or \code{fa} for
+factor-analytic for both Vg and Ve.\cr
+Ignored if \code{fitVarComp} = \code{FALSE}}
 
-\item{VeDiag}{Should there be environmental correlations if covModel = 1 or
-2? If traits are measured on the same individuals put \code{FALSE}.}
+\item{VeDiag}{Should there be environmental correlations if covModel = "unst"
+or "pw"? If traits are measured on the same individuals put \code{FALSE}.}
 
 \item{tolerance}{A numerical value. Used when fitting the factor analytical
-model if covModel = 3. See \code{\link{EMFA}}.}
+model if covModel = "fa". See \code{\link{EMFA}}.}
 
 \item{maxIter}{An integer. Used when fitting the factor analytical model if
-covModel = 3. See \code{\link{EMFA}}.}
+covModel = "fa". See \code{\link{EMFA}}.}
 
 \item{maxDiag}{A numerical value. Used when fitting the factor analytical
-model if covModel = 3. See \code{\link{EMFA}}.}
+model if covModel = "fa". See \code{\link{EMFA}}.}
 
 \item{mG}{An integer. Used when fitting the factor analytical model if
-covModel = 3. See \code{\link{EMFA}}.}
+covModel = "fa". See \code{\link{EMFA}}.}
 
 \item{mE}{An integer. Used when fitting the factor analytical model if
-covModel = 3. See \code{\link{EMFA}}.}
+covModel = "fa". See \code{\link{EMFA}}.}
 
 \item{CmHet}{A boolean. Used when fitting the factor analytical model if
-covModel = 3. See \code{\link{EMFA}}.}
+covModel = "fa". See \code{\link{EMFA}}.}
 
 \item{DmHet}{A boolean. Used when fitting the factor analytical model if
-covModel = 3. See \code{\link{EMFA}}.}
+covModel = "fa". See \code{\link{EMFA}}.}
 
 \item{stopIfDecreasing}{A boolean. Used when fitting the factor analytical
-model if covModel = 3. See \code{\link{EMFA}}.}
+model if covModel = "fa". See \code{\link{EMFA}}.}
 
 \item{computeLogLik}{A boolean. Used when fitting the factor analytical model
-if covModel = 3. See \code{\link{EMFA}}.}
+if covModel = "fa". See \code{\link{EMFA}}.}
 
 \item{Vg}{An optional matrix with genotypic variance components. Vg should
 have row names column names corresponding to the column names of Y. It may
@@ -127,15 +120,15 @@ kinship matrix. Ignored if reduceK = \code{FALSE}.}
 \item{estCom}{Should the common SNP-effect model be fitted?}
 
 \item{parallel}{Should the computation of variance components be done in
-parallel? Only used if \code{covModel = 2}. A parallel computing environment
-has to be setup by the user.}
+parallel? Only used if \code{covModel = "pw"}. A parallel computing
+environment has to be setup by the user.}
 }
 \value{
 An object of class \code{\link{GWAS}}.
 }
 \description{
 \code{runMultiTraitGwas} performs a multi-trait Genome Wide Association
-Study (GWAS) on phenotypic and' genotypic data contained in a \code{gData}
+Study (GWAS) on phenotypic and'genotypic data contained in a \code{gData}
 object.
 }
 \references{

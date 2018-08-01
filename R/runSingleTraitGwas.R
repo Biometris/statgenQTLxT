@@ -28,9 +28,9 @@
 #' matrices can be from the \code{matrix} class as defined in the base package
 #' or from the \code{dsyMatrix} class, the class of symmetric matrices in the
 #' Matrix package.\cr
-#' If \code{GLSMethod} = 1 then one matrix should be provided, if
-#' \code{GLSMethod} = 2 a list of chromosome specific matrices of lenght equal
-#' to the number of chromosomes in \code{map} in \code{gData}.\cr
+#' If \code{GLSMethod} = "single" then one matrix should be provided, if
+#' \code{GLSMethod} = "multi" a list of chromosome specific matrices of lenght
+#' equal to the number of chromosomes in \code{map} in \code{gData}.\cr
 #' If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
 #' If both \code{kin} is provided and \code{gData} contains a matrix
 #' \code{kinship} then \code{kin} is used.
@@ -39,18 +39,12 @@
 #' 2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
 #' kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 #' \code{kinshipMethod} is ignored.
-#' @param remlAlgo An integer indicating the algorithm used to estimate the
-#' variance components.
-#' \enumerate{
-#' \item{EMMA}
-#' \item{Newton-Raphson using sommer package}
-#' }
-#' @param GLSMethod An integer indicating the method used to estimate the marker
-#' effects.
-#' \enumerate{
-#' \item{using one kinship matrix.}
-#' \item{using chromosome specific kinship matrices.}
-#' }
+#' @param remlAlgo An character string indicating the algorithm used to estimate
+#' the variance components. Either \code{EMMA} for the EMMA algorithm or
+#' \code{NR} for the Newton-Raphson algorithm.
+#' @param GLSMethod A character string indicating the method used to estimate
+#' the marker effects. Either \code{single} for using a single kinship matrix.
+#' or \code{multi} for using chromosome specific kinship matrices.
 #' @param useMAF Should the minor allele frequency be used for selecting SNPs
 #' for the analysis. If \code{FALSE} the minor allele count is used instead.
 #' @param MAF A numerical value between 0 and 1. SNPs with minor allele
@@ -62,21 +56,20 @@
 #' are put to missing (NA). Ignored if \code{useMAF} is \code{TRUE}.
 #' @param genomicControl Should genomic control correction as in Devlin and
 #' Roeder (1999) be applied?
-#' @param thrType An integer indicating the type of threshold used for the
-#' selection of candidate loci.
-#' \enumerate{
-#' \item{Bonferroni; a LOD-threshold of \eqn{-log10(alpha/p)}, where p is the
-#' number of markers and alpha can be specified in \code{alpha}.}
-#' \item{a self-chosen LOD-threshold, specied in \code{LODThr}.}
-#' \item{the LOD-threshold is chosen such the the SNPs with the \code{nSnpLOD}
-#' smallest p-values are selected. \code{nSnpLOD} can be specified.}
-#' }
+#' @param thrType An character string indicating the type of threshold used for
+#' the selection of candidate loci. Either \code{bonf} for using the
+#' Bonferroni threshold, a LOD-threshold of \eqn{-log10(alpha/p)}, where p is
+#' the number of markers and alpha can be specified in \code{alpha},
+#' \code{fixed} for a self-chosen fixed LOD-threshold, specied in \code{LODThr}
+#' or \code{small}, the LOD-threshold is chosen such the the SNPs with the
+#' \code{nSnpLOD} smallest p-values are selected. \code{nSnpLOD} can be
+#' specified.
 #' @param alpha A numerical value used for calculating the LOD-threshold for
-#' \code{thrType} = 1.
+#' \code{thrType} = "bonf".
 #' @param LODThr A numerical value used as a LOD-threshold when
-#' \code{thrType} = 2.
+#' \code{thrType} = "fixed".
 #' @param nSnpLOD A numerical value indicating the number of SNPs with the
-#' smallest p-values that are selected when \code{thrType} = 3.
+#' smallest p-values that are selected when \code{thrType} = "small".
 #' @param sizeInclRegion An integer. Should the results for SNPs close to
 #' significant SNPs be included? If so, the size of the region in centimorgan
 #' or base pairs. Otherwise 0.
@@ -125,13 +118,13 @@ runSingleTraitGwas <- function(gData,
                                kin = NULL,
                                kinshipMethod = c("astle", "GRM", "IBS",
                                                  "vanRaden"),
-                               remlAlgo = 1,
-                               GLSMethod = 1,
+                               remlAlgo = c("EMMA", "NR"),
+                               GLSMethod = c("single", "multi"),
                                useMAF = TRUE,
                                MAF = 0.01,
                                MAC = 10,
                                genomicControl = FALSE,
-                               thrType = 1,
+                               thrType = c("bonf", "fixed", "small"),
                                alpha = 0.05 ,
                                LODThr = 4,
                                nSnpLOD = 10,
@@ -189,17 +182,13 @@ runSingleTraitGwas <- function(gData,
       !all(snpCov %in% colnames(gData$markers))) {
     stop("All snpCov should be in markers.\n")
   }
-  if (is.null(remlAlgo) || length(remlAlgo) > 1 || !is.numeric(remlAlgo)) {
-    stop("remlAlgo should be a single numerical value.\n")
-  }
-  if (is.null(GLSMethod) || length(GLSMethod) > 1 || !is.numeric(GLSMethod)) {
-    stop("GLSMethod should be a single numerical value.\n")
-  }
-  if (GLSMethod == 1 && !is.null(kin) && !(inherits(kin, "Matrix") ||
-                                           is.matrix(kin))) {
+  remlAlgo <- match.arg(remlAlgo)
+  GLSMethod <- match.arg(GLSMethod)
+  if (GLSMethod == "single" && !is.null(kin) && !(inherits(kin, "Matrix") ||
+                                                  is.matrix(kin))) {
     stop("kin should be a matrix.\n")
   }
-  if (GLSMethod == 2 && !is.null(kin) &&
+  if (GLSMethod == "multi" && !is.null(kin) &&
       (!is.list(kin) || !all(sapply(kin, FUN = function(k) {
         is.matrix(k) || inherits(k, "Matrix")})) ||
        length(kin) != length(unique(gData$map$chr)))) {
@@ -233,41 +222,27 @@ runSingleTraitGwas <- function(gData,
       MAC <- 1
     }
   }
-  if (is.null(thrType) || length(thrType) > 1 || !is.numeric(thrType)) {
-    stop("thrType should be a single numerical value.\n")
-  }
-  if (thrType == 1) {
+  thrType <- match.arg(thrType)
+  if (thrType == "bonf") {
     if (is.null(alpha) || length(alpha) > 1 || !is.numeric(alpha)) {
       stop("alpha should be a single numerical value.\n")
-    } else if (thrType == 2) {
-      if (is.null(LODThr) || length(LODThr) > 1 || !is.numeric(LODThr)) {
-        stop("LODThr should be a single numerical value.\n")
-      }
-    } else if (thrType == 3) {
-      if (is.null(nSnpLOD) || length(nSnpLOD) > 1 || !is.numeric(nSnpLOD)) {
-        stop("nSnpLOD should be a single numerical value.\n")
-      }
+    }
+  } else if (thrType == "fixed") {
+    if (is.null(LODThr) || length(LODThr) > 1 || !is.numeric(LODThr)) {
+      stop("LODThr should be a single numerical value.\n")
+    }
+  } else if (thrType == "small") {
+    if (is.null(nSnpLOD) || length(nSnpLOD) > 1 || !is.numeric(nSnpLOD)) {
+      stop("nSnpLOD should be a single numerical value.\n")
     }
   }
-  if (!(remlAlgo %in% 1:2)) {
-    remlAlgo <- 1
-    warning("Invalid value for remlAlgo. remlAlgo set to 1.\n")
-  }
-  if (!(GLSMethod %in% 1:2)) {
-    GLSMethod <- 1
-    warning("Invalid value for GLSMethod. GLSMethod set to 1.\n")
-  }
-  if (!(thrType %in% 1:3)) {
-    thrType <- 1
-    warning("Invalid value for thrType. thrType set to 1.\n")
-  }
-  if (GLSMethod == 1) {
+  if (GLSMethod == "single") {
     ## Compute kinship matrix.
-    K <- computeKin(GLSMethod = 1, kin = kin, gData = gData,
+    K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
                     markers = gData$markers, kinshipMethod = kinshipMethod)
-  } else if (GLSMethod == 2) {
+  } else if (GLSMethod == "multi") {
     ## Compute kinship matrices per chromosome. Only needs to be done once.
-    KChr <- computeKin(GLSMethod = 2, kin = kin, gData = gData,
+    KChr <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
                        markers = gData$markers, map = gData$map,
                        kinshipMethod = kinshipMethod)
   }
@@ -303,10 +278,10 @@ runSingleTraitGwas <- function(gData,
       ## Select genotypes where trait is not missing.
       nonMiss <- unique(phEnvTr$genotype)
       nonMissRepId <- phEnvTr$genotype
-      if (GLSMethod == 1) {
+      if (GLSMethod == "single") {
         kinshipRed <- K[nonMiss, nonMiss]
         chrs <- NULL
-      } else if (GLSMethod == 2) {
+      } else if (GLSMethod == "multi") {
         chrs <- unique(gData$map$chr[rownames(gData$map) %in%
                                        colnames(gData$markers)])
       }
@@ -335,7 +310,7 @@ runSingleTraitGwas <- function(gData,
                               stringsAsFactors = FALSE)
       ## Define single column matrix with trait non missing values.
       y <- as(phEnvTr[which(phEnvTr$genotype %in% nonMiss), trait], "dgeMatrix")
-      if (GLSMethod == 1) {
+      if (GLSMethod == "single") {
         ## Exclude snpCovariates from segregating markers.
         exclude <- exclMarkers(snpCov = snpCov, markers = markersRed,
                                allFreq = allFreq)
@@ -364,8 +339,8 @@ runSingleTraitGwas <- function(gData,
           GWAResult[snpCovariate, c("pValue", "effect", "effectSe", "RLR2")] <-
             GLSResultSnpCov
         }
-      } else if (GLSMethod == 2) {
-        ## Similar to GLSMethod 1 except using chromosome specific kinship
+      } else if (GLSMethod == "multi") {
+        ## Similar to GLSMethod single except using chromosome specific kinship
         ## matrices.
         for (chr in chrs) {
           mapRedChr <- mapRed[which(mapRed$chr == chr), ]
@@ -430,10 +405,10 @@ runSingleTraitGwas <- function(gData,
                            gene2 = gData$genes$gene2)
       }
       ## When thrType is 1 or 3, determine the LOD threshold.
-      if (thrType == 1) {
+      if (thrType == "bonf") {
         ## Compute LOD threshold using Bonferroni correction.
         LODThr <- -log10(alpha / sum(!is.na(GWAResult$pValue)))
-      } else if (thrType == 3) {
+      } else if (thrType == "small") {
         ## Compute LOD threshold by computing the 10log of the nSnpLOD item
         ## of ordered p values.
         LODThr <- sort(na.omit(GWAResult$LOD), decreasing = TRUE)[nSnpLOD]
@@ -460,22 +435,16 @@ runSingleTraitGwas <- function(gData,
   } # end for (environment in environments)
   ## Collect info.
   GWASInfo <- list(call = match.call(),
-                   remlAlgo = factor(remlAlgo, levels = c(1, 2),
-                                     labels = c("EMMA", "Newton-Raphson")),
-                   thrType = factor(thrType, levels = c(1, 2, 3),
-                                    labels = c("bonferroni", "self-chosen",
-                                               "smallest p-values")),
+                   remlAlgo = remlAlgo,
+                   thrType = thrType,
                    MAF = MAF,
-                   GLSMethod =
-                     factor(GLSMethod, levels = c(1, 2),
-                            labels = c("single kinship matrix",
-                                       "chromosome specific kinship matrices")),
+                   GLSMethod = GLSMethod,
                    varComp = varCompTot,
                    genomicControl = genomicControl,
                    inflationFactor = inflationFactorTot)
   return(createGWAS(GWAResult = GWATot,
                     signSnp = signSnpTot,
-                    kin = if (GLSMethod == 1) {
+                    kin = if (GLSMethod == "single") {
                       K
                     } else {
                       KChr

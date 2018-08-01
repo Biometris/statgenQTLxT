@@ -6,9 +6,10 @@
 \usage{
 runSingleTraitGwas(gData, traits = NULL, environments = NULL,
   covar = NULL, snpCov = NULL, kin = NULL,
-  kinshipMethod = c("astle", "GRM", "IBS", "vanRaden"), remlAlgo = 1,
-  GLSMethod = 1, useMAF = TRUE, MAF = 0.01, MAC = 10,
-  genomicControl = FALSE, thrType = 1, alpha = 0.05, LODThr = 4,
+  kinshipMethod = c("astle", "GRM", "IBS", "vanRaden"),
+  remlAlgo = c("EMMA", "NR"), GLSMethod = c("single", "multi"),
+  useMAF = TRUE, MAF = 0.01, MAC = 10, genomicControl = FALSE,
+  thrType = c("bonf", "fixed", "small"), alpha = 0.05, LODThr = 4,
   nSnpLOD = 10, sizeInclRegion = 0, minR2 = 0.5)
 }
 \arguments{
@@ -35,9 +36,9 @@ covariates.}
 matrices can be from the \code{matrix} class as defined in the base package
 or from the \code{dsyMatrix} class, the class of symmetric matrices in the
 Matrix package.\cr
-If \code{GLSMethod} = 1 then one matrix should be provided, if
-\code{GLSMethod} = 2 a list of chromosome specific matrices of lenght equal
-to the number of chromosomes in \code{map} in \code{gData}.\cr
+If \code{GLSMethod} = "single" then one matrix should be provided, if
+\code{GLSMethod} = "multi" a list of chromosome specific matrices of lenght
+equal to the number of chromosomes in \code{map} in \code{gData}.\cr
 If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
 If both \code{kin} is provided and \code{gData} contains a matrix
 \code{kinship} then \code{kin} is used.}
@@ -48,19 +49,13 @@ calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
 kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 \code{kinshipMethod} is ignored.}
 
-\item{remlAlgo}{An integer indicating the algorithm used to estimate the
-variance components.
-\enumerate{
-\item{EMMA}
-\item{Newton-Raphson using sommer package}
-}}
+\item{remlAlgo}{An character string indicating the algorithm used to estimate
+the variance components. Either \code{EMMA} for the EMMA algorithm or
+\code{NR} for the Newton-Raphson algorithm.}
 
-\item{GLSMethod}{An integer indicating the method used to estimate the marker
-effects.
-\enumerate{
-\item{using one kinship matrix.}
-\item{using chromosome specific kinship matrices.}
-}}
+\item{GLSMethod}{A character string indicating the method used to estimate
+the marker effects. Either \code{single} for using a single kinship matrix.
+or \code{multi} for using chromosome specific kinship matrices.}
 
 \item{useMAF}{Should the minor allele frequency be used for selecting SNPs
 for the analysis. If \code{FALSE} the minor allele count is used instead.}
@@ -77,24 +72,23 @@ are put to missing (NA). Ignored if \code{useMAF} is \code{TRUE}.}
 \item{genomicControl}{Should genomic control correction as in Devlin and
 Roeder (1999) be applied?}
 
-\item{thrType}{An integer indicating the type of threshold used for the
-selection of candidate loci.
-\enumerate{
-\item{Bonferroni; a LOD-threshold of \eqn{-log10(alpha/p)}, where p is the
-number of markers and alpha can be specified in \code{alpha}.}
-\item{a self-chosen LOD-threshold, specied in \code{LODThr}.}
-\item{the LOD-threshold is chosen such the the SNPs with the \code{nSnpLOD}
-smallest p-values are selected. \code{nSnpLOD} can be specified.}
-}}
+\item{thrType}{An character string indicating the type of threshold used for
+the selection of candidate loci. Either \code{bonf} for using the
+Bonferroni threshold, a LOD-threshold of \eqn{-log10(alpha/p)}, where p is
+the number of markers and alpha can be specified in \code{alpha},
+\code{fixed} for a self-chosen fixed LOD-threshold, specied in \code{LODThr}
+or \code{small}, the LOD-threshold is chosen such the the SNPs with the
+\code{nSnpLOD} smallest p-values are selected. \code{nSnpLOD} can be
+specified.}
 
 \item{alpha}{A numerical value used for calculating the LOD-threshold for
-\code{thrType} = 1.}
+\code{thrType} = "bonf".}
 
 \item{LODThr}{A numerical value used as a LOD-threshold when
-\code{thrType} = 2.}
+\code{thrType} = "fixed".}
 
 \item{nSnpLOD}{A numerical value indicating the number of SNPs with the
-smallest p-values that are selected when \code{thrType} = 3.}
+smallest p-values that are selected when \code{thrType} = "small".}
 
 \item{sizeInclRegion}{An integer. Should the results for SNPs close to
 significant SNPs be included? If so, the size of the region in centimorgan

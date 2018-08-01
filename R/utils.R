@@ -50,14 +50,14 @@ expandPheno <- function(gData,
 ## Helper function for computing (or extracting kinship matrices)
 ## 1 - If kin is supplied use kin
 ## 2 - Get kin from gData object
-## 3 - Compute kin from markers (and map for GLSMethod 2)
+## 3 - Compute kin from markers (and map for GLSMethod multi)
 computeKin <- function(GLSMethod,
                        kin,
                        gData,
                        markers,
                        map,
                        kinshipMethod) {
-  if (GLSMethod == 1) {
+  if (GLSMethod == "single") {
     if (!is.null(kin)) {
       ## kin is supplied as input. Convert to dsyMatrix.
       K <- as(kin, "dsyMatrix")
@@ -68,7 +68,7 @@ computeKin <- function(GLSMethod,
       ## Compute K from markers.
       K <- do.call(kinshipMethod, list(X = markers))
     }
-  } else if (GLSMethod == 2) {
+  } else if (GLSMethod == "multi") {
     if (!is.null(kin)) {
       ## kin is supplied as input. Convert to dsyMatrices.
       K <- lapply(X = kin, FUN = as, Class = "dsyMatrix")

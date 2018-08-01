@@ -158,8 +158,7 @@ qtlPlot <- function(data,
   data <- rbind(data, limits)
   ## Select and rename relevant columns for plotting
   plotDat <- data[, c(trait, chromosome, snpEffect, snpPosition, "sort", "eff")]
-  colnames(plotDat)[1:4] <-
-    c("trait", "chromosome", "snpEffect", "snpPosition")
+  colnames(plotDat)[1:4] <- c("trait", "chromosome", "snpEffect", "snpPosition")
   ## Add a column with the allelic effect direction (for points color)
   plotDat$color <- ifelse(plotDat$eff != -Inf,
                           ifelse(plotDat$eff > 0, "pos", "neg"), NA)
@@ -235,7 +234,7 @@ qtlPlot <- function(data,
         requireNamespace("rvg", quietly = TRUE)) {
       ## Create empty .pptx file
       pptOut <- officer::read_pptx()
-        ## Add new slide (always necessary)
+      ## Add new slide (always necessary)
       pptOut <- officer::add_slide(x = pptOut, layout = "Title and Content",
                                    master = "Office Theme")
       ## Add plot to the document
@@ -246,10 +245,9 @@ qtlPlot <- function(data,
                                       str = format(Sys.Date(),"%B %d, %Y"))
       ##Write .pptx
       print(pptOut, target = pptxName)
-    }
-    else {
-      message("Package officer needs to be installed to be able to export
-              to .pptx")
+    } else {
+      message(paste("Package officer needs to be installed to be able",
+                    "to export to .pptx"))
     }
   }
   return(qtlPlot)
