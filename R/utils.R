@@ -61,28 +61,24 @@ computeKin <- function(GLSMethod,
     if (!is.null(kin)) {
       ## kin is supplied as input. Convert to dsyMatrix.
       K <- as(kin, "dsyMatrix")
+    } else if (!is.null(gData$kinship) && !inherits(gData$kinship, "list")) {
+      ## Get kin from gData object.
+      K <- gData$kinship
     } else {
-      if (!is.null(gData$kinship)) {
-        ## Get kin from gData object.
-        K <- gData$kinship
-      } else {
-        ## Compute K from markers.
-        K <- do.call(kinshipMethod, list(X = markers))
-      }
+      ## Compute K from markers.
+      K <- do.call(kinshipMethod, list(X = markers))
     }
   } else if (GLSMethod == 2) {
     if (!is.null(kin)) {
       ## kin is supplied as input. Convert to dsyMatrices.
       K <- lapply(X = kin, FUN = as, Class = "dsyMatrix")
-    } else {
+    } else if (!is.null(gData$kinship) && inherits(gData$kinship, "list")) {
       ## Get kin from gData object.
-      if (!is.null(gData$kinship)) {
-        K <- gData$kinship
-      } else {
-        ## Compute chromosome specific kinship matrices.
-        K <- chrSpecKin(gData = createGData(geno = markers, map = map),
-                        kinshipMethod = kinshipMethod)
-      }
+      K <- gData$kinship
+    } else {
+      ## Compute chromosome specific kinship matrices.
+      K <- chrSpecKin(gData = createGData(geno = markers, map = map),
+                      kinshipMethod = kinshipMethod)
     }
   }
   return(K)
@@ -151,7 +147,7 @@ dfBind <- function(dfList) {
           c(lapply(X = dfList, FUN = function(x) {
             nwDat <- sapply(X = setdiff(allNms, names(x)), FUN = function(y) {
               NA
-              })
+            })
             data.frame(c(x, nwDat), stringsAsFactors = FALSE)
           }), make.row.names = FALSE)
   )

@@ -164,10 +164,7 @@ runMultiTraitGwas <- function(gData,
     stop(paste("kin should be a list of matrices of length equal to the number",
                "of chromosomes in the map.\n"))
   }
-  if ((GLSMethod == 1 && is.null(gData$kinship) && is.null(kin)) ||
-      GLSMethod == 2 && is.null(kin)) {
-    kinshipMethod <- match.arg(kinshipMethod)
-  }
+  kinshipMethod <- match.arg(kinshipMethod)
   if (subsetMarkers && markerSubset == "") {
     stop("If subsetting markers, markerSubset cannot be empty.\n")
   }
