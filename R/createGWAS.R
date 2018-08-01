@@ -236,6 +236,8 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' @param trait A character string indicating for which trait the results
 #' should be plotted. For \code{type} "qtl" all traits are plotted. If \code{x}
 #' only contains results for one trait \code{trait} may be \code{NULL}.
+#' @param output Should the plot be output to the current device? If
+#' \code{FALSE} only a list of ggplot objects is invisibly returned.
 #'
 #' @seealso \code{\link{manhattanPlot}}, \code{\link{qqPlot}},
 #' \code{\link{qtlPlot}}
@@ -244,7 +246,8 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 plot.GWAS <- function(x, ...,
                       type = c("manhattan", "qq", "qtl"),
                       environment = NULL,
-                      trait = NULL) {
+                      trait = NULL,
+                      output = TRUE) {
   type <- match.arg(type)
   dotArgs <- list(...)
   ## Checks.
@@ -343,19 +346,20 @@ plot.GWAS <- function(x, ...,
             args = c(list(xValues = map$cumPos, yValues = map$LOD,
                           map = map[, -which(colnames(map) == "LOD")],
                           plotType = plotType, xSig = signSnpNr,
-                          chrBoundaries = chrBnd[, 2], yThr = yThr),
+                          chrBoundaries = chrBnd[, 2], yThr = yThr,
+                          output = output),
                      dotArgs[!(names(dotArgs) %in% c("plotType", "yThr",
                                                      "lod", "chr"))]
             ))
   } else if (type == "qq") {
     ## Create qq-plot
-    qqPlot(pValues = na.omit(GWAResult$pValue), ...)
+    qqPlot(pValues = na.omit(GWAResult$pValue), ..., output = output)
   } else if (type == "qtl") {
     if (is.null(signSnp)) {
       stop("No significant SNPs in signSnp. No plot can be made.\n")
     }
     qtlPlot(data = signSnp,
             map = GWAResult[!is.na(GWAResult$pos), c("chr", "pos")],
-            ...)
+            ..., output = output)
   }
 }

@@ -128,7 +128,7 @@ An object of class \code{\link{GWAS}}.
 }
 \description{
 \code{runMultiTraitGwas} performs a multi-trait Genome Wide Association
-Study (GWAS) on phenotypic and'genotypic data contained in a \code{gData}
+Study (GWAS) on phenotypic and genotypic data contained in a \code{gData}
 object.
 }
 \references{

@@ -54,7 +54,8 @@ manhattanPlot <- function(xValues,
                           chrBoundaries = 0,
                           yThr = NULL,
                           signPointsThickness = 0.6,
-                          ...) {
+                          ...,
+                          output = TRUE) {
   ## Basic argument checks
   if (is.null(xValues) || !is.numeric(xValues)) {
     stop("xValues should be an integer vector")

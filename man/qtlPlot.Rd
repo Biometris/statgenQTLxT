@@ -7,7 +7,8 @@
 qtlPlot(data, chromosome = "chr", trait = "trait",
   snpEffect = "effect", snpPosition = "pos", map, normalize = FALSE,
   sortData = FALSE, binPositions = NULL, printVertGrid = TRUE,
-  yLab = "Traits", exportPptx = FALSE, pptxName = "")
+  yLab = "Traits", exportPptx = FALSE, pptxName = "",
+  output = TRUE)
 }
 \arguments{
 \item{data}{A data.frame with QTL data to be plotted}
@@ -45,6 +46,9 @@ chromosome and position. Vertical lines are plotted at those positions.}
 
 \item{pptxName}{A character string, the name of the .pptx file to which the
 plot is exported. Ignored if exportPptx = \code{FALSE}.}
+
+\item{output}{Should the plot be output to the current device? If
+\code{FALSE} only a list of ggplot objects is invisibly returned.}
 }
 \value{
 A ggplot object is returned and plotted on screen. Optionally the

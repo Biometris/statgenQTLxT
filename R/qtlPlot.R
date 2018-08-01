@@ -32,6 +32,8 @@
 #' @param exportPptx Should the plot be exported to a .pptx file?
 #' @param pptxName A character string, the name of the .pptx file to which the
 #' plot is exported. Ignored if exportPptx = \code{FALSE}.
+#' @param output Should the plot be output to the current device? If
+#' \code{FALSE} only a list of ggplot objects is invisibly returned.
 #'
 #' @return A ggplot object is returned and plotted on screen. Optionally the
 #' plot is exported to pptx as well.
@@ -56,7 +58,8 @@ qtlPlot <- function(data,
                     printVertGrid = TRUE,
                     yLab = "Traits",
                     exportPptx = FALSE,
-                    pptxName = "") {
+                    pptxName = "",
+                    output = TRUE) {
   ## Basic argument checks
   if (is.null(data) || !is.data.frame(data)) {
     stop("data should be a data.frame")
@@ -97,29 +100,27 @@ qtlPlot <- function(data,
     stop("pptxName cannot be empty")
   }
   ## Check that all necessary columns are in the data
-  requiredColumns <- c(chromosome, trait, snpEffect, snpPosition)
-  if (is.character(sortData)) requiredColumns <- c(requiredColumns, sortData)
-  requiredCheck <- requiredColumns %in% colnames(data)
-  if (!all(requiredCheck)) {
+  reqCols <- c(chromosome, trait, snpEffect, snpPosition)
+  if (is.character(sortData)) reqCols <- c(reqCols, sortData)
+  reqChk <- reqCols %in% colnames(data)
+  if (!all(reqChk)) {
     stop("data lacks the following columns: ",
-         paste0(requiredColumns[!requiredCheck], collapse = ", "), ".\n\n")
+         paste0(reqCols[!reqChk], collapse = ", "), ".\n\n")
   }
   ## Check that all necessary columns are in the map file
-  requiredColumnsMap <- c("chr", "pos")
-  requiredCheckMap <- requiredColumnsMap %in% colnames(map)
-  if (!all(requiredCheckMap)) {
+  reqColsMap <- c("chr", "pos")
+  reqChkMap <- reqColsMap %in% colnames(map)
+  if (!all(reqChkMap)) {
     stop("map lacks the following columns: ",
-         paste0(requiredColumnsMap[!requiredCheckMap], collapse = ", "),
-         ".\n\n")
+         paste0(reqColsMap[!reqChkMap], collapse = ", "), ".\n\n")
   }
   ## Check that all necessary columns are in the bin file
   if (!is.null(binPositions)) {
-    requiredColumnsBin <- c("chr", "pos")
-    requiredCheckBin <- requiredColumnsBin %in% colnames(map)
-    if (!all(requiredCheckBin)) {
+    reqColsBin <- c("chr", "pos")
+    reqChkBin <- reqColsBin %in% colnames(map)
+    if (!all(reqChkBin)) {
       stop("binPositions lacks the following columns: ",
-           paste0(requiredColumnsBin[!requiredCheckBin], collapse = ", "),
-           ".\n\n")
+           paste0(reqColsBin[!reqChkBin], collapse = ", "), ".\n\n")
     }
   } else {
     binPositions <- data.frame(pos = integer())
@@ -142,20 +143,20 @@ qtlPlot <- function(data,
   eff <- color <- NULL
   ## Add the physical limits of the chromosomes, calculated from the map file
   ## This ensures plotting of all chromosomes
-  limitsLow <- aggregate(x = map$pos, by = list(map$chr), FUN = min)
-  limitsHigh <- aggregate(x = map$pos, by = list(map$chr), FUN = max)
+  limLow <- aggregate(x = map$pos, by = list(map$chr), FUN = min)
+  limHigh <- aggregate(x = map$pos, by = list(map$chr), FUN = max)
   ## Empty data.frame with 2 lines per chromosomes and as many columns as the
   ## QTL data.frame
-  limits <- data.frame(matrix(ncol = ncol(data), nrow = 2 * nrow(limitsLow)))
-  names(limits) <- names(data)
+  lim <- data.frame(matrix(ncol = ncol(data), nrow = 2 * nrow(limLow)))
+  names(lim) <- names(data)
   ## Trait and sort have to be filled. Value is not important
-  limits[trait] <- data[1, trait]
-  limits$sort <- data[1, "sort"]
+  lim[trait] <- data[1, trait]
+  lim$sort <- data[1, "sort"]
   ## Set eff to suppress warnings in printing. Setting it to -Inf ensures
   ## nothing is plotted
-  limits$eff <- -Inf
-  limits[, c(chromosome, snpPosition)] <- rbind(limitsLow, limitsHigh)
-  data <- rbind(data, limits)
+  lim$eff <- -Inf
+  lim[, c(chromosome, snpPosition)] <- rbind(limLow, limHigh)
+  data <- rbind(data, lim)
   ## Select and rename relevant columns for plotting
   plotDat <- data[, c(trait, chromosome, snpEffect, snpPosition, "sort", "eff")]
   colnames(plotDat)[1:4] <- c("trait", "chromosome", "snpEffect", "snpPosition")
@@ -184,49 +185,37 @@ qtlPlot <- function(data,
                    axis.text.x = ggplot2::element_text(size = 0),
                    axis.text.y = ggplot2::element_text(size = 13 ,
                                                        color = "black"),
-                   axis.title.x = ggplot2::element_text(size = 20,
-                                                        color = "navyblue"),
-                   axis.title.y = ggplot2::element_text(size = 20,
-                                                        color = "navyblue"),
+                   axis.title = ggplot2::element_text(size = 20,
+                                                      color = "navyblue"),
                    strip.background = ggplot2::element_rect(fill = "gray40"),
                    strip.text = ggplot2::element_text(),
                    strip.text.x = ggplot2::element_text(size = 14),
                    strip.text.y = ggplot2::element_text(size = 0))
   ## Create the plot object
-  qtlPlot <-
-    ggplot2::ggplot(data = plotDat,
-                    ggplot2::aes(x = snpPosition,
-                                 ## Y data is sorted in reverse order because
-                                 ## of the way ggplot plots.
-                                 y = reorder(trait, -sort),
-                                 ## Point size proportional to (absolute value
-                                 ## of) allelic effect.
-                                 size = abs(eff),
-                                 ## Point color depends on the effect direction.
-                                 color = factor(color)))  +
+  p <- ggplot2::ggplot(
+    data = plotDat,
+    ## Y data is sorted in reverse order because of the way ggplot plots.
+    ## Point size proportional to allelic effect.
+    ## Point color depends on the effect direction.
+    ggplot2::aes(x = snpPosition, y = reorder(trait, -sort), size = abs(eff),
+                 color = factor(color))) +
     ## use custom made theme
     qtlPlotTheme +
     ggplot2::ylab(yLab) +
     ggplot2::xlab("Chromosomes")  +
     # add vertical lines at the bin positions
-    ggplot2::geom_vline(ggplot2::aes_(xintercept = ~pos),
-                        data = binPositions,
-                        linetype = 1,
-                        color = "white")   +
-    ## Add the points with a slight transparency in case of overlap
+    ggplot2::geom_vline(ggplot2::aes_(xintercept = ~pos), data = binPositions,
+                        linetype = 1, color = "white")   +
+    ## Add the points with a slight transparency in case of overlap.
     ggplot2::geom_point(alpha = I(0.7), na.rm = TRUE) +
-    ## Split of the plot according to the chromosomes on the x axis
-    ggplot2::facet_grid(". ~ chromosome",
-                        ## Do not resize the x axis (otherwise every chromosome
-                        ## has the same size)
-                        scales = "free",
-                        ## Do not add extra space between two facets
-                        space = "free",
-                        ## Place the chromosome labels at the bottom
+    ## Split of the plot according to the chromosomes on the x axis.
+    ## Do not resize the x axis (otherwise every chromosome has the same size.
+    ## Do not add extra space between two facets.
+    ## Place the chromosome labels at the bottom.
+    ggplot2::facet_grid(". ~ chromosome", scales = "free", space = "free",
                         switch = "both") +
-    ## Ascribe a color to the allelic direction (column 'color')
-    ggplot2::scale_color_manual("color",
-                                labels = c("neg", "pos"),
+    ## Ascribe a color to the allelic direction (column 'color').
+    ggplot2::scale_color_manual("color", labels = c("neg", "pos"),
                                 values = c("darkblue", "green4"))
   if (exportPptx) {
     ## Save figure in .pptx
@@ -238,7 +227,7 @@ qtlPlot <- function(data,
       pptOut <- officer::add_slide(x = pptOut, layout = "Title and Content",
                                    master = "Office Theme")
       ## Add plot to the document
-      pptOut <- rvg::ph_with_vg_at(x = pptOut, ggobj = qtlPlot, left = 0.9,
+      pptOut <- rvg::ph_with_vg_at(x = pptOut, ggobj = p, left = 0.9,
                                    top = 0.9, width = 8, height = 6.4)
       ## Add date to slide
       pptOut <- officer::ph_with_text(x = pptOut, type = "dt",
@@ -250,5 +239,8 @@ qtlPlot <- function(data,
                     "to export to .pptx"))
     }
   }
-  return(qtlPlot)
+  if (output) {
+    plot(p)
+  }
+  invisible(p)
 }

@@ -5,7 +5,7 @@
 \title{Plot function for the class \code{GWAS}}
 \usage{
 \method{plot}{GWAS}(x, ..., type = c("manhattan", "qq", "qtl"),
-  environment = NULL, trait = NULL)
+  environment = NULL, trait = NULL, output = TRUE)
 }
 \arguments{
 \item{x}{An object of class \code{GWAS}.}
@@ -23,6 +23,9 @@ one trait \code{environment} may be \code{NULL}.}
 \item{trait}{A character string indicating for which trait the results
 should be plotted. For \code{type} "qtl" all traits are plotted. If \code{x}
 only contains results for one trait \code{trait} may be \code{NULL}.}
+
+\item{output}{Should the plot be output to the current device? If
+\code{FALSE} only a list of ggplot objects is invisibly returned.}
 }
 \description{
 Creates a plot of an object of S3 class \code{GWAS}. Three types of plots
