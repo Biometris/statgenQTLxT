@@ -29,6 +29,8 @@
 #' @param signPointsThickness A numerical value giving the thickness of the
 #' points that are false/true positives/negatives.
 #' @param ... Other graphical parameters passed on to the actual plot function.
+#' @param output Should the plot be output to the current device? If
+#' \code{FALSE} only a list of ggplot objects is invisibly returned.
 #'
 #' @return A LOD-profile with LOD-scores per snip. Markers declared significant
 #' get a red dot, markers with a real effect get a blue dot. If both significant

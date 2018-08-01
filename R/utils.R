@@ -138,7 +138,7 @@ dfBind <- function(dfList) {
   ## Filter empty data.frames from dfList
   dfList <- Filter(f = function(x) nrow(x) > 0, x = dfList)
   if (length(dfList) == 0) {
-    return(NULL)
+    return(data.frame())
   }
   ## Get variable names from all data.frames.
   allNms <- unique(unlist(lapply(dfList, names)))

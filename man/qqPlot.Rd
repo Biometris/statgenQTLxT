@@ -4,7 +4,7 @@
 \alias{qqPlot}
 \title{qq-plot of observed versus expected LOD-scores}
 \usage{
-qqPlot(pValues, fileName = "", jpegPlot = TRUE, ...)
+qqPlot(pValues, fileName = "", jpegPlot = TRUE, ..., output = TRUE)
 }
 \arguments{
 \item{pValues}{A numeric vector of pValues. Missings are ignored when
@@ -17,6 +17,9 @@ created. If left empty the plot is written to the screen.}
 is produced.}
 
 \item{...}{Other graphical parameters passed on to the actual plot function.}
+
+\item{output}{Should the plot be output to the current device? If
+\code{FALSE} only a list of ggplot objects is invisibly returned.}
 }
 \description{
 Given a vector of pvalues, generate a qq-plot of observed LOD-scores versus

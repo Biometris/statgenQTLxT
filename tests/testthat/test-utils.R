@@ -24,7 +24,7 @@ test_that(paste("function dfBind removes empty data.frames lists from",
                   df1 <- data.frame(a = 1:2, b = 1:2)
                   expect_equal(dfBind(list(data.frame(), df1)), df1)
                   expect_equal(dfBind(list(df1, data.frame())), df1)
-                  expect_null(dfBind(list(data.frame())))
+                  expect_equal(dfBind(list(data.frame())), data.frame())
                 })
 
 test_that("function matrixRoot functions properly", {

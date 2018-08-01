@@ -49,6 +49,9 @@ same scale as xValues.}
 points that are false/true positives/negatives.}
 
 \item{...}{Other graphical parameters passed on to the actual plot function.}
+
+\item{output}{Should the plot be output to the current device? If
+\code{FALSE} only a list of ggplot objects is invisibly returned.}
 }
 \value{
 A LOD-profile with LOD-scores per snip. Markers declared significant

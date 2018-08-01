@@ -17,7 +17,8 @@
 qqPlot <- function(pValues,
                    fileName = "",
                    jpegPlot = TRUE,
-                   ...) {
+                   ...,
+                   output = TRUE) {
   dotArgs <- list(...)
   if (is.null(pValues) || !is.numeric(pValues) || any(pValues < 0) ||
       any(pValues > 1)) {
@@ -41,45 +42,27 @@ qqPlot <- function(pValues,
   pValues <- na.omit(pValues)
   expected <- -log10(ppoints(n = length(pValues)))
   observed <- -log10(sort(pValues))
-  pMax <- ceiling(max(observed))
-  if (!is.null(dotArgs$main)) {
-    main <- dotArgs$main
+  plotDat <- data.frame(expected, observed)
+  ## Construct title.
+  if (!is.null(dotArgs$title)) {
+    plotTitle <- dotArgs$title
   } else {
-    main <- "QQ-plot"
+    plotTitle <- "QQ-plot"
   }
-  if (!is.null(dotArgs$col)) {
-    color <- dotArgs$col
-  } else {
-    color <- 1
+  p <- ggplot2::ggplot(plotDat,
+                       ggplot2::aes_string(x = "expected", y = "observed")) +
+    ggplot2::geom_point() +
+    ggplot2::geom_line() +
+    ggplot2::geom_abline(slope = 1, intercept = 0, color = "blue") +
+    ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5)) +
+    ggplot2::labs(x = expression(Expected~~-log[10](p)),
+                  y = expression(Observed~~-log[10](p))) +
+    ggplot2::ggtitle(plotTitle)
+  if (output) {
+    plot(p)
   }
-  if (!is.null(dotArgs$cex)) {
-    cex <- dotArgs$cex
-  } else {
-    cex <- 0.9
-  }
-  if (!is.null(dotArgs$pch)) {
-    pch <- dotArgs$pch
-  } else {
-    pch <- 20
-  }
-  if (!is.null(dotArgs$xlab)) {
-    xlab <- dotArgs$xlab
-  } else {
-    xlab <- expression(Expected~~-log[10](p))
-  }
-  if (!is.null(dotArgs$ylab)) {
-    ylab <- dotArgs$ylab
-  } else {
-    ylab <- expression(Observed~~-log[10](p))
-  }
-  do.call(plot, c(list(x = expected, y = observed, type = 'b', pch = pch,
-                       cex = cex, col = color, xlab = xlab, ylab = ylab,
-                       xlim = c(0, max(expected) + 1), ylim = c(0, pMax),
-                       main = main),
-                  dotArgs[!names(dotArgs) %in% c("pch", "cex", "col", "main",
-                                                 "xlab", "ylab")]))
-  abline(a = 0, b = 1, col = "blue")
   if (fileName != "") {
     dev.off()
   }
+  invisible(p)
 }
