@@ -1,7 +1,7 @@
 #' Perform multi-trait GWAS
 #'
 #' \code{runMultiTraitGwas} performs a multi-trait Genome Wide Association
-#' Study (GWAS) on phenotypic and'genotypic data contained in a \code{gData}
+#' Study (GWAS) on phenotypic and genotypic data contained in a \code{gData}
 #' object.
 #'
 #' @inheritParams runSingleTraitGwas

@@ -4,7 +4,7 @@ set.seed(1234)
 y <- 1:10
 X <- matrix(sample(x = c(0, 1), size = 30, replace = TRUE), nrow = 10)
 Sigma <- matrix(runif(n = 100), nrow = 10)
-Sigma <- Sigma %*% t(Sigma)
+Sigma <- tcrossprod(Sigma)
 covs <- matrix(runif(n = 20, max = 100), nrow = 10)
 pheno <- data.frame(genotype = paste0("G", 1:10),
                     matrix(rnorm(50, mean = 10, sd = 2), nrow = 10))
@@ -16,22 +16,28 @@ gDataTest <- createGData(map = map, geno = X, kin = Sigma,
                          pheno = list(ph1 = pheno, ph2 = pheno),
                          covar = as.data.frame(covs))
 
-result0 <- runSingleTraitGwas(gData = gDataTest, environments = 1)$GWAResult
-result01 <- runSingleTraitGwas(gData = gDataTest)$GWAResult
-result1 <- runSingleTraitGwas(gData = gDataTest,
-                              environments = 1, covar = "V1")$GWAResult
-result2 <- runSingleTraitGwas(gData = gDataTest,
-                              environments = 1, snpCov = "M2")$GWAResult
-result3 <- runSingleTraitGwas(gData = gDataTest, environments = 1,
-                              covar = "V1", snpCov = "M2")$GWAResult
+stg0 <- runSingleTraitGwas(gData = gDataTest, environments = 1)
+stg01 <- runSingleTraitGwas(gData = gDataTest)
+result1 <- runSingleTraitGwas(gData = gDataTest, environments = 1,
+                              covar = "V1")$GWAResult
+result2 <- runSingleTraitGwas(gData = gDataTest, environments = 1,
+                              snpCov = "M2")$GWAResult
+result3 <- runSingleTraitGwas(gData = gDataTest, environments = 1, covar = "V1",
+                              snpCov = "M2")$GWAResult
 
-test_that("runSingleTraitGwas produces output with correct dimensions", {
-  expect_length(result0, 1)
-  expect_length(result01, 2)
+test_that("runSingleTraitGwas produces correct output structure", {
+  expect_is(stg0, "GWAS")
+  expect_length(stg0, 5)
+  expect_named(stg0, c("GWAResult", "signSnp", "kinship", "thr", "GWASInfo"))
+  expect_is(stg0$GWAResult, "list")
+  expect_length(stg0$GWAResult, 1)
+  expect_named(stg0$GWAResult, "ph1")
+  expect_length(stg01$GWAResult, 2)
+  expect_named(stg01$GWAResult, c("ph1", "ph2"))
 })
 
 test_that("runSingleTraitGWas produces correct p-values", {
-  expect_equal(result0[[1]]$pValue,
+  expect_equal(stg0$GWAResult[[1]]$pValue,
                c(0.517079439679654, 0.91343018536738, 0.628599735847542,
                  0.0807864803940613, 0.857734879152352, 0.0951298087141795,
                  0.609379273189138, 0.999476881270353, 0.41907977041403,
