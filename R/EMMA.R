@@ -60,10 +60,8 @@ EMMA <- function(gData,
                  lLim = -10,
                  uLim = 10,
                  eps = 1e-10) {
-  ## Check input
-  if (missing(gData) || !is.gData(gData) || is.null(gData$pheno)) {
-    stop("gData should be a valid gData object with at least pheno included.\n")
-  }
+  ## Checks.
+  chkGData(gData, comps = "pheno")
   if (missing(environment) || length(environment) > 1 ||
       !(is.numeric(environment) || is.character(environment))) {
     stop("environment should be a single numeric or character.\n")

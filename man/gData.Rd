@@ -3,12 +3,9 @@
 \name{gData}
 \alias{gData}
 \alias{createGData}
-\alias{is.gData}
 \title{S3 Class gData}
 \usage{
 createGData(gData = NULL, geno, map, kin, pheno, covar)
-
-is.gData(x)
 }
 \arguments{
 \item{gData}{An optional gData object to be modified. If \code{NULL} a new
@@ -46,12 +43,9 @@ environments.}
 
 \item{covar}{A data.frame with extra covariates per genotype. Genotype
 should be in the rows.}
-
-\item{x}{An \code{R} object}
 }
 \value{
-\code{createGData} returns an object of class \code{gData} with the
-following components:
+An object of class \code{gData} with the following components:
 \item{\code{map}}{a data.frame containing map data. Map is sorted by
 chromosome and position.}
 \item{\code{markers}}{a sparse matrix from the Matrix package containing
@@ -61,9 +55,6 @@ otherwise.}
 \item{\code{kinship}}{a kinship matrix of class \code{dsyMatrix} from the
  Matrix package.}
 \item{\code{covar}}{a data.frame with extra covariates.}
-\cr
-\code{is.gData} returns \code{TRUE} or \code{FALSE} depending on whether
-its argument is a \code{gData} object.
 }
 \description{
 \code{createGData} creates an object of S3 class gData with genotypic and
@@ -71,8 +62,7 @@ phenotypic data for usage in further analysis. All input to the function is
 optional, however at least one input should be provided. It is possible to
 provide an existing \code{gData} object as additional input in which case
 data is added to this object. Existing data will be overwritten with a
-warning.\cr\cr
-\code{is.gData} tests if an \code{R} object is of class \code{gData}.
+warning.
 }
 \examples{
 set.seed(1234)

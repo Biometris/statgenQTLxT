@@ -268,22 +268,14 @@ getSNPsInRegionSufLD <- function(gData,
                                  regionSize = 5000,
                                  minR2 = 0.5) {
   ## Check input.
-  if (missing(gData) || !is.gData(gData) || is.null(gData$map) ||
-      is.null(gData$markers)) {
-    stop(paste("gData should be a valid gData object containing at least",
-               "map and markers.\n"))
-  }
+  chkGData(gData, comps = c("map", "markers"))
   if (missing(snp) || length(snp) > 1 || !is.numeric(snp) ||
       snp != round(snp) || !snp %in% 1:nrow(gData$map)) {
     stop(paste("snp should be a single integer indicating a row in",
                "the map in gData.\n"))
   }
-  if (length(regionSize) > 1 || !is.numeric(regionSize) || regionSize < 0) {
-    stop("regionSize should be a single positive numerical value.\n")
-  }
-  if (length(minR2) > 1 || !is.numeric(minR2) || minR2 < 0 || minR2 > 1) {
-    stop("minR2 should be a single numerical value between 0 and 1.")
-  }
+  chkNum(regionSize, min = 0)
+  chkNum(minR2, min = 0, max = 1)
   ## Get candidate SNPs based on position.
   crit1 <- abs(gData$map$pos[snp] - gData$map$pos) <= regionSize
   crit2 <- gData$map$chr == gData$map$chr[snp]

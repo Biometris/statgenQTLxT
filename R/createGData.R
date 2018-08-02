@@ -5,8 +5,7 @@
 #' optional, however at least one input should be provided. It is possible to
 #' provide an existing \code{gData} object as additional input in which case
 #' data is added to this object. Existing data will be overwritten with a
-#' warning.\cr\cr
-#' \code{is.gData} tests if an \code{R} object is of class \code{gData}.
+#' warning.
 #'
 #' @param gData An optional gData object to be modified. If \code{NULL} a new
 #' gData object is created.
@@ -38,10 +37,8 @@
 #' environments.
 #' @param covar A data.frame with extra covariates per genotype. Genotype
 #' should be in the rows.
-#' @param x An \code{R} object
 #'
-#' @return \code{createGData} returns an object of class \code{gData} with the
-#' following components:
+#' @return An object of class \code{gData} with the following components:
 #' \item{\code{map}}{a data.frame containing map data. Map is sorted by
 #' chromosome and position.}
 #' \item{\code{markers}}{a sparse matrix from the Matrix package containing
@@ -51,9 +48,6 @@
 #' \item{\code{kinship}}{a kinship matrix of class \code{dsyMatrix} from the
 #'  Matrix package.}
 #' \item{\code{covar}}{a data.frame with extra covariates.}
-#' \cr
-#' \code{is.gData} returns \code{TRUE} or \code{FALSE} depending on whether
-#' its argument is a \code{gData} object.
 #'
 #' @author Bart-Jan van Rossum
 #'
@@ -103,7 +97,7 @@ createGData <- function(gData = NULL,
                         pheno,
                         covar) {
   ## Check gData
-  if (!is.null(gData) && !is.gData(gData)) {
+  if (!is.null(gData) && !inherits(gData, "gData")) {
     stop("Provided gData object should be of class gData.\n")
   }
   ## Check that at least one input argument, other than gData, is provided.
@@ -372,12 +366,6 @@ createGData <- function(gData = NULL,
                           covar = covar),
                      class = "gData")
   return(gData)
-}
-
-#' @rdname gData
-#' @export
-is.gData <- function(x) {
-  inherits(x, "gData")
 }
 
 #' Summary function for the class \code{GData}

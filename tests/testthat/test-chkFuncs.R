@@ -22,6 +22,7 @@ test_that("chkGData functions properly", {
   gDataTest2 <- gDataTest
   gDataTest2$markers <- NULL
   expect_error(chkGData(gDataTest2), "should contain markers")
+  expect_silent(chkGData(gDataTest2, comps = "map"))
 })
 
 test_that("chkEnvs functions properly", {

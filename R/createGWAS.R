@@ -5,7 +5,6 @@
 #' \code{GWAResult} and \code{signSnp} are both optional, however at least one
 #' of those should be provided as input.\cr
 #' \code{summary} and \code{plot} functions are available.\cr\cr
-#' \code{is.gData} tests if an \code{R} object is of class \code{gData}.
 #'
 #' @param GWAResult An optional data.frame or list of data.frames containing the
 #' overall analysis results. Should a least contain columns \code{trait}, the
@@ -23,12 +22,8 @@
 #' GWAS analysis.
 #' @param GWASInfo a list containing extra information concering the GWAS
 #' analysis.
-#' @param x An \code{R} object
 #'
-#' @return \code{createGWAS} returns an object of class GWAS, a list of the
-#' input items.\cr\cr
-#' \code{is.GWAS} returns \code{TRUE} or \code{FALSE} depending on whether its
-#' argument is a \code{GWAS} object.
+#' @return An object of class GWAS, a list of the input items.
 #'
 #' @seealso \code{\link{summary.GWAS}}, \code{\link{plot.GWAS}}
 #'
@@ -99,12 +94,6 @@ createGWAS <- function(GWAResult = NULL,
                          GWASInfo = GWASInfo),
                     class = "GWAS")
   return(GWAS)
-}
-
-#' @rdname GWAS
-#' @export
-is.GWAS <- function(x) {
-  inherits(x, "GWAS")
 }
 
 #' Summary function for the class \code{GWAS}

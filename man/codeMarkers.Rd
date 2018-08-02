@@ -6,7 +6,8 @@
 \usage{
 codeMarkers(gData, refAll = "minor", nMissGeno = 1, nMiss = 1,
   MAF = NULL, removeDuplicates = TRUE, keep = NULL, impute = TRUE,
-  imputeType = "random", fixedValue = NULL, naStrings = NA)
+  imputeType = c("random", "fixed", "beagle"), fixedValue = NULL,
+  naStrings = NA)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least

@@ -3,13 +3,10 @@
 \name{GWAS}
 \alias{GWAS}
 \alias{createGWAS}
-\alias{is.GWAS}
 \title{S3 Class GWAS}
 \usage{
 createGWAS(GWAResult = NULL, signSnp = NULL, kin = NULL,
   thr = NULL, GWASInfo = NULL)
-
-is.GWAS(x)
 }
 \arguments{
 \item{GWAResult}{An optional data.frame or list of data.frames containing the
@@ -36,10 +33,7 @@ analysis.}
 \item{x}{An \code{R} object}
 }
 \value{
-\code{createGWAS} returns an object of class GWAS, a list of the
-input items.\cr\cr
-\code{is.GWAS} returns \code{TRUE} or \code{FALSE} depending on whether its
-argument is a \code{GWAS} object.
+An object of class GWAS, a list of the input items.
 }
 \description{
 \code{createGWAS} creates an object of S3 class GWAS containing the results
@@ -47,7 +41,6 @@ of a GWAS analysis.
 \code{GWAResult} and \code{signSnp} are both optional, however at least one
 of those should be provided as input.\cr
 \code{summary} and \code{plot} functions are available.\cr\cr
-\code{is.gData} tests if an \code{R} object is of class \code{gData}.
 }
 \seealso{
 \code{\link{summary.GWAS}}, \code{\link{plot.GWAS}}

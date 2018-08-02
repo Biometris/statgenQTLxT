@@ -1,9 +1,10 @@
 #' @keywords internal
-chkGData <- function(gData) {
+chkGData <- function(gData,
+                     comps = c("map", "markers", "pheno")) {
   if (missing(gData) || !inherits(gData, "gData")) {
     stop("gData should be a valid gData object", call. = FALSE)
   }
-  for (comp in c("map", "markers", "pheno")) {
+  for (comp in comps) {
     if (is.null(gData[[comp]]))
       stop(paste("gData should contain", comp), call. = FALSE)
   }
@@ -27,7 +28,7 @@ chkEnvs <- function(envs,
          call. = FALSE)
   }
   if ((is.character(envs) && !all(envs %in% names(gData$pheno))) ||
-      (is.numeric(envs) && any(envs > ncol(gData$pheno)))) {
+      (is.numeric(envs) && any(envs > length(gData$pheno)))) {
     stop("environments should be in pheno.\n", call. = FALSE)
   }
 }

@@ -97,39 +97,26 @@ codeMarkers <- function(gData,
                         removeDuplicates = TRUE,
                         keep = NULL,
                         impute = TRUE,
-                        imputeType = "random",
+                        imputeType =  c("random", "fixed", "beagle"),
                         fixedValue = NULL,
                         naStrings = NA) {
   ## Checks.
-  if (missing(gData) || !is.gData(gData) || is.null(gData$markers)) {
-    stop(paste("gData should be a valid gData object with at least",
-               "markers included.\n"))
-  }
+  chkGData(gData, comps = "markers")
   if (length(refAll) > 1 && !length(refAll) == ncol(gData$markers)) {
     stop(paste("number of reference alleles should either be 1 or equal to",
                "the amount of SNPs in markers.\n"))
   }
-  if (is.null(nMissGeno) || length(nMissGeno) > 1 || !is.numeric(nMissGeno) ||
-      nMissGeno < 0 || nMissGeno > 1) {
-    stop("nMissGeno should be a single numerical value between 0 and 1.\n")
-  }
-  if (is.null(nMiss) || length(nMiss) > 1 || !is.numeric(nMiss) ||
-      nMiss < 0 || nMiss > 1) {
-    stop("nMiss should be a single numerical value between 0 and 1.\n")
-  }
-  if (!is.null(MAF) && (length(MAF) > 1 || !is.numeric(MAF) ||
-                        MAF < 0 || MAF > 1)) {
-    stop("MAF should be a single numerical value between 0 and 1.\n")
+  chkNum(nMissGeno, min = 0, max = 1)
+  chkNum(nMiss, min = 0, max = 1)
+  if (!is.null(MAF)) {
+    chkNum(MAF, min = 0, max = 1)
   }
   if (!is.null(keep) && (!is.character(keep) ||
                          !all(keep %in% colnames(gData$markers)))) {
     stop("all items in keep should be SNPs in markers.\n")
   }
   if (impute) {
-    if (length(imputeType) > 1 &&
-        !imputeType %in% c("fixed", "random", "beagle")) {
-      stop("imputeType should be one of fixed, random or beagle.\n")
-    }
+    imputeType <- match.arg(imputeType)
     if (imputeType == "fixed" && is.null(fixedValue)) {
       stop("fixedValue cannot be NULL.\n")
     }
