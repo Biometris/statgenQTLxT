@@ -56,14 +56,14 @@ test_that("manhattan plot functions properly", {
   expect_equal(p1$labels$y, "laby")
 })
 
-# test_that("GWAS manhattan plot functions properly", {
-#   stg <- runSingleTraitGwas(gDataTest)
-#   expect_error(plot(stg, type = "manhattan"), "multiple environments detected")
-#   expect_error(plot(stg, type = "manhattan", environment = "ph1"),
-#                "multiple traits detected")
-#   p <- plot(stg, type = "manhattan", environment = "ph1", trait = "X1",
-#             output = FALSE)
-#   expect_is(p, "ggplot")
-# })
+test_that("GWAS manhattan plot functions properly", {
+  stg <- runSingleTraitGwas(gDataTest)
+  expect_error(plot(stg, type = "manhattan"), "multiple environments detected")
+  expect_error(plot(stg, type = "manhattan", environment = "ph1"),
+               "multiple traits detected")
+  p <- plot(stg, type = "manhattan", environment = "ph1", trait = "X1",
+            output = FALSE)
+  expect_is(p, "ggplot")
+})
 
 
