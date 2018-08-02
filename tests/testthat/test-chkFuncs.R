@@ -24,6 +24,29 @@ test_that("chkGData functions properly", {
   expect_error(chkGData(gDataTest2), "should contain markers")
 })
 
+test_that("chkEnvs functions properly", {
+  expect_silent(chkEnvs("ph1", gDataTest))
+  expect_silent(chkEnvs(c("ph1", "ph2"), gDataTest))
+  expect_error(chkEnvs("ph3", gDataTest), "should be in pheno")
+  expect_silent(chkEnvs(1, gDataTest))
+  expect_silent(chkEnvs(c(1, 2), gDataTest))
+  expect_error(chkEnvs(3, gDataTest), "should be in pheno")
+})
+
+test_that("chkTraits functions properly", {
+  expect_silent(chkTraits("X1", "ph1", gDataTest))
+  expect_silent(chkTraits(c("X1", "X2"), "ph1", gDataTest))
+  expect_silent(chkTraits(c("X1", "X2"), c("ph1", "ph2"), gDataTest))
+  expect_error(chkTraits("X6", "ph1", gDataTest), "For ph1 not all traits")
+  expect_error(chkTraits(c("X1", "X6"), "ph1", gDataTest),
+               "For ph1 not all traits")
+  expect_silent(chkTraits(2, 1, gDataTest))
+  expect_silent(chkTraits(c(2, 3), 1, gDataTest))
+  expect_silent(chkTraits(c(2, 3), c(1, 2), gDataTest))
+  expect_error(chkTraits(1, 1, gDataTest), "For 1 not all traits")
+  expect_error(chkTraits(c(2, 7), 1, gDataTest), "For 1 not all traits")
+})
+
 test_that("chkNum functions properly", {
   expect_silent(chkNum(1, min = 0, max = 2))
   expect_error(chkNum("a"), "single numerical value")

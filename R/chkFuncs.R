@@ -27,7 +27,7 @@ chkEnvs <- function(envs,
          call. = FALSE)
   }
   if ((is.character(envs) && !all(envs %in% names(gData$pheno))) ||
-      (is.numeric(envs) && any(envs > length(gData$pheno)))) {
+      (is.numeric(envs) && any(envs > ncol(gData$pheno)))) {
     stop("environments should be in pheno.\n", call. = FALSE)
   }
 }
@@ -43,7 +43,7 @@ chkTraits <- function(traits,
          !all(traits %in% colnames(gData$pheno[[env]]))) ||
         (is.numeric(traits) &&
          (any(traits == 1) || any(traits > ncol(gData$pheno[[env]]))))) {
-      stop(paste("For ", env, "not all traits are columns in pheno.\n"),
+      stop(paste("For", env, "not all traits are columns in pheno.\n"),
            call. = FALSE)
     }
   }
