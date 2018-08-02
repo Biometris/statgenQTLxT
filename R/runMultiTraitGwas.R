@@ -97,19 +97,9 @@ runMultiTraitGwas <- function(gData,
                               nPca = NULL,
                               estCom = FALSE,
                               parallel = FALSE) {
-  ## Check input.
-  if (missing(gData) || !is.gData(gData) || is.null(gData$markers) ||
-      is.null(gData$map) || is.null(gData$pheno)) {
-    stop(paste("gData should be a valid gData object containing at least map,",
-               "markers and pheno.\n"))
-  }
-  if (!inherits(gData$markers, "Matrix")) {
-    stop(paste("markers in gData should be a numerical matrix. Use",
-               "recodeMarkers first for recoding."))
-  }
-  if (anyNA(gData$markers)) {
-    stop("markers contains missing values. Impute or remove these first.\n")
-  }
+  ## Checks.
+  chkGData(gData)
+  chkMarkers(gData$markers)
   if (!is.null(environments) && ((!is.numeric(environments) &&
                                   !is.character(environments)) ||
                                  length(environments) > 1)) {
@@ -123,45 +113,23 @@ runMultiTraitGwas <- function(gData,
   if (is.null(environments) && length(gData$pheno) > 1) {
     stop("pheno contains multiple environments. Environment cannot be NULL.\n")
   }
-  ## SNPs with MAF == 0 always have to be removed to prevent creation of
-  ## singular matrices.
-  if (MAF <= 1e-6) {
-    MAF <- 1e-6
-  }
-  ## If environments is null set environments to only environment in pheno.
-  if (is.null(environments)) {
-    environments <- 1
-  }
-  markers <- gData$markers
-  map <- gData$map
-  if (!is.null(covar) && !is.numeric(covar) && !is.character(covar)) {
-    stop("covar should be a numeric or character vector.\n")
-  }
-  if ((is.character(covar) && !all(covar %in% colnames(gData$covar))) ||
-      (is.numeric(covar) && any(covar > ncol(gData$covar)))) {
-    stop("covar should be columns in covar.\n")
-  }
+  chkCovar(covar, gData)
   ## If covar is given as numeric convert to character.
   if (is.numeric(covar)) {
     covar <- colnames(gData$covar)[covar]
   }
+  chkSnpCov(snpCov, gData)
+  ## SNPs with MAF == 0 always have to be removed to prevent creation of
+  ## singular matrices.
+  chkNum(MAF, min = 0, max = 1)
+  MAF <- max(MAF, 1e-6)
+  ## If environments is null set environments to only environment in pheno.
+  if (is.null(environments)) {
+    environments <- 1
+  }
   GLSMethod <- match.arg(GLSMethod)
   covModel <- match.arg(covModel)
-  if (!is.null(snpCov) &&
-      !all(snpCov %in% colnames(gData$markers))) {
-    stop("All snpCovariates should be in markers.\n")
-  }
-  if (GLSMethod == "single" && !is.null(kin) && !(inherits(kin, "Matrix") ||
-                                                  is.matrix(kin))) {
-    stop("kin should be a matrix.\n")
-  }
-  if (GLSMethod == "multi" && !is.null(kin) &&
-      (!is.list(kin) || !all(sapply(kin, FUN = function(k) {
-        is.matrix(k) || inherits(k, "Matrix")})) ||
-       length(kin) != length(unique(gData$map$chr)))) {
-    stop(paste("kin should be a list of matrices of length equal to the number",
-               "of chromosomes in the map.\n"))
-  }
+  chkKin(kin, gData, GLSMethod)
   kinshipMethod <- match.arg(kinshipMethod)
   if (subsetMarkers && markerSubset == "") {
     stop("If subsetting markers, markerSubset cannot be empty.\n")
@@ -196,6 +164,8 @@ runMultiTraitGwas <- function(gData,
   if (reduceK && is.null(nPca)) {
     stop("If the kinship matrix is to be reduced, nPca cannot be NULL.\n")
   }
+  markers <- gData$markers
+  map <- gData$map
   ## Make sure that when subsetting markers snpCovariates are included in
   ## the subset
   if (subsetMarkers) {

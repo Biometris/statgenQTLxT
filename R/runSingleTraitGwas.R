@@ -131,110 +131,42 @@ runSingleTraitGwas <- function(gData,
                                sizeInclRegion = 0,
                                minR2 = 0.5) {
   ## Checks.
-  if (missing(gData) || !is.gData(gData) || is.null(gData$map) ||
-      is.null(gData$markers) || is.null(gData$pheno)) {
-    stop(paste("gData should be a valid gData object with at least map,",
-               "markers and pheno included.\n"))
-  }
-  if (!inherits(gData$markers, "Matrix")) {
-    stop(paste("markers in gData should be a numerical matrix. Use",
-               "recodeMarkers first for recoding.\n"))
-  }
-  if (anyNA(gData$markers)) {
-    stop("markers contains missing values. Impute or remove these first.\n")
-  }
-  if (!is.null(environments) && !is.numeric(environments) &&
-      !is.character(environments)) {
-    stop("environments should be a numeric or character vector.\n")
-  }
-  if ((is.character(environments) &&
-       !all(environments %in% names(gData$pheno))) ||
-      (is.numeric(environments) && any(environments > length(gData$pheno)))) {
-    stop("environments should be list items in pheno.\n")
-  }
+  chkGData(gData)
+  chkMarkers(gData$markers)
+  chkEnvs(environments, gData)
   ## If environments is null set environments to all environments in pheno.
   if (is.null(environments)) {
     environments <- 1:length(gData$pheno)
   }
-  if (!is.null(traits) && !is.numeric(traits) && !is.character(traits)) {
-    stop("traits should be a numeric or character vector.\n")
-  }
-  for (env in environments) {
-    if ((is.character(traits) &&
-         !all(traits %in% colnames(gData$pheno[[env]]))) ||
-        (is.numeric(traits) &&
-         (any(traits == 1) || any(traits > ncol(gData$pheno[[env]]))))) {
-      stop("traits should be columns in pheno.\n")
-    }
-  }
-  if (!is.null(covar) && !is.numeric(covar) && !is.character(covar)) {
-    stop("covar should be a numeric or character vector.\n")
-  }
-  if ((is.character(covar) && !all(covar %in% colnames(gData$covar))) ||
-      (is.numeric(covar) && any(covar > ncol(gData$covar)))) {
-    stop("covar should be columns in covar.\n")
-  }
+  chkTraits(traits, environments, gData)
+  chkCovar(covar, gData)
   ## If covar is given as numeric convert to character.
   if (is.numeric(covar)) {
     covar <- colnames(gData$covar)[covar]
   }
-  if (!is.null(snpCov) &&
-      !all(snpCov %in% colnames(gData$markers))) {
-    stop("All snpCov should be in markers.\n")
-  }
-  remlAlgo <- match.arg(remlAlgo)
+  chkSnpCov(snpCov, gData)
   GLSMethod <- match.arg(GLSMethod)
-  if (GLSMethod == "single" && !is.null(kin) && !(inherits(kin, "Matrix") ||
-                                                  is.matrix(kin))) {
-    stop("kin should be a matrix.\n")
-  }
-  if (GLSMethod == "multi" && !is.null(kin) &&
-      (!is.list(kin) || !all(sapply(kin, FUN = function(k) {
-        is.matrix(k) || inherits(k, "Matrix")})) ||
-       length(kin) != length(unique(gData$map$chr)))) {
-    stop(paste("kin should be a list of matrices of length equal to the",
-               "number of chromosomes in the map.\n"))
-  }
+  chkKin(kin, gData, GLSMethod)
   kinshipMethod <- match.arg(kinshipMethod)
-  if (is.null(sizeInclRegion) || length(sizeInclRegion) > 1 ||
-      !is.numeric(sizeInclRegion) || round(sizeInclRegion) != sizeInclRegion) {
-    stop("sizeInclRegion should be a single integer\n")
-  }
+  remlAlgo <- match.arg(remlAlgo)
+  chkNum(sizeInclRegion, min = 0)
   if (sizeInclRegion > 0) {
-    if (missing(minR2) || length(minR2) > 1 || !is.numeric(minR2) ||
-        minR2 < 0 || minR2 > 1) {
-      stop("minR2 should be a single numerical value between 0 and 1.\n")
-    }
+    chkNum(minR2, min = 0, max = 1)
   }
   if (useMAF) {
-    if (is.null(MAF) || length(MAF) > 1 || !is.numeric(MAF) ||
-        MAF < 0 || MAF > 1) {
-      stop("MAF should be a single numerical value between 0 and 1.\n")
-    }
-    if (MAF <= 1e-6) {
-      MAF <- 1e-6
-    }
+    chkNum(MAF, min = 0, max = 1)
+    MAF <- max(MAF, 1e-6)
   } else {
-    if (is.null(MAC) || length(MAC) > 1 || !is.numeric(MAC)) {
-      stop("MAF should be a single numerical value.\n")
-    }
-    if (MAC == 0) {
-      MAC <- 1
-    }
+    chkNum(MAC, min = 0)
+    MAC <- max(MAC, 1)
   }
   thrType <- match.arg(thrType)
   if (thrType == "bonf") {
-    if (is.null(alpha) || length(alpha) > 1 || !is.numeric(alpha)) {
-      stop("alpha should be a single numerical value.\n")
-    }
+    chkNum(alpha, min = 0)
   } else if (thrType == "fixed") {
-    if (is.null(LODThr) || length(LODThr) > 1 || !is.numeric(LODThr)) {
-      stop("LODThr should be a single numerical value.\n")
-    }
+    chkNum(LODThr, min = 0)
   } else if (thrType == "small") {
-    if (is.null(nSnpLOD) || length(nSnpLOD) > 1 || !is.numeric(nSnpLOD)) {
-      stop("nSnpLOD should be a single numerical value.\n")
-    }
+    chkNum(nSnpLOD, min = 0)
   }
   if (GLSMethod == "single") {
     ## Compute kinship matrix.

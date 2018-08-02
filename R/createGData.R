@@ -87,7 +87,8 @@
 #' ## Compute alternative kinship matrix.
 #' kin2 <- astle(geno)
 #'
-#' ## Add covariates to previously created gData object
+#' ## Add covariates to previously created gData object and overwrite
+#' ## current kinship matrix by newly computed one.
 #' gData2 <- createGData(gData = gData, kin = kin2, covar = covar)
 #'
 #' @name gData
