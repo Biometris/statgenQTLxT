@@ -317,13 +317,11 @@ plot.GWAS <- function(x, ...,
     map <- merge(map, addPos, by = "chr")
     map$cumPos <- map$pos + map$add
     ## Extract numbers of significant SNPs.
-    if (!is.null(signSnp)) {
-      if (is.null(dotArgs$yThr)) {
-        signSnpNr <- which(map$snp %in%
-                             signSnp$snp[as.numeric(signSnp$snpStatus) == 1])
-      } else {
-        signSnpNr <- which(map$LOD > dotArgs$yThr)
-      }
+    if (!is.null(dotArgs$yThr)) {
+      signSnpNr <- which(map$LOD > dotArgs$yThr)
+    } else if (!is.null(signSnp)) {
+      signSnpNr <- which(map$snp %in%
+                           signSnp$snp[as.numeric(signSnp$snpStatus) == 1])
     } else {
       signSnpNr <- integer()
     }

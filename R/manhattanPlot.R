@@ -10,10 +10,6 @@
 #' @param map A data.frame with at least the columns chr, the number of the
 #' chromosome and cumPos, the cumulative position of the snp the cumulative
 #' position of the snp starting from the first chromosome.
-#' @param fileName A character string, the name of the outputfile that is
-#' created. If left empty the plot is written to the screen.
-#' @param jpegPlot Should a jpeg file be produced? If \code{FALSE} a pdf file
-#' is produced.
 #' @param xLab A character string, the x-axis label.
 #' @param yLab A character string, the y-axis label.
 #' @param plotType The type of plot that is made, either a line plot ("l") or
@@ -26,7 +22,7 @@
 #' @param chrBoundaries A vector of chromosome boundaries, i.e. x-values on the
 #' same scale as xValues.
 #' @param yThr A numerical value for the LOD-threshold.
-#' @param signPointsThickness A numerical value giving the thickness of the
+#' @param signLwd A numerical value giving the thickness of the
 #' points that are false/true positives/negatives.
 #' @param ... Other graphical parameters passed on to the actual plot function.
 #' @param output Should the plot be output to the current device? If
@@ -43,8 +39,6 @@
 manhattanPlot <- function(xValues,
                           yValues,
                           map,
-                          fileName = "",
-                          jpegPlot = TRUE,
                           xLab = "Chromosomes",
                           yLab = expression(-log[10](p)),
                           plotType = c("l", "p", "d"),
@@ -53,7 +47,7 @@ manhattanPlot <- function(xValues,
                           colPalette = rep(c("royalblue", "maroon"), 50),
                           chrBoundaries = 0,
                           yThr = NULL,
-                          signPointsThickness = 0.6,
+                          signLwd = 0.6,
                           ...,
                           output = TRUE) {
   ## Basic argument checks
@@ -62,14 +56,6 @@ manhattanPlot <- function(xValues,
   }
   if (is.null(yValues) || !is.numeric(yValues)) {
     stop("yValues should be a numerical vector")
-  }
-  if (fileName != "" && (is.null(fileName) || length(fileName) > 1 ||
-                         !is.character(fileName))) {
-    stop("fileName cannot be empty")
-  }
-  if (fileName != "" && (is.null(jpegPlot) || length(jpegPlot) > 1 ||
-                         !is.logical(jpegPlot))) {
-    stop("jpegPlot should be a single logical")
   }
   if (is.null(xSig) || !is.numeric(xSig)) {
     stop("xSig should be an integer vector")
@@ -83,95 +69,64 @@ manhattanPlot <- function(xValues,
   if (!is.null(yThr) && (length(yThr) > 1)) {
     stop("yThr should be a single integer")
   }
-  if (is.null(signPointsThickness) || length(signPointsThickness) > 1 ||
-      !is.numeric(signPointsThickness)) {
-    stop("signPointsThickness should be a single number")
+  if (is.null(signLwd) || length(signLwd) > 1 || !is.numeric(signLwd)) {
+    stop("signLwd should be a single number")
   }
   ## Check correspondence xValues and yValues
   if (length(xValues) != length(yValues)) {
     stop("xValues and yValues should be of the same length")
   }
-  if (!(plotType %in% c("l", "d", "p")) ) {
-    plotType <- "l"
-  }
-  ## Open file connection
-  if (fileName != "") {
-    if (jpegPlot) {
-      jpeg(fileName, width = 720, height = 480, quality = 100)
-    } else {
-      pdf(fileName)
-    }
-  }
-  ## Extract central chromosome postions from map
-  ## Differentiate cases to deal with character chromosomes
+  plotType <- match.arg(plotType)
+  ## Extract central chromosome postions from map.
+  ## Differentiate cases to deal with character chromosomes.
   if (is.numeric(map$chr)) {
-    chromosomes <- as.numeric(levels(as.factor(map$chr)))
+    chrs <- as.numeric(levels(as.factor(map$chr)))
   } else {
-    chromosomes <- levels(as.factor(map$chr))
+    chrs <- levels(as.factor(map$chr))
   }
-  xMarks <- aggregate(x = map$cumPos, by = list(map$chr),
-                      FUN = function(x) {
-                        min(x) + (max(x) - min(x)) / 2
-                      })[, 2]
-  ## Setup empty plot
+  xMarks <- aggregate(x = map$cumPos, by = list(map$chr), FUN = function(x) {
+    min(x) + (max(x) - min(x)) / 2
+  })[, 2]
   ## ylim has to be set to cope with subsetting based on lod.
-  plot(x = xValues, y = yValues, ylim = c(0, max(yValues, na.rm = TRUE)),
-       xlab = xLab, ylab = yLab, type = "n", lwd = 0.4,
-       xaxt = 'n', ...)
-  axis(side = 1, at = xMarks, labels = chromosomes, cex.axis = 0.8)
-  ## If chromosome boundaries are known add lines/ points per chromosome
-  if (sum(chrBoundaries) != 0) {
-    for (chromosome in chromosomes) {
-      if (plotType == "l") {
-        lines(x = xValues[map$chr == chromosome],
-              y = yValues[map$chr == chromosome],
-              lwd = 0.4, col = colPalette[which(chromosomes == chromosome)])
-      } else {
-        points(x = xValues[map$chr == chromosome],
-               y = yValues[map$chr == chromosome], pch = 20, lwd = 0.4,
-               col = colPalette[which(chromosomes == chromosome)])
-      }
-    }
+  plotDat <- data.frame(x = xValues, y = yValues, chr = as.factor(map$chr))
+  yMax <- max(c(yValues, yThr), na.rm = TRUE)
+  p <- ggplot2::ggplot(data = if (length(c(xSig, xEffects)) == 0) {
+    plotDat
   } else {
-    ## If chromosome boundaries are unknown add lines/ points
-    if (plotType == "l") {
-      lines(x = xValues, y = yValues, xlab = xLab, ylab = yLab, lwd = 0.4,
-            col = "royalblue")
-    } else {
-      points(x = xValues, y = yValues, xlab = xLab, ylab = yLab, pch = 20,
-             lwd = 0.4, col = "royalblue")
-    }
-  }
-  ## Add red dots for significant markers
-  if (sum(xSig) != 0 && sum(xEffects) == 0) {
-    points(x = xValues[xSig], y = yValues[xSig],
-           pch = 20, col = "red", lwd = signPointsThickness)
-  } else if (sum(xSig) == 0 && sum(xEffects) != 0) {
-    ## Add blue dots for known effects
-    points(x = xValues[xEffects], y = yValues[xEffects],
-           pch = 20,col = "blue", lwd = signPointsThickness)
-  } else if (sum(xSig) != 0 && sum(xEffects) != 0) {
-    ## Add orange/yellow/green dots for false positives/ true negatives and
-    ## true positives
+    plotDat[-c(xSig, xEffects),  ]
+  }, ggplot2::aes_string(x = "x", y = "y", color = "chr")) +
+    ggplot2::geom_point(na.rm = TRUE) +
+    ggplot2::scale_y_continuous(limits = c(0, yMax), expand = c(0, 0.1)) +
+    ggplot2::scale_x_continuous(breaks = xMarks, labels = chrs,
+                                expand = c(0, 0)) +
+    ggplot2::scale_color_manual(values = colPalette, labels = NULL) +
+    ggplot2::coord_cartesian(clip = "off") +
+    ggplot2::labs(x = xLab, y = yLab) +
+    ggplot2::theme(legend.position = "none",
+                   panel.grid.major.x = ggplot2::element_blank(),
+                   panel.grid.minor.x = ggplot2::element_blank())
+  if (length(xSig) > 0 && length(xEffects) == 0) {
+    p <- p + ggplot2::geom_point(data = plotDat[xSig, , drop = FALSE],
+                                 color = "red")
+  } else if (length(xSig) == 0 && length(xEffects) > 0) {
+    p <- p + ggplot2::geom_point(data = plotDat[xEffects, , drop = FALSE],
+                                 color = "blue")
+  } else if (length(xSig) > 0 && length(xEffects) > 0) {
     falsePos <- setdiff(xSig, xEffects)
     trueNeg <- setdiff(xEffects, xSig)
     truePos <- intersect(xSig, xEffects)
-    points(x = xValues[falsePos], y = yValues[falsePos],
-           pch = 20, col = "orange", lwd = signPointsThickness)
-    points(x = xValues[trueNeg], y = yValues[trueNeg],
-           pch = 20, col = "yellow", lwd = signPointsThickness)
-    points(x = xValues[truePos], y = yValues[truePos],
-           pch = 20, col = "green", lwd = signPointsThickness)
+    p <- p + ggplot2::geom_point(data = plotDat[falsePos, , drop = FALSE],
+                                 color = "orange", na.rm = TRUE) +
+      ggplot2::geom_point(data = plotDat[trueNeg, , drop = FALSE],
+                          color = "yellow", na.rm = TRUE) +
+      ggplot2::geom_point(data = plotDat[truePos, , drop = FALSE],
+                          color = "green", na.rm = TRUE)
   }
-  ## Add a horizontal line for the threshold
   if (!is.null(yThr)) {
-    abline(h = yThr, lty = 2, lwd = 0.5)
+    p <- p + ggplot2::geom_hline(yintercept = yThr, linetype = 2)
   }
-  ## Close file connection
-  if (fileName != "") {
-    dev.off()
+  if (output) {
+    plot(p)
   }
+  invisible(p)
 }
-
-
-

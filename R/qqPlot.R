@@ -15,29 +15,12 @@
 #'
 #' @export
 qqPlot <- function(pValues,
-                   fileName = "",
-                   jpegPlot = TRUE,
                    ...,
                    output = TRUE) {
   dotArgs <- list(...)
   if (is.null(pValues) || !is.numeric(pValues) || any(pValues < 0) ||
       any(pValues > 1)) {
     stop("pValues should be an numeric vector with values between 0 and 1")
-  }
-  if (fileName != "" && (is.null(fileName) || length(fileName) > 1 ||
-                         !is.character(fileName))) {
-    stop("fileName cannot be empty")
-  }
-  if (fileName != "" && (is.null(jpegPlot) || length(jpegPlot) > 1 ||
-                         !is.logical(jpegPlot))) {
-    stop("jpegPlot should be a single logical")
-  }
-  if (fileName != "") {
-    if (jpegPlot) {
-      jpeg(fileName, width = 720, height = 480, quality = 100)
-    } else {
-      pdf(fileName)
-    }
   }
   pValues <- na.omit(pValues)
   expected <- -log10(ppoints(n = length(pValues)))
@@ -60,9 +43,6 @@ qqPlot <- function(pValues,
     ggplot2::ggtitle(plotTitle)
   if (output) {
     plot(p)
-  }
-  if (fileName != "") {
-    dev.off()
   }
   invisible(p)
 }

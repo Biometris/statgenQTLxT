@@ -4,12 +4,11 @@
 \alias{manhattanPlot}
 \title{Create a manhattan plot}
 \usage{
-manhattanPlot(xValues, yValues, map, fileName = "", jpegPlot = TRUE,
-  xLab = "Chromosomes", yLab = expression(-log[10](p)),
-  plotType = c("l", "p", "d"), xSig = integer(),
-  xEffects = integer(), colPalette = rep(c("royalblue", "maroon"), 50),
-  chrBoundaries = 0, yThr = NULL, signPointsThickness = 0.6, ...,
-  output = TRUE)
+manhattanPlot(xValues, yValues, map, xLab = "Chromosomes",
+  yLab = expression(-log[10](p)), plotType = c("l", "p", "d"),
+  xSig = integer(), xEffects = integer(),
+  colPalette = rep(c("royalblue", "maroon"), 50), chrBoundaries = 0,
+  yThr = NULL, signLwd = 0.6, ..., output = TRUE)
 }
 \arguments{
 \item{xValues}{A vector of cumulative marker positions.}
@@ -19,12 +18,6 @@ manhattanPlot(xValues, yValues, map, fileName = "", jpegPlot = TRUE,
 \item{map}{A data.frame with at least the columns chr, the number of the
 chromosome and cumPos, the cumulative position of the snp the cumulative
 position of the snp starting from the first chromosome.}
-
-\item{fileName}{A character string, the name of the outputfile that is
-created. If left empty the plot is written to the screen.}
-
-\item{jpegPlot}{Should a jpeg file be produced? If \code{FALSE} a pdf file
-is produced.}
 
 \item{xLab}{A character string, the x-axis label.}
 
@@ -46,7 +39,7 @@ same scale as xValues.}
 
 \item{yThr}{A numerical value for the LOD-threshold.}
 
-\item{signPointsThickness}{A numerical value giving the thickness of the
+\item{signLwd}{A numerical value giving the thickness of the
 points that are false/true positives/negatives.}
 
 \item{...}{Other graphical parameters passed on to the actual plot function.}

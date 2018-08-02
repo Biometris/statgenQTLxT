@@ -46,4 +46,24 @@ test_that("GWAS qtl plot functions properly", {
   expect_is(p, "ggplot")
 })
 
+test_that("manhattan plot functions properly", {
+  map <- data.frame(chr = rep(1:2, each = 3), cumPos = 1:6)
+  p <- manhattanPlot(xValues = 1:6, yValues = 3:8, map = map, output = FALSE)
+  expect_is(p, "ggplot")
+  p1 <- manhattanPlot(xValues = 1:6, yValues = 3:8, map = map, xLab = "labx",
+                      yLab = "laby", output = FALSE)
+  expect_equal(p1$labels$x, "labx")
+  expect_equal(p1$labels$y, "laby")
+})
+
+test_that("GWAS manhattan plot functions properly", {
+  stg <- runSingleTraitGwas(gDataTest)
+  expect_error(plot(stg, type = "manhattan"), "multiple environments detected")
+  expect_error(plot(stg, type = "manhattan", environment = "ph1"),
+               "multiple traits detected")
+  p <- plot(stg, type = "manhattan", environment = "ph1", trait = "X1",
+            output = FALSE)
+  expect_is(p, "ggplot")
+})
+
 
