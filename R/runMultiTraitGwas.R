@@ -129,6 +129,13 @@ runMultiTraitGwas <- function(gData,
   }
   GLSMethod <- match.arg(GLSMethod)
   covModel <- match.arg(covModel)
+  if (covModel == "fa") {
+    chkNum(tolerance, min = 0)
+    chkNum(maxIter, min = 1)
+    chkNum(maxDiag, min = 0)
+    chkNum(mG, min = 1)
+    chkNum(mE, min = 1)
+  }
   chkKin(kin, gData, GLSMethod)
   kinshipMethod <- match.arg(kinshipMethod)
   if (subsetMarkers && markerSubset == "") {
@@ -146,7 +153,7 @@ runMultiTraitGwas <- function(gData,
         any(colnames(Vg) != rownames(Vg)) ||
         !all(colnames(Vg) %in% colnames(gData$pheno[[1]])[-1])) {
       stop(paste("Column names and rownames of Vg should be identical and",
-                 "included in column names of Y.\n"))
+                 "included in column names of pheno.\n"))
     }
     if (is.null(colnames(Ve)) || is.null(rownames(Ve)) ||
         any(colnames(Ve) != rownames(Ve)) ||
@@ -156,13 +163,10 @@ runMultiTraitGwas <- function(gData,
     }
     Vg <- Vg[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
     Ve <- Ve[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
-    colnames(Vg) <- rownames(Vg) <- NULL
-    colnames(Ve) <- rownames(Ve) <- NULL
-  } else if (is.null(covModel)) {
-      stop("If variance components are computed, covModel cannot be NULL.\n")
+    colnames(Vg) <- rownames(Vg) <- colnames(Ve) <- rownames(Ve) <- NULL
   }
-  if (reduceK && is.null(nPca)) {
-    stop("If the kinship matrix is to be reduced, nPca cannot be NULL.\n")
+  if (reduceK) {
+    chkNum(nPca, min = 1)
   }
   markers <- gData$markers
   map <- gData$map

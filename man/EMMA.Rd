@@ -62,8 +62,8 @@ the computed variances.}
 }
 }
 \description{
-Using the EMMA algorithm as is Kang et al. (2008) compute REML estimates of
-genetic and residual variance components.
+Using the EMMA algorithm as in Kang et al. (2008) to compute REML estimates
+of genetic and residual variance components.
 }
 \references{
 Kang et al. (2008) (Efficient Control of Population Structure in

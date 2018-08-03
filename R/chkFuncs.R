@@ -35,9 +35,14 @@ chkEnvs <- function(envs,
 
 chkTraits <- function(traits,
                       envs,
-                      gData) {
+                      gData,
+                      multi) {
   if (!is.null(traits) && !is.numeric(traits) && !is.character(traits)) {
-    stop("traits should be a numeric or character vector.\n", call. = FALSE)
+    if (multi) {
+      stop("traits should be a numeric or character vector.\n", call. = FALSE)
+    } else if (length(traits) > 1) {
+      stop("trait should be a single numeric or character.\n", call. = FALSE)
+    }
   }
   for (env in envs) {
     if ((is.character(traits) &&

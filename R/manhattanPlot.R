@@ -66,7 +66,9 @@ manhattanPlot <- function(xValues,
   if (is.null(chrBoundaries) || !is.numeric(chrBoundaries)) {
     stop("chrBoundaries should be an integer vector")
   }
-  chkNum(yThr, min = 0)
+  if (!is.null(yThr)) {
+    chkNum(yThr, min = 0)
+  }
   chkNum(signLwd, min = 0)
   ## Check correspondence xValues and yValues
   if (length(xValues) != length(yValues)) {

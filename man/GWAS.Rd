@@ -29,8 +29,6 @@ GWAS analysis.}
 
 \item{GWASInfo}{a list containing extra information concering the GWAS
 analysis.}
-
-\item{x}{An \code{R} object}
 }
 \value{
 An object of class GWAS, a list of the input items.

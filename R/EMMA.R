@@ -1,7 +1,7 @@
 #' Compute REML estimates of variance components using EMMA algorithm.
 #'
-#' Using the EMMA algorithm as is Kang et al. (2008) compute REML estimates of
-#' genetic and residual variance components.
+#' Using the EMMA algorithm as in Kang et al. (2008) to compute REML estimates
+#' of genetic and residual variance components.
 #'
 #' @param gData An object of class gData containing at least a data.frame
 #' \code{pheno}. If \code{K} is not supplied a matrix \code{kinship} should be
@@ -46,6 +46,7 @@
 #' @references Kang et al. (2008) (Efficient Control of Population Structure in
 #' Model Organism Association Mapping. Genetics, March 2008, Vol. 178, no. 3,
 #' p. 1709-1723
+#'
 #' @import stats
 #'
 #' @keywords internal
@@ -70,50 +71,27 @@ EMMA <- function(gData,
       (is.numeric(environment) && environment > length(gData$pheno))) {
     stop("environment should be a list item in pheno.\n")
   }
-  if (missing(trait) || length(trait) > 1 || !(is.numeric(trait) ||
-                                               is.character(trait))) {
-    stop("trait should be a single numeric or character.\n")
-  }
-  if ((is.character(trait) && !trait %in%
-       colnames(gData$pheno[[environment]])) ||
-      (is.numeric(trait) && trait > ncol(gData$pheno[[environment]]))) {
-    stop("trait should be a column in pheno.\n")
-  }
+  chkTraits(trait, environment, gData, multi = FALSE)
   if (!is.null(K) && !(inherits(K, "Matrix") || is.matrix(K))) {
     stop("K should be a matrix.\n")
   }
   if (is.null(K) && is.null(gData$kinship)) {
     stop("gData contains no matrix kinship so K should be provided.\n")
   }
-  if (!is.null(covar) && !is.numeric(covar) && !is.character(covar)) {
-    stop("covar should be a numeric or character.\n")
-  }
-  if ((is.character(covar) && !all(covar %in% colnames(gData$covar))) ||
-      (is.numeric(covar) && any(covar > ncol(gData$covar)))) {
-    stop("covar should be columns in covar in gData.\n")
-  }
+  chkCovar(covar, gData)
   if (!is.null(snpName) && (length(snpName) > 1 || !is.character(snpName))) {
     stop("snpName should be a single character.\n")
   }
   if (!is.null(Z) && !is.matrix(Z)) {
     stop("Z should be a matrix.\n")
   }
-  if (!is.null(nGrids) && (length(nGrids) > 1 || !is.numeric(nGrids) ||
-                           nGrids != round(nGrids))) {
-    stop("nGrids should be a single integer.\n")
-  }
-  if (!is.null(lLim) && (length(lLim) > 1 || !is.numeric(lLim))) {
-    stop("lLim should be a single numerical value.\n")
-  }
-  if (!is.null(uLim) && (length(uLim) > 1 || !is.numeric(uLim))) {
-    stop("uLim should be a single numerical value.\n")
-  }
+  chkNum(nGrids, min = 1)
+  chkNum(lLim)
+  chkNum(uLim)
   if (lLim >= uLim) {
     stop("lLim should be smaller than uLim.\n")
   }
-  if (!is.null(eps) && (length(eps) > 1 || !is.numeric(eps))) {
-    stop("eps should be a single numerical value.\n")
-  }
+  chkNum(eps, min = 0)
   ## Add column genotype to environment.
   phEnv <- gData$pheno[[environment]]
   ## Remove data with missings in trait or any of the covars.
@@ -161,7 +139,7 @@ EMMA <- function(gData,
     eigR <- emmaEigenR(K = K, X = X)
     ## Define eta as in eqn. 7 of Kang.
     etas <- Matrix::crossprod(eigR$vectors, y)
-    ## Define etas1 and etas2 to use same optimisating as for Z not NULL.
+    ## Define etas1 and etas2 to use same optimisation as for Z not NULL.
     etas1 <- etas
     etas2 <- 0
     ## Compute square of eta for usage in vectorised form.
@@ -194,8 +172,8 @@ EMMA <- function(gData,
                             (Matrix::colSums(1 / lambdas) + (n - t) / delta))
   }
   ## Find optimum of LL
-  optLogDelta <- numeric(0)
-  optLL <- numeric(0)
+  optLogDelta <- numeric()
+  optLL <- numeric()
   ## Check first item in dLL. If < eps include LL value as possible optimum.
   if (dLL[1] < eps) {
     optLogDelta <- c(optLogDelta, lLim)

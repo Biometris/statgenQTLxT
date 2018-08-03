@@ -305,7 +305,7 @@ plot.GWAS <- function(x, ...,
     map <- GWAResult[, c("snp", "chr", "pos", "LOD")]
     map <- merge(map, addPos, by = "chr")
     map$cumPos <- map$pos + map$add
-    ## Extract numbers of significant SNPs.
+    ## Extract row numbers for significant SNPs.
     if (!is.null(dotArgs$yThr)) {
       signSnpNr <- which(map$LOD > dotArgs$yThr)
     } else if (!is.null(signSnp)) {
@@ -320,11 +320,7 @@ plot.GWAS <- function(x, ...,
       plotType = "p"
     }
     if (is.null(dotArgs$yThr)) {
-      if (is.null(x$thr[[environment]][trait])) {
-        yThr <- Inf
-      } else {
-        yThr <- x$thr[[environment]][trait]
-      }
+      yThr <- x$thr[[environment]][trait]
     } else {
       yThr <- dotArgs$yThr
     }
@@ -339,7 +335,7 @@ plot.GWAS <- function(x, ...,
                                                      "lod", "chr"))]
             ))
   } else if (type == "qq") {
-    ## Create qq-plot
+    ## Create qq-plot.
     qqPlot(pValues = na.omit(GWAResult$pValue), ..., output = output)
   } else if (type == "qtl") {
     if (is.null(signSnp)) {
