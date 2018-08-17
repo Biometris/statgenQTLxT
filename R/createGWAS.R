@@ -147,7 +147,7 @@ summary.GWAS <- function(object, ..., environments = NULL) {
     for (trait in traits) {
       cat("\tTrait:", trait, "\n\n")
       if (substr(GWASInfo$call[[1]], 4, 4) == "S" &&
-          !is.null(GWASInfo$GLSMethod) && as.numeric(GWASInfo$GLSMethod) == 1) {
+          !is.null(GWASInfo$GLSMethod) && GWASInfo$GLSMethod == "single") {
         ## Print mixed model info.
         cat("\t\tMixed model with only polygenic effects,",
             "and no marker effects:\n")
@@ -156,7 +156,7 @@ summary.GWAS <- function(object, ..., environments = NULL) {
         cat("\t\tResidual variance:",
             GWASInfo$varComp[[environment]][[trait]][2], "\n\n")
       }
-      if (!is.null(GWASInfo$thrType) && as.numeric(GWASInfo$thrType) %in% 1:3) {
+      if (!is.null(GWASInfo$thrType) && !is.null(GWASInfo$thrType)) {
         ## Print significant SNP info.
         cat("\t\tLOD-threshold:", object$thr[[environment]][trait], "\n")
         signSnpTrait <- signSnp[signSnp$trait == trait, ]
