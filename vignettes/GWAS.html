@@ -12,7 +12,7 @@
 
 <meta name="author" content="Bart-Jan van Rossum" />
 
-<meta name="date" content="2018-03-28" />
+<meta name="date" content="2018-08-16" />
 
 <title>Introduction to the GWAS package</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Introduction to the GWAS package</h1>
 <h4 class="author"><em>Bart-Jan van Rossum</em></h4>
-<h4 class="date"><em>2018-03-28</em></h4>
+<h4 class="date"><em>2018-08-16</em></h4>
 
 
 
@@ -119,13 +119,13 @@ A gData object created this way will consist of the following components:</p>
 <h3><strong>Load data</strong></h3>
 <p>The first step is loading the data into R.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">markersRaw &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="kw">gzcon</span>(
-  <span class="kw">url</span>(<span class="st">&quot;https://ricediversity.org/data/sets/44kgwas/RiceDiversity.44K.MSU6.Genotypes.csv.gz&quot;</span>), 
+  <span class="kw">url</span>(<span class="st">&quot;http://ricediversity.org/data/sets/44kgwas/RiceDiversity.44K.MSU6.Genotypes.csv.gz&quot;</span>), 
   <span class="dt">text =</span> <span class="ot">TRUE</span>), <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)
 phenoRaw &lt;-<span class="st"> </span><span class="kw">read.delim</span>(
-  <span class="st">&quot;https://ricediversity.org/data/sets/44kgwas/RiceDiversity_44K_Phenotypes_34traits_PLINK.txt&quot;</span>,
+  <span class="st">&quot;http://ricediversity.org/data/sets/44kgwas/RiceDiversity_44K_Phenotypes_34traits_PLINK.txt&quot;</span>,
   <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)
 covarRaw &lt;-<span class="st"> </span><span class="kw">read.csv</span>(
-  <span class="st">&quot;https://ricediversity.org/data/sets/44kgwas/RiceDiversity.44K.germplasm.csv&quot;</span>, 
+  <span class="st">&quot;http://ricediversity.org/data/sets/44kgwas/RiceDiversity.44K.germplasm.csv&quot;</span>, 
   <span class="dt">skip =</span> <span class="dv">1</span>,
   <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)</code></pre></div>
 <p>MarkersRaw contains the map and marker information for 36901 SNPs and 413 accessions. PhenoRaw contains phenotypic data for those 413 accessions for 31 traits. covarRaw contains some background information on the different accessions including previously calculated principal components, PC1 - PC4, which we will use in the analysis of the data.</p>
@@ -185,21 +185,20 @@ gDataRiceCodedBeagle &lt;-<span class="st"> </span><span class="kw">codeMarkers<
 <span class="kw">plot</span>(GWASRicePlantHeight0)</code></pre></div>
 <p>In the default function call of the <em>runSingleTraitGwas</em> function a single kinship matrix is computed using the algorithm proposed by Astle and Balding. In most cases computing chromosome specific kinship matrices considerably improves the predicting power of the algorithm. Several different methods for computing the kinship matrix are available in the package. Users can provide their own kinship matrices as well.<br />
 As a default significant SNP are selected with a threshold computed using Bonferroni correction. Other thresholds can be specified as well. More options can be found in the function documentation for <em>runSingleTraitGwas</em>. The following example performs the GWAS computation using chromosome specific kinship matrices computed using Identity By State (IBS), a threshold for significant SNPs of 4 and PC1 - PC4 as covariates.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">GWASRicePlantHeight &lt;-<span class="st"> </span><span class="kw">runSingleTraitGwas</span>(<span class="dt">gData =</span> gDataRiceCodedBeagle, 
-                                          <span class="dt">traits =</span> <span class="st">&quot;Plant.height&quot;</span>, 
-                                          <span class="dt">covar =</span> <span class="kw">c</span>(<span class="st">&quot;PC1&quot;</span>, <span class="st">&quot;PC2&quot;</span>, <span class="st">&quot;PC3&quot;</span>, <span class="st">&quot;PC4&quot;</span>),
-                                          <span class="dt">GLSMethod =</span> <span class="dv">2</span>, <span class="dt">kinshipMethod =</span> <span class="st">&quot;IBS&quot;</span>, 
-                                          <span class="dt">thrType =</span> <span class="dv">2</span>, <span class="dt">LODThr =</span> <span class="dv">4</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">GWASRicePlantHeight &lt;-<span class="st"> </span>
+<span class="st">  </span><span class="kw">runSingleTraitGwas</span>(<span class="dt">gData =</span> gDataRiceCodedBeagle, <span class="dt">traits =</span> <span class="st">&quot;Plant.height&quot;</span>, 
+                     <span class="dt">covar =</span> <span class="kw">c</span>(<span class="st">&quot;PC1&quot;</span>, <span class="st">&quot;PC2&quot;</span>, <span class="st">&quot;PC3&quot;</span>, <span class="st">&quot;PC4&quot;</span>), <span class="dt">GLSMethod =</span> <span class="st">&quot;multi&quot;</span>,
+                     <span class="dt">kinshipMethod =</span> <span class="st">&quot;IBS&quot;</span>, <span class="dt">thrType =</span> <span class="st">&quot;fixed&quot;</span>, <span class="dt">LODThr =</span> <span class="dv">4</span>)
 
 <span class="kw">summary</span>(GWASRicePlantHeight)
 <span class="kw">plot</span>(GWASRicePlantHeight, <span class="dt">type =</span> <span class="st">&quot;qq&quot;</span>)
 <span class="kw">plot</span>(GWASRicePlantHeight)</code></pre></div>
 <p>The analysis can be performed for more than one trait in a single function call. Not specifying traits at all will perform the analysis for all traits that are present in the phenotypic data. The results will be combined in a single output object with the traits specified in the column <em>trait</em> in <em>GWAResult</em> and <em>signSnp</em> within this object.<br />
-When making a qq or manhattan plot of this output the trait has to be specified. Also a “qtl” plot is avaible which plots significant SNPs per trait against their position on the chromosomes.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">GWASRicePlantHeightMult &lt;-<span class="st"> </span><span class="kw">runSingleTraitGwas</span>(<span class="dt">gData =</span> gDataRiceCodedBeagle, 
-                                          <span class="dt">covar =</span> <span class="kw">c</span>(<span class="st">&quot;PC1&quot;</span>, <span class="st">&quot;PC2&quot;</span>, <span class="st">&quot;PC3&quot;</span>, <span class="st">&quot;PC4&quot;</span>),
-                                          <span class="dt">GLSMethod =</span> <span class="dv">2</span>, <span class="dt">kinshipMethod =</span> <span class="st">&quot;IBS&quot;</span>, 
-                                          <span class="dt">thrType =</span> <span class="dv">2</span>, <span class="dt">LODThr =</span> <span class="dv">4</span>)
+When making a qq or manhattan plot of this output the trait has to be specified. Also a “qtl” plot is available which plots significant SNPs per trait against their position on the chromosomes.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">GWASRicePlantHeightMult &lt;-<span class="st"> </span>
+<span class="st">  </span><span class="kw">runSingleTraitGwas</span>(<span class="dt">gData =</span> gDataRiceCodedBeagle, 
+                     <span class="dt">covar =</span> <span class="kw">c</span>(<span class="st">&quot;PC1&quot;</span>, <span class="st">&quot;PC2&quot;</span>, <span class="st">&quot;PC3&quot;</span>, <span class="st">&quot;PC4&quot;</span>), <span class="dt">GLSMethod =</span> <span class="st">&quot;multi&quot;</span>,
+                     <span class="dt">kinshipMethod =</span> <span class="st">&quot;IBS&quot;</span>, <span class="dt">thrType =</span> <span class="st">&quot;fixed&quot;</span>, <span class="dt">LODThr =</span> <span class="dv">4</span>)
 
 <span class="kw">summary</span>(GWASRicePlantHeightMult)
 <span class="kw">plot</span>(GWASRicePlantHeightMult, <span class="dt">type =</span> <span class="st">&quot;qq&quot;</span>, <span class="dt">trait =</span> <span class="st">&quot;Plant.height&quot;</span>)

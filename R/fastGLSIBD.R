@@ -1,12 +1,20 @@
-#' fastGLS IBD Modified function
+#' Fast Generalized Least Squares algoritm for IBD based QTL mapping
+#'
+#' Compute statistics for the Generalized Least Squares (GLS) F-test for
+#' IBD based QTL Mapping.
+#'
+#' @inheritParams fastGLS
+#'
+#' @param MP An array of marker probabilities.
+#' @param ref An integer indicating the allele to use as reference allele in
+#' the computations.
 #'
 #' @keywords internal
 fastGLSIBD <- function(y,
                        MP,
                        Sigma,
                        covs,
-                       ref,
-                       ind.matrix) {
+                       ref) {
   ## Check class and missing values.
   if (missing(y) || !(inherits(y, "Matrix") || is.numeric(y)) || anyNA(y)) {
     stop("y should be a numeric vector without missing values.\n")
@@ -29,74 +37,26 @@ fastGLSIBD <- function(y,
     stop(paste("The number of elements in y should be identical to the",
                "number of rows in covs.\n"))
   }
-  m <- dim(MP)[3]
-  p <- dim(MP)[2]
-  nCov <- ncol(covs)
-  if (is.matrix(Sigma)) {
-    Sigma <- as(Sigma, "dsyMatrix")
-  }
-  if (is.matrix(covs)) {
-    covs <- as(covs, "dgeMatrix")
-  }
-  M <- Matrix::solve(Matrix::chol(Sigma))
-  ## Pre-multiply the phenotype (y) with t(M).
-  tMy <- Matrix::crossprod(M, y)
-  ## pre-multiply the intercept and covariates with t(M).
-  tMfixCovs <- Matrix::crossprod(M, covs)
-  ## reduced form, without the ref allele
-  tMPr <- MP[, , -ref]
-  ## pre-multiply the IBD probablities with t(M)
-  M0 <- as.matrix(M)
-  for (k in 1:(m - 1)) {
-    tMPr[, , k] <- crossprod(M0, tMPr[, , k])
-  }
-  ## Compute residuals and RSS over all markers.
-  ResEnv <- Matrix::qr.resid(qr = Matrix::qr(tMfixCovs), y = as.numeric(tMy))
-  RSSEnv <- sum(ResEnv ^ 2)
-  ## The idea is now to apply the standard ordinary least squares
-  ## formulas for a partitioned design matrix X = [X1 X2], where X1 = tMfixCovs
-  ## are the transformed fixed covariates and X2 = one of the loci in tMPr
-  ## (the transformed probabilities)
-
-  ## Denoting the design matrix for a single locus as Mj,
-  ## compute Mj^t Mj, for all loci
-
-  nm <- ind.matrix == 1
-  tMPrLst <- lapply(1:p, function(j) {tMPr[, j, ][, nm[, j]]})
-  tMPrMat <- Matrix::bdiag(tMPrLst)
-  tX2VinvX2Inv <- Matrix::bdiag(lapply(tMPrLst, function(Mj) {
-    solve(crossprod(Mj))
-  }))
-  tMfixCovsMat <- Matrix::kronecker(Matrix::Diagonal(p), tMfixCovs)
-  tMyMat <- Matrix::kronecker(Matrix::Diagonal(p), tMy)
-  tMfixCovstMyMat <- Matrix::kronecker(Matrix::Diagonal(p),
-                                       Matrix::crossprod(tMfixCovs, tMy))
-  tX1VinvX2 <- Matrix::crossprod(tMfixCovsMat, tMPrMat)
-  tX2VinvY <- Matrix::crossprod(tMPrMat, tMyMat)
-  XS <- Matrix::crossprod(tMfixCovsMat) -
-    Matrix::tcrossprod(tX1VinvX2 %*% tX2VinvX2Inv, tX1VinvX2)
-  beta1 <- Matrix::solve(XS, tMfixCovstMyMat -
-                           tX1VinvX2 %*% tX2VinvX2Inv %*% tX2VinvY)
-  beta2 <- tX2VinvX2Inv %*% tX2VinvY -
-    Matrix::tcrossprod(tX2VinvX2Inv, tX1VinvX2) %*% beta1
-  RSSFull <- Matrix::colSums((tMyMat - tMfixCovsMat %*%
-                                beta1 - tMPrMat %*% beta2) ^ 2)
-  df1 <- colSums(nm)
-  df2 <- n - df1 - nCov
-  FVal <- (df2 / df1) * (RSSEnv - RSSFull) / RSSFull
+  resCpp <- fastGLSIBDCPP(MP, y, Sigma, covs, ref)
+  beta1 <- resCpp$beta1
+  beta2 <- resCpp$beta2
+  FVal <- resCpp$FVal
+  df1 <- resCpp$df1
+  df2 <- resCpp$df2
   pVal <- pf(q = FVal, df1 = df1, df2 = df2, lower.tail = FALSE)
   return(list(beta1 = beta1, beta2 = beta2, pvalues = pVal))
 }
 
+
 #' fastGLS IBD Original function
 #'
 #' @keywords internal
-fastGLSIBD2 <- function(V,
-                        Xcov,
-                        y,
-                        MP,
-                        ref,
-                        ind.matrix) {
+fastGLSIBDOrig <- function(V,
+                           Xcov,
+                           y,
+                           MP,
+                           ref,
+                           ind.matrix) {
   m <- dim(MP)[3]
   p <- dim(MP)[2]
   n <- length(y)

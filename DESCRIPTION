@@ -20,7 +20,8 @@ Imports: ggplot2 (>= 3.0.0),
     methods,
     reshape2 (>= 1.4.2),
     sommer (>= 3.5),
-    foreach
+    foreach,
+    Rcpp
 Suggests: covr,
     knitr,
     rmarkdown,
@@ -28,3 +29,4 @@ Suggests: covr,
     rvg,
     testthat
 VignetteBuilder: knitr
+LinkingTo: Rcpp, RcppArmadillo
