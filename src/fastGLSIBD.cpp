@@ -14,7 +14,7 @@ List fastGLSIBDCPP(arma::cube MP,
   int p = MP.n_cols;
   int n = MP.n_rows;
   int nCov = covs.n_cols;
-  // Remove reference allele.
+  // Remove reference allele. Ref - 1 because of 0-indexing.
   MP.shed_slice(ref - 1);
   // Compute M.
   arma::mat M = (arma::chol(sigma)).i();
@@ -37,8 +37,11 @@ List fastGLSIBDCPP(arma::cube MP,
   std::vector<int> df2(p);
   for(int i = 0; i < p; i ++) {
     arma::mat X = tMPr( span(), span(i), span() );
+    // Get indices of alleles in X that are not entirely 0.
     arma::uvec posInd = find(all(X) != 0 );
+    // Subset X on those columns
     X = X.cols(posInd);
+    // Algorithm for computing beta1, beta2 and RSSFull for current marker.
     arma::mat tX2VinvX2Inv = (X.t() * X).i();
     arma::mat tX1VinvX2 = tMfixCovs.t() * X;
     arma::mat tX2VinvY = X.t() * tMy;
@@ -49,10 +52,15 @@ List fastGLSIBDCPP(arma::cube MP,
     arma::vec beta2j = tX2VinvX2Inv * tX2VinvY -
       tX2VinvX2Inv * tX1VinvX2.t() * beta1j;
     double RSSFullj = accu(square(tMy - tMfixCovs * beta1j - X * beta2j));
+    // Put results for beta1 for current marker in output matrix.
     beta1.col(i) = beta1j;
+    // Create vector of zeros for beta2. Not possible before computing
+    // RSSFullj since dimensions won't match for X and beta2j then.
     arma::vec beta2jZeros = zeros<vec>(m);
+    // Fill non-zero position with computed values and add to output matrix.
     beta2jZeros(posInd) = beta2j;
     beta2.col(i) = beta2jZeros;
+    // Compute further output elements.
     df1[i] = beta2j.n_elem;
     df2[i] = n - df1[i] - nCov;
     RSSFull[i] = RSSFullj;
