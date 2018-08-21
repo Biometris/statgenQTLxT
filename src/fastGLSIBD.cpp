@@ -9,12 +9,14 @@ List fastGLSIBDCPP(arma::cube MP,
                    arma::mat sigma,
                    arma::mat covs,
                    int ref) {
+  // Add intercept to covariates.
+  covs.insert_cols(0, ones<vec>(covs.n_rows));
   // Get number of alleles, markers and covariates.
   int m = MP.n_slices - 1;
   int p = MP.n_cols;
   int n = MP.n_rows;
   int nCov = covs.n_cols;
-  // Remove reference allele. Ref - 1 because of 0-indexing.
+  // Remove reference allele. Ref-1 because of 0-indexing.
   MP.shed_slice(ref - 1);
   // Compute M.
   arma::mat M = (arma::chol(sigma)).i();
@@ -35,10 +37,10 @@ List fastGLSIBDCPP(arma::cube MP,
   std::vector<double> FVal(p);
   std::vector<int> df1(p);
   std::vector<int> df2(p);
-  for(int i = 0; i < p; i ++) {
-    arma::mat X = tMPr( span(), span(i), span() );
+  for (int i = 0; i < p; i ++) {
+    arma::mat X = tMPr(span(), span(i), span());
     // Get indices of alleles in X that are not entirely 0.
-    arma::uvec posInd = find(all(X) != 0 );
+    arma::uvec posInd = find(all(X) != 0);
     // Subset X on those columns
     X = X.cols(posInd);
     // Algorithm for computing beta1, beta2 and RSSFull for current marker.
