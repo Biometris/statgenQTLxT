@@ -37,7 +37,7 @@ fastGLSIBD <- function(y,
     stop(paste("The number of elements in y should be identical to the",
                "number of rows in covs.\n"))
   }
-  resCpp <- fastGLSIBDCPP(MP, y, Sigma, covs, ref, ncores = 4)
+  resCpp <- fastGLSIBDCPP(MP, y, Sigma, ref, covs, ncores = 4)
   beta1 <- resCpp$beta1
   beta2 <- resCpp$beta2
   FVal <- resCpp$FVal

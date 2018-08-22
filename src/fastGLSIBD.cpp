@@ -17,15 +17,20 @@ using namespace arma;
 List fastGLSIBDCPP(arma::cube MP,
                    arma::vec y,
                    arma::mat sigma,
-                   arma::mat covs,
                    int ref,
+                   Rcpp::Nullable<Rcpp::NumericVector> size_param = R_NilValue,
                    int ncores = 1) {
-  // Add intercept to covariates.
-  covs.insert_cols(0, ones<vec>(covs.n_rows));
-  // Get number of alleles, markers and covariates.
+  // Get number of alleles and markers.
   unsigned int m = MP.n_slices - 1;
   unsigned int p = MP.n_cols;
   unsigned int n = MP.n_rows;
+  // Define covs as intercept.
+  arma::mat covs = ones<mat>(n, 1);
+  if (size_param.isNotNull()) {
+    // Add other covariates.
+    covs.insert_cols(1, Rcpp::as<arma::mat>(size_param));
+  }
+  // Get number of covariates (including intercept).
   unsigned int nCov = covs.n_cols;
   // Remove reference allele. Ref-1 because of 0-indexing.
   MP.shed_slice(ref - 1);
