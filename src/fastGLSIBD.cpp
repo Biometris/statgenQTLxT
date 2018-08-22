@@ -1,5 +1,15 @@
 #include <RcppArmadillo.h>
+// Correctly setup the build environment
 // [[Rcpp::depends(RcppArmadillo)]]
+
+// Add a flag to enable OpenMP at compile time
+// [[Rcpp::plugins(openmp)]]
+
+// Protect against compilers without OpenMP
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 using namespace Rcpp;
 using namespace arma;
 
@@ -8,39 +18,42 @@ List fastGLSIBDCPP(arma::cube MP,
                    arma::vec y,
                    arma::mat sigma,
                    arma::mat covs,
-                   int ref) {
+                   int ref,
+                   int ncores = 1) {
   // Add intercept to covariates.
   covs.insert_cols(0, ones<vec>(covs.n_rows));
   // Get number of alleles, markers and covariates.
-  int m = MP.n_slices - 1;
-  int p = MP.n_cols;
-  int n = MP.n_rows;
-  int nCov = covs.n_cols;
+  unsigned int m = MP.n_slices - 1;
+  unsigned int p = MP.n_cols;
+  unsigned int n = MP.n_rows;
+  unsigned int nCov = covs.n_cols;
   // Remove reference allele. Ref-1 because of 0-indexing.
   MP.shed_slice(ref - 1);
-  // Compute M.
-  arma::mat M = (arma::chol(sigma)).i();
+  // Compute inverse of t(M).
+  arma::mat Mt = chol(sigma, "lower").i();
   // pre-multiply the IBD probablities with t(M).
-  arma::cube tMPr = M.t() * MP.each_slice();
+  MP.each_slice([Mt](mat& X){ X = Mt * X; });
   // Pre-multiply the phenotype (y) with t(M).
-  arma::mat tMy = M.t() * y;
+  arma::mat tMy = Mt * y;
   // pre-multiply the intercept and covariates with t(M).
-  arma::mat tMfixCovs = M.t() * covs;
+  arma::mat tMfixCovs = Mt * covs;
   // Compute residuals and RSS over all markers.
-  mat Vinv = sigma.i();
-  mat Pr = Vinv - Vinv * covs * solve(covs.t() * Vinv * covs, covs.t() * Vinv);
+  arma::mat Vinv = inv_sympd(sigma);
+  arma::mat Pr = Vinv - Vinv * covs * solve(covs.t() * Vinv * covs,
+                                            covs.t() * Vinv);
   double RSSEnv = as_scalar(y.t() * Pr * y);
   // Define matrices for storing output.
   arma::mat beta1 = mat(tMfixCovs.n_cols, p);
   arma::mat beta2 = zeros<mat>(m, p);
-  std::vector<double> RSSFull(p);
   std::vector<double> FVal(p);
   std::vector<int> df1(p);
   std::vector<int> df2(p);
-  for (int i = 0; i < p; i ++) {
-    arma::mat X = tMPr(span(), span(i), span());
+  // Loop over markers and compute betas and RSS.
+#pragma omp parallel for num_threads(ncores)
+  for (unsigned int i = 0; i < p; i ++) {
+    arma::mat X = MP(span(), span(i), span());
     // Get indices of alleles in X that are not entirely 0.
-    arma::uvec posInd = find(all(X) != 0);
+    arma::uvec posInd = find( all(X) );
     // Subset X on those columns
     X = X.cols(posInd);
     // Algorithm for computing beta1, beta2 and RSSFull for current marker.
@@ -65,7 +78,6 @@ List fastGLSIBDCPP(arma::cube MP,
     // Compute further output elements.
     df1[i] = beta2j.n_elem;
     df2[i] = n - df1[i] - nCov;
-    RSSFull[i] = RSSFullj;
     FVal[i] = (RSSEnv - RSSFullj) / RSSFullj * df2[i] / df1[i];
   }
   // Create output.
@@ -77,10 +89,3 @@ List fastGLSIBDCPP(arma::cube MP,
   res["df2"] = df2;
   return res;
 }
-
-
-
-
-
-
-

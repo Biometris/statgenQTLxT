@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // fastGLSIBDCPP
-List fastGLSIBDCPP(arma::cube MP, arma::vec y, arma::mat sigma, arma::mat covs, int ref);
-RcppExport SEXP _genStatPipeline_fastGLSIBDCPP(SEXP MPSEXP, SEXP ySEXP, SEXP sigmaSEXP, SEXP covsSEXP, SEXP refSEXP) {
+List fastGLSIBDCPP(arma::cube MP, arma::vec y, arma::mat sigma, arma::mat covs, int ref, int ncores);
+RcppExport SEXP _genStatPipeline_fastGLSIBDCPP(SEXP MPSEXP, SEXP ySEXP, SEXP sigmaSEXP, SEXP covsSEXP, SEXP refSEXP, SEXP ncoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -17,13 +17,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type sigma(sigmaSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type covs(covsSEXP);
     Rcpp::traits::input_parameter< int >::type ref(refSEXP);
-    rcpp_result_gen = Rcpp::wrap(fastGLSIBDCPP(MP, y, sigma, covs, ref));
+    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(fastGLSIBDCPP(MP, y, sigma, covs, ref, ncores));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_genStatPipeline_fastGLSIBDCPP", (DL_FUNC) &_genStatPipeline_fastGLSIBDCPP, 5},
+    {"_genStatPipeline_fastGLSIBDCPP", (DL_FUNC) &_genStatPipeline_fastGLSIBDCPP, 6},
     {NULL, NULL, 0}
 };
 
