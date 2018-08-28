@@ -14,16 +14,16 @@ using namespace Rcpp;
 using namespace arma;
 
 // [[Rcpp::export]]
-List fastGLSIBDCPP(arma::cube MP,
+List fastGLSIBDCPP(arma::cube mp,
                    arma::vec y,
                    arma::mat sigma,
                    int ref,
                    Rcpp::Nullable<Rcpp::NumericVector> size_param = R_NilValue,
                    int ncores = 1) {
   // Get number of alleles and markers.
-  unsigned int m = MP.n_slices - 1;
-  unsigned int p = MP.n_cols;
-  unsigned int n = MP.n_rows;
+  unsigned int m = mp.n_slices - 1;
+  unsigned int p = mp.n_cols;
+  unsigned int n = mp.n_rows;
   // Define covs as intercept.
   arma::mat covs = ones<mat>(n, 1);
   if (size_param.isNotNull()) {
@@ -33,20 +33,19 @@ List fastGLSIBDCPP(arma::cube MP,
   // Get number of covariates (including intercept).
   unsigned int nCov = covs.n_cols;
   // Remove reference allele. Ref-1 because of 0-indexing.
-  MP.shed_slice(ref - 1);
+  mp.shed_slice(ref - 1);
   // Compute inverse of t(M).
-  arma::mat Mt = chol(sigma, "lower").i();
+  arma::mat mt = chol(sigma, "lower").i();
   // pre-multiply the IBD probablities with t(M).
-  MP.each_slice([Mt](mat& X){ X = Mt * X; });
+  mp.each_slice([mt](mat& X){ X = mt * X; });
   // Pre-multiply the phenotype (y) with t(M).
-  arma::mat tMy = Mt * y;
+  arma::mat tMy = mt * y;
   // pre-multiply the intercept and covariates with t(M).
-  arma::mat tMfixCovs = Mt * covs;
+  arma::mat tMfixCovs = mt * covs;
   // Compute residuals and RSS over all markers.
-  arma::mat Vinv = inv_sympd(sigma);
-  arma::mat Pr = Vinv - Vinv * covs * solve(covs.t() * Vinv * covs,
-                                            covs.t() * Vinv);
-  double RSSEnv = as_scalar(y.t() * Pr * y);
+  arma::mat Q, R;
+  arma::qr_econ(Q, R, tMfixCovs);
+  double RSSEnv = accu(square(tMy - Q * Q.t() * tMy));
   // Define matrices for storing output.
   arma::mat beta1 = mat(tMfixCovs.n_cols, p);
   arma::mat beta2 = zeros<mat>(m, p);
@@ -56,7 +55,7 @@ List fastGLSIBDCPP(arma::cube MP,
   // Loop over markers and compute betas and RSS.
 #pragma omp parallel for num_threads(ncores)
   for (unsigned int i = 0; i < p; i ++) {
-    arma::mat X = MP(span(), span(i), span());
+    arma::mat X = mp(span(), span(i), span());
     // Get indices of alleles in X that are not entirely 0.
     arma::uvec posInd = find( all(X) );
     // Subset X on those columns
