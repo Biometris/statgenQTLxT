@@ -10,7 +10,8 @@ runSingleTraitGwasIBD(gData, traits = NULL, environments = NULL,
   remlAlgo = c("EMMA", "NR"), GLSMethod = c("single", "multi"),
   useMAF = TRUE, MAF = 0.01, MAC = 10, genomicControl = FALSE,
   thrType = c("bonf", "fixed", "small"), alpha = 0.05, LODThr = 4,
-  nSnpLOD = 10, sizeInclRegion = 0, minR2 = 0.5, MP = NULL)
+  nSnpLOD = 10, sizeInclRegion = 0, minR2 = 0.5, MP = NULL,
+  ref = 7)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},

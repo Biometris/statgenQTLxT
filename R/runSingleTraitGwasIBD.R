@@ -61,7 +61,8 @@ runSingleTraitGwasIBD <- function(gData,
                                   nSnpLOD = 10,
                                   sizeInclRegion = 0,
                                   minR2 = 0.5,
-                                  MP = NULL) {
+                                  MP = NULL,
+                                  ref = 7) {
   ## Checks.
   chkGData(gData, comps = c("map", "pheno"))
   ###chkMarkers(gData$markers)
@@ -154,8 +155,7 @@ runSingleTraitGwasIBD <- function(gData,
       vcovMatrix <- vc$vcovMatrix
       ## Compute allele frequencies based on genotypes for which phenotypic
       ## data is available.
-      ###markersRed <- gData$markers[nonMiss, colnames(gData$markers) %in%
-      ###                              rownames(gData$map)]
+      MPRed <- MP[nonMiss, dimnames(MP)[[2]] %in% rownames(gData$map), ]
       mapRed <- gData$map[rownames(gData$map) %in% dimnames(MP)[[2]], ]
       ###allFreq <- Matrix::colMeans(markersRed, na.rm = TRUE) / maxScore
       if (!useMAF) {
@@ -167,6 +167,11 @@ runSingleTraitGwasIBD <- function(gData,
       GWAResult <- data.frame(trait = trait, snp = rownames(mapRed), mapRed,
                               pValue = NA, LOD = NA,
                               stringsAsFactors = FALSE)
+      GWAResult <- cbind(GWAResult,
+                         matrix(nrow = nrow(GWAResult),
+                                ncol = length(dimnames(MPRed)[[3]]) - 1,
+                                dimnames = list(NULL,
+                                                dimnames(MPRed)[[3]][-ref])))
       ## Define single column matrix with trait non missing values.
       y <- phEnvTr[which(phEnvTr$genotype %in% nonMiss), trait]
       if (GLSMethod == "single") {
@@ -182,11 +187,13 @@ runSingleTraitGwasIBD <- function(gData,
           Z <- as.matrix(phEnvTr[which(phEnvTr$genotype %in% nonMiss), covEnv])
         }
         ## Compute pvalues and effects using fastGLS.
-        GLSResult <- fastGLSIBD(y = y, MP = MP, Sigma = as.matrix(vcovMatrix),
-                                covs = Z, ref = 7)
+        GLSResult <- fastGLSIBD(y = y, MP = MPRed,
+                                Sigma = as.matrix(vcovMatrix), covs = Z,
+                                ref = ref)
         ###GWAResult[setdiff(segMarkers, exclude),
-        GWAResult[, c("pValue")] <- GLSResult[, "pValue"]
-        GWAResult <- cbind(GWAResult, GLSResult[, -1])
+        GWAResult[, c("pValue", dimnames(MPRed)[[3]][-ref])] <- GLSResult
+
+
         ## Compute p-values and effects for snpCovariates using fastGLS.
         ###for (snpCovariate in snpCov) {
         ###  GLSResultSnpCov <-
@@ -204,20 +211,20 @@ runSingleTraitGwasIBD <- function(gData,
         ## matrices.
         for (chr in chrs) {
           mapRedChr <- mapRed[which(mapRed$chr == chr), ]
-          markersRedChr <- markersRed[, which(colnames(markersRed) %in%
-                                                rownames(mapRedChr)),
-                                      drop = FALSE]
-          allFreqChr <- Matrix::colMeans(markersRedChr, na.rm = TRUE) / maxScore
+          MPRedChr <- MPRed[, which(dimnames(MPRed)[[2]] %in%
+                                      rownames(mapRedChr)), ,
+                            drop = FALSE]
+          ###allFreqChr <- Matrix::colMeans(markersRedChr, na.rm = TRUE) / maxScore
           ## Determine segregating markers. Exclude snps used as covariates.
-          segMarkersChr <- which(allFreqChr >= MAF & allFreqChr <= (1 - MAF))
+          ###segMarkersChr <- which(allFreqChr >= MAF & allFreqChr <= (1 - MAF))
           ## Exclude snpCovariates from segregating markers.
-          exclude <- exclMarkers(snpCov = snpCov, markers = markersRedChr,
-                                 allFreq = allFreqChr)
+          ###exclude <- exclMarkers(snpCov = snpCov, markers = markersRedChr,
+          ###                       allFreq = allFreqChr)
           ## Remove excluded snps from segreg markers for current chromosome.
-          segMarkersChr <- setdiff(intersect(segMarkersChr,
-                                             which(mapRedChr$chr == chr)),
-                                   exclude)
-          X <- markersRedChr[nonMissRepId, segMarkersChr, drop = FALSE]
+          ###segMarkersChr <- setdiff(intersect(segMarkersChr,
+          ###                                   which(mapRedChr$chr == chr)),
+          ###                         exclude)
+          ###X <- markersRedChr[nonMissRepId, segMarkersChr, drop = FALSE]
           if (length(covEnv) == 0) {
             Z <- NULL
           } else {
@@ -225,24 +232,24 @@ runSingleTraitGwasIBD <- function(gData,
             Z <- as.matrix(phEnvTr[which(phEnvTr$genotype %in% nonMiss),
                                    covEnv])
           }
-          GLSResult <- fastGLSIBD(y = y, MP = MP,
-                                  Sigma = vcovMatrix[[which(chrs == chr)]],
-                                  covs = Z, ref = 1)
-          GWAResult[colnames(markersRedChr)[segMarkersChr],
-                    c("pValue", "effect", "effectSe", "RLR2")] <-
-            GLSResult
+          GLSResult <-
+            fastGLSIBD(y = y, MP = MPRedChr,
+                       Sigma = as.matrix(vcovMatrix[[which(chrs == chr)]]),
+                       covs = Z, ref = ref)
+          GWAResult[dimnames(MPRedChr)[[2]],
+                    c("pValue", dimnames(MPRedChr)[[3]][-ref])] <- GLSResult
           ## Compute pvalues and effects for snpCovariates using fastGLS.
-          for (snpCovariate in intersect(snpCov, colnames(markersRedChr))) {
-            GLSResultSnpCov <-
-              fastGLS(y = y, X = markersRed[nonMissRepId, snpCovariate,
-                                            drop = FALSE],
-                      Sigma = vcovMatrix[[which(chrs == chr)]],
-                      covs = Z[, which(colnames(Z) != snpCovariate),
-                               drop = FALSE], nChunks = 1)
-            GWAResult[snpCovariate,
-                      c("pValue", "effect", "effectSe", "RLR2")] <-
-              GLSResultSnpCov
-          }
+          ###for (snpCovariate in intersect(snpCov, colnames(markersRedChr))) {
+          ###  GLSResultSnpCov <-
+          ###    fastGLS(y = y, X = markersRed[nonMissRepId, snpCovariate,
+          ###                                  drop = FALSE],
+          ###            Sigma = vcovMatrix[[which(chrs == chr)]],
+          ###            covs = Z[, which(colnames(Z) != snpCovariate),
+          ###                   drop = FALSE], nChunks = 1)
+          ###  GWAResult[snpCovariate,
+          ###            c("pValue", "effect", "effectSe", "RLR2")] <-
+          ###    GLSResultSnpCov
+          ### }
         }
       }
       ## Calculate the genomic inflation factor.

@@ -44,8 +44,8 @@ fastGLSIBD <- function(y,
   df1 <- resCpp$df1
   df2 <- resCpp$df2
   pVal <- pf(q = FVal, df1 = df1, df2 = df2, lower.tail = FALSE)
-  GLS <- cbind(pVal, t(beta2))
-  colnames(GLS) <- c("pValue", dimnames(MP)[[3]][-ref])
+  GLS <- setNames(cbind(pVal, t(beta2)),
+                  list(dimnames(MP)[[2]], c("pValue", dimnames(MP)[[3]][-ref])))
   return(GLS)
 }
 
