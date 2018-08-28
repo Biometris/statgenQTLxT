@@ -75,17 +75,22 @@ chkSnpCov <- function(snpCov,
 
 chkKin <- function(kin,
                    gData,
-                   GLSMethod) {
-  if (GLSMethod == "single" && !is.null(kin) &&
-      !(inherits(kin, "Matrix") || is.matrix(kin))) {
-    stop("kin should be a matrix.\n", call. = FALSE)
-  }
-  if (GLSMethod == "multi" && !is.null(kin) &&
-      (!is.list(kin) || !all(sapply(kin, FUN = function(k) {
-        is.matrix(k) || inherits(k, "Matrix")})) ||
-       length(kin) != length(unique(gData$map$chr)))) {
-    stop(paste("kin should be a list of matrices of length equal to the",
-               "number of chromosomes in the map.\n", call. = FALSE))
+                   GLSMethod,
+                   allowNULL = TRUE) {
+  if (!allowNULL && is.null(kin)) {
+    stop("kin cannot be NULL.\n")
+  } else {
+    if (GLSMethod == "single" && !is.null(kin) &&
+        !(inherits(kin, "Matrix") || is.matrix(kin))) {
+      stop("kin should be a matrix.\n", call. = FALSE)
+    }
+    if (GLSMethod == "multi" && !is.null(kin) &&
+        (!is.list(kin) || !all(sapply(kin, FUN = function(k) {
+          is.matrix(k) || inherits(k, "Matrix")})) ||
+         length(kin) != length(unique(gData$map$chr)))) {
+      stop(paste("kin should be a list of matrices of length equal to the",
+                 "number of chromosomes in the map.\n", call. = FALSE))
+    }
   }
 }
 

@@ -85,11 +85,9 @@ List fastGLSIBDCPP(arma::cube mp,
     FVal[i] = (RSSEnv - RSSFullj) / RSSFullj * df2[i] / df1[i];
   }
   // Create output.
-  List res;
-  res["beta1"] = beta1;
-  res["beta2"] = beta2;
-  res["FVal"] = FVal;
-  res["df1"] = df1;
-  res["df2"] = df2;
-  return res;
+  return List::create(_["beta1"] = beta1,
+                      _["beta2"] = beta2,
+                      _["FVal"] = FVal,
+                      _["df1"] = df1,
+                      _["df2"] = df2);
 }
