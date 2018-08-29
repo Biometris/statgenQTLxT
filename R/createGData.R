@@ -216,7 +216,7 @@ createGData <- function(gData = NULL,
   if (!is.null(geno)) {
     ## Either a 2D matrix/data.frame or a 3D array of probabilities is allowed.
     if (!is.data.frame(geno) && !inherits(geno, "Matrix") &&
-        !is.matrix(geno) && !is.array(geno)) {
+        !is.matrix(geno) && !(is.array(geno) && length(dim(geno)) == 3)) {
       stop("geno should be a matrix, data.frame or an array.\n")
     }
     isMat <- length(dim(geno)) == 2

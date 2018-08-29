@@ -10,8 +10,7 @@ runSingleTraitGwasIBD(gData, traits = NULL, environments = NULL,
   remlAlgo = c("EMMA", "NR"), GLSMethod = c("single", "multi"),
   useMAF = TRUE, MAF = 0.01, MAC = 10, genomicControl = FALSE,
   thrType = c("bonf", "fixed", "small"), alpha = 0.05, LODThr = 4,
-  nSnpLOD = 10, sizeInclRegion = 0, minR2 = 0.5, MP = NULL,
-  ref = 7)
+  nSnpLOD = 10, sizeInclRegion = 0, minR2 = 0.5, ref = 7)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},
@@ -103,6 +102,9 @@ and \code{minR2} = 0.5, then for every significant SNP also those SNPs whose
 LD (\eqn{r^2}) with the significant SNP is at least 0.5 AND which are at
 most 200kb away from this significant snp are included. Ignored if
 \code{sizeInclRegion} = 0.}
+
+\item{ref}{A numerical value indicating the allele to be used as reference
+allele.}
 }
 \value{
 An object of class \code{\link{GWAS}}.

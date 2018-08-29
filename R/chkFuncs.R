@@ -10,10 +10,17 @@ chkGData <- function(gData = NULL,
   }
 }
 
-chkMarkers <- function(markers) {
-  if (!inherits(markers, "Matrix")) {
-    stop(paste("markers in gData should be a numerical matrix. Use",
-               "recodeMarkers first for recoding.\n"), call. = FALSE)
+chkMarkers <- function(markers,
+                       dim = 2) {
+  if (dim == 2) {
+    if (!inherits(markers, "Matrix")) {
+      stop(paste("markers in gData should be a numerical matrix. Use",
+                 "recodeMarkers first for recoding.\n"), call. = FALSE)
+    }
+  } else if (dim == 3) {
+    if (!inherits(markers, "array")) {
+      stop("markers should be a three-dimensional array.\n", call. = FALSE)
+    }
   }
   if (anyNA(markers)) {
     stop("markers contains missing values. Impute or remove these first.\n",

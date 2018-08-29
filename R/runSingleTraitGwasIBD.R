@@ -12,6 +12,9 @@
 #'
 #' @inheritParams runSingleTraitGwas
 #'
+#' @param ref A numerical value indicating the allele to be used as reference
+#' allele.
+#'
 #' @return An object of class \code{\link{GWAS}}.
 #'
 #' @references Astle W., Balding D. J. (2009) Population structure and cryptic
@@ -61,11 +64,10 @@ runSingleTraitGwasIBD <- function(gData,
                                   nSnpLOD = 10,
                                   sizeInclRegion = 0,
                                   minR2 = 0.5,
-                                  MP = NULL,
                                   ref = 7) {
   ## Checks.
-  chkGData(gData, comps = c("map", "pheno"))
-  ###chkMarkers(gData$markers)
+  chkGData(gData)
+  chkMarkers(gData$markers, dim = 3)
   chkEnvs(environments, gData)
   ## If environments is null set environments to all environments in pheno.
   if (is.null(environments)) {
@@ -101,6 +103,7 @@ runSingleTraitGwasIBD <- function(gData,
   } else if (thrType == "small") {
     chkNum(nSnpLOD, min = 0)
   }
+  chkNum(ref, min = 1, max = dim(gData$markers)[3])
   ## Rename for consistency.
   if (GLSMethod == "single") {
     K <- kin
@@ -136,7 +139,7 @@ runSingleTraitGwasIBD <- function(gData,
     for (trait in traits) {
       ## Select relevant columns only.
       phEnvTr <- phEnv[!is.na(phEnv[trait]) & phEnv$genotype %in%
-                         dimnames(MP)[[1]], c("genotype", trait, covEnv)]
+                         rownames(gData$markers), c("genotype", trait, covEnv)]
       ## Select genotypes where trait is not missing.
       nonMiss <- unique(phEnvTr$genotype)
       nonMissRepId <- phEnvTr$genotype
@@ -145,7 +148,7 @@ runSingleTraitGwasIBD <- function(gData,
         chrs <- NULL
       } else if (GLSMethod == "multi") {
         chrs <- unique(gData$map$chr[rownames(gData$map) %in%
-                                       dimnames(MP)[[2]]])
+                                       colnames(gData$markers)])
       }
       ## Estimate variance components.
       vc <- estVarComp(GLSMethod = GLSMethod, remlAlgo = remlAlgo,
@@ -156,24 +159,27 @@ runSingleTraitGwasIBD <- function(gData,
       vcovMatrix <- vc$vcovMatrix
       ## Compute allele frequencies based on genotypes for which phenotypic
       ## data is available.
-      MPRed <- MP[nonMiss, dimnames(MP)[[2]] %in% rownames(gData$map), ]
-      mapRed <- gData$map[rownames(gData$map) %in% dimnames(MP)[[2]], ]
+      markersRed <-
+        gData$markers[nonMiss,
+                      colnames(gData$markers) %in% rownames(gData$map), ]
+      mapRed <- gData$map[rownames(gData$map) %in% colnames(gData$markers), ]
       ###allFreq <- Matrix::colMeans(markersRed, na.rm = TRUE) / maxScore
       if (!useMAF) {
         MAF <- MAC / length(nonMiss) - 1e-5
       }
       ## Determine segregating markers. Exclude snps used as covariates.
       ###segMarkers <- which(allFreq >= MAF & allFreq <= (1 - MAF))
-      segMarkers <- seq_along(dimnames(MPRed)[[2]])
+      segMarkers <- seq_along(colnames(markersRed))
       ## Create data.frame for results.
       GWAResult <- data.frame(trait = trait, snp = rownames(mapRed), mapRed,
                               pValue = NA, LOD = NA,
                               stringsAsFactors = FALSE)
       GWAResult <- cbind(GWAResult,
                          matrix(nrow = nrow(GWAResult),
-                                ncol = length(dimnames(MPRed)[[3]]) - 1,
-                                dimnames = list(NULL,
-                                                dimnames(MPRed)[[3]][-ref])))
+                                ncol = length(dimnames(markersRed)[[3]]) - 1,
+                                dimnames =
+                                  list(NULL,
+                                       dimnames(markersRed)[[3]][-ref])))
       ## Define single column matrix with trait non missing values.
       y <- phEnvTr[which(phEnvTr$genotype %in% nonMiss), trait]
       if (GLSMethod == "single") {
@@ -182,7 +188,7 @@ runSingleTraitGwasIBD <- function(gData,
         ###                       allFreq = allFreq)
         exclude <- integer()
         ## The following is based on the genotypes, not the replicates:
-        X <- MPRed[nonMissRepId, setdiff(segMarkers, exclude), ]
+        X <- markersRed[nonMissRepId, setdiff(segMarkers, exclude), ]
         if (length(covEnv) == 0) {
           Z <- NULL
         } else {
@@ -193,17 +199,18 @@ runSingleTraitGwasIBD <- function(gData,
         GLSResult <- fastGLSIBD(y = y, MP = X, Sigma = as.matrix(vcovMatrix),
                                 covs = Z, ref = ref)
         ###GWAResult[setdiff(segMarkers, exclude),
-        GWAResult[, c("pValue", dimnames(MPRed)[[3]][-ref])] <- GLSResult
+        GWAResult[, c("pValue", dimnames(markersRed)[[3]][-ref])] <- GLSResult
         ## Compute p-values and effects for snpCovariates using fastGLS.
         for (snpCovariate in snpCov) {
           GLSResultSnpCov <-
             fastGLSIBD(y = y,
-                       MP = MPRed[nonMissRepId, snpCovariate, , drop = FALSE],
+                       MP = markersRed[nonMissRepId, snpCovariate, , drop = FALSE],
                        Sigma = as.matrix(vcovMatrix),
                        covs = Z[, which(colnames(Z) != snpCovariate),
                                 drop = FALSE],
                        ref = ref)
-          GWAResult[snpCovariate, c("pValue", dimnames(MPRed)[[3]][-ref])] <-
+          GWAResult[snpCovariate,
+                    c("pValue", dimnames(markersRed)[[3]][-ref])] <-
             GLSResultSnpCov
         }
       } else if (GLSMethod == "multi") {
@@ -211,13 +218,13 @@ runSingleTraitGwasIBD <- function(gData,
         ## matrices.
         for (chr in chrs) {
           mapRedChr <- mapRed[which(mapRed$chr == chr), ]
-          MPRedChr <- MPRed[, which(dimnames(MPRed)[[2]] %in%
-                                      rownames(mapRedChr)), ,
-                            drop = FALSE]
+          markersRedChr <- markersRed[, which(colnames(markersRed) %in%
+                                                rownames(mapRedChr)), ,
+                                      drop = FALSE]
           ###allFreqChr <- Matrix::colMeans(markersRedChr, na.rm = TRUE) / maxScore
           ## Determine segregating markers. Exclude snps used as covariates.
           ###segMarkersChr <- which(allFreqChr >= MAF & allFreqChr <= (1 - MAF))
-          segMarkersChr <- seq_along(dimnames(MPRedChr)[[2]])
+          segMarkersChr <- seq_along(colnames(markersRedChr))
           ## Exclude snpCovariates from segregating markers.
           ###exclude <- exclMarkers(snpCov = snpCov, markers = markersRedChr,
           ###                       allFreq = allFreqChr)
@@ -226,7 +233,7 @@ runSingleTraitGwasIBD <- function(gData,
           segMarkersChr <- setdiff(intersect(segMarkersChr,
                                              which(mapRedChr$chr == chr)),
                                    exclude)
-          X <- MPRedChr[nonMissRepId, segMarkersChr, , drop = FALSE]
+          X <- markersRedChr[nonMissRepId, segMarkersChr, , drop = FALSE]
           if (length(covEnv) == 0) {
             Z <- NULL
           } else {
@@ -238,17 +245,19 @@ runSingleTraitGwasIBD <- function(gData,
             fastGLSIBD(y = y, MP = X,
                        Sigma = as.matrix(vcovMatrix[[which(chrs == chr)]]),
                        covs = Z, ref = ref)
-          GWAResult[dimnames(MPRedChr)[[2]],
-                    c("pValue", dimnames(MPRedChr)[[3]][-ref])] <- GLSResult
+          GWAResult[colnames(markersRedChr),
+                    c("pValue", dimnames(markersRedChr)[[3]][-ref])] <-
+            GLSResult
           ## Compute pvalues and effects for snpCovariates using fastGLS.
-          for (snpCovariate in intersect(snpCov, dimnames(MPRedChr)[[2]])) {
+          for (snpCovariate in intersect(snpCov, colnames(markersRedChr))) {
             GLSResultSnpCov <-
-              fastGLSIBD(y = y, MP = MPRedChr[nonMissRepId, snpCovariate, ,
+              fastGLSIBD(y = y, MP = markersRedChr[nonMissRepId, snpCovariate, ,
                                              drop = FALSE],
                          Sigma = as.matrix(vcovMatrix[[which(chrs == chr)]]),
                          covs = Z[, which(colnames(Z) != snpCovariate),
                                   drop = FALSE], ref = ref)
-            GWAResult[snpCovariate, c("pValue", dimnames(MPRed)[[3]][-ref])] <-
+            GWAResult[snpCovariate,
+                      c("pValue", dimnames(markersRed)[[3]][-ref])] <-
               GLSResultSnpCov
            }
         }
