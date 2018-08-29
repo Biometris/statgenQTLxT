@@ -306,8 +306,8 @@ runSingleTraitGwas <- function(gData,
           ## Compute pvalues and effects for snpCovariates using fastGLS.
           for (snpCovariate in intersect(snpCov, colnames(markersRedChr))) {
             GLSResultSnpCov <-
-              fastGLS(y = y, X = markersRed[nonMissRepId, snpCovariate,
-                                            drop = FALSE],
+              fastGLS(y = y, X = markersRedChr[nonMissRepId, snpCovariate,
+                                               drop = FALSE],
                       Sigma = vcovMatrix[[which(chrs == chr)]],
                       covs = Z[, which(colnames(Z) != snpCovariate),
                                drop = FALSE], nChunks = 1)
