@@ -300,6 +300,29 @@ createGData <- function(gData = NULL,
       } else if (isPMat) {
         markers <- markers[, colnames(markers) %in% rownames(map), ,
                            drop = FALSE]
+        ## Check that probabilities for each marker sum to one.
+        ## Always rescale values.
+        ## Throw a warning if difference from one too large.
+        genoMrk <- setNames(as.data.frame(matrix(nrow = 0, ncol = 2)),
+                            c("geno", "marker"))
+        for (mrk in colnames(markers)) {
+          mrkProbs <- rowSums(markers[, mrk, ], na.rm = TRUE)
+          if (any(abs(mrkProbs - 1) > 1e-5)) {
+            genoMrk <-
+              rbind(genoMrk,
+                    data.frame(geno =
+                                 names(mrkProbs[abs(mrkProbs - 1) > 1e-5]),
+                               marker = mrk, stringsAsFactors = FALSE))
+          }
+          markers[, mrk, ] <- markers[, mrk, ] / mrkProbs
+        }
+        if (nrow(genoMrk) > 0) {
+          genoMrk$genoMarker <- paste(genoMrk$geno, "\t", genoMrk$marker)
+          warning(paste0("Probabilities differ from 1 for the following ",
+                         "combinations of genotype and markers:\n",
+                         paste(genoMrk$genoMarker, collapse = "\n")),
+                  call. = FALSE)
+        }
       }
     }
     if (!is.null(gData$markers)) {
