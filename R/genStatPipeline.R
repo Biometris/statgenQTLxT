@@ -5,6 +5,6 @@
 #' @docType package
 #' @name genStatPipeline
 #' @importClassesFrom Matrix Matrix
-#' @useDynLib genStatPipeline
+#' @useDynLib genStatPipeline, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
 NULL

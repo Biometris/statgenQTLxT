@@ -1,7 +1,7 @@
 #' @keywords internal
-chkGData <- function(gData,
+chkGData <- function(gData = NULL,
                      comps = c("map", "markers", "pheno")) {
-  if (missing(gData) || !inherits(gData, "gData")) {
+  if (is.null(gData) || !inherits(gData, "gData")) {
     stop("gData should be a valid gData object", call. = FALSE)
   }
   for (comp in comps) {

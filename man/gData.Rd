@@ -5,7 +5,8 @@
 \alias{createGData}
 \title{S3 Class gData}
 \usage{
-createGData(gData = NULL, geno, map, kin, pheno, covar)
+createGData(gData = NULL, geno = NULL, map = NULL, kin = NULL,
+  pheno = NULL, covar = NULL)
 }
 \arguments{
 \item{gData}{An optional gData object to be modified. If \code{NULL} a new
@@ -13,7 +14,10 @@ gData object is created.}
 
 \item{geno}{A matrix or data.frame with genotypes in the rows and markers in
 the columns. A matrix from the \code{matrix} in the base package may be
-provided as well as as matrix from the Matrix package. \cr
+provided as well as as matrix from the Matrix package.\cr
+A three dimensional array of probabilities may be provided as well with
+genotypes in the first, markers in the second and alleles in the third
+dimension.\cr
 If no row names are used they are taken from \code{pheno} (if supplied and
 dimension matches). If no column names are used the row names are taken
 from \code{map} (if supplied and dimension matches).}
@@ -50,7 +54,9 @@ An object of class \code{gData} with the following components:
 chromosome and position.}
 \item{\code{markers}}{a sparse matrix from the Matrix package containing
 marker information in case of numerical genotypic data, a standard matrix
-otherwise.}
+otherwise.\cr
+If \code{geno} is a three dimensional array markers is a three dimensional
+array as well.}
 \item{\code{pheno}}{a list of data.frames containing phenotypic data}
 \item{\code{kinship}}{a kinship matrix of class \code{dsyMatrix} from the
  Matrix package.}

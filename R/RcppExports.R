@@ -2,6 +2,6 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 fastGLSIBDCPP <- function(mp, y, sigma, ref, size_param = NULL, ncores = 1L) {
-    .Call('_genStatPipeline_fastGLSIBDCPP', PACKAGE = 'genStatPipeline', mp, y, sigma, ref, size_param, ncores)
+    .Call(`_genStatPipeline_fastGLSIBDCPP`, mp, y, sigma, ref, size_param, ncores)
 }
 
