@@ -4,7 +4,8 @@
 expandPheno <- function(gData,
                         env,
                         covar,
-                        snpCov) {
+                        snpCov,
+                        ref = NULL) {
   ## Add covariates to pheno data.
   if (is.null(covar)) {
     phEnv <- gData$pheno[[env]]
@@ -37,12 +38,31 @@ expandPheno <- function(gData,
     }
   }
   if (!is.null(snpCov)) {
+    ## Distinguish between 2- and 3-dimensional marker data.
+    if (length(dim(gData$markers)) == 2) {
     ## Add snp covariates to covar.
     covEnv <- c(covEnv, snpCov)
     ## Add snp covariates to pheno data.
     phEnv <- merge(phEnv, as.matrix(gData$markers[, snpCov, drop = FALSE]),
                    by.x = "genotype", by.y = "row.names")
     colnames(phEnv)[(ncol(phEnv) - length(snpCov) + 1):ncol(phEnv)] <- snpCov
+    } else if (length(dim(gData$markers)) == 3) {
+      allNames <- dimnames(gData$markers)[[3]][-ref]
+      for (snpCovar in snpCov) {
+        ## Get alleles for current covariate and remove reference allele.
+        allCov <- gData$markers[, snpCovar , -ref]
+        ## Remove alleles with only zeros.
+        allCov <- allCov[, apply(X = allCov, MARGIN = 2, FUN = function(a) {
+                                   any(a > 0)
+                                 })]
+        ## Rename columns to combination of allele and marker.
+        colnames(allCov) <- paste0(snpCovar, "_", colnames(allCov))
+        ## Add snp covariates to covar.
+        covEnv <- c(covEnv, colnames(allCov))
+        ## Add snp covariates to pheno data.
+        phEnv <- merge(phEnv, allCov, by.x = "genotype", by.y = "row.names")
+      }
+    }
   }
   return(list(phEnv = phEnv, covEnv = covEnv))
 }

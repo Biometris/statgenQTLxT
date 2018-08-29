@@ -129,16 +129,20 @@ exclMarkers <- function(snpCov,
   exclude <- integer()
   if (any(snpCov %in% colnames(markers))) {
     snpCovNumbers <- which(colnames(markers) %in% snpCov)
-    for (snp in snpCovNumbers) {
-      ## Rough selection based on allele frequency. Done for speed.
-      candidates <- which(allFreq == allFreq[snp])
-      ## Exclude all snps that are identical to snps in snpCovariates.
-      snpInfo <- as.numeric(markers[, snp])
-      exclude <- union(exclude,
-                       candidates[apply(X = markers[, candidates, drop = FALSE],
-                                        MARGIN = 2, FUN = function(x) {
-                                          identical(as.numeric(x), snpInfo)
-                                        })])
+    if (length(dim(markers)) == 2) {
+      for (snp in snpCovNumbers) {
+        ## Rough selection based on allele frequency. Done for speed.
+        candidates <- which(allFreq == allFreq[snp])
+        ## Exclude all snps that are identical to snps in snpCovariates.
+        snpInfo <- as.numeric(markers[, snp])
+        exclude <- union(exclude,
+                         candidates[apply(X = markers[, candidates, drop = FALSE],
+                                          MARGIN = 2, FUN = function(x) {
+                                            identical(as.numeric(x), snpInfo)
+                                          })])
+      }
+    } else if (length(dim(markers)) == 3) {
+      exclude <- snpCovNumbers
     }
   }
   return(exclude)
@@ -224,16 +228,20 @@ extrSignSnps <- function(GWAResult,
       snpSelection <- signSnpNr
       snpStatus <- rep("significant snp", length(signSnpNr))
     }
-    effect <- GWAResult$effect[snpSelection]
-    ## Compute variance of marker scores, based on genotypes for which
-    ## phenotypic data is available. For inbreeders, this depends on
-    ## maxScore. It is therefore scaled to marker scores 0, 1 (or 0, 0.5,
-    ## 1 if there are heterozygotes)
-    snpVar <- 4 * effect ^ 2 / maxScore ^ 2 *
-      apply(X = markers[, snpSelection, drop = FALSE], MARGIN = 2, FUN = var)
-    propSnpVar <- snpVar / as.numeric(var(pheno[trait]))
+    if (length(dim(markers)) == 2) {
+      effect <- GWAResult$effect[snpSelection]
+      ## Compute variance of marker scores, based on genotypes for which
+      ## phenotypic data is available. For inbreeders, this depends on
+      ## maxScore. It is therefore scaled to marker scores 0, 1 (or 0, 0.5,
+      ## 1 if there are heterozygotes)
+      snpVar <- 4 * effect ^ 2 / maxScore ^ 2 *
+        apply(X = markers[, snpSelection, drop = FALSE], MARGIN = 2, FUN = var)
+      propSnpVar <- snpVar / as.numeric(var(pheno[trait]))
+    } else if (length(dim(markers)) == 3) {
+      ### temporary value tbd.
+      propSnpVar <- NA
+    }
     ## Create data.frame with significant snps.
-    GWAResultSel <- GWAResult[snpSelection, ]
     signSnp <- data.frame(GWAResult[snpSelection, ],
                           snpStatus = as.factor(snpStatus),
                           propSnpVar = propSnpVar, stringsAsFactors = FALSE)
@@ -281,10 +289,15 @@ getSNPsInRegionSufLD <- function(gData,
   crit2 <- gData$map$chr == gData$map$chr[snp]
   candidateSnps <- setdiff(which(crit1 & crit2), snp)
   ## Compute R2 for candidate SNPs.
-  R2 <- suppressWarnings(cor(as.matrix(gData$markers[, candidateSnps]),
-                             gData$markers[, snp]) ^ 2)
-  ## Select SNPs based on R2.
-  candidateSnpsNames <- names(which(R2[, 1] > minR2))
+  if (length(dim(gData$markers)) == 2) {
+    R2 <- suppressWarnings(cor(as.matrix(gData$markers[, candidateSnps]),
+                               gData$markers[, snp]) ^ 2)
+    ## Select SNPs based on R2.
+    candidateSnpsNames <- names(which(R2[, 1] > minR2))
+  } else if (length(dim(gData$markers)) == 3) {
+    ### temporary.
+    candidateSnpsNames <- rownames(gData$map)[candidateSnps]
+  }
   return(which(rownames(gData$map) %in% candidateSnpsNames))
 }
 

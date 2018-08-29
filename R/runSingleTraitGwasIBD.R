@@ -79,9 +79,9 @@ runSingleTraitGwasIBD <- function(gData,
   if (is.numeric(covar)) {
     covar <- colnames(gData$covar)[covar]
   }
-  ###chkSnpCov(snpCov, gData)
+  chkSnpCov(snpCov, gData)
   GLSMethod <- match.arg(GLSMethod)
-  chkKin(kin, gData, GLSMethod, allowNULL = FALSE)
+  chkKin(kin, gData, GLSMethod)
   kinshipMethod <- match.arg(kinshipMethod)
   remlAlgo <- match.arg(remlAlgo)
   chkNum(sizeInclRegion, min = 0)
@@ -104,11 +104,19 @@ runSingleTraitGwasIBD <- function(gData,
     chkNum(nSnpLOD, min = 0)
   }
   chkNum(ref, min = 1, max = dim(gData$markers)[3])
-  ## Rename for consistency.
+  if (is.null(K) && is.null(gData$kinship)) {
+    stop(paste("A kinship matrix should be provided either as parameter or",
+               "as object in gData.\n"))
+  }
   if (GLSMethod == "single") {
-    K <- kin
+    ## Compute kinship matrix.
+    K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
+                    markers = gData$markers, kinshipMethod = kinshipMethod)
   } else if (GLSMethod == "multi") {
-    KChr <- kin
+    ## Compute kinship matrices per chromosome. Only needs to be done once.
+    KChr <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
+                       markers = gData$markers, map = gData$map,
+                       kinshipMethod = kinshipMethod)
   }
   ## Compute max value in markers.
   ###maxScore <- min(max(gData$markers, na.rm = TRUE), 2)
@@ -119,8 +127,7 @@ runSingleTraitGwasIBD <- function(gData,
   for (env in environments) {
     ## Add covariates to phenotypic data.
     phExp <- expandPheno(gData = gData, env = env, covar = covar,
-                         snpCov = NULL)
-    ###snpCov = snpCov)
+                         snpCov = snpCov, ref = ref)
     phEnv <- phExp$phEnv
     covEnv <- phExp$covEnv
     ## If traits is given as numeric convert to character.
@@ -184,9 +191,8 @@ runSingleTraitGwasIBD <- function(gData,
       y <- phEnvTr[which(phEnvTr$genotype %in% nonMiss), trait]
       if (GLSMethod == "single") {
         ## Exclude snpCovariates from segregating markers.
-        ###exclude <- exclMarkers(snpCov = snpCov, markers = markersRed,
-        ###                       allFreq = allFreq)
-        exclude <- integer()
+        exclude <- exclMarkers(snpCov = snpCov, markers = markersRed,
+                               allFreq = NULL)
         ## The following is based on the genotypes, not the replicates:
         X <- markersRed[nonMissRepId, setdiff(segMarkers, exclude), ]
         if (length(covEnv) == 0) {
@@ -198,16 +204,16 @@ runSingleTraitGwasIBD <- function(gData,
         ## Compute pvalues and effects using fastGLS.
         GLSResult <- fastGLSIBD(y = y, MP = X, Sigma = as.matrix(vcovMatrix),
                                 covs = Z, ref = ref)
-        ###GWAResult[setdiff(segMarkers, exclude),
-        GWAResult[, c("pValue", dimnames(markersRed)[[3]][-ref])] <- GLSResult
+        GWAResult[setdiff(segMarkers, exclude),
+                  c("pValue", dimnames(markersRed)[[3]][-ref])] <- GLSResult
         ## Compute p-values and effects for snpCovariates using fastGLS.
         for (snpCovariate in snpCov) {
           GLSResultSnpCov <-
             fastGLSIBD(y = y,
                        MP = markersRed[nonMissRepId, snpCovariate, , drop = FALSE],
                        Sigma = as.matrix(vcovMatrix),
-                       covs = Z[, which(colnames(Z) != snpCovariate),
-                                drop = FALSE],
+                       covs = Z[, !grepl(pattern = paste0(snpCovariate, "_"),
+                                         x = colnames(Z)), drop = FALSE],
                        ref = ref)
           GWAResult[snpCovariate,
                     c("pValue", dimnames(markersRed)[[3]][-ref])] <-
@@ -226,9 +232,8 @@ runSingleTraitGwasIBD <- function(gData,
           ###segMarkersChr <- which(allFreqChr >= MAF & allFreqChr <= (1 - MAF))
           segMarkersChr <- seq_along(colnames(markersRedChr))
           ## Exclude snpCovariates from segregating markers.
-          ###exclude <- exclMarkers(snpCov = snpCov, markers = markersRedChr,
-          ###                       allFreq = allFreqChr)
-          exclude <- integer()
+          exclude <- exclMarkers(snpCov = snpCov, markers = markersRedChr,
+                                 allFreq = NULL)
           ## Remove excluded snps from segreg markers for current chromosome.
           segMarkersChr <- setdiff(intersect(segMarkersChr,
                                              which(mapRedChr$chr == chr)),
@@ -245,21 +250,22 @@ runSingleTraitGwasIBD <- function(gData,
             fastGLSIBD(y = y, MP = X,
                        Sigma = as.matrix(vcovMatrix[[which(chrs == chr)]]),
                        covs = Z, ref = ref)
-          GWAResult[colnames(markersRedChr),
+          GWAResult[colnames(markersRedChr)[segMarkersChr],
                     c("pValue", dimnames(markersRedChr)[[3]][-ref])] <-
             GLSResult
           ## Compute pvalues and effects for snpCovariates using fastGLS.
           for (snpCovariate in intersect(snpCov, colnames(markersRedChr))) {
             GLSResultSnpCov <-
               fastGLSIBD(y = y, MP = markersRedChr[nonMissRepId, snpCovariate, ,
-                                             drop = FALSE],
+                                                   drop = FALSE],
                          Sigma = as.matrix(vcovMatrix[[which(chrs == chr)]]),
-                         covs = Z[, which(colnames(Z) != snpCovariate),
-                                  drop = FALSE], ref = ref)
+                         covs = Z[, !grepl(pattern = paste0(snpCovariate, "_"),
+                                           x = colnames(Z)), drop = FALSE],
+                         ref = ref)
             GWAResult[snpCovariate,
                       c("pValue", dimnames(markersRed)[[3]][-ref])] <-
               GLSResultSnpCov
-           }
+          }
         }
       }
       ## Calculate the genomic inflation factor.
@@ -288,20 +294,20 @@ runSingleTraitGwasIBD <- function(gData,
       }
       LODThrEnv[trait] <- LODThr
       ## Select the SNPs whose LOD-scores is above the threshold
-      ###signSnpTotEnv[[trait]] <-
-      ###  extrSignSnps(GWAResult = GWAResult, LODThr = LODThr,
-      ###               sizeInclRegion = sizeInclRegion, minR2 = minR2,
-      ###               map = mapRed, markers = markersRed,
-      ###               maxScore = maxScore, pheno = phEnvTr, trait = trait)
+      signSnpTotEnv[[trait]] <-
+        extrSignSnps(GWAResult = GWAResult, LODThr = LODThr,
+                     sizeInclRegion = sizeInclRegion, minR2 = minR2,
+                     map = mapRed, markers = markersRed,
+                     maxScore = NULL, pheno = phEnvTr, trait = trait)
       GWATotEnv[[trait]] <- GWAResult
     } # end for (trait in traits)
     ## Bind data together for results and significant SNPs.
     GWATot[[match(env, environments)]] <- dfBind(GWATotEnv)
-    ###signSnpTot[[match(env, environments)]] <- dfBind(signSnpTotEnv)
+    signSnpTot[[match(env, environments)]] <- dfBind(signSnpTotEnv)
     ## No significant SNPs should return NULL instead of data.frame().
-    ###signSnpTot <- lapply(signSnpTot, FUN = function(x) {
-    ###  if (is.null(x) || nrow(x) == 0) NULL else x
-    ###})
+    signSnpTot <- lapply(signSnpTot, FUN = function(x) {
+      if (is.null(x) || nrow(x) == 0) NULL else x
+    })
     varCompTot[[match(env, environments)]] <- varCompEnv
     LODThrTot[[match(env, environments)]] <- LODThrEnv
     inflationFactorTot[[match(env, environments)]] <- inflationFactorEnv
@@ -316,7 +322,7 @@ runSingleTraitGwasIBD <- function(gData,
                    genomicControl = genomicControl,
                    inflationFactor = inflationFactorTot)
   return(createGWAS(GWAResult = GWATot,
-                    ###signSnp = signSnpTot,
+                    signSnp = signSnpTot,
                     kin = if (GLSMethod == "single") {
                       K
                     } else {
