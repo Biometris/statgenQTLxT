@@ -4,13 +4,13 @@
 \alias{fastGLSIBD}
 \title{Fast Generalized Least Squares algoritm for IBD based QTL mapping}
 \usage{
-fastGLSIBD(y, MP, Sigma, covs, ref)
+fastGLSIBD(y, X, Sigma, covs, ref)
 }
 \arguments{
 \item{y}{A numeric vector of length n of phenotypic scores. No missing
 values allowed.}
 
-\item{MP}{An array of marker probabilities.}
+\item{X}{An array of marker probabilities.}
 
 \item{Sigma}{An n x n covariance matrix. No missing values allowed.}
 

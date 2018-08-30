@@ -179,7 +179,7 @@ runSingleTraitGwasIBD <- function(gData,
       segMarkers <- seq_along(colnames(markersRed))
       ## Create data.frame for results.
       GWAResult <- data.frame(trait = trait, snp = rownames(mapRed), mapRed,
-                              pValue = NA, LOD = NA,
+                              pValue = NA, LOD = NA, RLR2 = NA,
                               stringsAsFactors = FALSE)
       GWAResult <- cbind(GWAResult,
                          matrix(nrow = nrow(GWAResult),
@@ -202,21 +202,22 @@ runSingleTraitGwasIBD <- function(gData,
           Z <- as.matrix(phEnvTr[which(phEnvTr$genotype %in% nonMiss), covEnv])
         }
         ## Compute pvalues and effects using fastGLS.
-        GLSResult <- fastGLSIBD(y = y, MP = X, Sigma = as.matrix(vcovMatrix),
+        GLSResult <- fastGLSIBD(y = y, X = X, Sigma = as.matrix(vcovMatrix),
                                 covs = Z, ref = ref)
         GWAResult[setdiff(segMarkers, exclude),
-                  c("pValue", dimnames(markersRed)[[3]][-ref])] <- GLSResult
+                  c("pValue", "RLR2", dimnames(markersRed)[[3]][-ref])] <-
+          GLSResult
         ## Compute p-values and effects for snpCovariates using fastGLS.
         for (snpCovariate in snpCov) {
           GLSResultSnpCov <-
-            fastGLSIBD(y = y,
-                       MP = markersRed[nonMissRepId, snpCovariate, , drop = FALSE],
+            fastGLSIBD(y = y, X = markersRed[nonMissRepId, snpCovariate, ,
+                                             drop = FALSE],
                        Sigma = as.matrix(vcovMatrix),
                        covs = Z[, !grepl(pattern = paste0(snpCovariate, "_"),
                                          x = colnames(Z)), drop = FALSE],
                        ref = ref)
           GWAResult[snpCovariate,
-                    c("pValue", dimnames(markersRed)[[3]][-ref])] <-
+                    c("pValue", "RLR2", dimnames(markersRed)[[3]][-ref])] <-
             GLSResultSnpCov
         }
       } else if (GLSMethod == "multi") {
@@ -247,23 +248,23 @@ runSingleTraitGwasIBD <- function(gData,
                                    covEnv])
           }
           GLSResult <-
-            fastGLSIBD(y = y, MP = X,
+            fastGLSIBD(y = y, X = X,
                        Sigma = as.matrix(vcovMatrix[[which(chrs == chr)]]),
                        covs = Z, ref = ref)
           GWAResult[colnames(markersRedChr)[segMarkersChr],
-                    c("pValue", dimnames(markersRedChr)[[3]][-ref])] <-
+                    c("pValue", "RLR2", dimnames(markersRedChr)[[3]][-ref])] <-
             GLSResult
           ## Compute pvalues and effects for snpCovariates using fastGLS.
           for (snpCovariate in intersect(snpCov, colnames(markersRedChr))) {
             GLSResultSnpCov <-
-              fastGLSIBD(y = y, MP = markersRedChr[nonMissRepId, snpCovariate, ,
+              fastGLSIBD(y = y, X = markersRedChr[nonMissRepId, snpCovariate, ,
                                                    drop = FALSE],
                          Sigma = as.matrix(vcovMatrix[[which(chrs == chr)]]),
                          covs = Z[, !grepl(pattern = paste0(snpCovariate, "_"),
                                            x = colnames(Z)), drop = FALSE],
                          ref = ref)
             GWAResult[snpCovariate,
-                      c("pValue", dimnames(markersRed)[[3]][-ref])] <-
+                      c("pValue", "RLR2", dimnames(markersRed)[[3]][-ref])] <-
               GLSResultSnpCov
           }
         }

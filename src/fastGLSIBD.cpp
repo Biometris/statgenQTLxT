@@ -49,9 +49,8 @@ List fastGLSIBDCPP(arma::cube mp,
   // Define matrices for storing output.
   arma::mat beta1 = mat(tMfixCovs.n_cols, p);
   arma::mat beta2 = zeros<mat>(m, p);
-  std::vector<double> FVal(p);
-  std::vector<int> df1(p);
-  std::vector<int> df2(p);
+  std::vector<double> FVal(p), RLR2(p);
+  std::vector<int> df1(p), df2(p);
   // Loop over markers and compute betas and RSS.
 #pragma omp parallel for num_threads(ncores)
   for (unsigned int i = 0; i < p; i ++) {
@@ -83,11 +82,14 @@ List fastGLSIBDCPP(arma::cube mp,
     df1[i] = beta2j.n_elem;
     df2[i] = n - df1[i] - nCov;
     FVal[i] = (RSSEnv - RSSFullj) / RSSFullj * df2[i] / df1[i];
+    // Compute R_LR^2 statistic from Sun et al 2010, heredity.
+    RLR2[i] = 1 - exp((RSSFullj - RSSEnv) / n);
   }
   // Create output.
   return List::create(_["beta1"] = beta1,
                       _["beta2"] = beta2,
                       _["FVal"] = FVal,
                       _["df1"] = df1,
-                      _["df2"] = df2);
+                      _["df2"] = df2,
+                      _["RLR2"] = RLR2);
 }

@@ -5,13 +5,13 @@
 #'
 #' @inheritParams fastGLS
 #'
-#' @param MP An array of marker probabilities.
+#' @param X An array of marker probabilities.
 #' @param ref An integer indicating the allele to use as reference allele in
 #' the computations.
 #'
 #' @keywords internal
 fastGLSIBD <- function(y,
-                       MP,
+                       X,
                        Sigma,
                        covs,
                        ref) {
@@ -37,15 +37,11 @@ fastGLSIBD <- function(y,
     stop(paste("The number of elements in y should be identical to the",
                "number of rows in covs.\n"))
   }
-  resCpp <- fastGLSIBDCPP(MP, y, Sigma, ref, covs, ncores = 4)
-  beta1 <- resCpp$beta1
-  beta2 <- resCpp$beta2
-  FVal <- resCpp$FVal
-  df1 <- resCpp$df1
-  df2 <- resCpp$df2
-  pVal <- pf(q = FVal, df1 = df1, df2 = df2, lower.tail = FALSE)
-  GLS <- setNames(cbind(pVal, t(beta2)),
-                  list(dimnames(MP)[[2]], c("pValue", dimnames(MP)[[3]][-ref])))
+  resCpp <- fastGLSIBDCPP(X, y, Sigma, ref, covs, ncores = 4)
+  pVal <- pf(q = resCpp$FVal, df1 = resCpp$df1, df2 = resCpp$df2,
+             lower.tail = FALSE)
+  GLS <- setNames(cbind(pVal, resCpp$RLR2, t(resCpp$beta2)),
+                  list(colnames(X), c("pValue", dimnames(X)[[3]][-ref])))
   return(GLS)
 }
 
