@@ -125,7 +125,8 @@ estVarComp <- function(GLSMethod,
 #' @keywords internal
 exclMarkers <- function(snpCov,
                         markers,
-                        allFreq) {
+                        allFreq,
+                        ref = NULL) {
   exclude <- integer()
   if (any(snpCov %in% colnames(markers))) {
     snpCovNumbers <- which(colnames(markers) %in% snpCov)
@@ -136,13 +137,38 @@ exclMarkers <- function(snpCov,
         ## Exclude all snps that are identical to snps in snpCovariates.
         snpInfo <- as.numeric(markers[, snp])
         exclude <- union(exclude,
-                         candidates[apply(X = markers[, candidates, drop = FALSE],
+                         candidates[apply(X = markers[, candidates,
+                                                      drop = FALSE],
                                           MARGIN = 2, FUN = function(x) {
                                             identical(as.numeric(x), snpInfo)
                                           })])
       }
     } else if (length(dim(markers)) == 3) {
-      exclude <- snpCovNumbers
+      ## Compute mean value for reference allele.
+      allMeans <- apply(markers[ , , -ref], c(3, 2), mean)
+      for (snp in snpCovNumbers) {
+        for (allele in rownames(allMeans[allMeans[, snp] != 0, ])) {
+          ## Rough selection based on mean. Done for speed.
+          candidates <- which(allMeans == allMeans[allele, snp], arr.ind = TRUE)
+          exclude <- union(exclude,
+                           candidates[apply(X = candidates, MARGIN = 1,
+                                            FUN = function(m) {
+                                              identical(markers[, m[2], m[1]],
+                                                        markers[, snp, allele])
+                                            }), 2])
+        }
+      }
+      ## Rough selection based on mean. Done for speed.
+      candidates <- which(allMeans == allMeans[snp])
+      ## Exclude all snps that are identical to snps in snpCovariates.
+      snpInfo <- as.numeric(markers[, snp, ])
+      exclude <- union(exclude,
+                       candidates[apply(X = markers[, candidates, ,
+                                                    drop = FALSE],
+                                        MARGIN = 2, FUN = function(x) {
+                                          identical(as.numeric(x), snpInfo)
+                                        })])
+
     }
   }
   return(exclude)

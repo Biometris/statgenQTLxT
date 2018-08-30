@@ -4,7 +4,7 @@
 \alias{exclMarkers}
 \title{Select markers to be excluded from GWAS scan.}
 \usage{
-exclMarkers(snpCov, markers, allFreq)
+exclMarkers(snpCov, markers, allFreq, ref = NULL)
 }
 \arguments{
 \item{snpCov}{A character vector of snpCovariates.}

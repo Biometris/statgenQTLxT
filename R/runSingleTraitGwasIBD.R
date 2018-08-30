@@ -192,7 +192,7 @@ runSingleTraitGwasIBD <- function(gData,
       if (GLSMethod == "single") {
         ## Exclude snpCovariates from segregating markers.
         exclude <- exclMarkers(snpCov = snpCov, markers = markersRed,
-                               allFreq = NULL)
+                               allFreq = NULL, ref = ref)
         ## The following is based on the genotypes, not the replicates:
         X <- markersRed[nonMissRepId, setdiff(segMarkers, exclude), ]
         if (length(covEnv) == 0) {
@@ -233,7 +233,7 @@ runSingleTraitGwasIBD <- function(gData,
           segMarkersChr <- seq_along(colnames(markersRedChr))
           ## Exclude snpCovariates from segregating markers.
           exclude <- exclMarkers(snpCov = snpCov, markers = markersRedChr,
-                                 allFreq = NULL)
+                                 allFreq = NULL, ref = ref)
           ## Remove excluded snps from segreg markers for current chromosome.
           segMarkersChr <- setdiff(intersect(segMarkersChr,
                                              which(mapRedChr$chr == chr)),
@@ -283,7 +283,7 @@ runSingleTraitGwasIBD <- function(gData,
         GWAResult <- cbind(GWAResult, gene1 = gData$genes$gene1,
                            gene2 = gData$genes$gene2)
       }
-      ## When thrType is 1 or 3, determine the LOD threshold.
+      ## When thrType is bonferroin or small, determine the LOD threshold.
       if (thrType == "bonf") {
         ## Compute LOD threshold using Bonferroni correction.
         LODThr <- -log10(alpha / sum(!is.na(GWAResult$pValue)))
