@@ -4,7 +4,7 @@
 \alias{fastGLSIBD}
 \title{Fast Generalized Least Squares algoritm for IBD based QTL mapping}
 \usage{
-fastGLSIBD(y, X, Sigma, covs, ref)
+fastGLSIBD(y, X, Sigma, covs = NULL, ref)
 }
 \arguments{
 \item{y}{A numeric vector of length n of phenotypic scores. No missing

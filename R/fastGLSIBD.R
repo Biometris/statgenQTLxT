@@ -13,7 +13,7 @@
 fastGLSIBD <- function(y,
                        X,
                        Sigma,
-                       covs,
+                       covs = NULL,
                        ref) {
   ## Check class and missing values.
   if (missing(y) || !(inherits(y, "Matrix") || is.numeric(y)) || anyNA(y)) {
@@ -40,8 +40,9 @@ fastGLSIBD <- function(y,
   resCpp <- fastGLSIBDCPP(X, y, Sigma, ref, covs, ncores = 4)
   pVal <- pf(q = resCpp$FVal, df1 = resCpp$df1, df2 = resCpp$df2,
              lower.tail = FALSE)
-  GLS <- setNames(cbind(pVal, resCpp$RLR2, t(resCpp$beta2)),
-                  list(colnames(X), c("pValue", dimnames(X)[[3]][-ref])))
+  GLS <- cbind(pVal, resCpp$RLR2, t(resCpp$beta2))
+  rownames(GLS) <- colnames(X)
+  colnames(GLS) <- c("pValue", "RLR2", dimnames(X)[[3]][-ref])
   return(GLS)
 }
 
