@@ -14,10 +14,10 @@ using namespace Rcpp;
 using namespace arma;
 
 // [[Rcpp::export]]
-List fastGLSIBDCPP(arma::cube mp,
-                   arma::vec y,
-                   arma::mat sigma,
-                   int ref,
+List fastGLSIBDCPP(const arma::cube &mp,
+                   const arma::vec &y,
+                   const arma::mat &sigma,
+                   unsigned int ref,
                    Rcpp::Nullable<Rcpp::NumericVector> size_param = R_NilValue,
                    int ncores = 1) {
   // Get number of alleles and markers.
@@ -32,12 +32,19 @@ List fastGLSIBDCPP(arma::cube mp,
   }
   // Get number of covariates (including intercept).
   unsigned int nCov = covs.n_cols;
-  // Remove reference allele. Ref-1 because of 0-indexing.
-  mp.shed_slice(ref - 1);
   // Compute inverse of t(M).
   arma::mat mt = chol(sigma, "lower").i();
   // pre-multiply the IBD probablities with t(M).
-  mp.each_slice([mt](mat& X){ X = mt * X; });
+  // Skip reference allele and move alleles past reference allele to left.
+  arma::cube mp2 = cube(n, p, m);
+#pragma omp parallel for num_threads(ncores)
+  for (unsigned int i = 0; i < m + 1; i++) {
+    if (i < ref - 1) {
+      mp2.slice(i) = mt * mp.slice(i);
+    } else if (i > ref - 1) {
+      mp2.slice(i - 1) = mt * mp.slice(i);
+    }
+  }
   // Pre-multiply the phenotype (y) with t(M).
   arma::mat tMy = mt * y;
   // pre-multiply the intercept and covariates with t(M).
@@ -54,7 +61,7 @@ List fastGLSIBDCPP(arma::cube mp,
   // Loop over markers and compute betas and RSS.
 #pragma omp parallel for num_threads(ncores)
   for (unsigned int i = 0; i < p; i ++) {
-    arma::mat X = mp(span(), span(i), span());
+    arma::mat X = mp2(span(), span(i), span());
     // Get indices of alleles in X that are not entirely 0.
     arma::uvec posInd = find( all(X) );
     // Subset X on those columns

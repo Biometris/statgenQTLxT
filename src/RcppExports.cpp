@@ -7,15 +7,15 @@
 using namespace Rcpp;
 
 // fastGLSIBDCPP
-List fastGLSIBDCPP(arma::cube mp, arma::vec y, arma::mat sigma, int ref, Rcpp::Nullable<Rcpp::NumericVector> size_param, int ncores);
+List fastGLSIBDCPP(const arma::cube& mp, const arma::vec& y, const arma::mat& sigma, unsigned int ref, Rcpp::Nullable<Rcpp::NumericVector> size_param, int ncores);
 RcppExport SEXP _genStatPipeline_fastGLSIBDCPP(SEXP mpSEXP, SEXP ySEXP, SEXP sigmaSEXP, SEXP refSEXP, SEXP size_paramSEXP, SEXP ncoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::cube >::type mp(mpSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< int >::type ref(refSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type mp(mpSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type ref(refSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type size_param(size_paramSEXP);
     Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
     rcpp_result_gen = Rcpp::wrap(fastGLSIBDCPP(mp, y, sigma, ref, size_param, ncores));
