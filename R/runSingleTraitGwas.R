@@ -241,7 +241,7 @@ runSingleTraitGwas <- function(gData,
                               RLR2 = NA, allFreq = allFreq,
                               stringsAsFactors = FALSE)
       ## Define single column matrix with trait non missing values.
-      y <- as(phEnvTr[which(phEnvTr$genotype %in% nonMiss), trait], "dgeMatrix")
+      y <- phEnvTr[which(phEnvTr$genotype %in% nonMiss), trait]
       if (GLSMethod == "single") {
         ## Exclude snpCovariates from segregating markers.
         exclude <- exclMarkers(snpCov = snpCov, markers = markersRed,
@@ -252,8 +252,8 @@ runSingleTraitGwas <- function(gData,
           Z <- NULL
         } else {
           ## Define covariate matrix Z.
-          Z <- as(as.matrix(phEnvTr[which(phEnvTr$genotype %in% nonMiss),
-                                    covEnv]), "dgeMatrix")
+          Z <- as.matrix(phEnvTr[which(phEnvTr$genotype %in% nonMiss),
+                                 covEnv])
         }
         ## Compute pvalues and effects using fastGLS.
         GLSResult <- fastGLS(y = y, X = X, Sigma = vcovMatrix, covs = Z)
@@ -266,8 +266,7 @@ runSingleTraitGwas <- function(gData,
                     X = markersRed[nonMissRepId, snpCovariate, drop = FALSE],
                     Sigma = vcovMatrix,
                     covs = Z[, which(colnames(Z) != snpCovariate),
-                             drop = FALSE],
-                    nChunks = 1)
+                             drop = FALSE])
           GWAResult[snpCovariate, c("pValue", "effect", "effectSe", "RLR2")] <-
             GLSResultSnpCov
         }
@@ -294,8 +293,8 @@ runSingleTraitGwas <- function(gData,
             Z <- NULL
           } else {
             ## Define covariate matrix Z.
-            Z <- as(as.matrix(phEnvTr[which(phEnvTr$genotype %in% nonMiss),
-                                      covEnv]),"dgeMatrix")
+            Z <- as.matrix(phEnvTr[which(phEnvTr$genotype %in% nonMiss),
+                                   covEnv])
           }
           GLSResult <- fastGLS(y = y, X = X,
                                Sigma = vcovMatrix[[which(chrs == chr)]],
@@ -310,7 +309,7 @@ runSingleTraitGwas <- function(gData,
                                                drop = FALSE],
                       Sigma = vcovMatrix[[which(chrs == chr)]],
                       covs = Z[, which(colnames(Z) != snpCovariate),
-                               drop = FALSE], nChunks = 1)
+                               drop = FALSE])
             GWAResult[snpCovariate,
                       c("pValue", "effect", "effectSe", "RLR2")] <-
               GLSResultSnpCov
@@ -384,3 +383,4 @@ runSingleTraitGwas <- function(gData,
                     thr = LODThrTot,
                     GWASInfo = GWASInfo))
 }
+

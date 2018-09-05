@@ -95,8 +95,15 @@ test_that("EMMAREMLLL produces correct output", {
                c(-31.9439236241564, -32.2122231996107))
 })
 
-test_that("fastGLS without covariates procudes correct output", {
-  GLS0 <- fastGLS(y = y, X = X, Sigma = Sigma)
+GLS0 <- fastGLS(y = y, X = X, Sigma = Sigma)
+test_that("fastGLSIBD procudes correct output structure", {
+  expect_is(GLS0, "data.frame")
+  expect_equal(dim(GLS0), c(3, 4))
+  expect_equal(rownames(GLS0), paste0("M", 1:3))
+  expect_equal(colnames(GLS0), c("pValue", "beta", "betaSe", "RLR2"))
+})
+
+test_that("fastGLS without covariates produces correct output", {
   expect_equal(GLS0[, 1],
                c(0.191990244479038, 0.0346367487131218, 0.297099155797429))
   expect_equal(GLS0[, 2],
@@ -107,7 +114,7 @@ test_that("fastGLS without covariates procudes correct output", {
                c(0.975876824782575, 0.999730440588029, 0.91590885222019))
 })
 
-test_that("fastGLS with covariates procudes correct output", {
+test_that("fastGLS with covariates produces correct output", {
   GLS1 <- fastGLS(y = y, X = X, Sigma = Sigma, covs = covs)
   expect_equal(GLS1[, 1],
                c(0.729670715779269, 0.0632229836715346, 0.489762145590089))
@@ -119,17 +126,9 @@ test_that("fastGLS with covariates procudes correct output", {
                c(0.228770901452724, 0.996393508816207, 0.633782123371107))
 })
 
-test_that("fastGLS is independent of dimensions and number of chunks", {
-  expect_equal(fastGLS(y = y, X = X, Sigma = Sigma, nChunks = 5),
-               fastGLS(y = y, X = X, Sigma = Sigma, nChunks = 2))
-  expect_equal(fastGLS(y = y, X = X[, 1:2], Sigma = Sigma, nChunks = 5),
-               fastGLS(y = y, X = X, Sigma = Sigma, nChunks = 2)[1:2, ])
-  expect_equal(fastGLS(y = y, X = X, Sigma = Sigma, covs = covs, nChunks = 5),
-               fastGLS(y = y, X = X, Sigma = Sigma, covs = covs, nChunks = 2))
-  expect_equal(fastGLS(y = y, X = X[, 1:2], Sigma = Sigma, covs = covs,
-                       nChunks = 5),
-               fastGLS(y = y, X = X, Sigma = Sigma, covs = covs,
-                       nChunks = 2)[1:2, ])
+test_that("fastGLS is independent of dimensions", {
+  expect_equal(fastGLS(y = y, X = X[, 1:2], Sigma = Sigma),
+               fastGLS(y = y, X = X, Sigma = Sigma)[1:2, ])
 })
 
 test_that("function exclMarkers functions properly", {

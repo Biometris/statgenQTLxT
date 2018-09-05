@@ -4,7 +4,7 @@
 \alias{fastGLS}
 \title{Fast Generalized Least Squares algoritm}
 \usage{
-fastGLS(y, X, Sigma, covs = NULL, nChunks = 50)
+fastGLS(y, X, Sigma, covs = NULL)
 }
 \arguments{
 \item{y}{A numeric vector of length n of phenotypic scores. No missing
@@ -17,9 +17,6 @@ individuals, m the number of markers. no missing values allowed.}
 
 \item{covs}{An n x c matrix of covariates (NOT including an intercept).
 No missing values allowed.}
-
-\item{nChunks}{An integer, the number of parts in which the calculations
-are split.}
 }
 \value{
 A data.frame with the following columns:

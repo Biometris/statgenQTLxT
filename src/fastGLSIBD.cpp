@@ -20,7 +20,7 @@ List fastGLSIBDCPP(const arma::cube &mp,
                    unsigned int ref,
                    Rcpp::Nullable<Rcpp::NumericVector> size_param = R_NilValue,
                    int ncores = 1) {
-  // Get number of alleles and markers.
+  // Get number of genotypes, alleles and markers.
   unsigned int m = mp.n_slices - 1;
   unsigned int p = mp.n_cols;
   unsigned int n = mp.n_rows;

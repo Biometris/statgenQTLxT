@@ -11,8 +11,6 @@
 #' @param Sigma An n x n covariance matrix. No missing values allowed.
 #' @param covs An n x c matrix of covariates (NOT including an intercept).
 #' No missing values allowed.
-#' @param nChunks An integer, the number of parts in which the calculations
-#' are split.
 #'
 #' @return A data.frame with the following columns:
 #' \itemize{
@@ -34,8 +32,7 @@
 fastGLS <- function(y,
                     X,
                     Sigma,
-                    covs = NULL,
-                    nChunks = 50) {
+                    covs = NULL) {
   ## Check class and missing values.
   if (missing(y) || !(inherits(y, "Matrix") || is.numeric(y)) || anyNA(y)) {
     stop("y should be a numeric vector without missing values.\n")
@@ -49,10 +46,6 @@ fastGLS <- function(y,
   if (!is.null(covs) && (!(inherits(covs, "Matrix") || is.matrix(covs)) ||
                          anyNA(covs))) {
     stop("covs should be a numeric vector without missing values.\n")
-  }
-  if (!is.numeric(nChunks) || length(nChunks) > 1 ||
-      nChunks != round(nChunks)) {
-    stop("nChunks should be an integer.\n")
   }
   n <- length(y)
   ## Check dimensions.
@@ -68,81 +61,20 @@ fastGLS <- function(y,
     stop(paste("The number of elements in y should be identical to the",
                "number of rows in covs.\n"))
   }
-  m <- ncol(X)
-  ## If necessary convert input to Matrix
-  if (is.matrix(X)) {
-    X <- as(X, "dgeMatrix")
+  ## If necessary convert input to matrix
+  X <- as.matrix(X)
+  Sigma <- as.matrix(Sigma)
+  if (!is.null(covs)) {
+    covs <- as.matrix(covs)
   }
-  if (is.matrix(Sigma)) {
-    Sigma <- as(Sigma, "dsyMatrix")
-  }
-  if (is.matrix(covs)) {
-    covs <- as(covs, "dgeMatrix")
-  }
-  ## Number of chunks should be smaller than m.
-  if (nChunks > m) {
-    nChunks <- ceiling(m / 2)
-  }
-  fixCovs <- Matrix::cbind2(rep(1, n), covs)
-  nCov <- ncol(fixCovs)
-  M <- Matrix::solve(Matrix::chol(Sigma))
-  ## Pre-multiply the phenotype (y) with t(M).
-  tMy <- Matrix::crossprod(M, y)
-  ## pre-multiply the intercept and covariates with t(M).
-  tMfixCovs <- Matrix::crossprod(M, fixCovs)
-  ## Pre-multiply the snp-matrix with t(M).
-  tMX <- Matrix::crossprod(M, X)
-  ## Matrix cookbook, 3.2.6 Rank-1 update of inverse of inner product.
-  A <- Matrix::solve(Matrix::crossprod(tMfixCovs))
-  vv <- Matrix::colSums(tMX ^ 2)
-  vX <- Matrix::crossprod(tMfixCovs, tMX)
-  nn <- 1 / (vv - Matrix::colSums(vX * (A %*% vX)))
-  XtXinvLastRows <- Matrix::cbind2(-nn * Matrix::crossprod(vX, A), nn)
-  Xty <- Matrix::cbind2(
-    Matrix::Matrix(rep(as.numeric(Matrix::crossprod(tMfixCovs, tMy)),
-                       times = length(nn)),
-                   byrow = TRUE, ncol = nCov),
-    Matrix::crossprod(tMX, tMy))
-  betaVec <- Matrix::rowSums(XtXinvLastRows[, 1:nCov, drop = FALSE] *
-                               Xty[, 1:nCov, drop = FALSE]) +
-    XtXinvLastRows[, 1 + nCov] * Xty[, 1 + nCov]
-  ## Compute residuals and RSS over all markers.
-  ResEnv <- Matrix::qr.resid(qr = Matrix::qr(tMfixCovs), y = as.numeric(tMy))
-  RSSEnv <- sum(ResEnv ^ 2)
-  ## QR decomposition of covariates.
-  Q <- Matrix::qr.Q(Matrix::qr(tMfixCovs))
-  tMQtQ <- Matrix::t(M %*% (Matrix::Diagonal(n = n) - Matrix::tcrossprod(Q)))
-  ## Compute RSS per marker, breaking up X for speed.
-  ## In case nChunks = 1 everything can be done in a single step.
-  ## Otherwise loop over the chunks.
-  if (nChunks > 1) {
-    chunks <- split(1:m, c(rep(1:nChunks, each = m %/% nChunks),
-                           rep(nChunks, each = m %% nChunks)))
-    ## In case nChunks = 1 everything can be done in a single step.
-    ## Otherwise loop over the chunks.
-    RSSFull <- unlist(lapply(X = seq_along(chunks), FUN = function(i) {
-      tX <- tMQtQ %*% X[, chunks[[i]], drop = FALSE]
-      apply(X = tX, MARGIN = 2, FUN = function(x) {
-        sum(qr.resid(qr = qr(x), y = ResEnv) ^ 2)
-      })
-    }))
-  } else {
-    tX <- tMQtQ %*% X
-    RSSFull <- apply(X = tX, MARGIN = 2, FUN = function(x) {
-      sum(qr.resid(qr = qr(x), y = ResEnv) ^ 2)
-    })
-  }
-  ## Compute F and p values.
-  df2 <- n - 1 - nCov
-  FVal <- (RSSEnv - RSSFull) / RSSFull * df2
-  pVal <- pf(q = FVal, df1 = 1, df2 = df2, lower.tail = FALSE)
-  ## Compute R_LR^2 statistic from Sun et al 2010, heredity.
-  RLR2  <- 1 - exp((RSSFull - RSSEnv) / n)
+  resCpp <- fastGLSCPP(X, y, Sigma, covs, ncores = 4)
+  ## Compute p values.
+  pVal <- pf(q = resCpp$FVal, df1 = 1, df2 = resCpp$df2, lower.tail = FALSE)
   ## Construct output data.frame.
   GLS <- data.frame(pValue = pVal,
-                    beta = betaVec,
-                    betaSe = sqrt(XtXinvLastRows[, 1 + nCov]),
-                    RLR2 = RLR2)
+                    beta = resCpp$beta,
+                    betaSe = resCpp$betaSe,
+                    RLR2 = resCpp$RLR2)
+  rownames(GLS) <- colnames(X)
   return(GLS)
 }
-

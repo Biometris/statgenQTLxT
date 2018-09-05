@@ -6,6 +6,21 @@
 
 using namespace Rcpp;
 
+// fastGLSCPP
+List fastGLSCPP(const arma::mat& X, const arma::vec& y, const arma::mat& sigma, Rcpp::Nullable<Rcpp::NumericVector> size_param, int ncores);
+RcppExport SEXP _genStatPipeline_fastGLSCPP(SEXP XSEXP, SEXP ySEXP, SEXP sigmaSEXP, SEXP size_paramSEXP, SEXP ncoresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type size_param(size_paramSEXP);
+    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(fastGLSCPP(X, y, sigma, size_param, ncores));
+    return rcpp_result_gen;
+END_RCPP
+}
 // fastGLSIBDCPP
 List fastGLSIBDCPP(const arma::cube& mp, const arma::vec& y, const arma::mat& sigma, unsigned int ref, Rcpp::Nullable<Rcpp::NumericVector> size_param, int ncores);
 RcppExport SEXP _genStatPipeline_fastGLSIBDCPP(SEXP mpSEXP, SEXP ySEXP, SEXP sigmaSEXP, SEXP refSEXP, SEXP size_paramSEXP, SEXP ncoresSEXP) {
@@ -24,6 +39,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_genStatPipeline_fastGLSCPP", (DL_FUNC) &_genStatPipeline_fastGLSCPP, 5},
     {"_genStatPipeline_fastGLSIBDCPP", (DL_FUNC) &_genStatPipeline_fastGLSIBDCPP, 6},
     {NULL, NULL, 0}
 };
