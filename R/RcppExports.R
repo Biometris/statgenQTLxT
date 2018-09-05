@@ -9,3 +9,7 @@ fastGLSIBDCPP <- function(mp, y, sigma, ref, size_param = NULL, ncores = 1L) {
     .Call(`_genStatPipeline_fastGLSIBDCPP`, mp, y, sigma, ref, size_param, ncores)
 }
 
+LLQuadFormDiagCPP <- function(Y, vInv, size_param = NULL) {
+    .Call(`_genStatPipeline_LLQuadFormDiagCPP`, Y, vInv, size_param)
+}
+

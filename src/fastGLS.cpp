@@ -57,7 +57,7 @@ List fastGLSCPP(const arma::mat &X,
   // Compute RSS per marker
   arma::mat tX = tMQtQ * X;
 #pragma omp parallel for num_threads(ncores)
-  for (unsigned int i = 0; i < tX.n_cols; ++i) {
+  for (unsigned int i = 0; i < tX.n_cols; i++) {
     arma::mat Qx, Rx;
     arma::qr_econ(Qx, Rx, tX.col(i));
     double RSSx = accu(square(ResEnv - Qx * Qx.t() * ResEnv));

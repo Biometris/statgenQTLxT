@@ -37,10 +37,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// LLQuadFormDiagCPP
+double LLQuadFormDiagCPP(const arma::mat& Y, const arma::cube& vInv, Rcpp::Nullable<Rcpp::NumericVector> size_param);
+RcppExport SEXP _genStatPipeline_LLQuadFormDiagCPP(SEXP YSEXP, SEXP vInvSEXP, SEXP size_paramSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type vInv(vInvSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type size_param(size_paramSEXP);
+    rcpp_result_gen = Rcpp::wrap(LLQuadFormDiagCPP(Y, vInv, size_param));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_genStatPipeline_fastGLSCPP", (DL_FUNC) &_genStatPipeline_fastGLSCPP, 5},
     {"_genStatPipeline_fastGLSIBDCPP", (DL_FUNC) &_genStatPipeline_fastGLSIBDCPP, 6},
+    {"_genStatPipeline_LLQuadFormDiagCPP", (DL_FUNC) &_genStatPipeline_LLQuadFormDiagCPP, 3},
     {NULL, NULL, 0}
 };
 
