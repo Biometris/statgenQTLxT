@@ -64,7 +64,7 @@ runSingleTraitGwasIBD <- function(gData,
                                   nSnpLOD = 10,
                                   sizeInclRegion = 0,
                                   minR2 = 0.5,
-                                  ref = 7) {
+                                  ref = 1) {
   ## Checks.
   chkGData(gData)
   chkMarkers(gData$markers, dim = 3)
@@ -104,7 +104,7 @@ runSingleTraitGwasIBD <- function(gData,
     chkNum(nSnpLOD, min = 0)
   }
   chkNum(ref, min = 1, max = dim(gData$markers)[3])
-  if (is.null(K) && is.null(gData$kinship)) {
+  if (is.null(kin) && is.null(gData$kinship)) {
     stop(paste("A kinship matrix should be provided either as parameter or",
                "as object in gData.\n"))
   }

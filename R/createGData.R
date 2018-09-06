@@ -307,11 +307,11 @@ createGData <- function(gData = NULL,
                             c("geno", "marker"))
         for (mrk in colnames(markers)) {
           mrkProbs <- rowSums(markers[, mrk, ], na.rm = TRUE)
-          if (any(abs(mrkProbs - 1) > 1e-5)) {
+          if (any(abs(mrkProbs - 1) > 1e-2)) {
             genoMrk <-
               rbind(genoMrk,
                     data.frame(geno =
-                                 names(mrkProbs[abs(mrkProbs - 1) > 1e-5]),
+                                 names(mrkProbs[abs(mrkProbs - 1) > 1e-2]),
                                marker = mrk, stringsAsFactors = FALSE))
           }
           markers[, mrk, ] <- markers[, mrk, ] / mrkProbs

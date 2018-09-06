@@ -102,6 +102,7 @@ fastGLSIBDOrig <- function(V,
   ## pre-multiply the IBD probablities with t(M)
   for (k in 1:(m - 1)) {
     tMPr[,,k] <- Matrix::crossprod(M, tMPr[,,k])
+    print(k)
   }
 
   # The idea is now to apply the standard ordinary least squares
@@ -130,7 +131,6 @@ fastGLSIBDOrig <- function(V,
   # perform QTL-mapping
 
   for (j in 1:p) {
-    #j=1
     nm <- which(ind.matrix[,j] == 1)
 
     tX2VinvX2_inv_j <- solve(tX2VinvX2[[j]][nm, nm, drop = FALSE])

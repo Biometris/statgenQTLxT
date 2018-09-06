@@ -63,7 +63,7 @@ List fastGLSIBDCPP(const arma::cube &mp,
   for (unsigned int i = 0; i < p; i ++) {
     arma::mat X = mp2(span(), span(i), span());
     // Get indices of alleles in X that are not entirely 0.
-    arma::uvec posInd = find( all(X) );
+    arma::uvec posInd = find( sum( abs(X), 0 ) > 0 );
     // Subset X on those columns
     X = X.cols(posInd);
     // Algorithm for computing beta1, beta2 and RSSFull for current marker.
@@ -74,8 +74,7 @@ List fastGLSIBDCPP(const arma::cube &mp,
       tX1VinvX2 * tX2VinvX2Inv * tX1VinvX2.t();
     arma::vec beta1j = solve(XS, tMfixCovs.t() * tMy -
       tX1VinvX2 * tX2VinvX2Inv * tX2VinvY);
-    arma::vec beta2j = tX2VinvX2Inv * tX2VinvY -
-      tX2VinvX2Inv * tX1VinvX2.t() * beta1j;
+    arma::vec beta2j = tX2VinvX2Inv * (tX2VinvY - tX1VinvX2.t() * beta1j);
     double RSSFullj = accu(square(tMy - tMfixCovs * beta1j - X * beta2j));
     // Put results for beta1 for current marker in output matrix.
     beta1.col(i) = beta1j;
