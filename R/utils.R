@@ -136,10 +136,21 @@ chrSpecKin <- function(gData,
                       rownames(gData$map[gData$map$chr == chr, ]))
     ## Compute kinship for current chromosome only. Denominator = 1, division
     ## is done later.
-    K <- do.call(kinshipMethod, list(X = gData$markers[, chrMrk, drop = FALSE],
-                                     denominator = 1))
-    ## Compute number of markers for other chromosomes.
-    nMrkChr[which(chrs == chr)] <- ncol(gData$markers[, -chrMrk, drop = FALSE])
+    if (length(dim(gData$markers)) == 2) {
+      K <- do.call(kinshipMethod,
+                   list(X = gData$markers[, chrMrk, drop = FALSE],
+                        denominator = 1))
+      ## Compute number of markers for other chromosomes.
+      nMrkChr[which(chrs == chr)] <-
+        ncol(gData$markers[, -chrMrk, drop = FALSE])
+    } else if (length(dim(gData$markers)) == 3) {
+      K <- do.call(kinshipMethod,
+                   list(X = gData$markers[, chrMrk, , drop = FALSE],
+                        denominator = 1))
+      ## Compute number of markers for other chromosomes.
+      nMrkChr[which(chrs == chr)] <-
+        ncol(gData$markers[, -chrMrk, , drop = FALSE])
+    }
     ## Add computed kinship to all other matrices in KChr.
     for (i in setdiff(1:length(chrs), which(chr == chrs))) {
       KChr[[i]] <- KChr[[i]] + K

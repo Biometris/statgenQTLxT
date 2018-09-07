@@ -98,13 +98,13 @@ vanRaden <- function(X,
 #' @keywords internal
 multiAllKin <- function(X,
                         denominator = NULL) {
-  K <- matrix(0, nrow = dim(X)[1], ncol = dim(X)[1])
-  for (m in 1:dim(X)[2]) {
+  K <- matrix(0, nrow = nrow(X), ncol = nrow(X))
+  for (m in 1:ncol(X)) {
     K <- K + tcrossprod(X[, m, ])
   }
-  diag(K) <- dim(X)[2]
+  diag(K) <- ncol(X)
   if (is.null(denominator)) {
-    denominator <- dim(X)[2]
+    denominator <- ncol(X)
   }
   return(K / denominator)
 }
