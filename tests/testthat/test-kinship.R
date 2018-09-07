@@ -24,3 +24,23 @@ test_that(paste("kinship functions give correct output with user",
   expect_equivalent(as.matrix(vanRaden(X, denominator = 4)),
                     matrix(c(1/8, -1/8, -1/8, 1/8), nrow = 2))
 })
+
+set.seed(1234)
+map <- data.frame(chr = c(1, 1, 1, 2, 2, 2),
+                  pos = c(1, 4, 17, 2, 3, 5))
+
+X <- matrix(runif(n = 180), nrow = 60)
+X <- X / rowSums(X)
+dim(X) <- c(10, 6, 3)
+test_that("multiAllKin functions properly", {
+  K <- multiAllKin(X = X, map = map)
+  expect_is(K, "matrix")
+  expect_equal(dim(K), c(10, 10))
+  expect_equal(diag(K), rep(x = 1, times = 10))
+  expect_equal(K[, 1],
+               c(1, 0.318199140315202, 0.353188959968734, 0.356389520929043,
+                 0.365703566465929, 0.344204968497873, 0.363187385587088,
+                 0.353630750320603, 0.303310956779327, 0.383196299221719))
+  K2 <- multiAllKin(X = X, map = map, denominator = 1)
+  expect_equal(K2 / 28.5, K)
+})

@@ -86,7 +86,7 @@ computeKin <- function(GLSMethod,
       K <- gData$kinship
     } else {
       ## Compute K from markers.
-      K <- do.call(kinshipMethod, list(X = markers))
+      K <- do.call(kinshipMethod, list(X = markers, map = map))
     }
     K <- K[order(match(rownames(K), rownames(markers))),
            order(match(colnames(K), rownames(markers)))]
@@ -129,7 +129,7 @@ chrSpecKin <- function(gData,
               simplify = FALSE),
     paste0("KChr", chrs))
   ## Create vector of marker numbers per chromosome.
-  nMrkChr <- setNames(numeric(length = length(chrs)), chrs)
+  denom <- setNames(rep(x = 0, times = length(chrs)), chrs)
   for (chr in chrs) {
     ## Extract markers for current chromosome.
     chrMrk <- which(colnames(gData$markers) %in%
@@ -141,25 +141,32 @@ chrSpecKin <- function(gData,
                    list(X = gData$markers[, chrMrk, drop = FALSE],
                         denominator = 1))
       ## Compute number of markers for other chromosomes.
-      nMrkChr[which(chrs == chr)] <-
+      denom[which(chrs == chr)] <-
         ncol(gData$markers[, -chrMrk, drop = FALSE])
     } else if (length(dim(gData$markers)) == 3) {
       K <- do.call(kinshipMethod,
                    list(X = gData$markers[, chrMrk, , drop = FALSE],
+                        map = gData$map[gData$map$chr == chr, ],
                         denominator = 1))
-      ## Compute number of markers for other chromosomes.
-      nMrkChr[which(chrs == chr)] <-
-        ncol(gData$markers[, -chrMrk, , drop = FALSE])
+      ## Compute chromosome length.
+      ## Add extra bits for first and last marker as in kinship calculation.
+      pos <- map[map$chr == chr, "pos"]
+      chrLen <- max(pos) - min(pos) +
+        (pos[2] - pos[1] + rev(pos)[1] - rev(pos)[2]) / 2
     }
-    ## Add computed kinship to all other matrices in KChr.
     for (i in setdiff(1:length(chrs), which(chr == chrs))) {
+      ## Add computed kinship to all other matrices in KChr.
       KChr[[i]] <- KChr[[i]] + K
+      if (length(dim(gData$markers)) == 3) {
+        ## Add chromosome length to all other denominators in denom.
+        denom[i] <- denom[i] + chrLen
+      }
     }
   }
   ## Divide matrix for current chromosome by number of markers in other
   ## chromosomes.
   for (i in 1:length(KChr)) {
-    KChr[[i]] <- KChr[[i]] / nMrkChr[i]
+    KChr[[i]] <- KChr[[i]] / denom[i]
   }
   return(KChr)
 }

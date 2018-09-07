@@ -97,15 +97,31 @@ vanRaden <- function(X,
 
 #' @keywords internal
 multiAllKin <- function(X,
+                        map,
                         denominator = NULL) {
+  ## Create an array of values for correction for position on the genome.
+  ## Has to be done per chromosome since pos isn't necessary cumulative.
+  posCor <- unlist(sapply(X = unique(map$chr), FUN = function(c) {
+    pos <- map[map$chr == c, "pos"]
+    ## First and last marker need special treatment. For those just take double
+    ## the distance to the next/previous marker.
+    posCor <- c(pos[2] - pos[1],
+                (pos[3:length(pos)] - pos[1:(length(pos) - 2)]) / 2,
+                pos[length(pos)] - pos[length(pos) - 1])
+  }))
+  ## Construct K by summing tcrossprod over alleles per marker.
+  ## Multiply by correction for position.
   K <- matrix(0, nrow = nrow(X), ncol = nrow(X))
   for (m in 1:ncol(X)) {
-    K <- K + tcrossprod(X[, m, ])
+    K <- K + tcrossprod(X[, m, ]) * posCor[m]
   }
-  diag(K) <- ncol(X)
+  ## To get ones on diagonal of final matrix put sum of position corrections.
+  diag(K) <- sum(posCor)
   if (is.null(denominator)) {
-    denominator <- ncol(X)
+    denominator <- sum(posCor)
   }
+  ## Devide by sum of position correction - almost the chr length exept for the
+  ## extra bits for first and last marker.
   return(K / denominator)
 }
 

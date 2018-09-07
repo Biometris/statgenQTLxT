@@ -18,7 +18,7 @@ gDataTest <- createGData(geno = X, kin = Sigma, pheno = pheno,
                          covar = as.data.frame(covs))
 
 GLS0 <- fastGLSIBD(y = y, X = X, Sigma = Sigma, ref = 1)
-test_that("fastGLSIBD procudes correct output structure", {
+test_that("fastGLSIBD produces correct output structure", {
   expect_is(GLS0, "matrix")
   expect_equal(dim(GLS0), c(3, 4))
   expect_equal(rownames(GLS0), paste0("M", 1:3))
@@ -39,7 +39,7 @@ test_that("choice of ref allele doesn't affect fastGLSIBD output", {
   expect_equal(GLS0[, "A2"], -GLS1[, "A1"])
 })
 
-test_that("fastGLSIBD with covariates procudes correct output value", {
+test_that("fastGLSIBD with covariates produces correct output value", {
   GLS2 <- fastGLSIBD(y = y, X = X, Sigma = Sigma, covs = covs, ref = 1)
   expect_equivalent(GLS2,
                     c(0.537681841019699, 0.430915845432764, 0.188623090467351,

@@ -96,7 +96,7 @@ test_that("EMMAREMLLL produces correct output", {
 })
 
 GLS0 <- fastGLS(y = y, X = X, Sigma = Sigma)
-test_that("fastGLSIBD procudes correct output structure", {
+test_that("fastGLS produces correct output structure", {
   expect_is(GLS0, "data.frame")
   expect_equal(dim(GLS0), c(3, 4))
   expect_equal(rownames(GLS0), paste0("M", 1:3))
@@ -146,7 +146,6 @@ test_that("function exclMarkers functions properly", {
   expect_equal(exclMarkers(snpCov = c("SNP1", "SNP2", "SNP3"),
                            markers = markers, allFreq = allFreq), c(1, 3, 2))
 })
-
 
 test_that("genCtrlPVals produces correct new p-values", {
   expect_equal(genCtrlPVals(pVals = .5, nObs = 10)[[1]], 0.5)

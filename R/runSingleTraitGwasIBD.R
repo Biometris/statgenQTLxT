@@ -106,7 +106,8 @@ runSingleTraitGwasIBD <- function(gData,
   if (GLSMethod == "single") {
     ## Compute kinship matrix.
     K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
-                    markers = gData$markers, kinshipMethod = kinshipMethod)
+                    markers = gData$markers, map = gData$map,
+                    kinshipMethod = kinshipMethod)
   } else if (GLSMethod == "multi") {
     ## Compute kinship matrices per chromosome. Only needs to be done once.
     KChr <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
