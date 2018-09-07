@@ -88,6 +88,8 @@ computeKin <- function(GLSMethod,
       ## Compute K from markers.
       K <- do.call(kinshipMethod, list(X = markers))
     }
+    K <- K[order(match(rownames(K), rownames(markers))),
+           order(match(colnames(K), rownames(markers)))]
   } else if (GLSMethod == "multi") {
     if (!is.null(kin)) {
       ## kin is supplied as input. Convert to dsyMatrices.
@@ -100,6 +102,10 @@ computeKin <- function(GLSMethod,
       K <- chrSpecKin(gData = createGData(geno = markers, map = map),
                       kinshipMethod = kinshipMethod)
     }
+    K <- lapply(X = K, FUN = function(k) {
+      k[order(match(rownames(k), rownames(markers))),
+        order(match(colnames(k), rownames(markers)))]
+    })
   }
   return(K)
 }

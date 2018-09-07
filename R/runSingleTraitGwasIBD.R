@@ -50,8 +50,7 @@ runSingleTraitGwasIBD <- function(gData,
                                   covar = NULL,
                                   snpCov = NULL,
                                   kin = NULL,
-                                  kinshipMethod = c("astle", "GRM", "IBS",
-                                                    "vanRaden"),
+                                  kinshipMethod = c("multiAllKin"),
                                   remlAlgo = c("EMMA", "NR"),
                                   GLSMethod = c("single", "multi"),
                                   useMAF = TRUE,
@@ -104,10 +103,10 @@ runSingleTraitGwasIBD <- function(gData,
     chkNum(nSnpLOD, min = 0)
   }
   chkNum(ref, min = 1, max = dim(gData$markers)[3])
-  if (is.null(kin) && is.null(gData$kinship)) {
-    stop(paste("A kinship matrix should be provided either as parameter or",
-               "as object in gData.\n"))
-  }
+  # if (is.null(kin) && is.null(gData$kinship)) {
+  #   stop(paste("A kinship matrix should be provided either as parameter or",
+  #              "as object in gData.\n"))
+  # }
   if (GLSMethod == "single") {
     ## Compute kinship matrix.
     K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,

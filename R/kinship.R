@@ -95,4 +95,17 @@ vanRaden <- function(X,
   return(Matrix::tcrossprod(as(Z, "dgeMatrix")) / denominator)
 }
 
+#' @keywords internal
+multiAllKin <- function(X,
+                        denominator = NULL) {
+  K <- matrix(0, nrow = dim(X)[1], ncol = dim(X)[1])
+  for (m in 1:dim(X)[2]) {
+    K <- K + tcrossprod(X[, m, ])
+  }
+  diag(K) <- dim(X)[2]
+  if (is.null(denominator)) {
+    denominator <- dim(X)[2]
+  }
+  return(K / denominator)
+}
 
