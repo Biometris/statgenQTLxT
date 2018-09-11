@@ -150,7 +150,7 @@ chrSpecKin <- function(gData,
                         denominator = 1))
       ## Compute chromosome length.
       ## Add extra bits for first and last marker as in kinship calculation.
-      pos <- map[map$chr == chr, "pos"]
+      pos <- gData$map[gData$map$chr == chr, "pos"]
       chrLen <- max(pos) - min(pos) +
         (pos[2] - pos[1] + rev(pos)[1] - rev(pos)[2]) / 2
     }

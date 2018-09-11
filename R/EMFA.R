@@ -538,7 +538,7 @@ updateFAHomVar <- function(Y = NULL,
 #' See Zhou and Stephens (2014), supplement.\cr
 #' It is these rotated versions that are the input of this function.
 #'
-#' @inheritParams estEffs
+#' @inheritParams estEffsCPP
 #'
 #' @param X An optional c x n covariate matrix, c being the number of
 #' covariates and n being the number of genotypes. c has to be at least one

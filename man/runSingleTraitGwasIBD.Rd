@@ -6,11 +6,11 @@
 \usage{
 runSingleTraitGwasIBD(gData, traits = NULL, environments = NULL,
   covar = NULL, snpCov = NULL, kin = NULL,
-  kinshipMethod = c("astle", "GRM", "IBS", "vanRaden"),
-  remlAlgo = c("EMMA", "NR"), GLSMethod = c("single", "multi"),
-  useMAF = TRUE, MAF = 0.01, MAC = 10, genomicControl = FALSE,
-  thrType = c("bonf", "fixed", "small"), alpha = 0.05, LODThr = 4,
-  nSnpLOD = 10, sizeInclRegion = 0, minR2 = 0.5, ref = 7)
+  kinshipMethod = c("multiAllKin"), remlAlgo = c("EMMA", "NR"),
+  GLSMethod = c("single", "multi"), useMAF = TRUE, MAF = 0.01,
+  MAC = 10, genomicControl = FALSE, thrType = c("bonf", "fixed",
+  "small"), alpha = 0.05, LODThr = 4, nSnpLOD = 10,
+  sizeInclRegion = 0, minR2 = 0.5, ref = 1)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},
