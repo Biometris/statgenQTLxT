@@ -143,7 +143,7 @@ test_that("option covModel functions properly", {
 
 test_that("option estCom functions properly", {
   mtg <- runMultiTraitGwas(gData = gDataTest, environments = 1, estCom = TRUE)
-  expect_equal(mtg$GWAResult$ph1[1:9], mtg0$GWAResult$ph1)
+  expect_equal(mtg$GWAResult$ph1[, 1:9], mtg0$GWAResult$ph1)
   expect_equal(mtg$GWAResult[[1]]$pValCom,
                rep(c(0.753742167795203, 0.411338088691726, 0.464498438438716),
                    times = 5))

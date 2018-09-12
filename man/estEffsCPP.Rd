@@ -8,28 +8,28 @@ estEffsCPP(y, w, x, vg, ve, k, returnSe = TRUE, estCom = FALSE,
   ncores = 4L)
 }
 \arguments{
+\item{y}{An n x p matrix of observed phenotypes, on p traits or environments
+for n genotypes. No missing values are allowed.}
+
+\item{w}{An n x c covariate matrix, c being the number of covariates and n
+being the number of genotypes. c has to be at least one (typically an
+intercept). No missing values are allowed.}
+
+\item{x}{An n x ns matrix of marker scores. Neither missing values nor
+non-segregating markers are allowed.}
+
+\item{vg}{A p x p matrix of genetic covariances.}
+
+\item{ve}{A p x p matrix of environmental covariances.}
+
+\item{k}{An n x n genetic relatedness matrix.}
+
 \item{returnSe}{Should standard errors and p-values be returned?}
 
 \item{estCom}{Should the common SNP-effect model be fitted?}
 
-\item{Y}{An n x p matrix of observed phenotypes, on p traits or environments
-for n genotypes. No missing values are allowed.}
-
-\item{W}{An n x c covariate matrix, c being the number of covariates and n
-being the number of genotypes. c has to be at least one (typically an
-intercept). No missing values are allowed.}
-
-\item{X}{An n x ns matrix of marker scores. Neither missing values nor
-non-segregating markers are allowed.}
-
-\item{Vg}{A p x p matrix of genetic covariances.}
-
-\item{Ve}{A p x p matrix of environmental covariances.}
-
-\item{K}{An n x n genetic relatedness matrix.}
-
-\item{nChunks}{An integer, the number of blocks in which the calculations
-should be split.}
+\item{ncores}{An integer indicating the number of cores used for parallel
+computation.}
 }
 \value{
 A list containing the estimates, optionally the standard errors of

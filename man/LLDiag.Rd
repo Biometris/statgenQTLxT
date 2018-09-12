@@ -7,9 +7,6 @@
 LLDiag(Y, X = data.frame(), vLst, vInvLst)
 }
 \arguments{
-\item{Y}{An n x p matrix of observed phenotypes, on p traits or environments
-for n genotypes. No missing values are allowed.}
-
 \item{X}{An optional c x n covariate matrix, c being the number of
 covariates and n being the number of genotypes. c has to be at least one
 (typically an intercept). No missing values are allowed.}

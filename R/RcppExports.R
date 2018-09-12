@@ -32,20 +32,20 @@ LLQuadFormDiagCPP <- function(y, vInv, size_param = NULL) {
 #' Compute the estimates and standard errors for the covariates in the input
 #' matrix W.
 #'
-#' @param Y An n x p matrix of observed phenotypes, on p traits or environments
+#' @param y An n x p matrix of observed phenotypes, on p traits or environments
 #' for n genotypes. No missing values are allowed.
-#' @param W An n x c covariate matrix, c being the number of covariates and n
+#' @param w An n x c covariate matrix, c being the number of covariates and n
 #' being the number of genotypes. c has to be at least one (typically an
 #' intercept). No missing values are allowed.
-#' @param X An n x ns matrix of marker scores. Neither missing values nor
+#' @param x An n x ns matrix of marker scores. Neither missing values nor
 #' non-segregating markers are allowed.
-#' @param Vg A p x p matrix of genetic covariances.
-#' @param Ve A p x p matrix of environmental covariances.
-#' @param K An n x n genetic relatedness matrix.
+#' @param vg A p x p matrix of genetic covariances.
+#' @param ve A p x p matrix of environmental covariances.
+#' @param k An n x n genetic relatedness matrix.
 #' @param returnSe Should standard errors and p-values be returned?
 #' @param estCom Should the common SNP-effect model be fitted?
-#' @param nChunks An integer, the number of blocks in which the calculations
-#' should be split.
+#' @param ncores An integer indicating the number of cores used for parallel
+#' computation.
 #'
 #' @return A list containing the estimates, optionally the standard errors of
 #' the estimates and corresponding p-values. If \code{estCom = TRUE} also

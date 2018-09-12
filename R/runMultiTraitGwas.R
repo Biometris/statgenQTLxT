@@ -67,6 +67,8 @@
 #' mixed model algorithms for genome-wide association studies. Nature Methods,
 #' February 2014, Vol. 11, p. 407–409.
 #'
+#' @importFrom data.table :=
+#'
 #' @export
 runMultiTraitGwas <- function(gData,
                               environments = NULL,
@@ -399,42 +401,38 @@ runMultiTraitGwas <- function(gData,
     }
   }
   ## Convert effs and effsSe to long format and merge.
-  effsLong <- reshape2::melt(effs)
-  effsSeLong <- reshape2::melt(effsSe)
-  effsTot <- merge(effsLong, effsSeLong, by = c("Var1", "Var2"))
-  ## Melt creates factors. Reconvert trait and snp to character.
-  effsTot$trait <- as.character(effsTot$Var1)
-  effsTot$snp <- as.character(effsTot$Var2)
-  ## Bind common effects, SE, and pvalues together.
-  if (estCom) {
-    comDat <- cbind(pValCom, effsCom, effsComSe, pValQtlE)
-    comDat <- as.data.frame(comDat)
-    comDat$snp <- rownames(comDat)
-  }
+  effs <- data.table::as.data.table(effs, keep.rownames = "trait")
+  effsSe <- data.table::as.data.table(effsSe, keep.rownames = "trait")
+  effsLong <- data.table::melt(effs, variable.factor = FALSE,
+                               variable.name = "snp", value.name = "effect",
+                               id.vars = "trait")
+  effsSeLong <- data.table::melt(effsSe, variable.factor = FALSE,
+                                 variable.name = "snp", value.name = "effectSe",
+                                 id.vars = "trait")
+  effsTot <- merge(effsLong, effsSeLong)
   ## Set up a data.frame for storing results containing map info and
   ## allele frequencies.
-  GWAResult <- data.frame(snp = rownames(mapRed), mapRed, allFreq = allFreq,
-                          row.names = rownames(mapRed),
-                          stringsAsFactors = FALSE)
-  ## Merge the effects and effectsSe to the results.
+  GWAResult <- data.table::data.table(snp = rownames(mapRed), mapRed,
+                                      allFreq = allFreq, key = "snp")
+  ## Merge the effects, effectsSe and pValues to the results.
   GWAResult <- merge(GWAResult, effsTot, by = "snp")
-  GWAResult <- merge(GWAResult, data.frame(snp = names(pValues), pValues,
-                                           stringsAsFactors = FALSE),
-                     by = "snp")
+  GWAResult <- merge(GWAResult,
+                     data.table::data.table(snp = names(pValues),
+                                            pValue = pValues, key = "snp"))
+  GWAResult[, LOD := -log10(pValue)]
   if (estCom) {
-    GWAResult <- merge(GWAResult, comDat, by = "snp")
+    ## Bind common effects, SE, and pvalues together.
+    comDat <- data.table::data.table(snp = names(pValCom), pValCom, effsCom,
+                                     effsComSe, pValQtlE)
+    GWAResult <- merge(GWAResult, comDat)
   }
-  GWAResult$LOD <- -log10(GWAResult$pValues)
   ## Select and compute relevant columns.
-  relCols <- c("snp", "trait", "chr", "pos", "pValues", "LOD", "value.x",
-               "value.y", "allFreq",
+  relCols <- c("snp", "trait", "chr", "pos", "pValue", "LOD", "effect",
+               "effectSe", "allFreq",
                if (estCom) {c("pValCom", "effsCom", "effsComSe",
                               "pValQtlE")})
-  GWAResult <- GWAResult[, relCols]
-  colnames(GWAResult)[colnames(GWAResult) %in% c("pValues", "value.x",
-                                                 "value.y")] <-
-    c("pValue", "effect", "effectSe")
-  GWAResult <- GWAResult[order(GWAResult$trait, GWAResult$chr, GWAResult$pos), ]
+  data.table::setcolorder(x = GWAResult, neworder = relCols)
+  data.table::setkeyv(x = GWAResult, cols = c("trait", "chr", "pos"))
   ## Collect info.
   GWASInfo <- list(call = match.call(),
                    MAF = MAF,
