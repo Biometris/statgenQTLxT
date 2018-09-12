@@ -69,12 +69,78 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// astleCPP
+arma::mat astleCPP(arma::mat x, Rcpp::Nullable<Rcpp::NumericVector> denom);
+RcppExport SEXP _genStatPipeline_astleCPP(SEXP xSEXP, SEXP denomSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type denom(denomSEXP);
+    rcpp_result_gen = Rcpp::wrap(astleCPP(x, denom));
+    return rcpp_result_gen;
+END_RCPP
+}
+// GRMCPP
+arma::mat GRMCPP(arma::mat x, Rcpp::Nullable<Rcpp::NumericVector> denom);
+RcppExport SEXP _genStatPipeline_GRMCPP(SEXP xSEXP, SEXP denomSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type denom(denomSEXP);
+    rcpp_result_gen = Rcpp::wrap(GRMCPP(x, denom));
+    return rcpp_result_gen;
+END_RCPP
+}
+// IBSCPP
+arma::mat IBSCPP(arma::mat x, Rcpp::Nullable<Rcpp::NumericVector> denom);
+RcppExport SEXP _genStatPipeline_IBSCPP(SEXP xSEXP, SEXP denomSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type denom(denomSEXP);
+    rcpp_result_gen = Rcpp::wrap(IBSCPP(x, denom));
+    return rcpp_result_gen;
+END_RCPP
+}
+// vanRadenCPP
+arma::mat vanRadenCPP(arma::mat x, Rcpp::Nullable<Rcpp::NumericVector> denom);
+RcppExport SEXP _genStatPipeline_vanRadenCPP(SEXP xSEXP, SEXP denomSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type denom(denomSEXP);
+    rcpp_result_gen = Rcpp::wrap(vanRadenCPP(x, denom));
+    return rcpp_result_gen;
+END_RCPP
+}
+// multiAllKinCPP
+arma::mat multiAllKinCPP(arma::cube x, arma::vec posCor, Rcpp::Nullable<Rcpp::NumericVector> denom);
+RcppExport SEXP _genStatPipeline_multiAllKinCPP(SEXP xSEXP, SEXP posCorSEXP, SEXP denomSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::cube >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type posCor(posCorSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type denom(denomSEXP);
+    rcpp_result_gen = Rcpp::wrap(multiAllKinCPP(x, posCor, denom));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_genStatPipeline_LLQuadFormDiagCPP", (DL_FUNC) &_genStatPipeline_LLQuadFormDiagCPP, 3},
     {"_genStatPipeline_estEffsCPP", (DL_FUNC) &_genStatPipeline_estEffsCPP, 9},
     {"_genStatPipeline_fastGLSCPP", (DL_FUNC) &_genStatPipeline_fastGLSCPP, 5},
     {"_genStatPipeline_fastGLSIBDCPP", (DL_FUNC) &_genStatPipeline_fastGLSIBDCPP, 6},
+    {"_genStatPipeline_astleCPP", (DL_FUNC) &_genStatPipeline_astleCPP, 2},
+    {"_genStatPipeline_GRMCPP", (DL_FUNC) &_genStatPipeline_GRMCPP, 2},
+    {"_genStatPipeline_IBSCPP", (DL_FUNC) &_genStatPipeline_IBSCPP, 2},
+    {"_genStatPipeline_vanRadenCPP", (DL_FUNC) &_genStatPipeline_vanRadenCPP, 2},
+    {"_genStatPipeline_multiAllKinCPP", (DL_FUNC) &_genStatPipeline_multiAllKinCPP, 3},
     {NULL, NULL, 0}
 };
 

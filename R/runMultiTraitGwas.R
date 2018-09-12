@@ -419,7 +419,7 @@ runMultiTraitGwas <- function(gData,
   GWAResult <- merge(GWAResult,
                      data.table::data.table(snp = names(pValues),
                                             pValue = pValues, key = "snp"))
-  GWAResult[, LOD := -log10(pValue)]
+  GWAResult[, "LOD" := -log10(GWAResult$pValue)]
   if (estCom) {
     ## Bind common effects, SE, and pvalues together.
     comDat <- data.table::data.table(snp = names(pValCom), pValCom, effsCom,

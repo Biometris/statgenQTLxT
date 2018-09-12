@@ -40,12 +40,12 @@ expandPheno <- function(gData,
   if (!is.null(snpCov)) {
     ## Distinguish between 2- and 3-dimensional marker data.
     if (length(dim(gData$markers)) == 2) {
-    ## Add snp covariates to covar.
-    covEnv <- c(covEnv, snpCov)
-    ## Add snp covariates to pheno data.
-    phEnv <- merge(phEnv, as.matrix(gData$markers[, snpCov, drop = FALSE]),
-                   by.x = "genotype", by.y = "row.names")
-    colnames(phEnv)[(ncol(phEnv) - length(snpCov) + 1):ncol(phEnv)] <- snpCov
+      ## Add snp covariates to covar.
+      covEnv <- c(covEnv, snpCov)
+      ## Add snp covariates to pheno data.
+      phEnv <- merge(phEnv, as.matrix(gData$markers[, snpCov, drop = FALSE]),
+                     by.x = "genotype", by.y = "row.names")
+      colnames(phEnv)[(ncol(phEnv) - length(snpCov) + 1):ncol(phEnv)] <- snpCov
     } else if (length(dim(gData$markers)) == 3) {
       allNames <- dimnames(gData$markers)[[3]][-ref]
       for (snpCovar in snpCov) {
@@ -53,8 +53,8 @@ expandPheno <- function(gData,
         allCov <- gData$markers[, snpCovar , -ref]
         ## Remove alleles with only zeros.
         allCov <- allCov[, apply(X = allCov, MARGIN = 2, FUN = function(a) {
-                                   any(a > 0)
-                                 })]
+          any(a > 0)
+        })]
         ## Rename columns to combination of allele and marker.
         colnames(allCov) <- paste0(snpCovar, "_", colnames(allCov))
         ## Add snp covariates to covar.
@@ -86,7 +86,7 @@ computeKin <- function(GLSMethod,
       K <- gData$kinship
     } else {
       ## Compute K from markers.
-      K <- do.call(kinshipMethod, list(X = markers, map = map))
+      K <- kinship(X = markers, map = map, method = kinshipMethod)
     }
     K <- K[order(match(rownames(K), rownames(markers))),
            order(match(colnames(K), rownames(markers)))]
@@ -137,17 +137,15 @@ chrSpecKin <- function(gData,
     ## Compute kinship for current chromosome only. Denominator = 1, division
     ## is done later.
     if (length(dim(gData$markers)) == 2) {
-      K <- do.call(kinshipMethod,
-                   list(X = gData$markers[, chrMrk, drop = FALSE],
-                        denominator = 1))
+      K <- kinship(X = gData$markers[, chrMrk, drop = FALSE],
+                   method = kinshipMethod, denominator = 1)
       ## Compute number of markers for other chromosomes.
       denom[which(chrs == chr)] <-
         ncol(gData$markers[, -chrMrk, drop = FALSE])
     } else if (length(dim(gData$markers)) == 3) {
-      K <- do.call(kinshipMethod,
-                   list(X = gData$markers[, chrMrk, , drop = FALSE],
-                        map = gData$map[gData$map$chr == chr, ],
-                        denominator = 1))
+      K <- kinship(X = gData$markers[, chrMrk, , drop = FALSE],
+                   map = gData$map[gData$map$chr == chr, ],
+                   method = kinshipMethod, denominator = 1)
       ## Compute chromosome length.
       ## Add extra bits for first and last marker as in kinship calculation.
       pos <- gData$map[gData$map$chr == chr, "pos"]

@@ -81,7 +81,7 @@ map <- data.frame(chr = c(1, 1, 2, 2, 2), pos = 1:5,
                   row.names = paste0("M", 1:5))
 
 ## Compute kinship matrix.
-kin <- IBS(geno)
+kin <- kinship(X = geno, method = "IBS")
 
 ## Create phenotypic data.
 pheno <- data.frame(paste0("G", 1:3),
@@ -97,7 +97,7 @@ summary(gData)
 covar <- data.frame(C1 = c("a", "a", "b"), row.names = paste0("G", 1:3))
 
 ## Compute alternative kinship matrix.
-kin2 <- astle(geno)
+kin2 <- kinship(X = geno, method = "astle")
 
 ## Add covariates to previously created gData object and overwrite
 ## current kinship matrix by newly computed one.

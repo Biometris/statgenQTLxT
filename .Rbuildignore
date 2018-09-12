@@ -5,4 +5,4 @@ examples_SGP.R
 example_SES.R
 beagle
 .gitlab-ci.yml
-run_DROPS_small_example.R
+docs/

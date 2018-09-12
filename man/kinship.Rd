@@ -2,23 +2,18 @@
 % Please edit documentation in R/kinship.R
 \name{kinship}
 \alias{kinship}
-\alias{astle}
-\alias{GRM}
-\alias{IBS}
-\alias{vanRaden}
 \title{Functions for calculating kinship matrices}
 \usage{
-astle(X, denominator = NULL)
-
-GRM(X, denominator = NULL)
-
-IBS(X, denominator = NULL)
-
-vanRaden(X, denominator = NULL)
+kinship(X, map = NULL, method = c("astle", "GRM", "IBS", "vanRaden",
+  "multiAllKin"), denominator = NULL)
 }
 \arguments{
 \item{X}{An n x m marker matrix with genotypes in the rows and markers in
 the columns.}
+
+\item{map}{An optional marker map. Only used when X is a 3 dimensional array.}
+
+\item{method}{The method used for computing the kinship matrix.}
 
 \item{denominator}{A numerical value. See details.}
 }
@@ -44,10 +39,11 @@ in the end.
 }
 \examples{
 X <- matrix(c(1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1), nrow = 3)
-astle(X)
-GRM(X)
-IBS(X)
-vanRaden(X)
+kinship(X, method = "astle")
+kinship(X, method = "GRM")
+kinship(X, method = "IBS")
+kinship(X, method = "vanRaden")
+
 }
 \references{
 Astle W., Balding D. J. (2009) Population structure and cryptic

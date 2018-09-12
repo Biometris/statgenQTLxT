@@ -17,6 +17,8 @@
 #'
 #' @param X An n x m marker matrix with genotypes in the rows and markers in
 #' the columns.
+#' @param map An optional marker map. Only used when X is a 3 dimensional array.
+#' @param method The method used for computing the kinship matrix.
 #' @param denominator A numerical value. See details.
 #'
 #' @return An n x n kinship matrix.
@@ -27,101 +29,38 @@
 #' @references VanRaden P.M. (2008) Efficient methods to compute genomic
 #' predictions. J Dairy Sci, November 2008, Vol. 91 p. 4414–4423.
 #'
-#' @name kinship
-NULL
-
 #' @examples X <- matrix(c(1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1), nrow = 3)
-#' astle(X)
-#' GRM(X)
-#' IBS(X)
-#' vanRaden(X)
-
-#' @rdname kinship
+#' kinship(X, method = "astle")
+#' kinship(X, method = "GRM")
+#' kinship(X, method = "IBS")
+#' kinship(X, method = "vanRaden")
+#'
 #' @export
-astle <- function(X,
-                  denominator = NULL) {
-  if (!is.matrix(X)) {
-    X <- as.matrix(X)
+kinship <- function(X,
+                    map = NULL,
+                    method = c("astle", "GRM", "IBS", "vanRaden",
+                               "multiAllKin"),
+                    denominator = NULL) {
+  method = match.arg(method);
+  if (method == "multiAllKin") {
+    ## Create an array of values for correction for position on the genome.
+    ## Has to be done per chromosome since pos isn't necessary cumulative.
+    posCor <- unlist(sapply(X = unique(map$chr), FUN = function(c) {
+      pos <- map[map$chr == c, "pos"]
+      ## First and last marker need special treatment. For those just take
+      ## double the distance to the next/previous marker.
+      posCor <- c(pos[2] - pos[1],
+                  (pos[3:length(pos)] - pos[1:(length(pos) - 2)]) / 2,
+                  pos[length(pos)] - pos[length(pos) - 1])
+    }))
+    K <- multiAllKinCPP(X, posCor, denominator)
+  } else {
+    if (!is.matrix(X)) {
+      X <- as.matrix(X)
+    }
+    K <- do.call(what = paste0(method, "CPP"),
+                 args = list(x = X, denom = denominator))
   }
-  ## Remove markers with variance 0.
-  X <- X[, apply(X = X, MARGIN = 2, FUN = sd) != 0, drop = FALSE]
-  ## Scale X.
-  p <- colSums(X) / (2 * nrow(X))
-  Z <- scale(X, center = 2 * p, scale = sqrt(2 * p * (1 - p)))
-  ## Compute denominator.
-  if (is.null(denominator)) denominator <- ncol(Z)
-  return(Matrix::tcrossprod(as(Z, "dgeMatrix")) / denominator)
+  rownames(K) <- colnames(K) <- rownames(X)
+  return(K)
 }
-
-#' @rdname kinship
-#' @export
-GRM <- function(X,
-                denominator = NULL) {
-  if (!is.matrix(X)) X <- as.matrix(X)
-  ## Remove markers with variance 0.
-  X <- X[, apply(X = X, MARGIN = 2, FUN = sd) != 0, drop = FALSE]
-  ## Scale X.
-  Z <- scale(X)
-  ## Compute denominator.
-  if (is.null(denominator)) denominator <- ncol(Z)
-  return(Matrix::tcrossprod(as(Z, "dgeMatrix")) / denominator)
-}
-
-#' @rdname kinship
-#' @export
-IBS <- function(X,
-                denominator = NULL) {
-  ## Remove markers with variance 0.
-  X <- X[, apply(X = X, MARGIN = 2, FUN = sd) != 0, drop = FALSE]
-  ## Compute denominator.
-  if (is.null(denominator)) denominator <- ncol(X)
-  return((Matrix::tcrossprod(X) + Matrix::tcrossprod(1 - X)) / denominator)
-}
-
-#' @rdname kinship
-#' @export
-vanRaden <- function(X,
-                     denominator = NULL) {
-  if (!is.matrix(X)) {
-    X <- as.matrix(X)
-  }
-  ## Remove markers with variance 0.
-  X <- X[, apply(X = X, MARGIN = 2, FUN = sd) != 0, drop = FALSE]
-  ## Scale X.
-  p <- colSums(X) / (2 * nrow(X))
-  Z <- scale(X, center = 2 * p, scale = FALSE)
-  ## Compute denominator.
-  if (is.null(denominator)) denominator <- 2 * sum(p * (1 - p))
-  return(Matrix::tcrossprod(as(Z, "dgeMatrix")) / denominator)
-}
-
-#' @keywords internal
-multiAllKin <- function(X,
-                        map,
-                        denominator = NULL) {
-  ## Create an array of values for correction for position on the genome.
-  ## Has to be done per chromosome since pos isn't necessary cumulative.
-  posCor <- unlist(sapply(X = unique(map$chr), FUN = function(c) {
-    pos <- map[map$chr == c, "pos"]
-    ## First and last marker need special treatment. For those just take double
-    ## the distance to the next/previous marker.
-    posCor <- c(pos[2] - pos[1],
-                (pos[3:length(pos)] - pos[1:(length(pos) - 2)]) / 2,
-                pos[length(pos)] - pos[length(pos) - 1])
-  }))
-  ## Construct K by summing tcrossprod over alleles per marker.
-  ## Multiply by correction for position.
-  K <- matrix(0, nrow = nrow(X), ncol = nrow(X))
-  for (m in 1:ncol(X)) {
-    K <- K + tcrossprod(X[, m, ]) * posCor[m]
-  }
-  ## To get ones on diagonal of final matrix put sum of position corrections.
-  diag(K) <- sum(posCor)
-  if (is.null(denominator)) {
-    denominator <- sum(posCor)
-  }
-  ## Devide by sum of position correction - almost the chr length exept for the
-  ## extra bits for first and last marker.
-  return(K / denominator)
-}
-

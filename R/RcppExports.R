@@ -67,3 +67,23 @@ fastGLSIBDCPP <- function(mp, y, sigma, ref, size_param = NULL, ncores = 1L) {
     .Call(`_genStatPipeline_fastGLSIBDCPP`, mp, y, sigma, ref, size_param, ncores)
 }
 
+astleCPP <- function(x, denom = NULL) {
+    .Call(`_genStatPipeline_astleCPP`, x, denom)
+}
+
+GRMCPP <- function(x, denom = NULL) {
+    .Call(`_genStatPipeline_GRMCPP`, x, denom)
+}
+
+IBSCPP <- function(x, denom = NULL) {
+    .Call(`_genStatPipeline_IBSCPP`, x, denom)
+}
+
+vanRadenCPP <- function(x, denom = NULL) {
+    .Call(`_genStatPipeline_vanRadenCPP`, x, denom)
+}
+
+multiAllKinCPP <- function(x, posCor, denom = NULL) {
+    .Call(`_genStatPipeline_multiAllKinCPP`, x, posCor, denom)
+}
+
