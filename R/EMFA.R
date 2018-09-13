@@ -321,13 +321,18 @@ updatePrec <- function(m,
     ## Omega = A^t A / Q.
     A <- matrixRoot(Omega) * sqrt(nrow(Omega))
     if (het) {
-      CNewOut <- updateFA(Y = A, WStart = W, PStart = P, hetVar = het,
-                          maxDiag = maxDiag)
+      # CNewOut <- updateFA(Y = A, WStart = W, PStart = P, hetVar = het,
+      #                     maxDiag = maxDiag)
+      CNewOut <- updateFACPP(y = as.matrix(A), wStart = as.matrix(W),
+                          pStart = as.matrix(P), hetVar = het,
+                          maxDiag = maxDiag, maxIter = 99)
     } else {
       CNewOut <- updateFAHomVar(S = Omega, m = m)
     }
-    WNew <- CNewOut$W
-    PNew <- CNewOut$P
+    # WNew <- CNewOut$W
+    # PNew <- CNewOut$P
+    WNew <- CNewOut$w
+    PNew <- CNewOut$p
     CNew <- Matrix::solve(Matrix::solve(PNew) + Matrix::tcrossprod(WNew))
   }
   return(list(CNew = CNew, WNew = WNew, PNew = PNew))

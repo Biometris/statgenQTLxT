@@ -6,6 +6,25 @@
 
 using namespace Rcpp;
 
+// updateFACPP
+List updateFACPP(arma::mat y, Rcpp::Nullable<Rcpp::NumericVector> wStart, Rcpp::Nullable<Rcpp::NumericVector> pStart, Rcpp::Nullable<unsigned int> m0, bool hetVar, double maxDiag, double tolerance, unsigned int maxIter, bool printProgress);
+RcppExport SEXP _genStatPipeline_updateFACPP(SEXP ySEXP, SEXP wStartSEXP, SEXP pStartSEXP, SEXP m0SEXP, SEXP hetVarSEXP, SEXP maxDiagSEXP, SEXP toleranceSEXP, SEXP maxIterSEXP, SEXP printProgressSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type wStart(wStartSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type pStart(pStartSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<unsigned int> >::type m0(m0SEXP);
+    Rcpp::traits::input_parameter< bool >::type hetVar(hetVarSEXP);
+    Rcpp::traits::input_parameter< double >::type maxDiag(maxDiagSEXP);
+    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type maxIter(maxIterSEXP);
+    Rcpp::traits::input_parameter< bool >::type printProgress(printProgressSEXP);
+    rcpp_result_gen = Rcpp::wrap(updateFACPP(y, wStart, pStart, m0, hetVar, maxDiag, tolerance, maxIter, printProgress));
+    return rcpp_result_gen;
+END_RCPP
+}
 // LLQuadFormDiagCPP
 double LLQuadFormDiagCPP(const arma::mat& y, const arma::cube& vInv, Rcpp::Nullable<Rcpp::NumericVector> size_param);
 RcppExport SEXP _genStatPipeline_LLQuadFormDiagCPP(SEXP ySEXP, SEXP vInvSEXP, SEXP size_paramSEXP) {
@@ -132,6 +151,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_genStatPipeline_updateFACPP", (DL_FUNC) &_genStatPipeline_updateFACPP, 9},
     {"_genStatPipeline_LLQuadFormDiagCPP", (DL_FUNC) &_genStatPipeline_LLQuadFormDiagCPP, 3},
     {"_genStatPipeline_estEffsCPP", (DL_FUNC) &_genStatPipeline_estEffsCPP, 9},
     {"_genStatPipeline_fastGLSCPP", (DL_FUNC) &_genStatPipeline_fastGLSCPP, 5},
