@@ -14,10 +14,12 @@ using namespace Rcpp;
 using namespace arma;
 
 // [[Rcpp::export]]
-List updateFACPP(arma::mat y,
-                 Rcpp::Nullable<Rcpp::NumericVector> wStart = R_NilValue,
-                 Rcpp::Nullable<Rcpp::NumericVector> pStart = R_NilValue,
-                 Rcpp::Nullable<unsigned int> m0 = R_NilValue,
+void updateFACPP(arma::mat y,
+                 arma::mat wStart,
+                 arma::mat pStart,
+                 arma::mat& wNew,
+                 arma::mat& pNew,
+                 unsigned int m0,
                  bool hetVar = false,
                  double maxDiag = 1e4,
                  double tolerance = 1e-4,
@@ -29,15 +31,24 @@ List updateFACPP(arma::mat y,
   arma::mat w(nc, nc);
   arma::mat p(nc, nc);
   unsigned int m = 2;
-  if (m0.isNotNull()) {
-    m = as<unsigned int>(m0);
+  // if (m0.isNotNull()) {
+  //   m = as<unsigned int>(m0);
+  // }
+  if (m0) {
+    m = m0;
   }
-  if (wStart.isNotNull()) {
-    w = as<arma::mat>(wStart);
-    p = as<arma::mat>(pStart);
-    if (m0.isNull()) {
+  if (wStart.n_elem > 0) {
+    w = wStart;
+    p = pStart;
+    if (m0) {
       m = w.n_cols;
     }
+    // if (wStart.isNotNull()) {
+    //   w = as<arma::mat>(wStart);
+    //   p = as<arma::mat>(pStart);
+    //   if (m0.isNull()) {
+    //     m = w.n_cols;
+    //   }
   } else {
     arma::vec eigVals(nc);
     arma::mat eigVecs(nc, nc);
@@ -51,8 +62,10 @@ List updateFACPP(arma::mat y,
   // Set start values for iterations and difference.
   double totDiff = tolerance + 1;
   // EM
-  arma::mat wNew = mat(size(w));
-  arma::mat pNew = p;
+  // arma::mat wNew = mat(size(w));
+  // arma::mat pNew = p;
+  wNew = mat(size(w));
+  pNew = p;
   for (unsigned int i = 0; i < maxIter && totDiff > tolerance; i++) {
     if (m == 1) {
       arma::mat m1(m, nc);
@@ -117,8 +130,52 @@ List updateFACPP(arma::mat y,
     p = pNew;
     w = wNew;
   }
-  return List::create(_["w"] = w,
-                      _["p"] = p);
+  // wp result;
+  // result.w = w;
+  // result.p = p;
+  // return result;
+}
+
+// [[Rcpp::export]]
+List updatePrecCPP(unsigned int m,
+                   unsigned int nc,
+                   arma::mat omega,
+                   arma::mat w,
+                   arma::mat p,
+                   bool het,
+                   double maxDiag) {
+  arma::mat pNew(size(p));
+  arma::mat wNew(size(p));
+  arma::mat cNew(size(p));
+  if (m == 0) {
+    // Recall that the model is C^{-1} = P^{-1} + W W^t.
+    // when m == 0, W = 0 and Cm = P.
+    if (nc > 1) {
+      if (het) {
+        arma::vec tau = 1 / omega.diag();
+        pNew = diagmat(clamp(tau, tau.min(), maxDiag));
+      } else {
+        double tau = std::min(maxDiag, nc / accu(omega.diag()));
+        pNew <- tau * eye<mat>(nc, nc);
+      }
+    } else {
+      pNew <- 1 / omega;
+    }
+    cNew = pNew;
+  } else {
+    // When rank(Omega) = Q, A should be the Q x p matrix such that
+    // Omega = A^t A / Q.
+    arma::mat a = sqrtmat_sympd(omega) * sqrt(omega.n_rows);
+    if (het) {
+      updateFACPP(a, w, p, wNew, pNew, w.n_cols, het, maxDiag);
+    } else {
+      //cNewOut <- updateFAHomVar(S = Omega, m = m)
+    }
+    cNew = (pNew.i() + wNew * wNew.t()).i();
+  }
+  return List::create(_["wNew"] = wNew,
+                      _["pNew"] = pNew,
+                      _["cNew"] = cNew);
 }
 
 

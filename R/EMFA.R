@@ -182,11 +182,15 @@ EMFA <- function(Y,
     Omega1 <- Matrix::forceSymmetric((part1 + part3) / n)
     Omega2 <- Matrix::forceSymmetric((part2 + part4) / n)
     ## Update Cm
-    CmUpd <- updatePrec(m = mG, p = p, Omega = Omega2, W = Wg, P = Pg,
-                        het = CmHet, maxDiag = maxDiag)
+    # CmUpd <- updatePrec(m = mG, p = p, Omega = Omega2, W = Wg, P = Pg,
+    #                     het = CmHet, maxDiag = maxDiag)
+    CmUpd <- updatePrecCPP(mG, p, as.matrix(Omega2), as.matrix(Wg),
+                           as.matrix(Pg), het = CmHet, maxDiag = maxDiag)
     ## Update Dm
-    DmUpd <- updatePrec(m = mE, p = p, Omega = Omega1, W = We, P = Pe,
-                        het = DmHet, maxDiag = maxDiag)
+    # DmUpd <- updatePrec(m = mE, p = p, Omega = Omega1, W = We, P = Pe,
+    #                     het = DmHet, maxDiag = maxDiag)
+    DmUpd <- updatePrecCPP(mE, p, as.matrix(Omega1), as.matrix(We),
+                           as.matrix(Pe), het = DmHet, maxDiag = maxDiag)
     ## Compute log-likelihood and check stopping criteria.
     ELogLikOld <- ELogLik
     ELogLikCm <- n * (Matrix::determinant(Cm)[[1]][1] -
@@ -201,18 +205,26 @@ EMFA <- function(Y,
       }
     }
     if (iter %% 1000 == 0) {
-      CmDiff <- sum(abs(CmUpd$CNew - Cm))
-      DmDiff <- sum(abs(DmUpd$CNew - Dm))
+      # CmDiff <- sum(abs(CmUpd$CNew - Cm))
+      # DmDiff <- sum(abs(DmUpd$CNew - Dm))
+      CmDiff <- sum(abs(CmUpd$cNew - Cm))
+      DmDiff <- sum(abs(DmUpd$dNew - Dm))
       cat("Iteration ", iter, " : ", CmDiff, "  ", DmDiff, "    ", ELogLik,"\n")
     }
     ## Update values for next iteration.
     ## Prevent that Cm, Dm become asymmetric because of numerical inaccuracies.
-    Cm <- Matrix::forceSymmetric(CmUpd$CNew)
-    Dm <- Matrix::forceSymmetric(DmUpd$CNew)
-    Wg <- CmUpd$WNew
-    We <- DmUpd$WNew
-    Pg <- CmUpd$PNew
-    Pe <- DmUpd$PNew
+    # Cm <- Matrix::forceSymmetric(CmUpd$CNew)
+    # Dm <- Matrix::forceSymmetric(DmUpd$CNew)
+    # Wg <- CmUpd$WNew
+    # We <- DmUpd$WNew
+    # Pg <- CmUpd$PNew
+    # Pe <- DmUpd$PNew
+    Cm <- Matrix::forceSymmetric(CmUpd$cNew)
+    Dm <- Matrix::forceSymmetric(DmUpd$cNew)
+    Wg <- CmUpd$wNew
+    We <- DmUpd$wNew
+    Pg <- CmUpd$pNew
+    Pe <- DmUpd$pNew
     continue <- abs(ELogLik - ELogLikOld) >= tolerance && continue
     iter <- iter + 1
   }
@@ -321,18 +333,18 @@ updatePrec <- function(m,
     ## Omega = A^t A / Q.
     A <- matrixRoot(Omega) * sqrt(nrow(Omega))
     if (het) {
-      # CNewOut <- updateFA(Y = A, WStart = W, PStart = P, hetVar = het,
-      #                     maxDiag = maxDiag)
-      CNewOut <- updateFACPP(y = as.matrix(A), wStart = as.matrix(W),
-                          pStart = as.matrix(P), hetVar = het,
-                          maxDiag = maxDiag, maxIter = 99)
+      CNewOut <- updateFA(Y = A, WStart = W, PStart = P, hetVar = het,
+                         maxDiag = maxDiag)
+      # CNewOut <- updateFACPP(y = as.matrix(A), wStart = as.matrix(W),
+      #                     pStart = as.matrix(P), hetVar = het,
+      #                     maxDiag = maxDiag, maxIter = 99)
     } else {
       CNewOut <- updateFAHomVar(S = Omega, m = m)
     }
-    # WNew <- CNewOut$W
-    # PNew <- CNewOut$P
-    WNew <- CNewOut$w
-    PNew <- CNewOut$p
+    WNew <- CNewOut$W
+    PNew <- CNewOut$P
+    # WNew <- CNewOut$w
+    # PNew <- CNewOut$p
     CNew <- Matrix::solve(Matrix::solve(PNew) + Matrix::tcrossprod(WNew))
   }
   return(list(CNew = CNew, WNew = WNew, PNew = PNew))
