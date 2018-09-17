@@ -6,6 +6,20 @@
 
 using namespace Rcpp;
 
+// updateFAHomVarCPP
+void updateFAHomVarCPP(arma::mat s, arma::mat& wNew, arma::mat& pNew, unsigned int m, double maxDiag);
+RcppExport SEXP _genStatPipeline_updateFAHomVarCPP(SEXP sSEXP, SEXP wNewSEXP, SEXP pNewSEXP, SEXP mSEXP, SEXP maxDiagSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type s(sSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type wNew(wNewSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type pNew(pNewSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type m(mSEXP);
+    Rcpp::traits::input_parameter< double >::type maxDiag(maxDiagSEXP);
+    updateFAHomVarCPP(s, wNew, pNew, m, maxDiag);
+    return R_NilValue;
+END_RCPP
+}
 // updateFACPP
 void updateFACPP(arma::mat y, arma::mat wStart, arma::mat pStart, arma::mat& wNew, arma::mat& pNew, unsigned int m0, bool hetVar, double maxDiag, double tolerance, unsigned int maxIter, bool printProgress);
 RcppExport SEXP _genStatPipeline_updateFACPP(SEXP ySEXP, SEXP wStartSEXP, SEXP pStartSEXP, SEXP wNewSEXP, SEXP pNewSEXP, SEXP m0SEXP, SEXP hetVarSEXP, SEXP maxDiagSEXP, SEXP toleranceSEXP, SEXP maxIterSEXP, SEXP printProgressSEXP) {
@@ -169,6 +183,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_genStatPipeline_updateFAHomVarCPP", (DL_FUNC) &_genStatPipeline_updateFAHomVarCPP, 5},
     {"_genStatPipeline_updateFACPP", (DL_FUNC) &_genStatPipeline_updateFACPP, 11},
     {"_genStatPipeline_updatePrecCPP", (DL_FUNC) &_genStatPipeline_updatePrecCPP, 7},
     {"_genStatPipeline_LLQuadFormDiagCPP", (DL_FUNC) &_genStatPipeline_LLQuadFormDiagCPP, 3},

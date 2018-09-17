@@ -14,6 +14,30 @@ using namespace Rcpp;
 using namespace arma;
 
 // [[Rcpp::export]]
+void updateFAHomVarCPP(arma::mat s,
+                       arma::mat& wNew,
+                       arma::mat& pNew,
+                       unsigned int m,
+                       double maxDiag = 1e4) {
+  unsigned int nc = s.n_cols;
+  arma::vec eigVals(nc);
+  arma::mat eigVecs(nc, nc);
+  eig_sym(eigVals, eigVecs, s);
+  eigVals = reverse(eigVals);
+  eigVecs = fliplr(eigVecs);
+  double sigma2 = mean(eigVals.tail(nc - m));
+  sigma2 = std::max(sigma2, 1 / maxDiag);
+  // Split cases for extra robustness.
+  if (m == 1) {
+    wNew = eigVecs.head_cols(1) * sqrt(eigVals.head(1) - sigma2);
+  } else {
+    wNew = eigVecs.head_cols(m) * diagmat(sqrt(eigVals.head(m) - sigma2));
+  }
+  pNew = eye<mat>(nc, nc) / sigma2;
+}
+
+
+// [[Rcpp::export]]
 void updateFACPP(arma::mat y,
                  arma::mat wStart,
                  arma::mat pStart,
@@ -31,24 +55,15 @@ void updateFACPP(arma::mat y,
   arma::mat w(nc, nc);
   arma::mat p(nc, nc);
   unsigned int m = 2;
-  // if (m0.isNotNull()) {
-  //   m = as<unsigned int>(m0);
-  // }
   if (m0) {
     m = m0;
   }
   if (wStart.n_elem > 0) {
     w = wStart;
     p = pStart;
-    if (m0) {
+    if (!m0) {
       m = w.n_cols;
     }
-    // if (wStart.isNotNull()) {
-    //   w = as<arma::mat>(wStart);
-    //   p = as<arma::mat>(pStart);
-    //   if (m0.isNull()) {
-    //     m = w.n_cols;
-    //   }
   } else {
     arma::vec eigVals(nc);
     arma::mat eigVecs(nc, nc);
@@ -62,8 +77,6 @@ void updateFACPP(arma::mat y,
   // Set start values for iterations and difference.
   double totDiff = tolerance + 1;
   // EM
-  // arma::mat wNew = mat(size(w));
-  // arma::mat pNew = p;
   wNew = mat(size(w));
   pNew = p;
   for (unsigned int i = 0; i < maxIter && totDiff > tolerance; i++) {
@@ -130,10 +143,6 @@ void updateFACPP(arma::mat y,
     p = pNew;
     w = wNew;
   }
-  // wp result;
-  // result.w = w;
-  // result.p = p;
-  // return result;
 }
 
 // [[Rcpp::export]]
@@ -169,7 +178,7 @@ List updatePrecCPP(unsigned int m,
     if (het) {
       updateFACPP(a, w, p, wNew, pNew, w.n_cols, het, maxDiag);
     } else {
-      //cNewOut <- updateFAHomVar(S = Omega, m = m)
+      updateFAHomVarCPP(omega, wNew, pNew, m);
     }
     cNew = (pNew.i() + wNew * wNew.t()).i();
   }
