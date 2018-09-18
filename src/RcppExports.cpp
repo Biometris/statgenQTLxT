@@ -41,19 +41,44 @@ BEGIN_RCPP
 END_RCPP
 }
 // updatePrecCPP
-List updatePrecCPP(unsigned int m, unsigned int nc, arma::mat omega, arma::mat w, arma::mat p, bool het, double maxDiag);
-RcppExport SEXP _genStatPipeline_updatePrecCPP(SEXP mSEXP, SEXP ncSEXP, SEXP omegaSEXP, SEXP wSEXP, SEXP pSEXP, SEXP hetSEXP, SEXP maxDiagSEXP) {
+void updatePrecCPP(unsigned int m, unsigned int nc, arma::mat omega, const arma::mat w, const arma::mat p, arma::mat& wNew, arma::mat& pNew, arma::mat& cNew, bool het, double maxDiag);
+RcppExport SEXP _genStatPipeline_updatePrecCPP(SEXP mSEXP, SEXP ncSEXP, SEXP omegaSEXP, SEXP wSEXP, SEXP pSEXP, SEXP wNewSEXP, SEXP pNewSEXP, SEXP cNewSEXP, SEXP hetSEXP, SEXP maxDiagSEXP) {
 BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< unsigned int >::type m(mSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type nc(ncSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type omega(omegaSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type w(wSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const arma::mat >::type w(wSEXP);
+    Rcpp::traits::input_parameter< const arma::mat >::type p(pSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type wNew(wNewSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type pNew(pNewSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type cNew(cNewSEXP);
     Rcpp::traits::input_parameter< bool >::type het(hetSEXP);
     Rcpp::traits::input_parameter< double >::type maxDiag(maxDiagSEXP);
-    rcpp_result_gen = Rcpp::wrap(updatePrecCPP(m, nc, omega, w, p, het, maxDiag));
+    updatePrecCPP(m, nc, omega, w, p, wNew, pNew, cNew, het, maxDiag);
+    return R_NilValue;
+END_RCPP
+}
+// EMFACPP
+List EMFACPP(arma::mat y, arma::mat k, Rcpp::Nullable<Rcpp::NumericVector> size_param_x, bool cmHet, bool dmHet, double tolerance, unsigned int maxIter, Rcpp::Nullable<Rcpp::NumericVector> size_param_cmStart, Rcpp::Nullable<Rcpp::NumericVector> size_param_dmStart, unsigned int mG, unsigned int mE, double maxDiag, bool stopIfDecreasing);
+RcppExport SEXP _genStatPipeline_EMFACPP(SEXP ySEXP, SEXP kSEXP, SEXP size_param_xSEXP, SEXP cmHetSEXP, SEXP dmHetSEXP, SEXP toleranceSEXP, SEXP maxIterSEXP, SEXP size_param_cmStartSEXP, SEXP size_param_dmStartSEXP, SEXP mGSEXP, SEXP mESEXP, SEXP maxDiagSEXP, SEXP stopIfDecreasingSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type size_param_x(size_param_xSEXP);
+    Rcpp::traits::input_parameter< bool >::type cmHet(cmHetSEXP);
+    Rcpp::traits::input_parameter< bool >::type dmHet(dmHetSEXP);
+    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type maxIter(maxIterSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type size_param_cmStart(size_param_cmStartSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type size_param_dmStart(size_param_dmStartSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type mG(mGSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type mE(mESEXP);
+    Rcpp::traits::input_parameter< double >::type maxDiag(maxDiagSEXP);
+    Rcpp::traits::input_parameter< bool >::type stopIfDecreasing(stopIfDecreasingSEXP);
+    rcpp_result_gen = Rcpp::wrap(EMFACPP(y, k, size_param_x, cmHet, dmHet, tolerance, maxIter, size_param_cmStart, size_param_dmStart, mG, mE, maxDiag, stopIfDecreasing));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -185,7 +210,8 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_genStatPipeline_updateFAHomVarCPP", (DL_FUNC) &_genStatPipeline_updateFAHomVarCPP, 5},
     {"_genStatPipeline_updateFACPP", (DL_FUNC) &_genStatPipeline_updateFACPP, 11},
-    {"_genStatPipeline_updatePrecCPP", (DL_FUNC) &_genStatPipeline_updatePrecCPP, 7},
+    {"_genStatPipeline_updatePrecCPP", (DL_FUNC) &_genStatPipeline_updatePrecCPP, 10},
+    {"_genStatPipeline_EMFACPP", (DL_FUNC) &_genStatPipeline_EMFACPP, 13},
     {"_genStatPipeline_LLQuadFormDiagCPP", (DL_FUNC) &_genStatPipeline_LLQuadFormDiagCPP, 3},
     {"_genStatPipeline_estEffsCPP", (DL_FUNC) &_genStatPipeline_estEffsCPP, 9},
     {"_genStatPipeline_fastGLSCPP", (DL_FUNC) &_genStatPipeline_fastGLSCPP, 5},

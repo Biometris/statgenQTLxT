@@ -9,8 +9,12 @@ updateFACPP <- function(y, wStart, pStart, wNew, pNew, m0, hetVar = FALSE, maxDi
     invisible(.Call(`_genStatPipeline_updateFACPP`, y, wStart, pStart, wNew, pNew, m0, hetVar, maxDiag, tolerance, maxIter, printProgress))
 }
 
-updatePrecCPP <- function(m, nc, omega, w, p, het, maxDiag) {
-    .Call(`_genStatPipeline_updatePrecCPP`, m, nc, omega, w, p, het, maxDiag)
+updatePrecCPP <- function(m, nc, omega, w, p, wNew, pNew, cNew, het, maxDiag) {
+    invisible(.Call(`_genStatPipeline_updatePrecCPP`, m, nc, omega, w, p, wNew, pNew, cNew, het, maxDiag))
+}
+
+EMFACPP <- function(y, k, size_param_x = NULL, cmHet = FALSE, dmHet = FALSE, tolerance = 1e-4, maxIter = 300L, size_param_cmStart = NULL, size_param_dmStart = NULL, mG = 1L, mE = 1L, maxDiag = 1e4, stopIfDecreasing = FALSE) {
+    .Call(`_genStatPipeline_EMFACPP`, y, k, size_param_x, cmHet, dmHet, tolerance, maxIter, size_param_cmStart, size_param_dmStart, mG, mE, maxDiag, stopIfDecreasing)
 }
 
 #' Compute tYPY as in Zhou and Stephens eqn. 50.
