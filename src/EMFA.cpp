@@ -213,7 +213,7 @@ void updatePrec(unsigned int m,
         pNew = diagmat(clamp(tau, tau.min(), maxDiag));
       } else {
         double tau = std::min(maxDiag, nc / accu(omega.diag()));
-        pNew <- tau * eye<mat>(nc, nc);
+        pNew = tau * eye<mat>(nc, nc);
       }
     } else {
       pNew <- 1 / omega;
