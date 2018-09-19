@@ -6,7 +6,7 @@
 #' Update W and P used in the iteration process in the EMFA algorithm in case
 #' the variance is homogeneous.
 #'
-#' @inheritParams updateFACPP
+#' @inheritParams updateFA
 #'
 #' @param s A p x p sample covariance matrix.
 #' @param m An integer. The order of the model.
@@ -14,8 +14,8 @@
 #'
 #' @keywords internal
 #'
-updateFAHomVarCPP <- function(s, wNew, pNew, m, maxDiag = 1e4) {
-    invisible(.Call(`_genStatPipeline_updateFAHomVarCPP`, s, wNew, pNew, m, maxDiag))
+updateFAHomVar <- function(s, wNew, pNew, m, maxDiag = 1e4) {
+    invisible(.Call(`_genStatPipeline_updateFAHomVar`, s, wNew, pNew, m, maxDiag))
 }
 
 #' Update W and P in EMFA algorithm
@@ -36,8 +36,8 @@ updateFAHomVarCPP <- function(s, wNew, pNew, m, maxDiag = 1e4) {
 #'
 #' @keywords internal
 #'
-updateFACPP <- function(y, wStart, pStart, wNew, pNew, m0, hetVar = FALSE, maxDiag = 1e4, tolerance = 1e-4, maxIter = 100L, printProgress = FALSE) {
-    invisible(.Call(`_genStatPipeline_updateFACPP`, y, wStart, pStart, wNew, pNew, m0, hetVar, maxDiag, tolerance, maxIter, printProgress))
+updateFA <- function(y, wStart, pStart, wNew, pNew, m0, hetVar = FALSE, maxDiag = 1e4, tolerance = 1e-4, maxIter = 100L, printProgress = FALSE) {
+    invisible(.Call(`_genStatPipeline_updateFA`, y, wStart, pStart, wNew, pNew, m0, hetVar, maxDiag, tolerance, maxIter, printProgress))
 }
 
 #' Helper function for updating precision matrix.
@@ -58,8 +58,8 @@ updateFACPP <- function(y, wStart, pStart, wNew, pNew, m0, hetVar = FALSE, maxDi
 #'
 #' @keywords internal
 #'
-updatePrecCPP <- function(m, nc, omega, w, p, wNew, pNew, cNew, het, maxDiag) {
-    invisible(.Call(`_genStatPipeline_updatePrecCPP`, m, nc, omega, w, p, wNew, pNew, cNew, het, maxDiag))
+updatePrec <- function(m, nc, omega, w, p, wNew, pNew, cNew, het, maxDiag) {
+    invisible(.Call(`_genStatPipeline_updatePrec`, m, nc, omega, w, p, wNew, pNew, cNew, het, maxDiag))
 }
 
 #' Helper functions for the penalized EM algorithm
@@ -78,14 +78,14 @@ updatePrecCPP <- function(m, nc, omega, w, p, wNew, pNew, cNew, het, maxDiag) {
 #'
 #' @keywords internal
 #'
-vecInvDiagCPP <- function(x, y) {
-    .Call(`_genStatPipeline_vecInvDiagCPP`, x, y)
+vecInvDiag <- function(x, y) {
+    .Call(`_genStatPipeline_vecInvDiag`, x, y)
 }
 
-#' @rdname vecInvDiagCPP
+#' @rdname vecInvDiag
 #'
-tracePInvDiagCPP <- function(x, y) {
-    .Call(`_genStatPipeline_tracePInvDiagCPP`, x, y)
+tracePInvDiag <- function(x, y) {
+    .Call(`_genStatPipeline_tracePInvDiag`, x, y)
 }
 
 #' Factor analytic variation of EM algoritm
@@ -133,8 +133,8 @@ tracePInvDiagCPP <- function(x, y) {
 #'
 #' @keywords internal
 #'
-EMFACPP <- function(y, k, size_param_x = NULL, cmHet = FALSE, dmHet = FALSE, tolerance = 1e-4, maxIter = 300L, size_param_cmStart = NULL, size_param_dmStart = NULL, mG = 1L, mE = 1L, maxDiag = 1e4, stopIfDecreasing = FALSE) {
-    .Call(`_genStatPipeline_EMFACPP`, y, k, size_param_x, cmHet, dmHet, tolerance, maxIter, size_param_cmStart, size_param_dmStart, mG, mE, maxDiag, stopIfDecreasing)
+EMFA <- function(y, k, size_param_x = NULL, cmHet = FALSE, dmHet = FALSE, tolerance = 1e-4, maxIter = 300L, size_param_cmStart = NULL, size_param_dmStart = NULL, mG = 1L, mE = 1L, maxDiag = 1e4, stopIfDecreasing = FALSE) {
+    .Call(`_genStatPipeline_EMFA`, y, k, size_param_x, cmHet, dmHet, tolerance, maxIter, size_param_cmStart, size_param_dmStart, mG, mE, maxDiag, stopIfDecreasing)
 }
 
 #' Compute tYPY as in Zhou and Stephens eqn. 50.

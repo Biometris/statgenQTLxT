@@ -20,23 +20,23 @@
 #' @param VeDiag Should there be environmental correlations if covModel = "unst"
 #' or "pw"? If traits are measured on the same individuals put \code{FALSE}.
 #' @param tolerance A numerical value. Used when fitting the factor analytical
-#' model if covModel = "fa". See \code{\link{EMFACPP}}.
+#' model if covModel = "fa". See \code{\link{EMFA}}.
 #' @param maxIter An integer. Used when fitting the factor analytical model if
-#' covModel = "fa". See \code{\link{EMFACPP}}.
+#' covModel = "fa". See \code{\link{EMFA}}.
 #' @param maxDiag A numerical value. Used when fitting the factor analytical
-#' model if covModel = "fa". See \code{\link{EMFACPP}}.
+#' model if covModel = "fa". See \code{\link{EMFA}}.
 #' @param mG An integer. Used when fitting the factor analytical model if
-#' covModel = "fa". See \code{\link{EMFACPP}}.
+#' covModel = "fa". See \code{\link{EMFA}}.
 #' @param mE An integer. Used when fitting the factor analytical model if
-#' covModel = "fa". See \code{\link{EMFACPP}}.
+#' covModel = "fa". See \code{\link{EMFA}}.
 #' @param CmHet A boolean. Used when fitting the factor analytical model if
-#' covModel = "fa". See \code{\link{EMFACPP}}.
+#' covModel = "fa". See \code{\link{EMFA}}.
 #' @param DmHet A boolean. Used when fitting the factor analytical model if
-#' covModel = "fa". See \code{\link{EMFACPP}}.
+#' covModel = "fa". See \code{\link{EMFA}}.
 #' @param stopIfDecreasing A boolean. Used when fitting the factor analytical
-#' model if covModel = "fa". See \code{\link{EMFACPP}}.
+#' model if covModel = "fa". See \code{\link{EMFA}}.
 #' @param computeLogLik A boolean. Used when fitting the factor analytical model
-#' if covModel = "fa". See \code{\link{EMFACPP}}.
+#' if covModel = "fa". See \code{\link{EMFA}}.
 #' @param Vg An optional matrix with genotypic variance components. Vg should
 #' have row names column names corresponding to the column names of Y. It may
 #' contain additional rows and colums which will be ignored. Ignored if
@@ -277,7 +277,7 @@ runMultiTraitGwas <- function(gData,
       } else if (covModel == "fa") {
         ## FA models.
         ## Including snpCovariates.
-        varComp <- EMFACPP(y = as.matrix(Y), k = as.matrix(K),
+        varComp <- EMFA(y = as.matrix(Y), k = as.matrix(K),
                            size_param_x = as.matrix(X),
                            maxIter = maxIter, tolerance = tolerance, mG = mG,
                            mE = mE, cmHet = CmHet, dmHet = DmHet,
@@ -285,7 +285,7 @@ runMultiTraitGwas <- function(gData,
                            stopIfDecreasing = stopIfDecreasing)
         if (!is.null(snpCov)) {
           ## Without snpCovariates.
-          varCompRed <- EMFACPP(y = as.matrix(Y), k = as.matrix(K),
+          varCompRed <- EMFA(y = as.matrix(Y), k = as.matrix(K),
                                 size_param_x = as.matrix(XRed),
                                 maxIter = maxIter, tolerance = tolerance,
                                 mG = mG, mE = mE, cmHet = TRUE, dmHet = TRUE,
@@ -347,7 +347,7 @@ runMultiTraitGwas <- function(gData,
         ## FA models.
         ## Including snpCovariates.
         varComp <- sapply(X = chrs, FUN = function(chr) {
-          EMFACPP(y = as.matrix(Y), k = as.matrix(KChr[[which(chrs == chr)]]),
+          EMFA(y = as.matrix(Y), k = as.matrix(KChr[[which(chrs == chr)]]),
                   size_param_x = as.matrix(X), maxIter = maxIter,
                   tolerance = tolerance, mG = mG, mE = mE, cmHet = CmHet,
                   dmHet = DmHet, maxDiag = maxDiag,
@@ -356,7 +356,7 @@ runMultiTraitGwas <- function(gData,
         if (!is.null(snpCov)) {
           ## Without snpCovariates.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
-            EMFACPP(y = as.matrix(Y), k = as.matrix(KChr[[which(chrs == chr)]]),
+            EMFA(y = as.matrix(Y), k = as.matrix(KChr[[which(chrs == chr)]]),
                     size_param_x = as.matrix(XRed), maxIter = maxIter,
                     tolerance = tolerance, mG = mG, mE = mE, cmHet = CmHet,
                     dmHet = DmHet, maxDiag = maxDiag,

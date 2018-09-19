@@ -29,4 +29,4 @@ Suggests: covr,
     rvg,
     testthat
 VignetteBuilder: knitr
-LinkingTo: Rcpp, RcppArmadillo
+LinkingTo: Rcpp, RcppArmadillo, testthat

@@ -6,9 +6,9 @@
 
 using namespace Rcpp;
 
-// updateFAHomVarCPP
-void updateFAHomVarCPP(arma::mat s, arma::mat& wNew, arma::mat& pNew, unsigned int m, double maxDiag);
-RcppExport SEXP _genStatPipeline_updateFAHomVarCPP(SEXP sSEXP, SEXP wNewSEXP, SEXP pNewSEXP, SEXP mSEXP, SEXP maxDiagSEXP) {
+// updateFAHomVar
+void updateFAHomVar(arma::mat s, arma::mat& wNew, arma::mat& pNew, unsigned int m, double maxDiag);
+RcppExport SEXP _genStatPipeline_updateFAHomVar(SEXP sSEXP, SEXP wNewSEXP, SEXP pNewSEXP, SEXP mSEXP, SEXP maxDiagSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type s(sSEXP);
@@ -16,13 +16,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat& >::type pNew(pNewSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type m(mSEXP);
     Rcpp::traits::input_parameter< double >::type maxDiag(maxDiagSEXP);
-    updateFAHomVarCPP(s, wNew, pNew, m, maxDiag);
+    updateFAHomVar(s, wNew, pNew, m, maxDiag);
     return R_NilValue;
 END_RCPP
 }
-// updateFACPP
-void updateFACPP(arma::mat y, arma::mat wStart, arma::mat pStart, arma::mat& wNew, arma::mat& pNew, unsigned int m0, bool hetVar, double maxDiag, double tolerance, unsigned int maxIter, bool printProgress);
-RcppExport SEXP _genStatPipeline_updateFACPP(SEXP ySEXP, SEXP wStartSEXP, SEXP pStartSEXP, SEXP wNewSEXP, SEXP pNewSEXP, SEXP m0SEXP, SEXP hetVarSEXP, SEXP maxDiagSEXP, SEXP toleranceSEXP, SEXP maxIterSEXP, SEXP printProgressSEXP) {
+// updateFA
+void updateFA(arma::mat y, arma::mat wStart, arma::mat pStart, arma::mat& wNew, arma::mat& pNew, unsigned int m0, bool hetVar, double maxDiag, double tolerance, unsigned int maxIter, bool printProgress);
+RcppExport SEXP _genStatPipeline_updateFA(SEXP ySEXP, SEXP wStartSEXP, SEXP pStartSEXP, SEXP wNewSEXP, SEXP pNewSEXP, SEXP m0SEXP, SEXP hetVarSEXP, SEXP maxDiagSEXP, SEXP toleranceSEXP, SEXP maxIterSEXP, SEXP printProgressSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
@@ -36,13 +36,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type maxIter(maxIterSEXP);
     Rcpp::traits::input_parameter< bool >::type printProgress(printProgressSEXP);
-    updateFACPP(y, wStart, pStart, wNew, pNew, m0, hetVar, maxDiag, tolerance, maxIter, printProgress);
+    updateFA(y, wStart, pStart, wNew, pNew, m0, hetVar, maxDiag, tolerance, maxIter, printProgress);
     return R_NilValue;
 END_RCPP
 }
-// updatePrecCPP
-void updatePrecCPP(unsigned int m, unsigned int nc, arma::mat omega, const arma::mat w, const arma::mat p, arma::mat& wNew, arma::mat& pNew, arma::mat& cNew, bool het, double maxDiag);
-RcppExport SEXP _genStatPipeline_updatePrecCPP(SEXP mSEXP, SEXP ncSEXP, SEXP omegaSEXP, SEXP wSEXP, SEXP pSEXP, SEXP wNewSEXP, SEXP pNewSEXP, SEXP cNewSEXP, SEXP hetSEXP, SEXP maxDiagSEXP) {
+// updatePrec
+void updatePrec(unsigned int m, unsigned int nc, arma::mat omega, const arma::mat w, const arma::mat p, arma::mat& wNew, arma::mat& pNew, arma::mat& cNew, bool het, double maxDiag);
+RcppExport SEXP _genStatPipeline_updatePrec(SEXP mSEXP, SEXP ncSEXP, SEXP omegaSEXP, SEXP wSEXP, SEXP pSEXP, SEXP wNewSEXP, SEXP pNewSEXP, SEXP cNewSEXP, SEXP hetSEXP, SEXP maxDiagSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< unsigned int >::type m(mSEXP);
@@ -55,37 +55,37 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat& >::type cNew(cNewSEXP);
     Rcpp::traits::input_parameter< bool >::type het(hetSEXP);
     Rcpp::traits::input_parameter< double >::type maxDiag(maxDiagSEXP);
-    updatePrecCPP(m, nc, omega, w, p, wNew, pNew, cNew, het, maxDiag);
+    updatePrec(m, nc, omega, w, p, wNew, pNew, cNew, het, maxDiag);
     return R_NilValue;
 END_RCPP
 }
-// vecInvDiagCPP
-arma::mat vecInvDiagCPP(arma::vec x, arma::vec y);
-RcppExport SEXP _genStatPipeline_vecInvDiagCPP(SEXP xSEXP, SEXP ySEXP) {
+// vecInvDiag
+arma::mat vecInvDiag(arma::vec x, arma::vec y);
+RcppExport SEXP _genStatPipeline_vecInvDiag(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(vecInvDiagCPP(x, y));
+    rcpp_result_gen = Rcpp::wrap(vecInvDiag(x, y));
     return rcpp_result_gen;
 END_RCPP
 }
-// tracePInvDiagCPP
-arma::vec tracePInvDiagCPP(arma::vec x, arma::vec y);
-RcppExport SEXP _genStatPipeline_tracePInvDiagCPP(SEXP xSEXP, SEXP ySEXP) {
+// tracePInvDiag
+arma::vec tracePInvDiag(arma::vec x, arma::vec y);
+RcppExport SEXP _genStatPipeline_tracePInvDiag(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(tracePInvDiagCPP(x, y));
+    rcpp_result_gen = Rcpp::wrap(tracePInvDiag(x, y));
     return rcpp_result_gen;
 END_RCPP
 }
-// EMFACPP
-List EMFACPP(arma::mat y, arma::mat k, Rcpp::Nullable<Rcpp::NumericVector> size_param_x, bool cmHet, bool dmHet, double tolerance, unsigned int maxIter, Rcpp::Nullable<Rcpp::NumericVector> size_param_cmStart, Rcpp::Nullable<Rcpp::NumericVector> size_param_dmStart, unsigned int mG, unsigned int mE, double maxDiag, bool stopIfDecreasing);
-RcppExport SEXP _genStatPipeline_EMFACPP(SEXP ySEXP, SEXP kSEXP, SEXP size_param_xSEXP, SEXP cmHetSEXP, SEXP dmHetSEXP, SEXP toleranceSEXP, SEXP maxIterSEXP, SEXP size_param_cmStartSEXP, SEXP size_param_dmStartSEXP, SEXP mGSEXP, SEXP mESEXP, SEXP maxDiagSEXP, SEXP stopIfDecreasingSEXP) {
+// EMFA
+List EMFA(arma::mat y, arma::mat k, Rcpp::Nullable<Rcpp::NumericVector> size_param_x, bool cmHet, bool dmHet, double tolerance, unsigned int maxIter, Rcpp::Nullable<Rcpp::NumericVector> size_param_cmStart, Rcpp::Nullable<Rcpp::NumericVector> size_param_dmStart, unsigned int mG, unsigned int mE, double maxDiag, bool stopIfDecreasing);
+RcppExport SEXP _genStatPipeline_EMFA(SEXP ySEXP, SEXP kSEXP, SEXP size_param_xSEXP, SEXP cmHetSEXP, SEXP dmHetSEXP, SEXP toleranceSEXP, SEXP maxIterSEXP, SEXP size_param_cmStartSEXP, SEXP size_param_dmStartSEXP, SEXP mGSEXP, SEXP mESEXP, SEXP maxDiagSEXP, SEXP stopIfDecreasingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -102,7 +102,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< unsigned int >::type mE(mESEXP);
     Rcpp::traits::input_parameter< double >::type maxDiag(maxDiagSEXP);
     Rcpp::traits::input_parameter< bool >::type stopIfDecreasing(stopIfDecreasingSEXP);
-    rcpp_result_gen = Rcpp::wrap(EMFACPP(y, k, size_param_x, cmHet, dmHet, tolerance, maxIter, size_param_cmStart, size_param_dmStart, mG, mE, maxDiag, stopIfDecreasing));
+    rcpp_result_gen = Rcpp::wrap(EMFA(y, k, size_param_x, cmHet, dmHet, tolerance, maxIter, size_param_cmStart, size_param_dmStart, mG, mE, maxDiag, stopIfDecreasing));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -231,13 +231,15 @@ BEGIN_RCPP
 END_RCPP
 }
 
+RcppExport SEXP run_testthat_tests();
+
 static const R_CallMethodDef CallEntries[] = {
-    {"_genStatPipeline_updateFAHomVarCPP", (DL_FUNC) &_genStatPipeline_updateFAHomVarCPP, 5},
-    {"_genStatPipeline_updateFACPP", (DL_FUNC) &_genStatPipeline_updateFACPP, 11},
-    {"_genStatPipeline_updatePrecCPP", (DL_FUNC) &_genStatPipeline_updatePrecCPP, 10},
-    {"_genStatPipeline_vecInvDiagCPP", (DL_FUNC) &_genStatPipeline_vecInvDiagCPP, 2},
-    {"_genStatPipeline_tracePInvDiagCPP", (DL_FUNC) &_genStatPipeline_tracePInvDiagCPP, 2},
-    {"_genStatPipeline_EMFACPP", (DL_FUNC) &_genStatPipeline_EMFACPP, 13},
+    {"_genStatPipeline_updateFAHomVar", (DL_FUNC) &_genStatPipeline_updateFAHomVar, 5},
+    {"_genStatPipeline_updateFA", (DL_FUNC) &_genStatPipeline_updateFA, 11},
+    {"_genStatPipeline_updatePrec", (DL_FUNC) &_genStatPipeline_updatePrec, 10},
+    {"_genStatPipeline_vecInvDiag", (DL_FUNC) &_genStatPipeline_vecInvDiag, 2},
+    {"_genStatPipeline_tracePInvDiag", (DL_FUNC) &_genStatPipeline_tracePInvDiag, 2},
+    {"_genStatPipeline_EMFA", (DL_FUNC) &_genStatPipeline_EMFA, 13},
     {"_genStatPipeline_LLQuadFormDiagCPP", (DL_FUNC) &_genStatPipeline_LLQuadFormDiagCPP, 3},
     {"_genStatPipeline_estEffsCPP", (DL_FUNC) &_genStatPipeline_estEffsCPP, 9},
     {"_genStatPipeline_fastGLSCPP", (DL_FUNC) &_genStatPipeline_fastGLSCPP, 5},
@@ -247,6 +249,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_genStatPipeline_IBSCPP", (DL_FUNC) &_genStatPipeline_IBSCPP, 2},
     {"_genStatPipeline_vanRadenCPP", (DL_FUNC) &_genStatPipeline_vanRadenCPP, 2},
     {"_genStatPipeline_multiAllKinCPP", (DL_FUNC) &_genStatPipeline_multiAllKinCPP, 3},
+    {"run_testthat_tests",                 (DL_FUNC) &run_testthat_tests,                  0},
     {NULL, NULL, 0}
 };
 
