@@ -13,6 +13,19 @@
 using namespace Rcpp;
 using namespace arma;
 
+//' Update W and P in EMFA algorithm for homogeneous variance.
+//'
+//' Update W and P used in the iteration process in the EMFA algorithm in case
+//' the variance is homogeneous.
+//'
+//' @inheritParams updateFACPP
+//'
+//' @param s A p x p sample covariance matrix.
+//' @param m An integer. The order of the model.
+//' @param maxDiag A numerical value for the maximum value of sigma2.
+//'
+//' @keywords internal
+//'
 // [[Rcpp::export]]
 void updateFAHomVarCPP(arma::mat s,
                        arma::mat& wNew,
@@ -36,7 +49,24 @@ void updateFAHomVarCPP(arma::mat s,
   pNew = eye<mat>(nc, nc) / sigma2;
 }
 
-
+//' Update W and P in EMFA algorithm
+//'
+//' Update W and P used in the iteration process in the EMFA algorithm.
+//'
+//' @param Y An n x p matrix or data.frame.
+//' @param WStart A p x p matrix or data.frame containing starting values for W.
+//' @param m An integer. The order of the model.
+//' @param PStart A p x p matrix or data.frame containing starting values for P.
+//' @param hetVar Should an extra diagonal part be added in the model for the
+//' precision matrix?
+//' @param maxDiag A numerical value for the maximum value of the diagonal of P.
+//' @param tolerance A numerical value. The iterating process stops if the sum
+//' of the difference for P and W between two steps gets lower than this value.
+//' @param maxIter A numerical value for the maximum number of iterations.
+//' @param printProgress Should progress be printed during iterations?
+//'
+//' @keywords internal
+//'
 // [[Rcpp::export]]
 void updateFACPP(arma::mat y,
                  arma::mat wStart,
@@ -145,6 +175,24 @@ void updateFACPP(arma::mat y,
   }
 }
 
+//' Helper function for updating precision matrix.
+//'
+//' Helper function for updating the precision matrices in the EMFA algorithm.
+//'
+//' @param m An integer, the order of the model.
+//' @param nc An integer, the number of traits or genotypes.
+//' @param omega A computed matrix for the current step in the algoritm.
+//' @param w A model matrix for the current step in the algorithm.
+//' @param p A model matrix for the current step in the algorithm.
+//' @param wNew A pointer to the updated model matrix for w.
+//' @param pNew A pointer to the updated model matrix for p.
+//' @param cNew A pointer to the updated matrix c.
+//' @param het Should an extra diagonal part be added in the model for the
+//' precision matrix.
+//' @param maxDiag A numerical value for the maximum value of sigma2.
+//'
+//' @keywords internal
+//'
 // [[Rcpp::export]]
 void updatePrecCPP(unsigned int m,
                    unsigned int nc,
@@ -184,6 +232,23 @@ void updatePrecCPP(unsigned int m,
   }
 }
 
+//' Helper functions for the penalized EM algorithm
+//'
+//' \code{vecInvDiag} is a helper function for quickly computing
+//' \eqn{(I + x \otimes y)^{-1}},
+//' \code{tracePInvDiag} for quickly computing column sums of
+//' \eqn{(I + x \otimes y)^{-1}}. Both are used in the penalized EM algorithm.
+//'
+//' @param x A numeric vector
+//' @param y A numeric vector
+//'
+//' @return for \code{vecInvDiag} a matrix defined by
+//' \eqn{(I + x \otimes y)^{-1}}, for \code{tracePInvDiag} a vector containing
+//' the column sums of \eqn{(I + x \otimes y)^{-1}}.
+//'
+//' @keywords internal
+//'
+// [[Rcpp::export]]
 arma::mat vecInvDiagCPP(arma::vec x,
                         arma::vec y) {
   arma::mat z = zeros<mat>(y.n_elem, x.n_elem);
@@ -193,6 +258,9 @@ arma::mat vecInvDiagCPP(arma::vec x,
   return z;
 }
 
+//' @rdname vecInvDiagCPP
+//'
+// [[Rcpp::export]]
 arma::vec tracePInvDiagCPP(arma::vec x,
                            arma::vec y) {
   arma::vec z = zeros<vec>(x.n_elem);
@@ -202,6 +270,51 @@ arma::vec tracePInvDiagCPP(arma::vec x,
   return z;
 }
 
+//' Factor analytic variation of EM algoritm
+//'
+//' Implementation of the factor analytic variation of the EM algoritm as
+//' proposed by Dahl et al. (2013).
+//'
+//' @param y An n x p matrix of observed phenotypes, on p traits or environments
+//' for n individuals. No missing values are allowed.
+//' @param k An n x n kinship matrix.
+//' @param size_param_x An n x c covariate matrix, c being the number of
+//' covariates and n being the number of genotypes. c has to be at least one
+//' (typically an intercept). No missing values are allowed. If not provided a
+//' vector of 1s is used.
+//' @param cmHet Should an extra diagonal part be added in the model for the
+//' precision matrix Cm?
+//' @param dmHet Should an extra diagonal part be added in the model for the
+//' precision matrix Dm?
+//' @param tolerance A numerical value. The iterating process stops if the
+//' difference in conditional log-likelihood between two consecutive iterations
+//' drops below tolerance.
+//' @param maxIter A numerical value for the maximum number of iterations.
+//' @param size_param_cmStart A p x p matrix containing starting values for the
+//' precision matrix Cm.
+//' @param size_param_dmStart A p x p matrix containing starting values for the
+//' precision matrix Dm.
+//' @param mG An integer. The order of the genetic part of the model.
+//' @param mE An integer. The order of the environmental part of the model.
+//' @param maxDiag A numical value. The maximal value of the diagonal elements
+//' in the precision matrices Cm and Dm (ignoring the low-rank part W W^t)
+//' @param stopIfDecreasing Should the iterating process stop if after 50
+//' iterations the log-likelihood decreases between two consecutive iterations?
+//'
+//' @return A list containing the following components
+//' \itemize{
+//' \item{\code{Vg} The genetic variance components matrix.}
+//' \item{\code{Ve} The environmental variance components matrix.}
+//' }
+//'
+//' @references Dahl et al. (2013). Network inference in matrix-variate Gaussian
+//' models with non-independent noise. arXiv preprint arXiv:1312.1622.
+//' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
+//' mixed model algorithms for genome-wide association studies. Nature Methods,
+//' February 2014, Vol. 11, p. 407–409
+//'
+//' @keywords internal
+//'
 // [[Rcpp::export]]
 List EMFACPP(arma::mat y,
              arma::mat k,
@@ -329,8 +442,8 @@ List EMFACPP(arma::mat y,
       break;
     }
   }
-  return List::create(_["vg"] = inv_sympd(cm),
-                      _["ve"] = inv_sympd(dm));
+  return List::create(_["Vg"] = inv_sympd(cm),
+                      _["Ve"] = inv_sympd(dm));
 }
 
 

@@ -25,7 +25,13 @@ using namespace arma;
 //' See Zhou and Stephens (2014), supplement.\cr
 //' It is these rotated versions that are the input of this function.
 //'
-//' @inheritParams LLDiag
+//' @inheritParams estEffsCPP
+//'
+//' @param size_param_x An optional c x n covariate matrix, c being the number
+//' of covariates and n being the number of genotypes. c has to be at least one
+//' (typically an intercept). No missing values are allowed.
+//' @param vInv A n x p x p cube containing for each genotype l the
+//' p x p matrix \eqn{v_l ^ {-1}} (in the notation of Zhou and Stephens).
 //'
 //' @return A numerical value for the \eqn{t(y) * P * y} part of the
 //' log-likelihood function.
@@ -38,13 +44,13 @@ using namespace arma;
 // [[Rcpp::export]]
 double LLQuadFormDiagCPP(const arma::mat &y,
                          const arma::cube &vInv,
-                         Rcpp::Nullable<Rcpp::NumericVector> size_param = R_NilValue) {
+                         Rcpp::Nullable<Rcpp::NumericVector> size_param_x = R_NilValue) {
   unsigned int nc = 0;
   arma::mat x;
   // Define covs as intercept.
-  if (size_param.isNotNull()) {
+  if (size_param_x.isNotNull()) {
     // Add other covariates.
-    x = Rcpp::as<arma::mat>(size_param);
+    x = Rcpp::as<arma::mat>(size_param_x);
     nc = x.n_rows;
   }
   // Get number of genotypes and markers.

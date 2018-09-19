@@ -59,6 +59,30 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// vecInvDiagCPP
+arma::mat vecInvDiagCPP(arma::vec x, arma::vec y);
+RcppExport SEXP _genStatPipeline_vecInvDiagCPP(SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(vecInvDiagCPP(x, y));
+    return rcpp_result_gen;
+END_RCPP
+}
+// tracePInvDiagCPP
+arma::vec tracePInvDiagCPP(arma::vec x, arma::vec y);
+RcppExport SEXP _genStatPipeline_tracePInvDiagCPP(SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(tracePInvDiagCPP(x, y));
+    return rcpp_result_gen;
+END_RCPP
+}
 // EMFACPP
 List EMFACPP(arma::mat y, arma::mat k, Rcpp::Nullable<Rcpp::NumericVector> size_param_x, bool cmHet, bool dmHet, double tolerance, unsigned int maxIter, Rcpp::Nullable<Rcpp::NumericVector> size_param_cmStart, Rcpp::Nullable<Rcpp::NumericVector> size_param_dmStart, unsigned int mG, unsigned int mE, double maxDiag, bool stopIfDecreasing);
 RcppExport SEXP _genStatPipeline_EMFACPP(SEXP ySEXP, SEXP kSEXP, SEXP size_param_xSEXP, SEXP cmHetSEXP, SEXP dmHetSEXP, SEXP toleranceSEXP, SEXP maxIterSEXP, SEXP size_param_cmStartSEXP, SEXP size_param_dmStartSEXP, SEXP mGSEXP, SEXP mESEXP, SEXP maxDiagSEXP, SEXP stopIfDecreasingSEXP) {
@@ -83,15 +107,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // LLQuadFormDiagCPP
-double LLQuadFormDiagCPP(const arma::mat& y, const arma::cube& vInv, Rcpp::Nullable<Rcpp::NumericVector> size_param);
-RcppExport SEXP _genStatPipeline_LLQuadFormDiagCPP(SEXP ySEXP, SEXP vInvSEXP, SEXP size_paramSEXP) {
+double LLQuadFormDiagCPP(const arma::mat& y, const arma::cube& vInv, Rcpp::Nullable<Rcpp::NumericVector> size_param_x);
+RcppExport SEXP _genStatPipeline_LLQuadFormDiagCPP(SEXP ySEXP, SEXP vInvSEXP, SEXP size_param_xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type y(ySEXP);
     Rcpp::traits::input_parameter< const arma::cube& >::type vInv(vInvSEXP);
-    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type size_param(size_paramSEXP);
-    rcpp_result_gen = Rcpp::wrap(LLQuadFormDiagCPP(y, vInv, size_param));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type size_param_x(size_param_xSEXP);
+    rcpp_result_gen = Rcpp::wrap(LLQuadFormDiagCPP(y, vInv, size_param_x));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -211,6 +235,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_genStatPipeline_updateFAHomVarCPP", (DL_FUNC) &_genStatPipeline_updateFAHomVarCPP, 5},
     {"_genStatPipeline_updateFACPP", (DL_FUNC) &_genStatPipeline_updateFACPP, 11},
     {"_genStatPipeline_updatePrecCPP", (DL_FUNC) &_genStatPipeline_updatePrecCPP, 10},
+    {"_genStatPipeline_vecInvDiagCPP", (DL_FUNC) &_genStatPipeline_vecInvDiagCPP, 2},
+    {"_genStatPipeline_tracePInvDiagCPP", (DL_FUNC) &_genStatPipeline_tracePInvDiagCPP, 2},
     {"_genStatPipeline_EMFACPP", (DL_FUNC) &_genStatPipeline_EMFACPP, 13},
     {"_genStatPipeline_LLQuadFormDiagCPP", (DL_FUNC) &_genStatPipeline_LLQuadFormDiagCPP, 3},
     {"_genStatPipeline_estEffsCPP", (DL_FUNC) &_genStatPipeline_estEffsCPP, 9},

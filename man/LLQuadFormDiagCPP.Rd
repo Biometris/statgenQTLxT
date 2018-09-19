@@ -4,7 +4,18 @@
 \alias{LLQuadFormDiagCPP}
 \title{Compute tYPY as in Zhou and Stephens eqn. 50.}
 \usage{
-LLQuadFormDiagCPP(y, vInv, size_param = NULL)
+LLQuadFormDiagCPP(y, vInv, size_param_x = NULL)
+}
+\arguments{
+\item{y}{An n x p matrix of observed phenotypes, on p traits or environments
+for n genotypes. No missing values are allowed.}
+
+\item{vInv}{A n x p x p cube containing for each genotype l the
+p x p matrix \eqn{v_l ^ {-1}} (in the notation of Zhou and Stephens).}
+
+\item{size_param_x}{An optional c x n covariate matrix, c being the number
+of covariates and n being the number of genotypes. c has to be at least one
+(typically an intercept). No missing values are allowed.}
 }
 \value{
 A numerical value for the \eqn{t(y) * P * y} part of the

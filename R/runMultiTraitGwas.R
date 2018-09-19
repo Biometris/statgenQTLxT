@@ -20,23 +20,23 @@
 #' @param VeDiag Should there be environmental correlations if covModel = "unst"
 #' or "pw"? If traits are measured on the same individuals put \code{FALSE}.
 #' @param tolerance A numerical value. Used when fitting the factor analytical
-#' model if covModel = "fa". See \code{\link{EMFA}}.
+#' model if covModel = "fa". See \code{\link{EMFACPP}}.
 #' @param maxIter An integer. Used when fitting the factor analytical model if
-#' covModel = "fa". See \code{\link{EMFA}}.
+#' covModel = "fa". See \code{\link{EMFACPP}}.
 #' @param maxDiag A numerical value. Used when fitting the factor analytical
-#' model if covModel = "fa". See \code{\link{EMFA}}.
+#' model if covModel = "fa". See \code{\link{EMFACPP}}.
 #' @param mG An integer. Used when fitting the factor analytical model if
-#' covModel = "fa". See \code{\link{EMFA}}.
+#' covModel = "fa". See \code{\link{EMFACPP}}.
 #' @param mE An integer. Used when fitting the factor analytical model if
-#' covModel = "fa". See \code{\link{EMFA}}.
+#' covModel = "fa". See \code{\link{EMFACPP}}.
 #' @param CmHet A boolean. Used when fitting the factor analytical model if
-#' covModel = "fa". See \code{\link{EMFA}}.
+#' covModel = "fa". See \code{\link{EMFACPP}}.
 #' @param DmHet A boolean. Used when fitting the factor analytical model if
-#' covModel = "fa". See \code{\link{EMFA}}.
+#' covModel = "fa". See \code{\link{EMFACPP}}.
 #' @param stopIfDecreasing A boolean. Used when fitting the factor analytical
-#' model if covModel = "fa". See \code{\link{EMFA}}.
+#' model if covModel = "fa". See \code{\link{EMFACPP}}.
 #' @param computeLogLik A boolean. Used when fitting the factor analytical model
-#' if covModel = "fa". See \code{\link{EMFA}}.
+#' if covModel = "fa". See \code{\link{EMFACPP}}.
 #' @param Vg An optional matrix with genotypic variance components. Vg should
 #' have row names column names corresponding to the column names of Y. It may
 #' contain additional rows and colums which will be ignored. Ignored if
@@ -277,25 +277,31 @@ runMultiTraitGwas <- function(gData,
       } else if (covModel == "fa") {
         ## FA models.
         ## Including snpCovariates.
-        varComp <- EMFA(Y = Y, K = K, X = X, maxIter = maxIter,
-                        tolerance = tolerance, mG = mG, mE = mE, CmHet = CmHet,
-                        DmHet = DmHet, maxDiag = maxDiag,
-                        stopIfDecreasing = stopIfDecreasing,
-                        computeLogLik = computeLogLik)
+        varComp <- EMFACPP(y = as.matrix(Y), k = as.matrix(K),
+                           size_param_x = as.matrix(X),
+                           maxIter = maxIter, tolerance = tolerance, mG = mG,
+                           mE = mE, cmHet = CmHet, dmHet = DmHet,
+                           maxDiag = maxDiag,
+                           stopIfDecreasing = stopIfDecreasing)
         if (!is.null(snpCov)) {
           ## Without snpCovariates.
-          varCompRed <- EMFA(Y = Y, K = K, X = XRed, maxIter = maxIter,
-                             tolerance = tolerance, mG = mG, mE = mE,
-                             CmHet = TRUE, DmHet = TRUE, maxDiag = maxDiag,
-                             computeLogLik = computeLogLik,
-                             stopIfDecreasing = stopIfDecreasing)
+          varCompRed <- EMFACPP(y = as.matrix(Y), k = as.matrix(K),
+                                size_param_x = as.matrix(XRed),
+                                maxIter = maxIter, tolerance = tolerance,
+                                mG = mG, mE = mE, cmHet = TRUE, dmHet = TRUE,
+                                maxDiag = maxDiag,
+                                stopIfDecreasing = stopIfDecreasing)
         }
       }
       Vg <- varComp$Vg
       Ve <- varComp$Ve
+      rownames(Vg) <- colnames(Vg) <- rownames(Ve) <- colnames(Ve) <-
+        colnames(Y)
       if (!is.null(snpCov)) {
         VgRed <- varCompRed$Vg
         VeRed <- varCompRed$Ve
+        rownames(VgRed) <- colnames(VgRed) <- rownames(VeRed) <-
+          colnames(VeRed) <- colnames(Y)
       }
     } else if (GLSMethod == "multi") {
       if (covModel == "unst") {
@@ -341,28 +347,44 @@ runMultiTraitGwas <- function(gData,
         ## FA models.
         ## Including snpCovariates.
         varComp <- sapply(X = chrs, FUN = function(chr) {
-          EMFA(Y = Y, K = KChr[[which(chrs == chr)]], X = X, maxIter = maxIter,
-               tolerance = tolerance, mG = mG, mE = mE, CmHet = CmHet,
-               DmHet = DmHet, maxDiag = maxDiag,
-               stopIfDecreasing = stopIfDecreasing,
-               computeLogLik = computeLogLik)
+          EMFACPP(y = as.matrix(Y), k = as.matrix(KChr[[which(chrs == chr)]]),
+                  size_param_x = as.matrix(X), maxIter = maxIter,
+                  tolerance = tolerance, mG = mG, mE = mE, cmHet = CmHet,
+                  dmHet = DmHet, maxDiag = maxDiag,
+                  stopIfDecreasing = stopIfDecreasing)
         }, simplify = FALSE)
         if (!is.null(snpCov)) {
           ## Without snpCovariates.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
-            EMFA(Y = Y, K = KChr[[which(chrs == chr)]], X = XRed,
-                 maxIter = maxIter, tolerance = tolerance, mG = mG, mE = mE,
-                 CmHet = CmHet, DmHet = DmHet, maxDiag = maxDiag,
-                 stopIfDecreasing = stopIfDecreasing,
-                 computeLogLik = computeLogLik)
+            EMFACPP(y = as.matrix(Y), k = as.matrix(KChr[[which(chrs == chr)]]),
+                    size_param_x = as.matrix(XRed), maxIter = maxIter,
+                    tolerance = tolerance, mG = mG, mE = mE, cmHet = CmHet,
+                    dmHet = DmHet, maxDiag = maxDiag,
+                    stopIfDecreasing = stopIfDecreasing)
           }, simplify = FALSE)
         }
       }
-      Vg <- setNames(lapply(X = varComp, FUN = "[[", 1), paste("chr", chrs))
-      Ve <- setNames(lapply(X = varComp, FUN = "[[", 2), paste("chr", chrs))
+      Vg <- setNames(lapply(X = varComp, FUN = function(Vc) {
+        Vg0 <- Vc[[1]]
+        rownames(Vg0) <- colnames(Vg0) <- colnames(X)
+        return(Vg0)
+      }), paste("chr", chrs))
+      Ve <- setNames(lapply(X = varComp, FUN = function(Vc) {
+        Ve0 <- Vc[[2]]
+        rownames(Ve0) <- colnames(Ve0) <- colnames(X)
+        return(Ve0)
+      }), paste("chr", chrs))
       if (!is.null(snpCov)) {
-        VgRed <- lapply(X = varCompRed, FUN = "[[", 1)
-        VeRed <- lapply(X = varCompRed, FUN = "[[", 2)
+        VgRed <- setNames(lapply(X = varCompRed, FUN = function(Vc) {
+          Vg0 <- Vc[[1]]
+          rownames(Vg0) <- colnames(Vg0) <- colnames(XRed)
+          return(Vg0)
+        }), paste("chr", chrs))
+        VeRed <- setNames(lapply(X = varCompRed, FUN = function(Vc) {
+          Ve0 <- Vc[[2]]
+          rownames(Ve0) <- colnames(Ve0) <- colnames(XRed)
+          return(Ve0)
+        }), paste("chr", chrs))
       }
     } #end GLSMethod multi
   } #end varComp

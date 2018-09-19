@@ -75,31 +75,31 @@ Ignored if \code{fitVarComp} = \code{FALSE}}
 or "pw"? If traits are measured on the same individuals put \code{FALSE}.}
 
 \item{tolerance}{A numerical value. Used when fitting the factor analytical
-model if covModel = "fa". See \code{\link{EMFA}}.}
+model if covModel = "fa". See \code{\link{EMFACPP}}.}
 
 \item{maxIter}{An integer. Used when fitting the factor analytical model if
-covModel = "fa". See \code{\link{EMFA}}.}
+covModel = "fa". See \code{\link{EMFACPP}}.}
 
 \item{maxDiag}{A numerical value. Used when fitting the factor analytical
-model if covModel = "fa". See \code{\link{EMFA}}.}
+model if covModel = "fa". See \code{\link{EMFACPP}}.}
 
 \item{mG}{An integer. Used when fitting the factor analytical model if
-covModel = "fa". See \code{\link{EMFA}}.}
+covModel = "fa". See \code{\link{EMFACPP}}.}
 
 \item{mE}{An integer. Used when fitting the factor analytical model if
-covModel = "fa". See \code{\link{EMFA}}.}
+covModel = "fa". See \code{\link{EMFACPP}}.}
 
 \item{CmHet}{A boolean. Used when fitting the factor analytical model if
-covModel = "fa". See \code{\link{EMFA}}.}
+covModel = "fa". See \code{\link{EMFACPP}}.}
 
 \item{DmHet}{A boolean. Used when fitting the factor analytical model if
-covModel = "fa". See \code{\link{EMFA}}.}
+covModel = "fa". See \code{\link{EMFACPP}}.}
 
 \item{stopIfDecreasing}{A boolean. Used when fitting the factor analytical
-model if covModel = "fa". See \code{\link{EMFA}}.}
+model if covModel = "fa". See \code{\link{EMFACPP}}.}
 
 \item{computeLogLik}{A boolean. Used when fitting the factor analytical model
-if covModel = "fa". See \code{\link{EMFA}}.}
+if covModel = "fa". See \code{\link{EMFACPP}}.}
 
 \item{Vg}{An optional matrix with genotypic variance components. Vg should
 have row names column names corresponding to the column names of Y. It may

@@ -3,8 +3,9 @@
 #' Compute unstructured covariance pairwise using \code{covPairwise} or using a
 #' single model using \code{covUnstr}.
 #'
-#' @inheritParams EMFA
-
+#' @param Y An n x p matrix of observed phenotypes, on p traits or environments
+#' for n individuals. No missing values are allowed.
+#' @param K An n x n kinship matrix.
 #' @param X An n x c covariate matrix, c being the number of covariates and n
 #' being the number of genotypes.
 #' @param fixDiag Should the diagonal of the covariate matrix be fixed during
