@@ -197,13 +197,13 @@ runMultiTraitGwas <- function(gData,
   phEnv <- phExp$phEnv
   covEnv <- phExp$covEnv
   ## Convert pheno and covariates to format suitable for fitting var components.
-  X <- cbind(rep(1, nrow(phEnv)), as(as.matrix(phEnv[covEnv]), "dgeMatrix"))
+  #X <- cbind(rep(1, nrow(phEnv)), as(as.matrix(phEnv[covEnv]), "dgeMatrix"))
+  X <- cbind(rep(1, nrow(phEnv)), as.matrix(phEnv[covEnv]))
   rownames(X) <- phEnv$genotype
   ## Add snpCovariates to X
   if (!is.null(snpCov)) {
     if (ncol(X) == length(snpCov)) {
-      XRed <- Matrix::Matrix(nrow = nrow(X), ncol = 0,
-                             dimnames = list(rownames(X)))
+      XRed <- matrix(nrow = nrow(X), ncol = 0, dimnames = list(rownames(X)))
     } else {
       XRed <- X[, 1:(ncol(X) - length(snpCov)), drop = FALSE]
     }
@@ -211,7 +211,7 @@ runMultiTraitGwas <- function(gData,
   ## Construct Y from pheno data in gData.
   Y <- phEnv[, !colnames(phEnv) %in% covEnv]
   rownames(Y) <- Y[["genotype"]]
-  Y <- as(as.matrix(Y[, -which(colnames(Y) == "genotype")]), "dgeMatrix")
+  Y <- as.matrix(Y[, -which(colnames(Y) == "genotype")])
   if (anyNA(Y)) {
     stop("Phenotypic data cannot contain any missing values.\n")
   }
@@ -278,20 +278,18 @@ runMultiTraitGwas <- function(gData,
       } else if (covModel == "fa") {
         ## FA models.
         ## Including snpCovariates.
-        varComp <- EMFA(y = as.matrix(Y), k = as.matrix(K),
-                           size_param_x = as.matrix(X),
-                           maxIter = maxIter, tolerance = tolerance, mG = mG,
-                           mE = mE, cmHet = CmHet, dmHet = DmHet,
-                           maxDiag = maxDiag,
-                           stopIfDecreasing = stopIfDecreasing)
+        varComp <- EMFA(y = Y, k = as.matrix(K),
+                        size_param_x = X, maxIter = maxIter,
+                        tolerance = tolerance, mG = mG, mE = mE, cmHet = CmHet,
+                        dmHet = DmHet, maxDiag = maxDiag,
+                        stopIfDecreasing = stopIfDecreasing)
         if (!is.null(snpCov)) {
           ## Without snpCovariates.
-          varCompRed <- EMFA(y = as.matrix(Y), k = as.matrix(K),
-                                size_param_x = as.matrix(XRed),
-                                maxIter = maxIter, tolerance = tolerance,
-                                mG = mG, mE = mE, cmHet = TRUE, dmHet = TRUE,
-                                maxDiag = maxDiag,
-                                stopIfDecreasing = stopIfDecreasing)
+          varCompRed <- EMFA(y = Y, k = as.matrix(K),
+                             size_param_x = XRed, maxIter = maxIter,
+                             tolerance = tolerance, mG = mG, mE = mE,
+                             cmHet = TRUE, dmHet = TRUE, maxDiag = maxDiag,
+                             stopIfDecreasing = stopIfDecreasing)
         }
       }
       Vg <- varComp$Vg
@@ -349,19 +347,17 @@ runMultiTraitGwas <- function(gData,
         ## Including snpCovariates.
         varComp <- sapply(X = chrs, FUN = function(chr) {
           EMFA(y = as.matrix(Y), k = as.matrix(KChr[[which(chrs == chr)]]),
-                  size_param_x = as.matrix(X), maxIter = maxIter,
-                  tolerance = tolerance, mG = mG, mE = mE, cmHet = CmHet,
-                  dmHet = DmHet, maxDiag = maxDiag,
-                  stopIfDecreasing = stopIfDecreasing)
+               size_param_x = X, maxIter = maxIter, tolerance = tolerance,
+               mG = mG, mE = mE, cmHet = CmHet, dmHet = DmHet,
+               maxDiag = maxDiag, stopIfDecreasing = stopIfDecreasing)
         }, simplify = FALSE)
         if (!is.null(snpCov)) {
           ## Without snpCovariates.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
             EMFA(y = as.matrix(Y), k = as.matrix(KChr[[which(chrs == chr)]]),
-                    size_param_x = as.matrix(XRed), maxIter = maxIter,
-                    tolerance = tolerance, mG = mG, mE = mE, cmHet = CmHet,
-                    dmHet = DmHet, maxDiag = maxDiag,
-                    stopIfDecreasing = stopIfDecreasing)
+                 size_param_x = XRed, maxIter = maxIter, tolerance = tolerance,
+                 mG = mG, mE = mE, cmHet = CmHet, dmHet = DmHet,
+                 maxDiag = maxDiag, stopIfDecreasing = stopIfDecreasing)
           }, simplify = FALSE)
         }
       }

@@ -68,7 +68,7 @@ test_that("option covar functions properly", {
 test_that("option snpCov functions properly", {
   mtg <- runMultiTraitGwas(gData = gDataTest, environments = 1, snpCov = "M2")
   expect_equal(mtg$GWAResult[[1]]$pValue,
-               rep(c(0.390330854695164, 0.957766250410699, 0.618568268857209),
+               rep(c(0.3903308546951, 0.958052185333527, 0.618568268857109),
                    times = 5))
   expect_equal(mtg$GWAResult[[1]]$effect,
                c(0.666921304210177, -0.096761685073045, -0.511353226667357,

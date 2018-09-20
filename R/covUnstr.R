@@ -83,7 +83,7 @@ covUnstr <- function(Y,
   VeMat <- Matrix::nearPD(VeMat)$mat
   colnames(VgMat) <- rownames(VgMat) <- traits
   colnames(VeMat) <- rownames(VeMat) <- traits
-  return(list(Vg = VgMat, Ve = VeMat))
+  return(list(Vg = as.matrix(VgMat), Ve = as.matrix(VeMat)))
 }
 
 #' @rdname covUnstr
@@ -194,7 +194,7 @@ covPW <- function(Y,
   ## Make positive definite.
   VgMat <- Matrix::nearPD(VgMat, corr = corMat)$mat
   VeMat <- Matrix::nearPD(VeMat, corr = corMat)$mat
-  return(list(Vg = VgMat, Ve = VeMat))
+  return(list(Vg = as.matrix(VgMat), Ve = as.matrix(VeMat)))
 }
 
 

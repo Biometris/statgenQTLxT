@@ -190,7 +190,7 @@ List estEffsCPP(arma::mat y,
   arma::mat eff = zeros<mat>(p, ns);
   arma::mat effSe = zeros<mat>(p, ns);
   arma::vec ss1 = zeros<vec>(ns);
-  arma::vec fVals = zeros<vec>(ns);
+  NumericVector pVals = NumericVector(ns);
   // Compute degrees of freedom for full model.
   double dfFull = (n - nc - 1) * p;
   // The remaining calculations are SNP-dependent.
@@ -224,15 +224,16 @@ List estEffsCPP(arma::mat y,
       // Compute SS1 per SNP.
       arma::mat qSnp = join_cols(vq, vSnpQ.row(snp).t());
       ss1(snp) = qScal - as_scalar(qSnp.t() * qSnpInv * qSnp);
-      // Compute F-values for SNP effect.
-      fVals(snp) = ((ss0 - ss1(snp)) / ss1(snp)) * dfFull / p;
+      // Compute p-values for SNP effect.
+      double fValx = ((ss0 - ss1(snp)) / ss1(snp)) * dfFull / p;
+      pVals(snp) = R::pf(fValx, p, dfFull, false, false);
     } // End returnSe
   } // End loop over SNPs
-  arma::vec effCom = zeros<vec>(ns);
-  arma::vec effSeCom = zeros<vec>(ns);
   arma::vec ss1Com = zeros<vec>(ns);
-  arma::vec fValsCom = zeros<vec>(ns);
-  arma::vec fValsQtlE = zeros<vec>(ns);
+  NumericVector effCom = NumericVector(ns);
+  NumericVector effSeCom = NumericVector(ns);
+  NumericVector pValsCom = NumericVector(ns);
+  NumericVector pValsQtlE = NumericVector(ns);
   // Compute degrees of freedom for common effect model.
   double dfCom  = (n - nc) * p - 1;
   if (estCom) {
@@ -286,21 +287,21 @@ List estEffsCPP(arma::mat y,
         qSnpCom.resize(qSnpCom.size() + 1);
         qSnpCom(qSnpCom.size() - 1) = vSnpQCom(snp);
         ss1Com(snp) = qScal - as_scalar(qSnpCom.t() * qSnpInvCom * qSnpCom);
-        // Compute F-values for common SNP effect.
-        fValsCom(snp) = (ss0 -  ss1Com(snp)) /  ss1Com(snp) * dfCom;
-        fValsQtlE(snp) = ((ss1Com(snp) - ss1(snp)) / ss1(snp)) * dfFull / (p - 1);
+        // Compute p-values for common SNP effect.
+        double fValComx = (ss0 -  ss1Com(snp)) /  ss1Com(snp) * dfCom;
+        pValsCom(snp) = R::pf(fValComx, 1, dfCom, false, false);
+        double fValQtlEx = ((ss1Com(snp) - ss1(snp)) / ss1(snp)) *
+          dfFull / (p - 1);
+        pValsQtlE(snp) = R::pf(fValQtlEx, p - 1, dfFull, false, false);
       } // End returnSe
     } // End loop over SNPs
   } // End estCom
   // Construct output.
   return List::create(_["effs"] = eff,
                       _["effsSe"] = effSe,
-                      _["fVals"] = fVals,
+                      _["pVals"] = pVals,
                       _["effsCom"] = effCom,
                       _["effsComSe"] = effSeCom,
-                      _["fValCom"] = fValsCom,
-                      _["fValQtlE"] = fValsQtlE,
-                      _["dfFull"] = dfFull,
-                      _["dfCom"] = dfCom);
-
+                      _["pValsCom"] = pValsCom,
+                      _["pValsQtlE"] = pValsQtlE);
 }

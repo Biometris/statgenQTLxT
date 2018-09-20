@@ -77,7 +77,7 @@ computeKin <- function(GLSMethod,
                        kin,
                        gData,
                        markers,
-                       map,
+                       map = NULL,
                        kinshipMethod) {
   if (GLSMethod == "single") {
     if (!is.null(kin)) {

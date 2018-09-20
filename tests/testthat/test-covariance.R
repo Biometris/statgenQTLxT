@@ -30,8 +30,8 @@ test_that("covUnstr produces correct output structure", {
   expect_is(covunst, "list")
   expect_length(covunst, 2)
   expect_named(covunst, c("Vg", "Ve"))
-  expect_is(covunst[[1]], "dpoMatrix")
-  expect_is(covunst[[2]], "dpoMatrix")
+  expect_is(covunst[[1]], "matrix")
+  expect_is(covunst[[2]], "matrix")
 })
 
 test_that("covUnstr produces correct results", {
@@ -80,8 +80,8 @@ test_that("covPW produces correct output structure", {
   expect_is(covpw, "list")
   expect_length(covpw, 2)
   expect_named(covpw, c("Vg", "Ve"))
-  expect_is(covpw[[1]], "dpoMatrix")
-  expect_is(covpw[[2]], "dpoMatrix")
+  expect_is(covpw[[1]], "matrix")
+  expect_is(covpw[[2]], "matrix")
 })
 
 test_that("covPW produces correct results", {

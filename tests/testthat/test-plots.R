@@ -65,5 +65,3 @@ test_that("GWAS manhattan plot functions properly", {
             output = FALSE)
   expect_is(p, "ggplot")
 })
-
-
