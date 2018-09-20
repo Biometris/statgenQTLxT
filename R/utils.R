@@ -71,6 +71,8 @@ expandPheno <- function(gData,
 ## 1 - If kin is supplied use kin
 ## 2 - Get kin from gData object
 ## 3 - Compute kin from markers (and map for GLSMethod multi)
+#' @importFrom methods as
+#' @keywords internal
 computeKin <- function(GLSMethod,
                        kin,
                        gData,
@@ -203,6 +205,8 @@ dfBind <- function(dfList) {
 #' @param X A symmetric, positive definite matrix.
 #'
 #' @return A matrix Y such that \eqn{Y^2 = X}.
+#'
+#' @importFrom methods as
 #'
 #' @keywords internal
 matrixRoot <- function(X) {

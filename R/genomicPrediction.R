@@ -16,6 +16,8 @@
 #' (2012), A stage-wise approach for the analysis of multi-environment trials.
 #' Biom. J., 54: 844–860. doi:10.1002/bimj.201100219
 #'
+#' @importFrom methods as
+#'
 #' @export
 genomicPrediction <- function(gData,
                               traits = NULL,

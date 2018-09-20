@@ -68,10 +68,8 @@ fastGLS <- function(y,
     covs <- as.matrix(covs)
   }
   resCpp <- fastGLSCPP(X, y, Sigma, covs, ncores = 4)
-  ## Compute p values.
-  pVal <- pf(q = resCpp$FVal, df1 = 1, df2 = resCpp$df2, lower.tail = FALSE)
   ## Construct output data.frame.
-  GLS <- data.frame(pValue = pVal,
+  GLS <- data.frame(pValue = resCpp$pVal,
                     beta = resCpp$beta,
                     betaSe = resCpp$betaSe,
                     RLR2 = resCpp$RLR2)

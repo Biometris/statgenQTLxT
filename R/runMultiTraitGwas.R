@@ -68,6 +68,7 @@
 #' February 2014, Vol. 11, p. 407–409.
 #'
 #' @importFrom data.table :=
+#' @importFrom methods as
 #'
 #' @export
 runMultiTraitGwas <- function(gData,

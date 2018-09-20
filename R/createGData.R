@@ -94,6 +94,9 @@
 NULL
 
 #' @rdname gData
+#'
+#' @importFrom methods as
+#'
 #' @export
 createGData <- function(gData = NULL,
                         geno = NULL,

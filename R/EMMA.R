@@ -48,6 +48,7 @@
 #' p. 1709-1723
 #'
 #' @import stats
+#' @importFrom methods as
 #'
 #' @keywords internal
 EMMA <- function(gData,

@@ -45,15 +45,16 @@ List fastGLSCPP(const arma::mat &X,
   double RSSEnv = accu(square(ResEnv));
   // Matrix cookbook, 3.2.6 Rank-1 update of inverse of inner product.
   arma::mat A = inv_sympd(tMfixCovs.t() * tMfixCovs);
-  arma::rowvec vv = sum(square(tMX), 0);
+  arma::rowvec vv = sum(square(tMX));
   arma::mat vX = tMfixCovs.t() * tMX;
-  arma::colvec nn = 1 / (vv - sum(vX % (A * vX), 0)).t();
+  arma::colvec nn = 1 / (vv - sum(vX % (A * vX))).t();
   arma::mat tvXA = vX.t() * A;
   tvXA.each_row() %= (tMfixCovs.t() * tMy).t();
   arma::colvec betaVec = nn % (tMX.t() * tMy - sum(tvXA, 1));
   // QR decomposition of covariates.
-  arma::mat tMQtQ = (mt.t() * (diagmat(ones<vec>(n)) - Q * Q.t())).t();
-  arma::vec RSSFull(p), FVal(p), RLR2(p);
+  arma::mat tMQtQ = (mt.t() * (eye<mat>(n, n) - Q * Q.t())).t();
+  NumericVector pVal = NumericVector(p);
+  NumericVector RLR2 = NumericVector(p);
   // Compute RSS per marker
   arma::mat tX = tMQtQ * X;
 #pragma omp parallel for num_threads(ncores)
@@ -61,15 +62,14 @@ List fastGLSCPP(const arma::mat &X,
     arma::mat Qx, Rx;
     arma::qr_econ(Qx, Rx, tX.col(i));
     double RSSx = accu(square(ResEnv - Qx * Qx.t() * ResEnv));
-    RSSFull(i) = RSSx;
-    FVal(i) = (RSSEnv - RSSx) / RSSx * (n - 1 - nCov);
+    double fValx = (RSSEnv - RSSx) / RSSx * (n - 1 - nCov);
+    pVal(i) = R::pf(fValx, 1.0, n - 1 - nCov, false, false);
     RLR2(i) = 1 - exp((RSSx - RSSEnv) / n);
   }
   return List::create(_["beta"] = betaVec,
                       _["betaSe"] = sqrt(nn),
-                      _["FVal"] = FVal,
-                      _["RLR2"] = RLR2,
-                      _["df2"] = n - 1 - nCov);
+                      _["pVal"] = pVal,
+                      _["RLR2"] = RLR2);
 }
 
 

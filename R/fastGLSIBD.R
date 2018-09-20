@@ -38,9 +38,7 @@ fastGLSIBD <- function(y,
                "number of rows in covs.\n"))
   }
   resCpp <- fastGLSIBDCPP(X, y, Sigma, ref, covs, ncores = 4)
-  pVal <- pf(q = resCpp$FVal, df1 = resCpp$df1, df2 = resCpp$df2,
-             lower.tail = FALSE)
-  GLS <- cbind(pVal, resCpp$RLR2, t(resCpp$beta2))
+  GLS <- cbind(resCpp$pVal, resCpp$RLR2, t(resCpp$beta2))
   rownames(GLS) <- colnames(X)
   colnames(GLS) <- c("pValue", "RLR2", dimnames(X)[[3]][-ref])
   return(GLS)
