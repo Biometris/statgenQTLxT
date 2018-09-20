@@ -289,20 +289,25 @@ plot.GWAS <- function(x, ...,
         stop("Select at least one valid chromosome for plotting.\n")
       }
     }
-    ## Select markers with sufficiently high lod for plotting.
-    if (!is.null(dotArgs$lod)) {
-      GWAResult <- GWAResult[GWAResult$LOD > dotArgs$lod, ]
-      if (nrow(GWAResult) == 0) {
-        stop(paste("No chromosomes selected for plotting. Please check",
-                   "value of lod.\n"))
-      }
-    }
     chrBnd <- aggregate(x = GWAResult$pos, by = list(GWAResult$chr), FUN = max)
     ## Compute cumulative positions.
     addPos <- data.frame(chr = chrBnd[, 1],
                          add = c(0, cumsum(chrBnd[, 2]))[1:nrow(chrBnd)],
                          stringsAsFactors = FALSE)
     map <- GWAResult[, c("snp", "chr", "pos", "LOD")]
+    if (!is.null(dotArgs$lod)) {
+      ## Of markers below lod only 5% will be plotted.
+      ## A weighted sample is taken of those markers.
+      ## The weigth of LOD ^ 1.5 empirically derived.
+      lod <- dotArgs$lod
+      chkNum(lod, min = 0)
+      set.seed(1234)
+      mapShw <- map[!is.na(map$LOD) & map$LOD >= dotArgs$lod, ]
+      mapRem <- map[!is.na(map$LOD) & map$LOD < dotArgs$lod, ]
+      sampIdx <- sample(seq_len(nrow(mapRem)), floor(nrow(mapRem) / 20),
+                        prob = mapRem$LOD ^ 1.5)
+      map <- rbind(mapRem[sampIdx, ], mapShw)
+    }
     map <- merge(map, addPos, by = "chr")
     map$cumPos <- map$pos + map$add
     ## Extract row numbers for significant SNPs.

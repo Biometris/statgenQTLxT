@@ -64,9 +64,6 @@ fastGLS <- function(y,
   ## If necessary convert input to matrix
   X <- as.matrix(X)
   Sigma <- as.matrix(Sigma)
-  if (!is.null(covs)) {
-    covs <- as.matrix(covs)
-  }
   resCpp <- fastGLSCPP(X, y, Sigma, covs, ncores = 4)
   ## Construct output data.frame.
   GLS <- data.frame(pValue = resCpp$pVal,

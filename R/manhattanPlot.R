@@ -94,9 +94,10 @@ manhattanPlot <- function(xValues,
     plotDat[-c(xSig, xEffects),  ]
   }, ggplot2::aes_string(x = "x", y = "y", color = "chr")) +
     ggplot2::geom_point(na.rm = TRUE) +
-    ggplot2::scale_y_continuous(limits = c(0, yMax), expand = c(0, 0.1)) +
+    ggplot2::scale_y_continuous(limits = c(0, yMax),
+                                expand = ggplot2::expand_scale(mult = c(0, 0.1))) +
     ggplot2::scale_x_continuous(breaks = xMarks, labels = chrs,
-                                expand = c(0, 0)) +
+                                limits = c(0, NA), expand = c(0, 0)) +
     ggplot2::scale_color_manual(values = colPalette, labels = NULL) +
     ggplot2::coord_cartesian(clip = "off") +
     ggplot2::labs(x = xLab, y = yLab) +
