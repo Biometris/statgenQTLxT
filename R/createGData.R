@@ -123,6 +123,9 @@ createGData <- function(gData = NULL,
       ## chr and pos are obligatory cols.
       stop("chr and pos should be columns in map.\n")
     }
+    if (!is.numeric(map$pos)) {
+      stop("pos should be a numeric column in map.\n")
+    }
     if (!is.null(gData$map)) {
       ## gData already contained a map object. Overwrite with a warning.
       warning("existing map will be overwritten.\n", call. = FALSE)
