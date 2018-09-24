@@ -12,8 +12,6 @@
 #' position of the snp starting from the first chromosome.
 #' @param xLab A character string, the x-axis label.
 #' @param yLab A character string, the y-axis label.
-#' @param plotType The type of plot that is made, either a line plot ("l") or
-#' a dot plot ("d" or "p")
 #' @param xSig A vector of integers, indicating which components in the vectors
 #' xValues and yValues are significant.
 #' @param xEffects A vector of integers, indicating which components in the
@@ -35,13 +33,12 @@
 #'
 #' @import grDevices graphics
 #'
-#' @export
+#' @keywords internal
 manhattanPlot <- function(xValues,
                           yValues,
                           map,
                           xLab = "Chromosomes",
                           yLab = expression(-log[10](p)),
-                          plotType = c("l", "p", "d"),
                           xSig = integer(),
                           xEffects = integer(),
                           colPalette = rep(c("royalblue", "maroon"), 50),
@@ -74,7 +71,6 @@ manhattanPlot <- function(xValues,
   if (length(xValues) != length(yValues)) {
     stop("xValues and yValues should be of the same length")
   }
-  plotType <- match.arg(plotType)
   ## Extract central chromosome postions from map.
   ## Differentiate cases to deal with character chromosomes.
   if (is.numeric(map$chr)) {

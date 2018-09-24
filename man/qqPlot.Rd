@@ -20,6 +20,9 @@ Given a vector of pvalues, generate a qq-plot of observed LOD-scores versus
 expected LOD-scores. Code taken from Segura et al. and adapted
 }
 \references{
-Segura et al. (2012) An efficient multi-locus mixed model
-approach for genome-wide association studies in structured populations
+Segura V, Vilhjálmsson BJ, Platt A, et al. An efficient
+multi-locus mixed model approach for genome-wide association studies in
+structured populations. Nature genetics. 2012;44(7):825-830.
+doi:10.1038/ng.2314.
 }
+\keyword{internal}

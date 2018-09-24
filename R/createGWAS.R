@@ -200,24 +200,86 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' Creates a plot of an object of S3 class \code{GWAS}. Three types of plots
 #' can be made:
 #' \itemize{
-#' \item{a manhattan plot using the function \code{\link{manhattanPlot}}}
-#' \item{a qq plot using the function \code{\link{qqPlot}}}
-#' \item{a qtl plot using the function \code{\link{qtlPlot}}}
+#' \item{a manhattan plot, a plot of LOD-scores per SNP}
+#' \item{a qq plot of observed LOD-scores versus expected LOD-scores}
+#' \item{a qtl plot of effect sizes and directions for multiple traits}
+#' }
+#' Manhattan plots and qq plots are made for a single trait which should be
+#' indicated using the parameter \code{trait}, the qtl plot will plot all
+#' traits analysed.\cr
+#' See details for a detailed description of the plots and the plot options
+#' specific to the different plots.
+#'
+#' @section Manhattan Plot:
+#' A LOD-profile of all marker positions and corresponding LOD-scores is
+#' plotted. Significant markers are highlighted with red dots. By default these
+#' are taken from the result of the GWAS analysis however the LOD-threshold for
+#' significant parameters may be modified using the parameter \code{yThr}. The
+#' treshold is plotted as a horizontal line. If there are previously known
+#' marker effect also false positives and true negatives can be marked.\cr
+#' Extra parameter options:
+#' \itemize{
+#' \item{\code{xLab}} {A character string, the x-axis label. Default =
+#' \code{"Chromosomes"}}
+#' \item{\code{yLab}} {A character string, the y-axis label. Default =
+#' \code{-10log(p)}}
+#' \item{\code{effects}} {A character vector, indicating which snps correspond
+#' to a real (known) effect. Used for determining true/false positives and
+#' false negatives. True positives are colored green, false positives orange and
+#' false negatives yellow.}
+#' \item{\code{colPalette}} {A color palette used for plotting. Default the
+#' coloring is done by chromosome, using royalblue and maroon.}
+#' \item{\code{yThr}} {A numerical value for the LOD-threshold. As default value
+#' the value from the GWAS analysis is used.}
+#' \item{\code{signLwd}} {A numerical value giving the thickness of the
+#' points that are false/true positives/negatives. Defaule = 0.6}
+#' \item{\code{lod}} {A positive numerical value. For the snps with a LOD-value
+#' below this value only 5% is plotted. The chance of a snp being plotting is
+#' proportional to its LOD-value. This option can be useful when plotting a
+#' large number of snps.}
+#' \item{\code{chr}} {A vector of chromosomes to be plotted. By default all
+#' chromosomes are plotted. Using this option this can be restricted to a
+#' subset of chromosomes.}
 #' }
 #'
-#' When making a manhattan plot all markers in the \code{GWAResult} data.frame
-#' in the \code{GWAS} object are plotted. Significant SNPs are taken from the
-#' \code{signSnp} data.frame in the \code{GWAS} object and marked in the plot.
-#' Also the LOD-threshold is taken from the \code{GWAS} object and plotted as
-#' a horizontal line. Both \code{signSnp} and \code{thr} can be left empty and
-#' will then be ignored in the plot.\cr
-#' \code{...} can be used to pass extra arguments to the actual plotting
-#' functions. See those fuctions for details.
+#' @section QQ Plot:
+#' From the LOD-scores calculated in the GWAS analysis a qq-plot is generated of
+#' observed LOD-scores versus expected LOD-scores. Code is copied from
+#' Segura et al. (2012) and adapted.
+#'
+#' @section QTL Plot:
+#' A plot of effect sizes for the significant snps found in the GWAS analysis
+#' if created. Each horizontal line in the plot contains QTLs of one trait,
+#' phenotypic trait or environment. Optionally Vertical white lines can indicate
+#' chromosome subdivision, genes of interest, known QTL, etc. Circle diameters
+#' are proportional to the absolute value of allelic effect. Colors indicate the
+#' direction of the effect: green when the allele increases the trait value,
+#' and blue when it decreases the value.\cr
+#' Extra parameter options:
+#' \itemize{
+#' \item{\code{normalize}} {Should the snpEffect be normalized? Default =
+#' \code{FALSE}}
+#' \item{\code{sortData}} {Should the data be sorted before plotting? Either
+#' \code{FALSE} if no sorting should be done or a character string indicating
+#' the data column on which the data should be sorted. Default =
+#' \code{FALSE}}
+#' \item{\code{binPositions}} {An optional data.frame containing at leasts two
+#' columns, chr(omosome) and pos(ition). Vertical lines are plotted at those
+#' positions. Default = \code{NULL}}
+#' \item{\code{printVertGrid}} {Should default vertical grid lines be plotted.
+#' Default = \code{TRUE}}
+#' \item{\code{yLab}} {A character string, the y-axis label. Default =
+#' \code{"Traits"}}
+#' \item{\code{exportPptx}} {Should the plot be exported to a .pptx file?
+#' Default = \code{FALSE}}
+#' \item{\code{pptxName}} {A character string, the name of the .pptx file to
+#' which the plot is exported. Ignored if exportPptx = \code{FALSE}.}
+#' }
 #'
 #' @param x An object of class \code{GWAS}.
 #' @param ... further arguments to be passed on to the actual plotting
 #' functions.
-#' @param type A character string indicating the type of plot to be made. One
+#' @param plotType A character string indicating the type of plot to be made. One
 #' of "manhattan", "qq" and "qtl".
 #' @param environment A character string or numeric index indicating for which
 #' environment the plot should be made. If \code{x} only contains results for
@@ -228,16 +290,22 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' @param output Should the plot be output to the current device? If
 #' \code{FALSE} only a list of ggplot objects is invisibly returned.
 #'
-#' @seealso \code{\link{manhattanPlot}}, \code{\link{qqPlot}},
-#' \code{\link{qtlPlot}}
+#' @references Millet et al. (2016) Genome-wide analysis of yield in Europe:
+#' Allelic effects vary with drought and heat scenarios. Plant Physiology,
+#' October 2016, Vol. 172, p. 749–764
+#' @references Segura V, Vilhjálmsson BJ, Platt A, et al. An efficient
+#' multi-locus mixed model approach for genome-wide association studies in
+#' structured populations. Nature genetics. 2012;44(7):825-830.
+#' doi:10.1038/ng.2314.
 #'
 #' @export
-plot.GWAS <- function(x, ...,
-                      type = c("manhattan", "qq", "qtl"),
+plot.GWAS <- function(x,
+                      ...,
+                      plotType = c("manhattan", "qq", "qtl"),
                       environment = NULL,
                       trait = NULL,
                       output = TRUE) {
-  type <- match.arg(type)
+  plotType <- match.arg(plotType)
   dotArgs <- list(...)
   ## Checks.
   if (!is.null(environment) && !is.character(environment) &&
@@ -263,7 +331,7 @@ plot.GWAS <- function(x, ...,
   }
   GWAResult <- x$GWAResult[[environment]]
   signSnp <- x$signSnp[[environment]]
-  if (type != "qtl") {
+  if (plotType != "qtl") {
     if (is.null(trait)) {
       trait <- unique(GWAResult$trait)
       if (length(trait) > 1) {
@@ -279,7 +347,7 @@ plot.GWAS <- function(x, ...,
       signSnp <- signSnp[signSnp$trait == trait, ]
     }
   }
-  if (type == "manhattan") {
+  if (plotType == "manhattan") {
     ## Compute chromosome boundaries.
     GWAResult <- GWAResult[!is.na(GWAResult$pos), ]
     ## Select specific chromosome(s) for plotting.
@@ -295,6 +363,11 @@ plot.GWAS <- function(x, ...,
                          add = c(0, cumsum(chrBnd[, 2]))[1:nrow(chrBnd)],
                          stringsAsFactors = FALSE)
     map <- GWAResult[, c("snp", "chr", "pos", "LOD")]
+    if (!is.null(dotArgs$effects)) {
+      if (!all(dotArgs$effects %in% map$snp)) {
+        stop("All known effects should be in the map.\n")
+      }
+    }
     if (!is.null(dotArgs$lod)) {
       ## Of markers below lod only 5% will be plotted.
       ## A weighted sample is taken of those markers.
@@ -302,8 +375,10 @@ plot.GWAS <- function(x, ...,
       lod <- dotArgs$lod
       chkNum(lod, min = 0)
       set.seed(1234)
-      mapShw <- map[!is.na(map$LOD) & map$LOD >= dotArgs$lod, ]
-      mapRem <- map[!is.na(map$LOD) & map$LOD < dotArgs$lod, ]
+      mapShw <- map[(!is.na(map$LOD) & map$LOD >= dotArgs$lod) |
+                      map$snp %in% dotArgs$effect, ]
+      mapRem <- map[(!is.na(map$LOD) & map$LOD < dotArgs$lod) &
+                      !map$snp %in% dotArgs$effect, ]
       sampIdx <- sample(seq_len(nrow(mapRem)), floor(nrow(mapRem) / 20),
                         prob = mapRem$LOD ^ 1.5)
       map <- rbind(mapRem[sampIdx, ], mapShw)
@@ -319,30 +394,26 @@ plot.GWAS <- function(x, ...,
     } else {
       signSnpNr <- integer()
     }
-    if (!is.null(dotArgs$plotType)) {
-      plotType = dotArgs$plotType
-    } else {
-      plotType = "p"
-    }
     if (is.null(dotArgs$yThr)) {
       yThr <- x$thr[[environment]][trait]
     } else {
       yThr <- dotArgs$yThr
     }
+    xEffects <- which(map$snp %in% dotArgs$effects)
     ## Create manhattan plot.
     do.call(manhattanPlot,
             args = c(list(xValues = map$cumPos, yValues = map$LOD,
                           map = map[, -which(colnames(map) == "LOD")],
-                          plotType = plotType, xSig = signSnpNr,
+                          xSig = signSnpNr, xEffects = xEffects,
                           chrBoundaries = chrBnd[, 2], yThr = yThr,
                           output = output),
-                     dotArgs[!(names(dotArgs) %in% c("plotType", "yThr",
-                                                     "lod", "chr"))]
+                     dotArgs[!(names(dotArgs) %in% c("yThr", "lod", "chr",
+                                                     "effects"))]
             ))
-  } else if (type == "qq") {
+  } else if (plotType == "qq") {
     ## Create qq-plot.
     qqPlot(pValues = na.omit(GWAResult$pValue), ..., output = output)
-  } else if (type == "qtl") {
+  } else if (plotType == "qtl") {
     if (is.null(signSnp)) {
       stop("No significant SNPs in signSnp. No plot can be made.\n")
     }

@@ -36,7 +36,7 @@ These are used for calculating the physical limits of the chromosome.}
 column on which the data should be sorted.}
 
 \item{binPositions}{An optional data.frame containing at leasts two columns,
-chromosome and position. Vertical lines are plotted at those positions.}
+chr and pos. Vertical lines are plotted at those positions.}
 
 \item{printVertGrid}{Should default vertical grid lines be plotted.}
 
@@ -70,3 +70,4 @@ Millet et al. (2016) Genome-wide analysis of yield in Europe:
 Allelic effects vary with drought and heat scenarios. Plant Physiology,
 October 2016, Vol. 172, p. 749–764
 }
+\keyword{internal}

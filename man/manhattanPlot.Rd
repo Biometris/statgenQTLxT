@@ -5,10 +5,10 @@
 \title{Create a manhattan plot}
 \usage{
 manhattanPlot(xValues, yValues, map, xLab = "Chromosomes",
-  yLab = expression(-log[10](p)), plotType = c("l", "p", "d"),
-  xSig = integer(), xEffects = integer(),
-  colPalette = rep(c("royalblue", "maroon"), 50), chrBoundaries = 0,
-  yThr = NULL, signLwd = 0.6, ..., output = TRUE)
+  yLab = expression(-log[10](p)), xSig = integer(),
+  xEffects = integer(), colPalette = rep(c("royalblue", "maroon"), 50),
+  chrBoundaries = 0, yThr = NULL, signLwd = 0.6, ...,
+  output = TRUE)
 }
 \arguments{
 \item{xValues}{A vector of cumulative marker positions.}
@@ -22,9 +22,6 @@ position of the snp starting from the first chromosome.}
 \item{xLab}{A character string, the x-axis label.}
 
 \item{yLab}{A character string, the y-axis label.}
-
-\item{plotType}{The type of plot that is made, either a line plot ("l") or
-a dot plot ("d" or "p")}
 
 \item{xSig}{A vector of integers, indicating which components in the vectors
 xValues and yValues are significant.}
@@ -59,3 +56,4 @@ LOD-profile. Significant markers can be highlighted with red dots. If there
 are previously known marker effect also false positives and true negatives
 will be marked.
 }
+\keyword{internal}

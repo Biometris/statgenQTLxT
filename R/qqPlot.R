@@ -8,12 +8,14 @@
 #' @param pValues A numeric vector of pValues. Missings are ignored when
 #' plotting.
 #'
-#' @references Segura et al. (2012) An efficient multi-locus mixed model
-#' approach for genome-wide association studies in structured populations
+#' @references Segura V, Vilhjálmsson BJ, Platt A, et al. An efficient
+#' multi-locus mixed model approach for genome-wide association studies in
+#' structured populations. Nature genetics. 2012;44(7):825-830.
+#' doi:10.1038/ng.2314.
 #'
 #' @import grDevices graphics
 #'
-#' @export
+#' @keywords internal
 qqPlot <- function(pValues,
                    ...,
                    output = TRUE) {

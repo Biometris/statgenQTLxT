@@ -26,7 +26,7 @@
 #' \code{FALSE} if no sorting should be done or a character indicating the data
 #' column on which the data should be sorted.
 #' @param binPositions An optional data.frame containing at leasts two columns,
-#' chromosome and position. Vertical lines are plotted at those positions.
+#' chr and pos. Vertical lines are plotted at those positions.
 #' @param printVertGrid Should default vertical grid lines be plotted.
 #' @param yLab A character string, the y-axis label.
 #' @param exportPptx Should the plot be exported to a .pptx file?
@@ -42,10 +42,9 @@
 #' Allelic effects vary with drought and heat scenarios. Plant Physiology,
 #' October 2016, Vol. 172, p. 749–764
 #'
-#' @import grDevices
-#' @import graphics
+#' @import grDevices graphics
 #'
-#' @export
+#' @keywords internal
 qtlPlot <- function(data,
                     chromosome = "chr",
                     trait = "trait",
