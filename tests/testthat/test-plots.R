@@ -25,8 +25,8 @@ test_that("qq plot functions properly", {
 
 test_that("GWAS qq plot functions properly", {
   stg <- runSingleTraitGwas(gDataTest)
-  expect_error(plot(stg, type = "qq"), "multiple environments detected")
-  expect_error(plot(stg, type = "qq", environment = "ph1"),
+  expect_error(plot(stg, plotType = "qq"), "multiple environments detected")
+  expect_error(plot(stg, plotType = "qq", environment = "ph1"),
                "multiple traits detected")
   p <- plot(stg, type = "qq", environment = "ph1", trait = "X1", output = FALSE)
   expect_is(p, "ggplot")
@@ -41,8 +41,8 @@ test_that("qtl plot functions properly", {
 
 test_that("GWAS qtl plot functions properly", {
   stg <- runSingleTraitGwas(gDataTest, thrType = "fixed", LODThr = 1)
-  expect_error(plot(stg, type = "qtl"), "multiple environments detected")
-  p <- plot(stg, type = "qtl", environment = "ph1", output = FALSE)
+  expect_error(plot(stg, plotType = "qtl"), "multiple environments detected")
+  p <- plot(stg, plotType = "qtl", environment = "ph1", output = FALSE)
   expect_is(p, "ggplot")
 })
 
@@ -58,8 +58,8 @@ test_that("manhattan plot functions properly", {
 
 test_that("GWAS manhattan plot functions properly", {
   stg <- runSingleTraitGwas(gDataTest)
-  expect_error(plot(stg, type = "manhattan"), "multiple environments detected")
-  expect_error(plot(stg, type = "manhattan", environment = "ph1"),
+  expect_error(plot(stg, plotType = "manhattan"), "multiple environments detected")
+  expect_error(plot(stg, plotType = "manhattan", environment = "ph1"),
                "multiple traits detected")
   p <- plot(stg, type = "manhattan", environment = "ph1", trait = "X1",
             output = FALSE)
