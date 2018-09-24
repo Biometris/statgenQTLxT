@@ -123,7 +123,3 @@ multi-locus mixed model approach for genome-wide association studies in
 structured populations. Nature genetics. 2012;44(7):825-830.
 doi:10.1038/ng.2314.
 }
-\seealso{
-\code{\link{manhattanPlot}}, \code{\link{qqPlot}},
-\code{\link{qtlPlot}}
-}

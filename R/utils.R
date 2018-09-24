@@ -255,3 +255,33 @@ getOper <- function(x) {
     `%do%`
   }
 }
+
+## Helper function for reading IBD probabilies as computed by RABBIT
+readIBDProbs <- function(infile) {
+  ## Read map and marker probabilities.
+  markMap <- data.table::fread(infile, skip = "haploprob", data.table = FALSE,
+                               fill = TRUE)
+  ## Extract map.
+  map <- data.frame(chr = as.numeric(markMap[3, -1]),
+                    pos = as.numeric(markMap[4, -1]),
+                    row.names = as.character(markMap[2, -1]))
+  ## Get names of genotypes and compute number of founder alleles per genotype.
+  genoNames <- unique(sapply(X = strsplit(x = markMap[5:nrow(markMap), 1],
+                                          split = "_haplotype"), FUN = "[[", 1))
+  nAlleles = (nrow(markMap) - 4) / length(genoNames)
+  ## Convert markers to 3D array.
+  markArr <- array(dim = c(length(genoNames), nrow(map), nAlleles))
+  for (i in 1:nrow(map)) {
+    markArr[, i, ] <- matrix(as.numeric(markMap[5:nrow(markMap), i + 1]),
+                             ncol = nAlleles, byrow = TRUE)
+  }
+  ## Read founder names from file.
+  foundNames <- data.table::fread(infile, header = FALSE, nrows = nAlleles + 2,
+                                  skip = "haplotypes in order",
+                                  data.table = FALSE, select = 3)
+  foundNames <- as.character(foundNames[3:nrow(foundNames), ])
+  ## Add dimnames to markers: genotypes x markers x founders.
+  dimnames(markArr) <- list(genoNames, rownames(map), foundNames)
+  return(list(markArr = markArr, map = map))
+}
+
