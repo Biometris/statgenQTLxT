@@ -49,8 +49,7 @@ kinship <- function(X,
       pos <- map[map$chr == c, "pos"]
       ## First and last marker need special treatment. For those just take
       ## double the distance to the next/previous marker.
-      posCor <- c(pos[2] - pos[1],
-                  (pos[3:length(pos)] - pos[1:(length(pos) - 2)]) / 2,
+      posCor <- c(pos[2] - pos[1], diff(pos, lag = 2) / 2,
                   pos[length(pos)] - pos[length(pos) - 1])
     }))
     K <- multiAllKinCPP(X, posCor, denominator)

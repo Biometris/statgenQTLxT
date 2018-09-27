@@ -259,8 +259,8 @@ getOper <- function(x) {
 ## Helper function for reading IBD probabilies as computed by RABBIT
 readIBDProbs <- function(infile) {
   ## Read map and marker probabilities.
-  markMap <- data.table::fread(infile, skip = "haploprob", data.table = FALSE,
-                               fill = TRUE)
+  markMap <- data.table::fread(infile, skip = "haploprob", fill = TRUE,
+                               data.table = FALSE)
   ## Extract map.
   map <- data.frame(chr = as.numeric(markMap[3, -1]),
                     pos = as.numeric(markMap[4, -1]),
