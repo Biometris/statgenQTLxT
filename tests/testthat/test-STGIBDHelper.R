@@ -48,3 +48,9 @@ test_that("fastGLSIBD with covariates produces correct output value", {
                       -3.41870440778646, 9.27826137792016, -15.4883014514782))
 })
 
+test_that("incorrect reference allele in fastGLSIBD produces error", {
+  X2 <- X
+  X2[, , 1] <- 0
+  expect_error(fastGLSIBD(y = y, X = X2, Sigma = Sigma, covs = covs, ref = 1),
+               "Invalid reference allele")
+})

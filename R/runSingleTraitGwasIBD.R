@@ -53,9 +53,7 @@ runSingleTraitGwasIBD <- function(gData,
                                   kinshipMethod = c("multiAllKin"),
                                   remlAlgo = c("EMMA", "NR"),
                                   GLSMethod = c("single", "multi"),
-                                  useMAF = TRUE,
                                   MAF = 0.01,
-                                  MAC = 10,
                                   genomicControl = FALSE,
                                   thrType = c("bonf", "fixed", "small"),
                                   alpha = 0.05 ,
@@ -87,13 +85,8 @@ runSingleTraitGwasIBD <- function(gData,
   if (sizeInclRegion > 0) {
     chkNum(minR2, min = 0, max = 1)
   }
-  if (useMAF) {
-    chkNum(MAF, min = 0, max = 1)
-    MAF <- max(MAF, 1e-6)
-  } else {
-    chkNum(MAC, min = 0)
-    MAC <- max(MAC, 1)
-  }
+  chkNum(MAF, min = 0, max = 1)
+  MAF <- max(MAF, 1e-6)
   thrType <- match.arg(thrType)
   if (thrType == "bonf") {
     chkNum(alpha, min = 0)
@@ -167,9 +160,6 @@ runSingleTraitGwasIBD <- function(gData,
                       colnames(gData$markers) %in% rownames(gData$map), ]
       mapRed <- gData$map[rownames(gData$map) %in% colnames(gData$markers), ]
       ###allFreq <- Matrix::colMeans(markersRed, na.rm = TRUE) / maxScore
-      if (!useMAF) {
-        MAF <- MAC / length(nonMiss) - 1e-5
-      }
       ## Determine segregating markers. Exclude snps used as covariates.
       ###segMarkers <- which(allFreq >= MAF & allFreq <= (1 - MAF))
       segMarkers <- seq_along(colnames(markersRed))
