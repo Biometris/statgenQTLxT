@@ -20,6 +20,11 @@ List fastGLSIBDCPP(const arma::cube &mp,
                    unsigned int ref,
                    Rcpp::Nullable<Rcpp::NumericVector> size_param = R_NilValue,
                    int ncores = 1) {
+  // Check that reference allele contains not only zeros.
+  if (all(vectorise(mp.slice(ref - 1)) == 0)) {
+    stop("Invalid reference allele.\n"
+         "Assure the reference allele contains non-zero values.\n");
+  }
   // Get number of genotypes, alleles and markers.
   unsigned int m = mp.n_slices - 1;
   unsigned int p = mp.n_cols;
