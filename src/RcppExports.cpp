@@ -120,8 +120,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // estEffsCPP
-List estEffsCPP(arma::mat y, arma::mat w, arma::mat x, arma::mat& vg, arma::mat& ve, arma::mat& k, bool returnSe, bool estCom, int ncores);
-RcppExport SEXP _genStatPipeline_estEffsCPP(SEXP ySEXP, SEXP wSEXP, SEXP xSEXP, SEXP vgSEXP, SEXP veSEXP, SEXP kSEXP, SEXP returnSeSEXP, SEXP estComSEXP, SEXP ncoresSEXP) {
+List estEffsCPP(arma::mat y, arma::mat w, arma::mat x, arma::mat& vg, arma::mat& ve, arma::mat& k, bool returnSe, bool estCom, Rcpp::Nullable<Rcpp::IntegerVector> nCores);
+RcppExport SEXP _genStatPipeline_estEffsCPP(SEXP ySEXP, SEXP wSEXP, SEXP xSEXP, SEXP vgSEXP, SEXP veSEXP, SEXP kSEXP, SEXP returnSeSEXP, SEXP estComSEXP, SEXP nCoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -133,14 +133,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat& >::type k(kSEXP);
     Rcpp::traits::input_parameter< bool >::type returnSe(returnSeSEXP);
     Rcpp::traits::input_parameter< bool >::type estCom(estComSEXP);
-    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
-    rcpp_result_gen = Rcpp::wrap(estEffsCPP(y, w, x, vg, ve, k, returnSe, estCom, ncores));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type nCores(nCoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(estEffsCPP(y, w, x, vg, ve, k, returnSe, estCom, nCores));
     return rcpp_result_gen;
 END_RCPP
 }
 // fastGLSCPP
-List fastGLSCPP(const arma::mat& X, const arma::vec& y, const arma::mat& sigma, Rcpp::Nullable<Rcpp::NumericVector> size_param, int ncores);
-RcppExport SEXP _genStatPipeline_fastGLSCPP(SEXP XSEXP, SEXP ySEXP, SEXP sigmaSEXP, SEXP size_paramSEXP, SEXP ncoresSEXP) {
+List fastGLSCPP(const arma::mat& X, const arma::vec& y, const arma::mat& sigma, Rcpp::Nullable<Rcpp::NumericVector> size_param, Rcpp::Nullable<Rcpp::IntegerVector> nCores);
+RcppExport SEXP _genStatPipeline_fastGLSCPP(SEXP XSEXP, SEXP ySEXP, SEXP sigmaSEXP, SEXP size_paramSEXP, SEXP nCoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -148,14 +148,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type size_param(size_paramSEXP);
-    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
-    rcpp_result_gen = Rcpp::wrap(fastGLSCPP(X, y, sigma, size_param, ncores));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type nCores(nCoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(fastGLSCPP(X, y, sigma, size_param, nCores));
     return rcpp_result_gen;
 END_RCPP
 }
 // fastGLSIBDCPP
-List fastGLSIBDCPP(const arma::cube& mp, const arma::vec& y, const arma::mat& sigma, unsigned int ref, Rcpp::Nullable<Rcpp::NumericVector> size_param, int ncores);
-RcppExport SEXP _genStatPipeline_fastGLSIBDCPP(SEXP mpSEXP, SEXP ySEXP, SEXP sigmaSEXP, SEXP refSEXP, SEXP size_paramSEXP, SEXP ncoresSEXP) {
+List fastGLSIBDCPP(const arma::cube& mp, const arma::vec& y, const arma::mat& sigma, unsigned int ref, Rcpp::Nullable<Rcpp::NumericVector> size_param, Rcpp::Nullable<Rcpp::IntegerVector> nCores);
+RcppExport SEXP _genStatPipeline_fastGLSIBDCPP(SEXP mpSEXP, SEXP ySEXP, SEXP sigmaSEXP, SEXP refSEXP, SEXP size_paramSEXP, SEXP nCoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -164,8 +164,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type ref(refSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type size_param(size_paramSEXP);
-    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
-    rcpp_result_gen = Rcpp::wrap(fastGLSIBDCPP(mp, y, sigma, ref, size_param, ncores));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type nCores(nCoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(fastGLSIBDCPP(mp, y, sigma, ref, size_param, nCores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getThr
+int getThr(Rcpp::Nullable<Rcpp::IntegerVector> nCores);
+RcppExport SEXP _genStatPipeline_getThr(SEXP nCoresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type nCores(nCoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(getThr(nCores));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -244,6 +255,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_genStatPipeline_estEffsCPP", (DL_FUNC) &_genStatPipeline_estEffsCPP, 9},
     {"_genStatPipeline_fastGLSCPP", (DL_FUNC) &_genStatPipeline_fastGLSCPP, 5},
     {"_genStatPipeline_fastGLSIBDCPP", (DL_FUNC) &_genStatPipeline_fastGLSIBDCPP, 6},
+    {"_genStatPipeline_getThr", (DL_FUNC) &_genStatPipeline_getThr, 1},
     {"_genStatPipeline_astleCPP", (DL_FUNC) &_genStatPipeline_astleCPP, 2},
     {"_genStatPipeline_GRMCPP", (DL_FUNC) &_genStatPipeline_GRMCPP, 2},
     {"_genStatPipeline_IBSCPP", (DL_FUNC) &_genStatPipeline_IBSCPP, 2},

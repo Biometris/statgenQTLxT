@@ -12,7 +12,7 @@ runMultiTraitGwas(gData, environments = NULL, covar = NULL,
   maxIter = 2e+05, maxDiag = 10000, mG = 1, mE = 1, CmHet = TRUE,
   DmHet = TRUE, stopIfDecreasing = TRUE, computeLogLik = TRUE,
   Vg = NULL, Ve = NULL, reduceK = FALSE, nPca = NULL,
-  estCom = FALSE, parallel = FALSE)
+  estCom = FALSE, parallel = FALSE, nCores = NULL)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},
@@ -122,6 +122,10 @@ kinship matrix. Ignored if reduceK = \code{FALSE}.}
 \item{parallel}{Should the computation of variance components be done in
 parallel? Only used if \code{covModel = "pw"}. A parallel computing
 environment has to be setup by the user.}
+
+\item{nCores}{A numerical value indicating the number of cores to be used by
+the parallel part of the algorithm. If \code{NULL} the number of cores used
+will be equal to the number of cores available on the machine - 1.}
 }
 \value{
 An object of class \code{\link{GWAS}}.

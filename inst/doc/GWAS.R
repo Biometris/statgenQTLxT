@@ -1,12 +1,12 @@
 ## ----eval=FALSE----------------------------------------------------------
 #  markersRaw <- read.csv(gzcon(
-#    url("https://ricediversity.org/data/sets/44kgwas/RiceDiversity.44K.MSU6.Genotypes.csv.gz"),
+#    url("http://ricediversity.org/data/sets/44kgwas/RiceDiversity.44K.MSU6.Genotypes.csv.gz"),
 #    text = TRUE), stringsAsFactors = FALSE)
 #  phenoRaw <- read.delim(
-#    "https://ricediversity.org/data/sets/44kgwas/RiceDiversity_44K_Phenotypes_34traits_PLINK.txt",
+#    "http://ricediversity.org/data/sets/44kgwas/RiceDiversity_44K_Phenotypes_34traits_PLINK.txt",
 #    stringsAsFactors = FALSE)
 #  covarRaw <- read.csv(
-#    "https://ricediversity.org/data/sets/44kgwas/RiceDiversity.44K.germplasm.csv",
+#    "http://ricediversity.org/data/sets/44kgwas/RiceDiversity.44K.germplasm.csv",
 #    skip = 1,
 #    stringsAsFactors = FALSE)
 
@@ -65,21 +65,20 @@
 #  plot(GWASRicePlantHeight0)
 
 ## ----eval=FALSE----------------------------------------------------------
-#  GWASRicePlantHeight <- runSingleTraitGwas(gData = gDataRiceCodedBeagle,
-#                                            traits = "Plant.height",
-#                                            covar = c("PC1", "PC2", "PC3", "PC4"),
-#                                            GLSMethod = 2, kinshipMethod = "IBS",
-#                                            thrType = 2, LODThr = 4)
+#  GWASRicePlantHeight <-
+#    runSingleTraitGwas(gData = gDataRiceCodedBeagle, traits = "Plant.height",
+#                       covar = c("PC1", "PC2", "PC3", "PC4"), GLSMethod = "multi",
+#                       kinshipMethod = "IBS", thrType = "fixed", LODThr = 4)
 #  
 #  summary(GWASRicePlantHeight)
 #  plot(GWASRicePlantHeight, type = "qq")
 #  plot(GWASRicePlantHeight)
 
 ## ----eval=FALSE----------------------------------------------------------
-#  GWASRicePlantHeightMult <- runSingleTraitGwas(gData = gDataRiceCodedBeagle,
-#                                            covar = c("PC1", "PC2", "PC3", "PC4"),
-#                                            GLSMethod = 2, kinshipMethod = "IBS",
-#                                            thrType = 2, LODThr = 4)
+#  GWASRicePlantHeightMult <-
+#    runSingleTraitGwas(gData = gDataRiceCodedBeagle,
+#                       covar = c("PC1", "PC2", "PC3", "PC4"), GLSMethod = "multi",
+#                       kinshipMethod = "IBS", thrType = "fixed", LODThr = 4)
 #  
 #  summary(GWASRicePlantHeightMult)
 #  plot(GWASRicePlantHeightMult, type = "qq", trait = "Plant.height")

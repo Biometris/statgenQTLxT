@@ -4,6 +4,8 @@
 #' the algorithm proposed by Segura (2012). Also the \eqn{R_LR^2} statistics
 #' as in Sun (2010) is computed.
 #'
+#' @inheritParams runSingleTraitGwas
+#'
 #' @param y A numeric vector of length n of phenotypic scores. No missing
 #' values allowed.
 #' @param X An n x m matrix of marker-scores, n being the number of
@@ -14,10 +16,10 @@
 #'
 #' @return A data.frame with the following columns:
 #' \itemize{
-#' \item{\code{pValue} a vector of p-values for the GLS F-test}
-#' \item{\code{beta} a vector of effect sizes}
-#' \item{\code{betaSe} a vector of standard errors of the effect sizes}
-#' \item{\code{RLR2} a vector of R_LR^2 statistics as defined in Sun et al.}
+#' \item{\code{pValue} p-values for the GLS F-test}
+#' \item{\code{beta} effect sizes}
+#' \item{\code{betaSe} standard errors of the effect sizes}
+#' \item{\code{RLR2} L_LR^2 statistics as defined in Sun et al.}
 #' }
 #'
 #' @references Segura et al. (2012) An efficient multi-locus mixed-model
@@ -32,7 +34,8 @@
 fastGLS <- function(y,
                     X,
                     Sigma,
-                    covs = NULL) {
+                    covs = NULL,
+                    nCores = NULL) {
   ## Check class and missing values.
   if (missing(y) || !(inherits(y, "Matrix") || is.numeric(y)) || anyNA(y)) {
     stop("y should be a numeric vector without missing values.\n")
@@ -62,9 +65,7 @@ fastGLS <- function(y,
                "number of rows in covs.\n"))
   }
   ## If necessary convert input to matrix
-  X <- as.matrix(X)
-  Sigma <- as.matrix(Sigma)
-  resCpp <- fastGLSCPP(X, y, Sigma, covs, ncores = 4)
+  resCpp <- fastGLSCPP(as.matrix(X), y, as.matrix(Sigma), covs, nCores = nCores)
   ## Construct output data.frame.
   GLS <- data.frame(pValue = resCpp$pVal,
                     beta = resCpp$beta,

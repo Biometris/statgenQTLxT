@@ -197,16 +197,20 @@ LLQuadFormDiagCPP <- function(y, vInv, size_param_x = NULL) {
 #' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
 #' mixed model algorithms for genome-wide association studies. Nature Methods,
 #' February 2014, Vol. 11, p. 407–409
-estEffsCPP <- function(y, w, x, vg, ve, k, returnSe = TRUE, estCom = FALSE, ncores = 4L) {
-    .Call(`_genStatPipeline_estEffsCPP`, y, w, x, vg, ve, k, returnSe, estCom, ncores)
+estEffsCPP <- function(y, w, x, vg, ve, k, returnSe = TRUE, estCom = FALSE, nCores = NULL) {
+    .Call(`_genStatPipeline_estEffsCPP`, y, w, x, vg, ve, k, returnSe, estCom, nCores)
 }
 
-fastGLSCPP <- function(X, y, sigma, size_param = NULL, ncores = 1L) {
-    .Call(`_genStatPipeline_fastGLSCPP`, X, y, sigma, size_param, ncores)
+fastGLSCPP <- function(X, y, sigma, size_param = NULL, nCores = NULL) {
+    .Call(`_genStatPipeline_fastGLSCPP`, X, y, sigma, size_param, nCores)
 }
 
-fastGLSIBDCPP <- function(mp, y, sigma, ref, size_param = NULL, ncores = 1L) {
-    .Call(`_genStatPipeline_fastGLSIBDCPP`, mp, y, sigma, ref, size_param, ncores)
+fastGLSIBDCPP <- function(mp, y, sigma, ref, size_param = NULL, nCores = NULL) {
+    .Call(`_genStatPipeline_fastGLSIBDCPP`, mp, y, sigma, ref, size_param, nCores)
+}
+
+getThr <- function(nCores = NULL) {
+    .Call(`_genStatPipeline_getThr`, nCores)
 }
 
 astleCPP <- function(x, denom = NULL) {

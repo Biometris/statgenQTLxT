@@ -7,10 +7,10 @@
 runSingleTraitGwasIBD(gData, traits = NULL, environments = NULL,
   covar = NULL, snpCov = NULL, kin = NULL,
   kinshipMethod = c("multiAllKin"), remlAlgo = c("EMMA", "NR"),
-  GLSMethod = c("single", "multi"), useMAF = TRUE, MAF = 0.01,
-  MAC = 10, genomicControl = FALSE, thrType = c("bonf", "fixed",
-  "small"), alpha = 0.05, LODThr = 4, nSnpLOD = 10,
-  sizeInclRegion = 0, minR2 = 0.5, ref = 1)
+  GLSMethod = c("single", "multi"), MAF = 0.01,
+  genomicControl = FALSE, thrType = c("bonf", "fixed", "small"),
+  alpha = 0.05, LODThr = 4, nSnpLOD = 10, sizeInclRegion = 0,
+  minR2 = 0.5, ref = 1, ncores = NULL)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},
@@ -57,17 +57,10 @@ the variance components. Either \code{EMMA} for the EMMA algorithm or
 the marker effects. Either \code{single} for using a single kinship matrix.
 or \code{multi} for using chromosome specific kinship matrices.}
 
-\item{useMAF}{Should the minor allele frequency be used for selecting SNPs
-for the analysis. If \code{FALSE} the minor allele count is used instead.}
-
 \item{MAF}{A numerical value between 0 and 1. SNPs with minor allele
 frequency below this value are not taken into account for the analysis,
 i.e. p-values and effect sizes are put to missing (NA). Ignored if
 \code{useMAF} is \code{FALSE}.}
-
-\item{MAC}{A numerical value. SNPs with minor allele count below this value
-are not taken into account for the analysis, i.e. p-values and effect sizes
-are put to missing (NA). Ignored if \code{useMAF} is \code{TRUE}.}
 
 \item{genomicControl}{Should genomic control correction as in Devlin and
 Roeder (1999) be applied?}

@@ -1,4 +1,6 @@
 #include <RcppArmadillo.h>
+#include "getThr.h"
+
 // Correctly setup the build environment
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -113,7 +115,7 @@ List estEffsCPP(arma::mat y,
                 arma::mat& k,
                 bool returnSe = true,
                 bool estCom = false,
-                int ncores = 4) {
+                Rcpp::Nullable<Rcpp::IntegerVector> nCores = R_NilValue) {
   // Extract number of traits, individuals, covariates and SNPs.
   unsigned int p = y.n_cols;
   unsigned int n = y.n_rows;
@@ -131,7 +133,8 @@ List estEffsCPP(arma::mat y,
   arma::mat x2 = square(x);
   arma::cube vInv = cube(p, p, n);
   arma::mat vInvy = mat(p, n);
-#pragma omp parallel for num_threads(ncores)
+  int nThr = getThr(nCores);
+#pragma omp parallel for num_threads(nThr)
   for(unsigned int i = 0; i < n; i++) {
     vInv.slice(i) = inv_sympd(dk(i) * vg + ve);
     // vInvy is used is several equations so is computed once here.
@@ -194,7 +197,7 @@ List estEffsCPP(arma::mat y,
   // Compute degrees of freedom for full model.
   double dfFull = (n - nc - 1) * p;
   // The remaining calculations are SNP-dependent.
-#pragma omp parallel for num_threads(ncores)
+#pragma omp parallel for num_threads(nThr)
   for (unsigned int snp = 0; snp < ns; snp++) {
     // Compute inverse of VBetaSnp.
     arma::mat vBetaSnpInv = vBetaSnp(snp, span());
@@ -256,7 +259,7 @@ List estEffsCPP(arma::mat y,
       vSnpQCom = sum(vSnpCom, 1);
     }
     // The remaining calculations are SNP-dependent.
-#pragma omp parallel for num_threads(ncores)
+#pragma omp parallel for num_threads(nThr)
     for (unsigned int snp = 0; snp < ns; snp++) {
       // Compute VBetaSnpInvCom - scalar value
       double vBetaSnpInvCom = 1 / vBetaSnpCom(snp);

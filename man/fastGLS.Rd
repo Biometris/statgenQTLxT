@@ -4,7 +4,7 @@
 \alias{fastGLS}
 \title{Fast Generalized Least Squares algoritm}
 \usage{
-fastGLS(y, X, Sigma, covs = NULL)
+fastGLS(y, X, Sigma, covs = NULL, nCores = NULL)
 }
 \arguments{
 \item{y}{A numeric vector of length n of phenotypic scores. No missing
@@ -17,14 +17,18 @@ individuals, m the number of markers. no missing values allowed.}
 
 \item{covs}{An n x c matrix of covariates (NOT including an intercept).
 No missing values allowed.}
+
+\item{nCores}{A numerical value indicating the number of cores to be used by
+the parallel part of the algorithm. If \code{NULL} the number of cores used
+will be equal to the number of cores available on the machine - 1.}
 }
 \value{
 A data.frame with the following columns:
 \itemize{
-\item{\code{pValue} a vector of p-values for the GLS F-test}
-\item{\code{beta} a vector of effect sizes}
-\item{\code{betaSe} a vector of standard errors of the effect sizes}
-\item{\code{RLR2} a vector of R_LR^2 statistics as defined in Sun et al.}
+\item{\code{pValue} p-values for the GLS F-test}
+\item{\code{beta} effect sizes}
+\item{\code{betaSe} standard errors of the effect sizes}
+\item{\code{RLR2} L_LR^2 statistics as defined in Sun et al.}
 }
 }
 \description{

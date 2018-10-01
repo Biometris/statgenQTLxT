@@ -61,7 +61,8 @@ runSingleTraitGwasIBD <- function(gData,
                                   nSnpLOD = 10,
                                   sizeInclRegion = 0,
                                   minR2 = 0.5,
-                                  ref = 1) {
+                                  ref = 1,
+                                  ncores = NULL) {
   ## Checks.
   chkGData(gData)
   chkMarkers(gData$markers, dim = 3)
@@ -189,7 +190,7 @@ runSingleTraitGwasIBD <- function(gData,
         }
         ## Compute pvalues and effects using fastGLS.
         GLSResult <- fastGLSIBD(y = y, X = X, Sigma = as.matrix(vcovMatrix),
-                                covs = Z, ref = ref)
+                                covs = Z, ref = ref, nCores = nCores)
         GWAResult[setdiff(segMarkers, exclude),
                   c("pValue", "RLR2", dimnames(markersRed)[[3]][-ref])] <-
           GLSResult
@@ -201,7 +202,7 @@ runSingleTraitGwasIBD <- function(gData,
                        Sigma = as.matrix(vcovMatrix),
                        covs = Z[, !grepl(pattern = paste0(snpCovariate, "_"),
                                          x = colnames(Z)), drop = FALSE],
-                       ref = ref)
+                       ref = ref, nCores = nCores)
           GWAResult[snpCovariate,
                     c("pValue", "RLR2", dimnames(markersRed)[[3]][-ref])] <-
             GLSResultSnpCov
@@ -236,7 +237,7 @@ runSingleTraitGwasIBD <- function(gData,
           GLSResult <-
             fastGLSIBD(y = y, X = X,
                        Sigma = as.matrix(vcovMatrix[[which(chrs == chr)]]),
-                       covs = Z, ref = ref)
+                       covs = Z, ref = ref, nCores = nCores)
           GWAResult[colnames(markersRedChr)[segMarkersChr],
                     c("pValue", "RLR2", dimnames(markersRedChr)[[3]][-ref])] <-
             GLSResult
@@ -248,7 +249,7 @@ runSingleTraitGwasIBD <- function(gData,
                          Sigma = as.matrix(vcovMatrix[[which(chrs == chr)]]),
                          covs = Z[, !grepl(pattern = paste0(snpCovariate, "_"),
                                            x = colnames(Z)), drop = FALSE],
-                         ref = ref)
+                         ref = ref, nCores = nCores)
             GWAResult[snpCovariate,
                       c("pValue", "RLR2", dimnames(markersRed)[[3]][-ref])] <-
               GLSResultSnpCov

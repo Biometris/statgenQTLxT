@@ -12,7 +12,8 @@ estEffTot <- function(markers,
                       snpCov,
                       allFreq,
                       MAF,
-                      estCom) {
+                      estCom,
+                      nCores = NULL) {
   p <- ncol(Y)
   segMarkers <- which(allFreq < MAF | allFreq > 1 - MAF)
   ## Add snpCovariates to segregating markers.
@@ -23,7 +24,7 @@ estEffTot <- function(markers,
     effEstSnpCov <- estEffsCPP(y = Y, w = XRed,
                                x = as.matrix(markers[, snpCov, drop = FALSE]),
                                vg = Vg, ve = Ve, k = as.matrix(K),
-                               estCom = estCom)
+                               estCom = estCom, nCores = nCores)
   } else {
     ## Set to NULL so binding can be done in next step.
     effEstSnpCov <- NULL
@@ -33,7 +34,8 @@ estEffTot <- function(markers,
   trtNames <- colnames(Y)
   effEst <- estEffsCPP(y = Y, w = X,
                        x = as.matrix(markers[, -excludedMarkers]),
-                       vg = Vg, ve = Ve, k = as.matrix(K), estCom = estCom)
+                       vg = Vg, ve = Ve, k = as.matrix(K), estCom = estCom,
+                       nCores = nCores)
   pValues <- c(effEst$pVals, effEstSnpCov$pVals)
   effs <- cbind(effEst$effs, effEstSnpCov$effs)
   effsSe <- cbind(effEst$effsSe, effEstSnpCov$effsSe)

@@ -14,7 +14,8 @@ fastGLSIBD <- function(y,
                        X,
                        Sigma,
                        covs = NULL,
-                       ref) {
+                       ref,
+                       nCores = NULL) {
   ## Check class and missing values.
   if (missing(y) || !(inherits(y, "Matrix") || is.numeric(y)) || anyNA(y)) {
     stop("y should be a numeric vector without missing values.\n")
@@ -37,7 +38,7 @@ fastGLSIBD <- function(y,
     stop(paste("The number of elements in y should be identical to the",
                "number of rows in covs.\n"))
   }
-  resCpp <- fastGLSIBDCPP(X, y, Sigma, ref, covs, ncores = 4)
+  resCpp <- fastGLSIBDCPP(X, y, Sigma, ref, covs, nCores = nCores)
   GLS <- cbind(resCpp$pVal, resCpp$RLR2, t(resCpp$beta2))
   rownames(GLS) <- colnames(X)
   colnames(GLS) <- c("pValue", "RLR2", dimnames(X)[[3]][-ref])

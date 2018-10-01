@@ -99,7 +99,8 @@ runMultiTraitGwas <- function(gData,
                               reduceK = FALSE,
                               nPca = NULL,
                               estCom = FALSE,
-                              parallel = FALSE) {
+                              parallel = FALSE,
+                              nCores = NULL) {
   ## Checks.
   chkGData(gData)
   chkMarkers(gData$markers)
@@ -392,7 +393,8 @@ runMultiTraitGwas <- function(gData,
   if (GLSMethod == "single") {
     estEffRes <- estEffTot(markers = markersRed, X = X, Y = Y, K = K,
                            XRed = XRed, Vg = Vg, Ve = Ve, snpCov = snpCov,
-                           allFreq = allFreq, MAF = MAF, estCom = estCom)
+                           allFreq = allFreq, MAF = MAF, estCom = estCom,
+                           nCores = nCores)
     list2env(estEffRes, envir = environment())
   } else if (GLSMethod == "multi") {
     pValues <- pValCom <- pValQtlE <- numeric()
@@ -409,7 +411,8 @@ runMultiTraitGwas <- function(gData,
       estEffRes <- estEffTot(markers = markersRedChr, X = X, Y = Y,
                              K = KChr[[chrNum]], XRed = XRed, Vg = Vg[[chrNum]],
                              Ve = Ve[[chrNum]], snpCov = snpCovChr,
-                             allFreq = allFreqChr, MAF = MAF, estCom = estCom)
+                             allFreq = allFreqChr, MAF = MAF, estCom = estCom,
+                             nCores = nCores)
       pValues <- c(pValues, estEffRes$pValues)
       effs <- cbind(effs, estEffRes$effs)
       effsSe <- cbind(effsSe, estEffRes$effsSe)

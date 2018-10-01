@@ -5,7 +5,7 @@
 \title{Estimates for covariates}
 \usage{
 estEffsCPP(y, w, x, vg, ve, k, returnSe = TRUE, estCom = FALSE,
-  ncores = 4L)
+  nCores = NULL)
 }
 \arguments{
 \item{y}{An n x p matrix of observed phenotypes, on p traits or environments

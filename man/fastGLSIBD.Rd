@@ -4,7 +4,7 @@
 \alias{fastGLSIBD}
 \title{Fast Generalized Least Squares algoritm for IBD based QTL mapping}
 \usage{
-fastGLSIBD(y, X, Sigma, covs = NULL, ref)
+fastGLSIBD(y, X, Sigma, covs = NULL, ref, nCores = NULL)
 }
 \arguments{
 \item{y}{A numeric vector of length n of phenotypic scores. No missing
@@ -19,6 +19,10 @@ No missing values allowed.}
 
 \item{ref}{An integer indicating the allele to use as reference allele in
 the computations.}
+
+\item{nCores}{A numerical value indicating the number of cores to be used by
+the parallel part of the algorithm. If \code{NULL} the number of cores used
+will be equal to the number of cores available on the machine - 1.}
 }
 \description{
 Compute statistics for the Generalized Least Squares (GLS) F-test for

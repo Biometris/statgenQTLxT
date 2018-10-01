@@ -1,4 +1,6 @@
 #include <RcppArmadillo.h>
+#include "getThr.h"
+
 // Correctly setup the build environment
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -18,7 +20,7 @@ List fastGLSCPP(const arma::mat &X,
                 const arma::vec &y,
                 const arma::mat &sigma,
                 Rcpp::Nullable<Rcpp::NumericVector> size_param = R_NilValue,
-                int ncores = 1) {
+                Rcpp::Nullable<Rcpp::IntegerVector> nCores = R_NilValue) {
   // Get number of genotypes and markers.
   unsigned int p = X.n_cols;
   unsigned int n = X.n_rows;
@@ -57,7 +59,8 @@ List fastGLSCPP(const arma::mat &X,
   NumericVector RLR2 = NumericVector(p);
   // Compute RSS per marker
   arma::mat tX = tMQtQ * X;
-#pragma omp parallel for num_threads(ncores)
+  int nThr = getThr(nCores);
+#pragma omp parallel for num_threads(nThr)
   for (unsigned int i = 0; i < tX.n_cols; i++) {
     arma::mat Qx, Rx;
     arma::qr_econ(Qx, Rx, tX.col(i));

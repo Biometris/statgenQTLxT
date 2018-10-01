@@ -1,4 +1,6 @@
 #include <RcppArmadillo.h>
+#include "getThr.h"
+
 // Correctly setup the build environment
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -19,7 +21,7 @@ List fastGLSIBDCPP(const arma::cube &mp,
                    const arma::mat &sigma,
                    unsigned int ref,
                    Rcpp::Nullable<Rcpp::NumericVector> size_param = R_NilValue,
-                   int ncores = 1) {
+                   Rcpp::Nullable<Rcpp::IntegerVector> nCores = R_NilValue) {
   // Check that reference allele contains not only zeros.
   if (all(vectorise(mp.slice(ref - 1)) == 0)) {
     stop("Invalid reference allele.\n"
@@ -42,7 +44,8 @@ List fastGLSIBDCPP(const arma::cube &mp,
   // pre-multiply the IBD probablities with t(M).
   // Skip reference allele and move alleles past reference allele to left.
   arma::cube mp2 = cube(n, p, m);
-#pragma omp parallel for num_threads(ncores)
+  int nThr = getThr(nCores);
+#pragma omp parallel for num_threads(nThr)
   for (unsigned int i = 0; i < m + 1; i++) {
     if (i < ref - 1) {
       mp2.slice(i) = mt * mp.slice(i);
@@ -64,7 +67,7 @@ List fastGLSIBDCPP(const arma::cube &mp,
   NumericVector pVal = NumericVector(p);
   NumericVector RLR2 = NumericVector(p);
   // Loop over markers and compute betas and RSS.
-#pragma omp parallel for num_threads(ncores)
+#pragma omp parallel for num_threads(nThr)
   for (unsigned int i = 0; i < p; i ++) {
     arma::mat X = mp2(span(), span(i), span());
     // Get indices of alleles in X that are not entirely 0.

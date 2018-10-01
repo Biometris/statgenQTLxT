@@ -55,13 +55,13 @@ As an example of the functionality of the package a worked example is provided u
 The first step is loading the data into R. 
 ```{r eval=FALSE} 
 markersRaw <- read.csv(gzcon(
-  url("https://ricediversity.org/data/sets/44kgwas/RiceDiversity.44K.MSU6.Genotypes.csv.gz"), 
+  url("http://ricediversity.org/data/sets/44kgwas/RiceDiversity.44K.MSU6.Genotypes.csv.gz"), 
   text = TRUE), stringsAsFactors = FALSE)
 phenoRaw <- read.delim(
-  "https://ricediversity.org/data/sets/44kgwas/RiceDiversity_44K_Phenotypes_34traits_PLINK.txt",
+  "http://ricediversity.org/data/sets/44kgwas/RiceDiversity_44K_Phenotypes_34traits_PLINK.txt",
   stringsAsFactors = FALSE)
 covarRaw <- read.csv(
-  "https://ricediversity.org/data/sets/44kgwas/RiceDiversity.44K.germplasm.csv", 
+  "http://ricediversity.org/data/sets/44kgwas/RiceDiversity.44K.germplasm.csv", 
   skip = 1,
   stringsAsFactors = FALSE)
 ```
@@ -152,23 +152,22 @@ In the default function call of the *runSingleTraitGwas* function a single kinsh
 As a default significant SNP are selected with a threshold computed using Bonferroni correction. Other thresholds can be specified as well. More options can be found in the function documentation for *runSingleTraitGwas*.
 The following example performs the GWAS computation using chromosome specific kinship matrices computed using Identity By State (IBS), a threshold for significant SNPs of 4 and PC1 - PC4 as covariates.
 ```{r eval=FALSE}
-GWASRicePlantHeight <- runSingleTraitGwas(gData = gDataRiceCodedBeagle, 
-                                          traits = "Plant.height", 
-                                          covar = c("PC1", "PC2", "PC3", "PC4"),
-                                          GLSMethod = 2, kinshipMethod = "IBS", 
-                                          thrType = 2, LODThr = 4)
+GWASRicePlantHeight <- 
+  runSingleTraitGwas(gData = gDataRiceCodedBeagle, traits = "Plant.height", 
+                     covar = c("PC1", "PC2", "PC3", "PC4"), GLSMethod = "multi",
+                     kinshipMethod = "IBS", thrType = "fixed", LODThr = 4)
 
 summary(GWASRicePlantHeight)
 plot(GWASRicePlantHeight, type = "qq")
 plot(GWASRicePlantHeight)
 ```
 The analysis can be performed for more than one trait in a single function call. Not specifying traits at all will perform the analysis for all traits that are present in the phenotypic data. The results will be combined in a single output object with the traits specified in the column *trait* in *GWAResult* and *signSnp* within this object.  
-When making a qq or manhattan plot of this output the trait has to be specified. Also a "qtl" plot is avaible which plots significant SNPs per trait against their position on the chromosomes. 
+When making a qq or manhattan plot of this output the trait has to be specified. Also a "qtl" plot is available which plots significant SNPs per trait against their position on the chromosomes. 
 ```{r eval=FALSE}
-GWASRicePlantHeightMult <- runSingleTraitGwas(gData = gDataRiceCodedBeagle, 
-                                          covar = c("PC1", "PC2", "PC3", "PC4"),
-                                          GLSMethod = 2, kinshipMethod = "IBS", 
-                                          thrType = 2, LODThr = 4)
+GWASRicePlantHeightMult <- 
+  runSingleTraitGwas(gData = gDataRiceCodedBeagle, 
+                     covar = c("PC1", "PC2", "PC3", "PC4"), GLSMethod = "multi",
+                     kinshipMethod = "IBS", thrType = "fixed", LODThr = 4)
 
 summary(GWASRicePlantHeightMult)
 plot(GWASRicePlantHeightMult, type = "qq", trait = "Plant.height")

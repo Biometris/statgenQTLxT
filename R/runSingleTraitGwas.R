@@ -81,6 +81,9 @@
 #' LD (\eqn{r^2}) with the significant SNP is at least 0.5 AND which are at
 #' most 200kb away from this significant snp are included. Ignored if
 #' \code{sizeInclRegion} = 0.
+#' @param nCores A numerical value indicating the number of cores to be used by
+#' the parallel part of the algorithm. If \code{NULL} the number of cores used
+#' will be equal to the number of cores available on the machine - 1.
 #'
 #' @return An object of class \code{\link{GWAS}}.
 #'
@@ -129,7 +132,8 @@ runSingleTraitGwas <- function(gData,
                                LODThr = 4,
                                nSnpLOD = 10,
                                sizeInclRegion = 0,
-                               minR2 = 0.5) {
+                               minR2 = 0.5,
+                               nCores = NULL) {
   ## Checks.
   chkGData(gData)
   chkMarkers(gData$markers)
@@ -256,7 +260,8 @@ runSingleTraitGwas <- function(gData,
                                  covEnv])
         }
         ## Compute pvalues and effects using fastGLS.
-        GLSResult <- fastGLS(y = y, X = X, Sigma = vcovMatrix, covs = Z)
+        GLSResult <- fastGLS(y = y, X = X, Sigma = vcovMatrix, covs = Z,
+                             nCores = nCores)
         GWAResult[setdiff(segMarkers, exclude),
                   c("pValue", "effect", "effectSe", "RLR2")] <- GLSResult
         ## Compute p-values and effects for snpCovariates using fastGLS.
@@ -266,7 +271,7 @@ runSingleTraitGwas <- function(gData,
                     X = markersRed[nonMissRepId, snpCovariate, drop = FALSE],
                     Sigma = vcovMatrix,
                     covs = Z[, which(colnames(Z) != snpCovariate),
-                             drop = FALSE])
+                             drop = FALSE], nCores = nCores)
           GWAResult[snpCovariate, c("pValue", "effect", "effectSe", "RLR2")] <-
             GLSResultSnpCov
         }
@@ -298,7 +303,7 @@ runSingleTraitGwas <- function(gData,
           }
           GLSResult <- fastGLS(y = y, X = X,
                                Sigma = vcovMatrix[[which(chrs == chr)]],
-                               covs = Z)
+                               covs = Z, nCores = nCores)
           GWAResult[colnames(markersRedChr)[segMarkersChr],
                     c("pValue", "effect", "effectSe", "RLR2")] <-
             GLSResult
@@ -309,7 +314,7 @@ runSingleTraitGwas <- function(gData,
                                                drop = FALSE],
                       Sigma = vcovMatrix[[which(chrs == chr)]],
                       covs = Z[, which(colnames(Z) != snpCovariate),
-                               drop = FALSE])
+                               drop = FALSE], nCores = nCores)
             GWAResult[snpCovariate,
                       c("pValue", "effect", "effectSe", "RLR2")] <-
               GLSResultSnpCov
