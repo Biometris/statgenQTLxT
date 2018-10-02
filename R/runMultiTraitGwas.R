@@ -11,7 +11,7 @@
 #' markers. Ignored if subsetMarkers = \code{FALSE}.
 #' @param fitVarComp Should the variance components be fitted? If \code{FALSE}
 #' they should be supplied in Vg and Ve
-#' @param covModel An character string indictating the model used when fitting
+#' @param covModel A character string indictating the model used when fitting
 #' the variance components. Either \code{unst} for unstructured for both Vg and
 #' Ve (as in Zhou and Stephens (2014)), \code{pw} for unstructered for both Vg
 #' and Ve (pairwise, as in Furlotte and Eskin (2013)) or \code{fa} for
@@ -19,24 +19,25 @@
 #' Ignored if \code{fitVarComp} = \code{FALSE}
 #' @param VeDiag Should there be environmental correlations if covModel = "unst"
 #' or "pw"? If traits are measured on the same individuals put \code{FALSE}.
-#' @param tolerance A numerical value. Used when fitting the factor analytical
-#' model if covModel = "fa". See \code{\link{EMFA}}.
-#' @param maxIter An integer. Used when fitting the factor analytical model if
-#' covModel = "fa". See \code{\link{EMFA}}.
-#' @param maxDiag A numerical value. Used when fitting the factor analytical
-#' model if covModel = "fa". See \code{\link{EMFA}}.
-#' @param mG An integer. Used when fitting the factor analytical model if
-#' covModel = "fa". See \code{\link{EMFA}}.
-#' @param mE An integer. Used when fitting the factor analytical model if
-#' covModel = "fa". See \code{\link{EMFA}}.
-#' @param CmHet A boolean. Used when fitting the factor analytical model if
-#' covModel = "fa". See \code{\link{EMFA}}.
-#' @param DmHet A boolean. Used when fitting the factor analytical model if
-#' covModel = "fa". See \code{\link{EMFA}}.
-#' @param stopIfDecreasing A boolean. Used when fitting the factor analytical
-#' model if covModel = "fa". See \code{\link{EMFA}}.
-#' @param computeLogLik A boolean. Used when fitting the factor analytical model
-#' if covModel = "fa". See \code{\link{EMFA}}.
+#' @param tolerance A numerical value. The iterating process stops if the
+#' difference in conditional log-likelihood between two consecutive iterations
+#' drops below \code{tolerance}. Only used when \code{covModel = "fa"}.
+#' @param maxIter An integer for the maximum number of iterations. Only used
+#' when \code{covModel = "fa"}.
+#' @param maxDiag A numical value. The maximal value of the diagonal elements
+#' in the precision matrices Cm and Dm (ignoring the low-rank part W W^t).
+#' Only used when \code{covModel = "fa"}.
+#' @param mG An integer. The order of the genetic part of the factor analytic
+#' model. Only used when \code{covModel = "fa"}.
+#' @param mE An integer. The order of the environmental part of the factor
+#' analytic model. Only used when \code{covModel = "fa"}.
+#' @param CmHet Should an extra diagonal part be added in the model for the
+#' precision matrix Cm? Only used when \code{covModel = "fa"}.
+#' @param DmHet Should an extra diagonal part be added in the model for the
+#' precision matrix Dm? Only used when \code{covModel = "fa"}.
+#' @param stopIfDecreasing Should the iterating process in the factor analytic
+#' model stop if after 50 iterations the log-likelihood decreases between two
+#' consecutive iterations? Only used when \code{covModel = "fa"}.
 #' @param Vg An optional matrix with genotypic variance components. Vg should
 #' have row names column names corresponding to the column names of Y. It may
 #' contain additional rows and colums which will be ignored. Ignored if

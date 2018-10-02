@@ -46,3 +46,4 @@ Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
 mixed model algorithms for genome-wide association studies. Nature Methods,
 February 2014, Vol. 11, p. 407–409
 }
+\keyword{internal}

@@ -64,7 +64,7 @@ i.e. p-values and effect sizes are put to missing (NA). Ignored if
 \item{fitVarComp}{Should the variance components be fitted? If \code{FALSE}
 they should be supplied in Vg and Ve}
 
-\item{covModel}{An character string indictating the model used when fitting
+\item{covModel}{A character string indictating the model used when fitting
 the variance components. Either \code{unst} for unstructured for both Vg and
 Ve (as in Zhou and Stephens (2014)), \code{pw} for unstructered for both Vg
 and Ve (pairwise, as in Furlotte and Eskin (2013)) or \code{fa} for
@@ -74,32 +74,32 @@ Ignored if \code{fitVarComp} = \code{FALSE}}
 \item{VeDiag}{Should there be environmental correlations if covModel = "unst"
 or "pw"? If traits are measured on the same individuals put \code{FALSE}.}
 
-\item{tolerance}{A numerical value. Used when fitting the factor analytical
-model if covModel = "fa". See \code{\link{EMFA}}.}
+\item{tolerance}{A numerical value. The iterating process stops if the
+difference in conditional log-likelihood between two consecutive iterations
+drops below \code{tolerance}. Only used when \code{covModel = "fa"}.}
 
-\item{maxIter}{An integer. Used when fitting the factor analytical model if
-covModel = "fa". See \code{\link{EMFA}}.}
+\item{maxIter}{An integer for the maximum number of iterations. Only used
+when \code{covModel = "fa"}.}
 
-\item{maxDiag}{A numerical value. Used when fitting the factor analytical
-model if covModel = "fa". See \code{\link{EMFA}}.}
+\item{maxDiag}{A numical value. The maximal value of the diagonal elements
+in the precision matrices Cm and Dm (ignoring the low-rank part W W^t).
+Only used when \code{covModel = "fa"}.}
 
-\item{mG}{An integer. Used when fitting the factor analytical model if
-covModel = "fa". See \code{\link{EMFA}}.}
+\item{mG}{An integer. The order of the genetic part of the factor analytic
+model. Only used when \code{covModel = "fa"}.}
 
-\item{mE}{An integer. Used when fitting the factor analytical model if
-covModel = "fa". See \code{\link{EMFA}}.}
+\item{mE}{An integer. The order of the environmental part of the factor
+analytic model. Only used when \code{covModel = "fa"}.}
 
-\item{CmHet}{A boolean. Used when fitting the factor analytical model if
-covModel = "fa". See \code{\link{EMFA}}.}
+\item{CmHet}{Should an extra diagonal part be added in the model for the
+precision matrix Cm? Only used when \code{covModel = "fa"}.}
 
-\item{DmHet}{A boolean. Used when fitting the factor analytical model if
-covModel = "fa". See \code{\link{EMFA}}.}
+\item{DmHet}{Should an extra diagonal part be added in the model for the
+precision matrix Dm? Only used when \code{covModel = "fa"}.}
 
-\item{stopIfDecreasing}{A boolean. Used when fitting the factor analytical
-model if covModel = "fa". See \code{\link{EMFA}}.}
-
-\item{computeLogLik}{A boolean. Used when fitting the factor analytical model
-if covModel = "fa". See \code{\link{EMFA}}.}
+\item{stopIfDecreasing}{Should the iterating process in the factor analytic
+model stop if after 50 iterations the log-likelihood decreases between two
+consecutive iterations? Only used when \code{covModel = "fa"}.}
 
 \item{Vg}{An optional matrix with genotypic variance components. Vg should
 have row names column names corresponding to the column names of Y. It may

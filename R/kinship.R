@@ -2,8 +2,11 @@
 #'
 #' A collection of functions for calculating kinship matrices using different
 #' algorithms. The following algorithms are included: astle (Astle and Balding,
-#' 2009), GRM, Identity By State (IBS) and VanRaden (VanRaden, 2008).
+#' 2009), GRM, Identity By State (IBS) and VanRaden (VanRaden, 2008) for
+#' marker matrices and multiAllKin for three-dimensional marker arrays as
+#' created by \code{\link{readIBDProbs}}.
 #'
+#' @section Marker matrices:
 #' In all algorithms the input matrix \code{X} is first cleaned, i.e. markers
 #' with a variance of 0 are excluded from the calculation of the kinship matrix.
 #' Then some form of scaling is done which differs per algorithm. This gives a
@@ -15,10 +18,19 @@
 #' splitting \code{X} in smaller matrices and then adding the results together
 #' in the end.
 #'
+#' @section Three-dimensional marker arrays:
+#' The kinship matrix K is computed as \eqn{\sum(Xm * Xm^t * dm) / \sum(dm)}
+#' where Xm is the genotype x founders matrix for marker m and dm the sum
+#' of the distances of marker m to its neighbours halved. Diagonals of K are set
+#' to 1. Dividing by \eqn{\sum(dm)} can be overwritten by providing a value for
+#' \code{denominator}.
+#'
 #' @param X An n x m marker matrix with genotypes in the rows and markers in
 #' the columns.
 #' @param map An optional marker map. Only used when X is a 3 dimensional array.
-#' @param method The method used for computing the kinship matrix.
+#' @param method The method used for computing the kinship matrix. If X is a
+#' matrix method cannot be "multiAllKin", if it is a three-dimensional array it
+#' is automatically set to "multiAllKin".
 #' @param denominator A numerical value. See details.
 #'
 #' @return An n x n kinship matrix.
@@ -42,6 +54,15 @@ kinship <- function(X,
                                "multiAllKin"),
                     denominator = NULL) {
   method = match.arg(method);
+  if (!is.null(denominator)) {
+    chkNum(denominator, min = 0)
+  }
+  if (dim(X) == 2 && method == "multiAllKin") {
+    stop("method multiAllKin is only possible for three-dimensional array X.\n")
+  }
+  if (dim(X) == 3) {
+    method <- "multiAllKin"
+  }
   if (method == "multiAllKin") {
     ## Create an array of values for correction for position on the genome.
     ## Has to be done per chromosome since pos isn't necessary cumulative.

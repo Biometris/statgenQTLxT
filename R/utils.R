@@ -256,8 +256,29 @@ getOper <- function(x) {
   }
 }
 
-## Helper function for reading IBD probabilies as computed by RABBIT
+#' Read IBD probabilities
+#'
+#' Read a file with IBD probabilities computed by the RABBIT software package.
+#'
+#' @param infile A character string, a link to a .csv file with IBD
+#' probabilities.
+#'
+#' @return A list with two components:
+#' \itemize{
+#' \item{markArr} {A three-dimensional array containing the IBD probabilities
+#' with genotypes in the rows, markers in the columns and founders in the
+#' third dimension.}
+#' \item{map} {A data.frame with two columns, chr(omosome) and pos(ition) with
+#' genotypes as rownames.}
+#' }
+#' Both markArr and map can be used directly in \code{\link{createGData}}.
+#'
+#' @export
 readIBDProbs <- function(infile) {
+  if (missing(infile) || !is.character(infile) || length(infile) > 1 ||
+      !file.access(infile) || file_ext(infile) != ".csv") {
+    stop("infile should be a character string indicating a readable .csv file")
+  }
   ## Read map and marker probabilities.
   markMap <- data.table::fread(infile, skip = "haploprob", fill = TRUE,
                                data.table = FALSE)

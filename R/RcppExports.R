@@ -197,6 +197,7 @@ LLQuadFormDiagCPP <- function(y, vInv, size_param_x = NULL) {
 #' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
 #' mixed model algorithms for genome-wide association studies. Nature Methods,
 #' February 2014, Vol. 11, p. 407–409
+#' @keywords internal
 estEffsCPP <- function(y, w, x, vg, ve, k, returnSe = TRUE, estCom = FALSE, nCores = NULL) {
     .Call(`_genStatPipeline_estEffsCPP`, y, w, x, vg, ve, k, returnSe, estCom, nCores)
 }

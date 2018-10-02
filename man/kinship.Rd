@@ -13,7 +13,9 @@ the columns.}
 
 \item{map}{An optional marker map. Only used when X is a 3 dimensional array.}
 
-\item{method}{The method used for computing the kinship matrix.}
+\item{method}{The method used for computing the kinship matrix. If X is a
+matrix method cannot be "multiAllKin", if it is a three-dimensional array it
+is automatically set to "multiAllKin".}
 
 \item{denominator}{A numerical value. See details.}
 }
@@ -23,9 +25,12 @@ An n x n kinship matrix.
 \description{
 A collection of functions for calculating kinship matrices using different
 algorithms. The following algorithms are included: astle (Astle and Balding,
-2009), GRM, Identity By State (IBS) and VanRaden (VanRaden, 2008).
+2009), GRM, Identity By State (IBS) and VanRaden (VanRaden, 2008) for
+marker matrices and multiAllKin for three-dimensional marker arrays as
+created by \code{\link{readIBDProbs}}.
 }
-\details{
+\section{Marker matrices}{
+
 In all algorithms the input matrix \code{X} is first cleaned, i.e. markers
 with a variance of 0 are excluded from the calculation of the kinship matrix.
 Then some form of scaling is done which differs per algorithm. This gives a
@@ -37,6 +42,16 @@ can be overwritten by the user, e.g. when computing kinship matrices by
 splitting \code{X} in smaller matrices and then adding the results together
 in the end.
 }
+
+\section{Three-dimensional marker arrays}{
+
+The kinship matrix K is computed as \eqn{\sum(Xm * Xm^t * dm) / \sum(dm)}
+where Xm is the genotype x founders matrix for marker m and dm the sum
+of the distances of marker m to its neighbours halved. Diagonals of K are set
+to 1. Dividing by \eqn{\sum(dm)} can be overwritten by providing a value for
+\code{denominator}.
+}
+
 \examples{
 X <- matrix(c(1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1), nrow = 3)
 kinship(X, method = "astle")

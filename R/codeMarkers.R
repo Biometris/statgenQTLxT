@@ -189,6 +189,9 @@ codeMarkers <- function(gData,
         maxAll -
         markersRecoded[, colMeans(markersRecoded, na.rm = TRUE) > maxAll / 2]
     }
+  } else { # Numeric input.
+    markersRecoded <- markersClean
+    maxAll <- max(markersRecoded, na.rm = TRUE)
   }
   ## Remove markers with low MAF.
   if (!is.null(MAF)) {
