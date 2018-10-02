@@ -18,7 +18,8 @@ GWAS is run on all traits.}
 
 \item{environments}{A vector of environments on which to run GWAS. These can
 be either numeric indices or character names of list items in \code{pheno}.
-If \code{NULL} GWAS is run for all environments.}
+If \code{NULL} GWAS is run for all environments. GWAS is run for the
+selected environments in sequential order.}
 
 \item{training}{A character vector with names of genotypes to use as
 training data for the prediction.}

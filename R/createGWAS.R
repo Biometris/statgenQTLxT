@@ -279,8 +279,10 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' @param x An object of class \code{GWAS}.
 #' @param ... further arguments to be passed on to the actual plotting
 #' functions.
-#' @param plotType A character string indicating the type of plot to be made. One
-#' of "manhattan", "qq" and "qtl".
+#' @param plotType A character string indicating the type of plot to be made.
+#' One of "manhattan", "qq","qtl" and "matrix". "qtl" plots cannot be made for
+#' results of IBD based QTL mapping. "matrix" plot can only for IBD based QTL
+#' mapping.
 #' @param environment A character string or numeric index indicating for which
 #' environment the plot should be made. If \code{x} only contains results for
 #' one trait \code{environment} may be \code{NULL}.
@@ -301,11 +303,18 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' @export
 plot.GWAS <- function(x,
                       ...,
-                      plotType = c("manhattan", "qq", "qtl"),
+                      plotType = c("manhattan", "qq", "qtl", "matrix"),
                       environment = NULL,
                       trait = NULL,
                       output = TRUE) {
   plotType <- match.arg(plotType)
+  if (substr(as.character(x$GWASInfo$call)[1], 15, 21) == "GwasIBD") {
+    if (plotType == "qtl") {
+      stop("plotType qtl not available for IBD based QTL Mapping.\n")
+    }
+  } else if (plotType == "matrix") {
+    stop("plotType matrix only available for IBD based QTL Mapping.\n")
+  }
   dotArgs <- list(...)
   ## Checks.
   if (!is.null(environment) && !is.character(environment) &&
@@ -420,5 +429,7 @@ plot.GWAS <- function(x,
     qtlPlot(data = signSnp,
             map = GWAResult[!is.na(GWAResult$pos), c("chr", "pos")],
             ..., output = output)
+  } else if (plotType == "matrix") {
+    message("plotType matrix not yet implemented.")
   }
 }

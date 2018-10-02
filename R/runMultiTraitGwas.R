@@ -50,7 +50,9 @@
 #' \code{\link{reduceKinship}}
 #' @param nPca An integer giving the number of Pcas used whe reducing the
 #' kinship matrix. Ignored if reduceK = \code{FALSE}.
-#' @param estCom Should the common SNP-effect model be fitted?
+#' @param estCom Should the common SNP-effect model be fitted? If \code{TRUE}
+#' not only the SNP-effects but also the common SNP-effect and QTL x E effect
+#' are estimated.
 #' @param parallel Should the computation of variance components be done in
 #' parallel? Only used if \code{covModel = "pw"}. A parallel computing
 #' environment has to be setup by the user.

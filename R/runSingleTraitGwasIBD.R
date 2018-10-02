@@ -1,45 +1,16 @@
-#' Perform Single Trait GWAS for IBD based QTL mapping.
+#' Perform IBD based QTL mapping for single trait.
 #'
-#' \code{runSingleTraitGwas} performs a single-trait Genome Wide Association
-#' Study (GWAS) on phenotypic and genotypic data contained in a \code{gData}
-#' object. A covariance matrix is computed using the EMMA algorithm (Kang et
-#' al., 2008) or the Newton-Raphson algorithm (Tunnicliffe, 1989) in the
-#' \code{sommer} package. Then a Generalized Least Squares (GLS) method is used
-#' for estimating the marker effects and corresponding p-values. This is done
-#' using either one kinship matrix for all chromosomes or different chromosome
-#' specific kinship matrices for each chromosome. Significant SNPs are selected
-#' based on a user defined threshold.
+#' \code{runSingleTraitGwasIBD} QTL mapping based on IBD probabilities.
 #'
 #' @inheritParams runSingleTraitGwas
 #'
-#' @param ref A numerical value indicating the allele to be used as reference
-#' allele.
+#' @param ref A numerical value indicating the founder allele to be used as
+#' reference allele. Effects for the other founder allele are computed based on
+#' this reference allele.
 #'
 #' @return An object of class \code{\link{GWAS}}.
 #'
-#' @references Astle W., Balding D. J. (2009) Population structure and cryptic
-#' relatedness in genetic association studies, Stat. Sci., November 2009,
-#' Vol. 24, no. 4, p. 451–471.
-#' @references Devlin, B. and Roeder K. (1999) Genomic control for association
-#' studies. Biometrics, December 1999, Vol. 55(4), p. 997-1004.
-#' @references Kang et al. (2008) Efficient Control of Population Structure in
-#' Model Organism Association Mapping. Genetics, March 2008, Vol. 178, no. 3,
-#' p. 1709-1723.
-#' @references Rincent et al. (2014) Recovering power in association mapping
-#' panels with variable levels of linkage disequilibrium. Genetics, May 2014.
-#' Vol. 197. p. 375–387.
-#' @references Segura et al. (2012) An efficient multi-locus mixed-model
-#' approach for genome-wide association studies in structured populations.
-#' Nature Genetics, June 2012, Vol. 44, p. 825–830.
-#' @references Sun et al. (2010) Variation explained in mixed-model association
-#' mapping. Heredity, February 2010, Vol. 105, p. 333–340.
-#' @references Tunnicliffe W. (1989) On the use of marginal likelihood in time
-#' series model estimation. JRSS, Vol.51(1), p.15-27.
-#' @references VanRaden P.M. (2008) Efficient methods to compute genomic
-#' predictions. J Dairy Sci, November 2008, Vol. 91 p. 4414–4423.
-#'
-#' @seealso \code{\link{GWAS}}, \code{\link{kinship}},
-#' \code{\link{runSingleTraitGwas}}
+#' @seealso \code{\link{GWAS}}, \code{\link{kinship}}
 #'
 #' @import stats
 #'

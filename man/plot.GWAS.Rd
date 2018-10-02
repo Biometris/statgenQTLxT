@@ -4,8 +4,8 @@
 \alias{plot.GWAS}
 \title{Plot function for the class \code{GWAS}}
 \usage{
-\method{plot}{GWAS}(x, ..., plotType = c("manhattan", "qq", "qtl"),
-  environment = NULL, trait = NULL, output = TRUE)
+\method{plot}{GWAS}(x, ..., plotType = c("manhattan", "qq", "qtl",
+  "matrix"), environment = NULL, trait = NULL, output = TRUE)
 }
 \arguments{
 \item{x}{An object of class \code{GWAS}.}
@@ -13,8 +13,10 @@
 \item{...}{further arguments to be passed on to the actual plotting
 functions.}
 
-\item{plotType}{A character string indicating the type of plot to be made. One
-of "manhattan", "qq" and "qtl".}
+\item{plotType}{A character string indicating the type of plot to be made.
+One of "manhattan", "qq","qtl" and "matrix". "qtl" plots cannot be made for
+results of IBD based QTL mapping. "matrix" plot can only for IBD based QTL
+mapping.}
 
 \item{environment}{A character string or numeric index indicating for which
 environment the plot should be made. If \code{x} only contains results for

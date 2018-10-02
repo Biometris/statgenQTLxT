@@ -20,7 +20,8 @@ runMultiTraitGwas(gData, environments = NULL, covar = NULL,
 
 \item{environments}{A vector of environments on which to run GWAS. These can
 be either numeric indices or character names of list items in \code{pheno}.
-If \code{NULL} GWAS is run for all environments.}
+If \code{NULL} GWAS is run for all environments. GWAS is run for the
+selected environments in sequential order.}
 
 \item{covar}{An optional vector of covariates taken into account when
 running GWAS. These can be either numeric indices or character names of
@@ -117,7 +118,9 @@ fitVarComp = \code{TRUE}.}
 \item{nPca}{An integer giving the number of Pcas used whe reducing the
 kinship matrix. Ignored if reduceK = \code{FALSE}.}
 
-\item{estCom}{Should the common SNP-effect model be fitted?}
+\item{estCom}{Should the common SNP-effect model be fitted? If \code{TRUE}
+not only the SNP-effects but also the common SNP-effect and QTL x E effect
+are estimated.}
 
 \item{parallel}{Should the computation of variance components be done in
 parallel? Only used if \code{covModel = "pw"}. A parallel computing

@@ -2,7 +2,7 @@
 % Please edit documentation in R/runSingleTraitGwasIBD.R
 \name{runSingleTraitGwasIBD}
 \alias{runSingleTraitGwasIBD}
-\title{Perform Single Trait GWAS for IBD based QTL mapping.}
+\title{Perform IBD based QTL mapping for single trait.}
 \usage{
 runSingleTraitGwasIBD(gData, traits = NULL, environments = NULL,
   covar = NULL, snpCov = NULL, kin = NULL,
@@ -22,7 +22,8 @@ GWAS is run on all traits.}
 
 \item{environments}{A vector of environments on which to run GWAS. These can
 be either numeric indices or character names of list items in \code{pheno}.
-If \code{NULL} GWAS is run for all environments.}
+If \code{NULL} GWAS is run for all environments. GWAS is run for the
+selected environments in sequential order.}
 
 \item{covar}{An optional vector of covariates taken into account when
 running GWAS. These can be either numeric indices or character names of
@@ -96,53 +97,16 @@ LD (\eqn{r^2}) with the significant SNP is at least 0.5 AND which are at
 most 200kb away from this significant snp are included. Ignored if
 \code{sizeInclRegion} = 0.}
 
-\item{ref}{A numerical value indicating the allele to be used as reference
-allele.}
+\item{ref}{A numerical value indicating the founder allele to be used as
+reference allele. Effects for the other founder allele are computed based on
+this reference allele.}
 }
 \value{
 An object of class \code{\link{GWAS}}.
 }
 \description{
-\code{runSingleTraitGwas} performs a single-trait Genome Wide Association
-Study (GWAS) on phenotypic and genotypic data contained in a \code{gData}
-object. A covariance matrix is computed using the EMMA algorithm (Kang et
-al., 2008) or the Newton-Raphson algorithm (Tunnicliffe, 1989) in the
-\code{sommer} package. Then a Generalized Least Squares (GLS) method is used
-for estimating the marker effects and corresponding p-values. This is done
-using either one kinship matrix for all chromosomes or different chromosome
-specific kinship matrices for each chromosome. Significant SNPs are selected
-based on a user defined threshold.
-}
-\references{
-Astle W., Balding D. J. (2009) Population structure and cryptic
-relatedness in genetic association studies, Stat. Sci., November 2009,
-Vol. 24, no. 4, p. 451–471.
-
-Devlin, B. and Roeder K. (1999) Genomic control for association
-studies. Biometrics, December 1999, Vol. 55(4), p. 997-1004.
-
-Kang et al. (2008) Efficient Control of Population Structure in
-Model Organism Association Mapping. Genetics, March 2008, Vol. 178, no. 3,
-p. 1709-1723.
-
-Rincent et al. (2014) Recovering power in association mapping
-panels with variable levels of linkage disequilibrium. Genetics, May 2014.
-Vol. 197. p. 375–387.
-
-Segura et al. (2012) An efficient multi-locus mixed-model
-approach for genome-wide association studies in structured populations.
-Nature Genetics, June 2012, Vol. 44, p. 825–830.
-
-Sun et al. (2010) Variation explained in mixed-model association
-mapping. Heredity, February 2010, Vol. 105, p. 333–340.
-
-Tunnicliffe W. (1989) On the use of marginal likelihood in time
-series model estimation. JRSS, Vol.51(1), p.15-27.
-
-VanRaden P.M. (2008) Efficient methods to compute genomic
-predictions. J Dairy Sci, November 2008, Vol. 91 p. 4414–4423.
+\code{runSingleTraitGwasIBD} QTL mapping based on IBD probabilities.
 }
 \seealso{
-\code{\link{GWAS}}, \code{\link{kinship}},
-\code{\link{runSingleTraitGwas}}
+\code{\link{GWAS}}, \code{\link{kinship}}
 }

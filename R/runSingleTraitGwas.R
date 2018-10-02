@@ -17,7 +17,8 @@
 #' GWAS is run on all traits.
 #' @param environments A vector of environments on which to run GWAS. These can
 #' be either numeric indices or character names of list items in \code{pheno}.
-#' If \code{NULL} GWAS is run for all environments.
+#' If \code{NULL} GWAS is run for all environments. GWAS is run for the
+#' selected environments in sequential order.
 #' @param covar An optional vector of covariates taken into account when
 #' running GWAS. These can be either numeric indices or character names of
 #' columns in \code{covar} in \code{gData}. If \code{NULL} no covariates are

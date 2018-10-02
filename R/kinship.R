@@ -57,10 +57,9 @@ kinship <- function(X,
   if (!is.null(denominator)) {
     chkNum(denominator, min = 0)
   }
-  if (dim(X) == 2 && method == "multiAllKin") {
+  if (length(dim(X)) == 2 && method == "multiAllKin") {
     stop("method multiAllKin is only possible for three-dimensional array X.\n")
-  }
-  if (dim(X) == 3) {
+  } else if (length(dim(X)) == 3) {
     method <- "multiAllKin"
   }
   if (method == "multiAllKin") {
