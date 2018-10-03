@@ -276,7 +276,7 @@ getOper <- function(x) {
 #' @export
 readIBDProbs <- function(infile) {
   if (missing(infile) || !is.character(infile) || length(infile) > 1 ||
-      !file.access(infile) || file_ext(infile) != ".csv") {
+      file.access(infile, mode = 4) == -1 || tools::file_ext(infile) != "csv") {
     stop("infile should be a character string indicating a readable .csv file")
   }
   ## Read map and marker probabilities.
