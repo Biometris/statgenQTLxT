@@ -33,7 +33,7 @@ runSingleTraitGwasIBD <- function(gData,
                                   sizeInclRegion = 0,
                                   minR2 = 0.5,
                                   ref = 1,
-                                  ncores = NULL) {
+                                  nCores = NULL) {
   ## Checks.
   chkGData(gData)
   chkMarkers(gData$markers, dim = 3)

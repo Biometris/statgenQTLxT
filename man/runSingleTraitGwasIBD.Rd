@@ -10,7 +10,7 @@ runSingleTraitGwasIBD(gData, traits = NULL, environments = NULL,
   GLSMethod = c("single", "multi"), MAF = 0.01,
   genomicControl = FALSE, thrType = c("bonf", "fixed", "small"),
   alpha = 0.05, LODThr = 4, nSnpLOD = 10, sizeInclRegion = 0,
-  minR2 = 0.5, ref = 1, ncores = NULL)
+  minR2 = 0.5, ref = 1, nCores = NULL)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},
@@ -100,6 +100,10 @@ most 200kb away from this significant snp are included. Ignored if
 \item{ref}{A numerical value indicating the founder allele to be used as
 reference allele. Effects for the other founder allele are computed based on
 this reference allele.}
+
+\item{nCores}{A numerical value indicating the number of cores to be used by
+the parallel part of the algorithm. If \code{NULL} the number of cores used
+will be equal to the number of cores available on the machine - 1.}
 }
 \value{
 An object of class \code{\link{GWAS}}.
