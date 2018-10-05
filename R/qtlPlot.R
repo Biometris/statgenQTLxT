@@ -34,6 +34,7 @@
 #' plot is exported. Ignored if exportPptx = \code{FALSE}.
 #' @param output Should the plot be output to the current device? If
 #' \code{FALSE} only a list of ggplot objects is invisibly returned.
+#' @param ... Further parameter.
 #'
 #' @return A ggplot object is returned and plotted on screen. Optionally the
 #' plot is exported to pptx as well.
@@ -58,7 +59,8 @@ qtlPlot <- function(data,
                     yLab = "Traits",
                     exportPptx = FALSE,
                     pptxName = "",
-                    output = TRUE) {
+                    output = TRUE,
+                    ...) {
   ## Basic argument checks
   if (is.null(data) || !is.data.frame(data)) {
     stop("data should be a data.frame")

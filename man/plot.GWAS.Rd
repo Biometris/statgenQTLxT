@@ -108,6 +108,8 @@ positions. Default = \code{NULL}}
 Default = \code{TRUE}}
 \item{\code{yLab}} {A character string, the y-axis label. Default =
 \code{"Traits"}}
+\item{\code{yThr}} {A numerical value for the LOD-threshold. As default value
+the value from the GWAS analysis is used.}
 \item{\code{exportPptx}} {Should the plot be exported to a .pptx file?
 Default = \code{FALSE}}
 \item{\code{pptxName}} {A character string, the name of the .pptx file to

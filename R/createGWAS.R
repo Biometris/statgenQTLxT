@@ -270,6 +270,8 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' Default = \code{TRUE}}
 #' \item{\code{yLab}} {A character string, the y-axis label. Default =
 #' \code{"Traits"}}
+#' \item{\code{yThr}} {A numerical value for the LOD-threshold. As default value
+#' the value from the GWAS analysis is used.}
 #' \item{\code{exportPptx}} {Should the plot be exported to a .pptx file?
 #' Default = \code{FALSE}}
 #' \item{\code{pptxName}} {A character string, the name of the .pptx file to
@@ -423,12 +425,20 @@ plot.GWAS <- function(x,
     ## Create qq-plot.
     qqPlot(pValues = na.omit(GWAResult$pValue), ..., output = output)
   } else if (plotType == "qtl") {
-    if (is.null(signSnp)) {
-      stop("No significant SNPs in signSnp. No plot can be made.\n")
+    if (!is.null(dotArgs$yThr)) {
+      signSnp <- GWAResult[!is.na(GWAResult$LOD) &
+                             GWAResult$LOD > dotArgs$yThr, ]
     }
-    qtlPlot(data = signSnp,
-            map = GWAResult[!is.na(GWAResult$pos), c("chr", "pos")],
-            ..., output = output)
+    if (is.null(signSnp)) {
+      stop("No significant SNPs found. No plot can be made.\n")
+    }
+    do.call(qtlPlot,
+            args = c(list(data = signSnp,
+                          map = GWAResult[!is.na(GWAResult$pos),
+                                          c("chr", "pos")],
+                          output = output),
+                     dotArgs[!(names(dotArgs) %in% c("yThr"))]
+                     ))
   } else if (plotType == "matrix") {
     message("plotType matrix not yet implemented.")
   }

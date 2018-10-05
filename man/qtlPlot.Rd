@@ -8,7 +8,7 @@ qtlPlot(data, chromosome = "chr", trait = "trait",
   snpEffect = "effect", snpPosition = "pos", map, normalize = FALSE,
   sortData = FALSE, binPositions = NULL, printVertGrid = TRUE,
   yLab = "Traits", exportPptx = FALSE, pptxName = "",
-  output = TRUE)
+  output = TRUE, ...)
 }
 \arguments{
 \item{data}{A data.frame with QTL data to be plotted}
@@ -49,6 +49,8 @@ plot is exported. Ignored if exportPptx = \code{FALSE}.}
 
 \item{output}{Should the plot be output to the current device? If
 \code{FALSE} only a list of ggplot objects is invisibly returned.}
+
+\item{...}{Further parameter.}
 }
 \value{
 A ggplot object is returned and plotted on screen. Optionally the
