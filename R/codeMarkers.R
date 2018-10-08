@@ -360,9 +360,37 @@ codeMarkers <- function(gData,
                                                colnames(markersRecoded)],
                      drop = FALSE]
   }
+  ## Remove removed markers and genotypes from map, pheno, kinship and covar.
+  mapNew <- covarNew <- NULL
+  if (!is.null(gData$map)) {
+    mapNew <- gData$map[rownames(gData$map) %in% colnames(markersRecoded), ]
+  }
+  if (!is.null(gData$pheno)) {
+    gData$pheno <- lapply(X = gData$pheno, FUN = function(env) {
+      env[env$genotype %in% rownames(markersRecoded), ]
+    })
+  }
+  if (!is.null(gData$map)) {
+    if (!is.list(gData$kinship)) {
+      gData$kinhsip <-
+        gData$kinhsip[rownames(gData$kinship) %in% rownames(markersRecoded),
+                      colnames(gData$kinship) %in% rownames(markersRecoded)]
+    } else {
+      gData$kinhsip <- lapply(X = gData$kinship, FUN = function(k) {
+        k[rownames(k) %in% rownames(markersRecoded),
+          colnames(k) %in% rownames(markersRecoded)]
+      })
+    }
+  }
+  if (!is.null(gData$covar)) {
+    covarNew <- gData$covar[rownames(gData$covar) %in%
+                              rownames(markersRecoded), ]
+  }
   ## Return gData object with recoded and imputed markers.
   ## SuppressWarnnings needed since original geno will be overwritten.
-  return(suppressWarnings(createGData(gData = gData, geno = markersRecoded)))
+  return(suppressWarnings(
+    createGData(gData = gData, geno = markersRecoded, map = mapNew,
+                covar = covarNew)))
 }
 
 
