@@ -475,7 +475,7 @@ plot.GWAS <- function(x,
     do.call(matrixPlot,
             args = c(list(effectDat = GWAResult, signSnp = signSnp,
                           map = map, chrBoundaries = chrBnd,
-                          founders = x$GWASInfo$founders),
+                          founders = x$GWASInfo$founders, output = output),
                      dotArgs[!(names(dotArgs) %in% c("effectDat", "signSnp",
                                                      "map", "chrBoundaries",
                                                      "founders"))]))
