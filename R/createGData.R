@@ -346,8 +346,8 @@ createGData <- function(gData = NULL,
   if (!is.null(kin)) {
     ## matrix or list of matrices are allowed.
     if (!inherits(kin, "Matrix") && !is.matrix(kin) &&
-        !(is.list(kin) && all(sapply(X = kin, FUN = function(x) {
-          inherits(x, "Matrix") || is.matrix(x)
+        !(is.list(kin) && all(sapply(X = kin, FUN = function(k) {
+          inherits(k, "Matrix") || is.matrix(k)
         }))
         )
     ) {
@@ -372,29 +372,37 @@ createGData <- function(gData = NULL,
       names(kin) <- unique(map$chr)
     }
     ## Row and colnames should be provided.
-    if (is.null(rownames(kin)) || is.null(colnames(kin))) {
-      stop("row and column names in kin cannot be NULL.\n")
+    if (!is.list(kin)) {
+      if (is.null(rownames(kin)) || is.null(colnames(kin))) {
+        stop("row and column names in kin cannot be NULL.\n")
+      }
+    } else {
+      if (any(sapply(X = kin, FUN = function(k) {
+        is.null(rownames(k)) || is.null(colnames(k))
+      }))) {
+        stop("row and column names in kin cannot be NULL.\n")
+      }
     }
-    ## Genotypes in kin should all be markers.
+    ## Genotypes in kin should all be in markers.
     if ((!is.null(markers) && is.list(kin) &&
-         any(sapply(X = kin, FUN = function(x) {
-           !all(rownames(x) %in% rownames(markers)) ||
-             !all(colnames(x) %in% rownames(markers))
+         any(sapply(X = kin, FUN = function(k) {
+           !all(rownames(k) %in% rownames(markers)) ||
+             !all(colnames(k) %in% rownames(markers))
          }))) ||
         (!is.null(markers) && !is.list(kin) &&
          (!all(rownames(kin) %in% rownames(markers)) ||
           !all(colnames(kin) %in% rownames(markers))))) {
-      stop(paste("row and column names of kin should be in row and",
-                 "column names of geno.\n"))
+      stop(paste("row and column names of kin should be in row",
+                 "names of geno.\n"))
     }
     ## Order as in geno and convert to symmetric matrix in Matrix class.
     ## match is needed since markers may contain more genotypes than kin.
     ## If markers is NULL only the conversion is done.
     if (is.list(kin)) {
       kin <- lapply(X = kin,
-                    FUN = function(x) {
-                      as(x[order(match(rownames(x), rownames(markers))),
-                           order(match(colnames(x), rownames(markers)))],
+                    FUN = function(k) {
+                      as(k[order(match(rownames(k), rownames(markers))),
+                           order(match(colnames(k), rownames(markers)))],
                          "dsyMatrix")
                     })
     } else {
