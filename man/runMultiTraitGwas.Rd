@@ -10,9 +10,9 @@ runMultiTraitGwas(gData, environments = NULL, covar = NULL,
   markerSubset = "", MAF = 0.01, fitVarComp = TRUE,
   covModel = c("unst", "pw", "fa"), VeDiag = TRUE, tolerance = 1e-06,
   maxIter = 2e+05, maxDiag = 10000, mG = 1, mE = 1, CmHet = TRUE,
-  DmHet = TRUE, stopIfDecreasing = TRUE, computeLogLik = TRUE,
-  Vg = NULL, Ve = NULL, reduceK = FALSE, nPca = NULL,
-  estCom = FALSE, parallel = FALSE, nCores = NULL)
+  DmHet = TRUE, stopIfDecreasing = TRUE, Vg = NULL, Ve = NULL,
+  reduceK = FALSE, nPca = NULL, estCom = FALSE, parallel = FALSE,
+  nCores = NULL)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},

@@ -279,7 +279,8 @@ runSingleTraitGwasIBD <- function(gData,
                    GLSMethod = GLSMethod,
                    varComp = varCompTot,
                    genomicControl = genomicControl,
-                   inflationFactor = inflationFactorTot)
+                   inflationFactor = inflationFactorTot,
+                   founders = dimnames(markersRed)[[3]][-ref])
   return(createGWAS(GWAResult = GWATot,
                     signSnp = signSnpTot,
                     kin = if (GLSMethod == "single") {

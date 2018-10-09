@@ -40,7 +40,8 @@ are put to missing (NA). Ignored if \code{useMAF} is \code{TRUE}.}
 }
 \value{
 A data.frame containing predictions for genotypes per trait.
-Columns in \code{keep} are included in the output.
+Columns in \code{keep} are merged from covar in gData and included in
+the output.
 }
 \description{
 Perform genomic prediction
