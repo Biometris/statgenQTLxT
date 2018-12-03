@@ -26,14 +26,14 @@ training data for the prediction.}
 \item{useMAF}{Should the minor allele frequency be used for selecting SNPs
 for the analysis. If \code{FALSE} the minor allele count is used instead.}
 
-\item{MAF}{A numerical value between 0 and 1. SNPs with minor allele
-frequency below this value are not taken into account for the analysis,
-i.e. p-values and effect sizes are put to missing (NA). Ignored if
-\code{useMAF} is \code{FALSE}.}
+\item{MAF}{The minor allele frequency (MAF) threshold used in GWAS. A
+numerical value between 0 and 1. SNPs with MAF below this value are not taken
+into account in the analysis, i.e. p-values and effect sizes are put to
+missing (\code{NA}). Ignored if \code{useMAF} is \code{FALSE}.}
 
 \item{MAC}{A numerical value. SNPs with minor allele count below this value
 are not taken into account for the analysis, i.e. p-values and effect sizes
-are put to missing (NA). Ignored if \code{useMAF} is \code{TRUE}.}
+are put to missing (\code{NA}). Ignored if \code{useMAF} is \code{TRUE}.}
 
 \item{keep}{A character vector with names of columns in \code{covar} in
 \code{gData} that should be included in the output.}
