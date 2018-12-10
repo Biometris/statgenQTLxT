@@ -92,20 +92,18 @@ genomicPrediction <- function(gData,
   ## Calculate predictions per trait.
   preds <- lapply(X = traits, FUN = function(trait) {
     ## Fit mixed model on training data.
-    sommerFit <- sommer::mmer2(fixed = as.formula(paste0(trait, "~ 1")),
-                               random = ~ g(genotype),
-                               G = list(genotype = KTrain),
-                               rcov = ~ units,
-                               data = dataTrain,
-                               silent = TRUE, date.warning = FALSE)
+    sommerFit <- sommer::mmer(fixed = as.formula(paste0(trait, "~ 1")),
+                              random = ~ sommer::vs(genotype, Gu = KTrain),
+                               rcov = ~ units, data = dataTrain,
+                              verbose = FALSE, date.warning = FALSE)
     ## Extract y.
     y <- dataTrain[[trait]]
     ## Extract mu from fitted model.
-    mu <- as.numeric(sommerFit$beta.hat)
+    mu <- as.numeric(sommerFit$Beta$Estimate)
     ## Extract genetic variance from fitted model.
-    sigma2u <- sommerFit$sigma["g(genotype)"]
+    sigma2u <- as.numeric(sommerFit$sigma["u:genotype"])
     ## Extract inverse of V from fitted model.
-    VInv <- sommerFit$V.inv
+    VInv <- sommerFit$Vi
     ## Compute marker effects.
     u <- sigma2u * Matrix::crossprod(ZTrain, VInv %*% (y - mu))
     ## Compute predictions.

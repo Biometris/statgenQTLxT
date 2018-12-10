@@ -19,7 +19,7 @@ Imports: data.table,
     ggplot2 (>= 3.0.0),
     Matrix (>= 1.2-10),
     methods,
-    sommer (>= 3.5),
+    sommer (>= 3.7.3),
     foreach,
     Rcpp
 Suggests: covr,
