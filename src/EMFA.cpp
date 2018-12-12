@@ -216,7 +216,7 @@ void updatePrec(unsigned int m,
         pNew = tau * eye<mat>(nc, nc);
       }
     } else {
-      pNew <- 1 / omega;
+      pNew = 1 / omega;
     }
     cNew = pNew;
   } else {
