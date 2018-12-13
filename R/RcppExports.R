@@ -218,10 +218,6 @@ astleCPP <- function(x, denom = NULL) {
     .Call(`_genStatPipeline_astleCPP`, x, denom)
 }
 
-GRMCPP <- function(x, denom = NULL) {
-    .Call(`_genStatPipeline_GRMCPP`, x, denom)
-}
-
 IBSCPP <- function(x, denom = NULL) {
     .Call(`_genStatPipeline_IBSCPP`, x, denom)
 }

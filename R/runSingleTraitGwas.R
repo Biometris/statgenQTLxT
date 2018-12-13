@@ -37,7 +37,7 @@
 #' \code{kinship} then \code{kin} is used.
 #' @param kinshipMethod An optional character indicating the method used for
 #' calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
-#' 2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
+#' 2009), "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
 #' kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 #' \code{kinshipMethod} is ignored.
 #' @param remlAlgo An character string indicating the algorithm used to estimate
@@ -120,8 +120,7 @@ runSingleTraitGwas <- function(gData,
                                covar = NULL,
                                snpCov = NULL,
                                kin = NULL,
-                               kinshipMethod = c("astle", "GRM", "IBS",
-                                                 "vanRaden"),
+                               kinshipMethod = c("astle", "IBS", "vanRaden"),
                                remlAlgo = c("EMMA", "NR"),
                                GLSMethod = c("single", "multi"),
                                useMAF = TRUE,

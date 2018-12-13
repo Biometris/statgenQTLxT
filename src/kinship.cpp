@@ -33,24 +33,6 @@ arma::mat astleCPP(arma::mat x,
 }
 
 // [[Rcpp::export]]
-arma::mat GRMCPP(arma::mat x,
-                 Rcpp::Nullable<Rcpp::NumericVector> denom = R_NilValue) {
-  // Remove markers with only zeros 0.
-  x = x.cols( find (any(x)) );
-  // Scale X.
-  x.each_row() -= mean(x);
-  x.each_row() /= stddev(x);
-  // Compute denominator.
-  double denominator;
-  if (denom.isNull()) {
-    denominator = x.n_cols;
-  } else {
-    denominator = Rcpp::as<double>(denom);
-  }
-  return x * x.t() / denominator;
-}
-
-// [[Rcpp::export]]
 arma::mat IBSCPP(arma::mat x,
                  Rcpp::Nullable<Rcpp::NumericVector> denom = R_NilValue) {
   // Remove markers with only zeros 0.

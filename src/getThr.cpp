@@ -12,11 +12,13 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 int getThr(Rcpp::Nullable<Rcpp::IntegerVector> nCores = R_NilValue) {
   int nThr = 1;
+#ifdef _OPENMP
   int maxThr = omp_get_max_threads();
   if (nCores.isNotNull()) {
     nThr = std::min(IntegerVector(nCores)[0], maxThr);
   } else {
     nThr = maxThr - 1;
   }
+#endif
   return nThr;
 }

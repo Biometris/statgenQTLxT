@@ -6,11 +6,11 @@
 \usage{
 runSingleTraitGwas(gData, traits = NULL, environments = NULL,
   covar = NULL, snpCov = NULL, kin = NULL,
-  kinshipMethod = c("astle", "GRM", "IBS", "vanRaden"),
-  remlAlgo = c("EMMA", "NR"), GLSMethod = c("single", "multi"),
-  useMAF = TRUE, MAF = 0.01, MAC = 10, genomicControl = FALSE,
-  thrType = c("bonf", "fixed", "small"), alpha = 0.05, LODThr = 4,
-  nSnpLOD = 10, sizeInclRegion = 0, minR2 = 0.5, nCores = NULL)
+  kinshipMethod = c("astle", "IBS", "vanRaden"), remlAlgo = c("EMMA",
+  "NR"), GLSMethod = c("single", "multi"), useMAF = TRUE, MAF = 0.01,
+  MAC = 10, genomicControl = FALSE, thrType = c("bonf", "fixed",
+  "small"), alpha = 0.05, LODThr = 4, nSnpLOD = 10,
+  sizeInclRegion = 0, minR2 = 0.5, nCores = NULL)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},
@@ -46,7 +46,7 @@ If both \code{kin} is provided and \code{gData} contains a matrix
 
 \item{kinshipMethod}{An optional character indicating the method used for
 calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
-2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
+2009), "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
 kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 \code{kinshipMethod} is ignored.}
 

@@ -5,7 +5,7 @@
 \title{Perform multi-trait GWAS}
 \usage{
 runMultiTraitGwas(gData, environments = NULL, covar = NULL,
-  snpCov = NULL, kin = NULL, kinshipMethod = c("astle", "GRM", "IBS",
+  snpCov = NULL, kin = NULL, kinshipMethod = c("astle", "IBS",
   "vanRaden"), GLSMethod = c("single", "multi"), subsetMarkers = FALSE,
   markerSubset = "", MAF = 0.01, fitVarComp = TRUE,
   covModel = c("unst", "pw", "fa"), VeDiag = TRUE, tolerance = 1e-06,
@@ -46,7 +46,7 @@ If both \code{kin} is provided and \code{gData} contains a matrix
 
 \item{kinshipMethod}{An optional character indicating the method used for
 calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
-2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
+2009), "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
 kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 \code{kinshipMethod} is ignored.}
 
