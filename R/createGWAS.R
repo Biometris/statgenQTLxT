@@ -236,7 +236,7 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' \item{\code{yThr}} {A numerical value for the LOD-threshold. As default value
 #' the value from the GWAS analysis is used.}
 #' \item{\code{signLwd}} {A numerical value giving the thickness of the
-#' points that are false/true positives/negatives. Defaule = 0.6}
+#' points that are false/true positives/negatives. Default = 0.6}
 #' \item{\code{lod}} {A positive numerical value. For the snps with a LOD-value
 #' below this value only 5% is plotted. The chance of a snp being plotting is
 #' proportional to its LOD-value. This option can be useful when plotting a
