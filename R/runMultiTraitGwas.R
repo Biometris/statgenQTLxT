@@ -540,12 +540,14 @@ runMultiTraitGwas <- function(gData,
                                      effsComSe, pValQtlE)
     GWAResult <- merge(GWAResult, comDat)
   }
-  ## Select and compute relevant columns.
+  ## Select relevant columns.
   relCols <- c("snp", "trait", "chr", "pos", "pValue", "LOD", "effect",
                "effectSe", "allFreq",
                if (estCom) {c("pValCom", "effsCom", "effsComSe",
                               "pValQtlE")})
+  ## Reorder columns.
   data.table::setcolorder(x = GWAResult, neworder = relCols)
+  ## Sort columns.
   data.table::setkeyv(x = GWAResult, cols = c("trait", "chr", "pos"))
   ## Collect info.
   GWASInfo <- list(call = match.call(),
