@@ -232,6 +232,17 @@ runMultiTraitGwas <- function(gData,
     chkNum(mG, min = 1)
     chkNum(mE, min = 1)
   }
+  if (covModel == "unst") {
+    nTraits <- ncol(gData$pheno[[1]]) - 1
+    if (nTraits > 5 && nTraits < 10) {
+      warning(paste("unstructured covariance models not recommended for 6 to 9",
+                    "Consider using another covariance model instead.\n"),
+              call. = FALSE)
+    } else if (nTraits > 9) {
+      stop(paste("unstructured covariance models not possible for 10 or more",
+                 "traits. Try pairwise or factor analytic instead.\n"))
+    }
+  }
   chkKin(kin, gData, GLSMethod)
   kinshipMethod <- match.arg(kinshipMethod)
   if (subsetMarkers && markerSubset == "") {
