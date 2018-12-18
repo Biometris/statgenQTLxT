@@ -236,7 +236,8 @@ runMultiTraitGwas <- function(gData,
     nTraits <- ncol(gData$pheno[[1]]) - 1
     if (nTraits > 5 && nTraits < 10) {
       warning(paste("unstructured covariance models not recommended for 6 to 9",
-                    "Consider using another covariance model instead.\n"),
+                    "traits. Consider using another covariance model",
+                    "instead.\n"),
               call. = FALSE)
     } else if (nTraits > 9) {
       stop(paste("unstructured covariance models not possible for 10 or more",

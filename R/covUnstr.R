@@ -77,7 +77,11 @@ covUnstr <- function(Y,
                               Gtc = sommer::unsm(", nTrait, "))"))
   ## Fit model.
   modFit <- sommer::mmer(fixed = fixed, random = random, rcov = rcov,
-                         data = dat, verbose = FALSE, date.warning = FALSE)
+                         data = dat, verbose = FALSE, date.warning = FALSE,
+                         ## This is not really a good idea, but for now it
+                         ## is better than nothing.
+                         ## Has to be solved in sommer.
+                         tolparinv = 1e-3)
   ## Extract components from fitted model.
   VgMat <- modFit$sigma[[1]]
   VeMat <- modFit$sigma[[2]]
@@ -169,11 +173,17 @@ covPW <- function(Y,
     }
     modFit <- sommer::mmer(fixed = fixed,
                            random = ~ sommer::vs(genotype, Gu = as.matrix(K),
-                                                 Gtc = sommer::unsm(2)),
-                           rcov = ~ sommer::vs(units, Gtc = sommer::unsm(2)),
+                                                 Gtc = sommer::unsm(2),
+                                                 Gt = VgMat[c(i, j), c(i, j)]),
+                           rcov = ~ sommer::vs(units, Gtc = sommer::unsm(2),
+                                               Gt = VeMat[c(i, j), c(i, j)]),
                            data = dat[, c("genotype", traits[i], traits[j],
                                           colnames(X)[-1])],
-                           verbose = FALSE, date.warning = FALSE)
+                           verbose = FALSE, date.warning = FALSE,
+                           ## This is not really a good idea, but for now it
+                           ## is better than nothing.
+                           ## Has to be solved in sommer.
+                           tolparinv = 1e-3)
     return(c(modFit$sigma[[1]][1, 2],
              modFit$sigma[[2]][1, 2]))
   }
