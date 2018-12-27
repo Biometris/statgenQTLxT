@@ -3,4 +3,4 @@
 load(system.file("extdata", "testData.RData", package = "genStatPipeline"))
 
 # Export to package
-devtools::use_data(Y, K, X, overwrite = TRUE)
+usethis::use_data(Y, K, X, internal = TRUE, overwrite = TRUE)
