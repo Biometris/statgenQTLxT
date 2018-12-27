@@ -122,7 +122,7 @@ List estEffsCPP(arma::mat y,
   unsigned int n = y.n_rows;
   unsigned int nc = w.n_cols;
   unsigned int ns = x.n_cols;
-  unsigned int nChunks = fmax(fmin(ns, ceil(p * nc * ns / 50000)), 1);
+  unsigned int nChunks = R::fmax2(R::fmin2(ns, ceil(p * nc * ns / 50000)), 1);
   arma::mat uk;
   arma::vec dk;
   arma::eig_sym(dk, uk, k);
