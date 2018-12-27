@@ -1,5 +1,7 @@
 context("Covariance")
 
+set.seed(1234)
+
 covunst <- covUnstr(Y = Y, K = K)
 test_that("covUnstr produces correct output structure", {
   expect_is(covunst, "list")
