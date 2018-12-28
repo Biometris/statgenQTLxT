@@ -1,8 +1,8 @@
 Package: genStatPipeline
 Type: Package
 Title: Genome Wide Association Studies in R
-Version: 0.0.0.9000
-Date: 2018-08-01
+Version: 0.0.1
+Date: 2019-01-01
 Authors@R: c(
     person("Bart-Jan", "van Rossum", email = "bart-jan.vanrossum@wur.nl", 
            role = c("aut", "cre")),
