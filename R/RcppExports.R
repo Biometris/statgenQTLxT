@@ -230,3 +230,19 @@ multiAllKinCPP <- function(x, posCor, denom = NULL) {
     .Call(`_genStatPipeline_multiAllKinCPP`, x, posCor, denom)
 }
 
+#' Reduce the kinship matrix
+#'
+#' The kinship matrix is reduced using nPca eigenvectors of K.
+#'
+#' @inheritParams runMultiTraitGwas
+#'
+#' @param nPca An integer, the number of eigenvectors used for reducing the
+#' kinship matrix.
+#'
+#' @return The reduced kinship matrix
+#'
+#' @keywords internal
+reduceKinship <- function(K, nPca) {
+    .Call(`_genStatPipeline_reduceKinship`, K, nPca)
+}
+

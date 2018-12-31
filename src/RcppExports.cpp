@@ -229,6 +229,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// reduceKinship
+arma::mat reduceKinship(const arma::mat K, const int nPca);
+RcppExport SEXP _genStatPipeline_reduceKinship(SEXP KSEXP, SEXP nPcaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const int >::type nPca(nPcaSEXP);
+    rcpp_result_gen = Rcpp::wrap(reduceKinship(K, nPca));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 RcppExport SEXP run_testthat_tests();
 
@@ -248,7 +260,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_genStatPipeline_IBSCPP", (DL_FUNC) &_genStatPipeline_IBSCPP, 2},
     {"_genStatPipeline_vanRadenCPP", (DL_FUNC) &_genStatPipeline_vanRadenCPP, 2},
     {"_genStatPipeline_multiAllKinCPP", (DL_FUNC) &_genStatPipeline_multiAllKinCPP, 3},
-    {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 0},
+    {"_genStatPipeline_reduceKinship", (DL_FUNC) &_genStatPipeline_reduceKinship, 2},
+    {"run_testthat_tests",                 (DL_FUNC) &run_testthat_tests,                  0},
     {NULL, NULL, 0}
 };
 
