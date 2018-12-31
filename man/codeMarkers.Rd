@@ -7,7 +7,7 @@
 codeMarkers(gData, refAll = "minor", nMissGeno = 1, nMiss = 1,
   MAF = NULL, removeDuplicates = TRUE, keep = NULL, impute = TRUE,
   imputeType = c("random", "fixed", "beagle"), fixedValue = NULL,
-  naStrings = NA)
+  naStrings = NA, verbose = FALSE)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least
@@ -53,6 +53,8 @@ the original papers in your publication.}
 case \code{inputType} is fixed.}
 
 \item{naStrings}{A character vector of strings to be treated as NA.}
+
+\item{verbose}{Should a summary of the performed steps be printed.}
 }
 \value{
 A copy of the input \code{gData} object with markers replaced by

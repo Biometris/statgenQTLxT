@@ -15,7 +15,8 @@ gData2 <- createGData(geno = markers2)
 
 test_that(paste("codeMarkers produces correct results when no imputation,",
                 "remove duplicates"), {
-                  expect_equal(as.numeric(codeMarkers(gData = gData, impute = FALSE)$markers),
+                  expect_equal(as.numeric(codeMarkers(gData = gData,
+                                                      impute = FALSE)$markers),
                                c(0, NA, 0, 1, 2, 0, 0, NA, 1))
                   expect_equal(as.numeric(codeMarkers(gData = gData, nMiss = 0.1,
                                                       impute = FALSE)$markers),
@@ -23,7 +24,8 @@ test_that(paste("codeMarkers produces correct results when no imputation,",
                   expect_equal(as.numeric(codeMarkers(gData = gData, MAF = 0.2,
                                                       impute = FALSE)$markers),
                                c(1, 2, 0, 0, NA, 1))
-                  expect_equal(as.numeric(codeMarkers(gData = gData, nMiss = 0.1, MAF = 0.2,
+                  expect_equal(as.numeric(codeMarkers(gData = gData, nMiss = 0.1,
+                                                      MAF = 0.2,
                                                       impute = FALSE)$markers),
                                c(1, 2, 0))
                 })
@@ -101,6 +103,20 @@ test_that("codeMarkers functions properly when using numeric input", {
                                       impute = TRUE, imputeType = "fixed",
                                       fixedValue = 1)$markers),
                c(0, 1, 0, 1, 0, 2, 0, 1, 1, 1, 0, 2))
+})
+
+test_that("option verbose in codeMarkers works properly", {
+  expect_equal(capture.output(gDataRec <- codeMarkers(gData = gData, MAF = 0.2,
+                                                      impute = FALSE)),
+               character())
+  consOut <- capture.output(gDataRec <- codeMarkers(gData = gData, MAF = 0.2,
+                                                    impute = FALSE,
+                                                    verbose = TRUE))
+  expect_true(any(grepl(pattern = "4 markers for 3 genotypes", x = consOut)))
+  expect_true(any(grepl(pattern = "1 markers removed because MAF",
+                        x = consOut)))
+  expect_true(any(grepl(pattern = "1 duplicate markers removed", x = consOut)))
+  expect_true(any(grepl(pattern = "2 markers for 3 genotypes", x = consOut)))
 })
 
 

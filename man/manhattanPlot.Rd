@@ -7,8 +7,7 @@
 manhattanPlot(xValues, yValues, map, xLab = "Chromosomes",
   yLab = expression(-log[10](p)), xSig = integer(),
   xEffects = integer(), colPalette = rep(c("royalblue", "maroon"), 50),
-  chrBoundaries = 0, yThr = NULL, signLwd = 0.6, ...,
-  output = TRUE)
+  yThr = NULL, signLwd = 0.6, ..., output = TRUE)
 }
 \arguments{
 \item{xValues}{A vector of cumulative marker positions.}
@@ -30,9 +29,6 @@ xValues and yValues are significant.}
 vector xValues correspond to a real (known) effect.}
 
 \item{colPalette}{A color palette used for plotting.}
-
-\item{chrBoundaries}{A vector of chromosome boundaries, i.e. x-values on the
-same scale as xValues.}
 
 \item{yThr}{A numerical value for the LOD-threshold.}
 

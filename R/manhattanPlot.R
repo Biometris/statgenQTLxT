@@ -17,8 +17,6 @@
 #' @param xEffects A vector of integers, indicating which components in the
 #' vector xValues correspond to a real (known) effect.
 #' @param colPalette A color palette used for plotting.
-#' @param chrBoundaries A vector of chromosome boundaries, i.e. x-values on the
-#' same scale as xValues.
 #' @param yThr A numerical value for the LOD-threshold.
 #' @param signLwd A numerical value giving the thickness of the
 #' points that are false/true positives/negatives.
@@ -42,7 +40,6 @@ manhattanPlot <- function(xValues,
                           xSig = integer(),
                           xEffects = integer(),
                           colPalette = rep(c("royalblue", "maroon"), 50),
-                          chrBoundaries = 0,
                           yThr = NULL,
                           signLwd = 0.6,
                           ...,
@@ -59,9 +56,6 @@ manhattanPlot <- function(xValues,
   }
   if (is.null(xEffects) || !is.numeric(xEffects)) {
     stop("xEffects should be an integer vector")
-  }
-  if (is.null(chrBoundaries) || !is.numeric(chrBoundaries)) {
-    stop("chrBoundaries should be an integer vector")
   }
   if (!is.null(yThr)) {
     chkNum(yThr, min = 0)

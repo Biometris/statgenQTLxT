@@ -5,8 +5,7 @@
 \title{Perform genomic prediction}
 \usage{
 genomicPrediction(gData, traits = NULL, environments = NULL, training,
-  kin = NULL, kinshipMethod = c("astle", "GRM", "IBS", "vanRaden"),
-  keep = NULL)
+  useMAF = TRUE, MAF = 0.01, MAC = 10, keep = NULL)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},
@@ -24,29 +23,25 @@ selected environments in sequential order.}
 \item{training}{A character vector with names of genotypes to use as
 training data for the prediction.}
 
-\item{kin}{An optional kinship matrix or list of kinship matrices. These
-matrices can be from the \code{matrix} class as defined in the base package
-or from the \code{dsyMatrix} class, the class of symmetric matrices in the
-Matrix package.\cr
-If \code{GLSMethod} = "single" then one matrix should be provided, if
-\code{GLSMethod} = "multi" a list of chromosome specific matrices of lenght
-equal to the number of chromosomes in \code{map} in \code{gData}.\cr
-If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
-If both \code{kin} is provided and \code{gData} contains a matrix
-\code{kinship} then \code{kin} is used.}
+\item{useMAF}{Should the minor allele frequency be used for selecting SNPs
+for the analysis. If \code{FALSE} the minor allele count is used instead.}
 
-\item{kinshipMethod}{An optional character indicating the method used for
-calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
-2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
-kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
-\code{kinshipMethod} is ignored.}
+\item{MAF}{The minor allele frequency (MAF) threshold used in GWAS. A
+numerical value between 0 and 1. SNPs with MAF below this value are not taken
+into account in the analysis, i.e. p-values and effect sizes are put to
+missing (\code{NA}). Ignored if \code{useMAF} is \code{FALSE}.}
+
+\item{MAC}{A numerical value. SNPs with minor allele count below this value
+are not taken into account for the analysis, i.e. p-values and effect sizes
+are put to missing (\code{NA}). Ignored if \code{useMAF} is \code{TRUE}.}
 
 \item{keep}{A character vector with names of columns in \code{covar} in
 \code{gData} that should be included in the output.}
 }
 \value{
 A data.frame containing predictions for genotypes per trait.
-Columns in \code{keep} are included in the output.
+Columns in \code{keep} are merged from covar in gData and included in
+the output.
 }
 \description{
 Perform genomic prediction

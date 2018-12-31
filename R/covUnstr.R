@@ -67,14 +67,24 @@ covUnstr <- function(Y,
     fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "),
                                ") ~ 1"))
   }
-  rcov <- as.formula(ifelse(VeDiag, "~diag(trait):units", "~us(trait):units"))
+  if (VeDiag) {
+    rcov <- as.formula(paste0("~sommer::vs(units, Gtc = diag(", nTrait, "))"))
+  } else {
+    rcov <- as.formula(paste0("~sommer::vs(units,
+                              Gtc = sommer::unsm(", nTrait, "))"))
+  }
+  random <- as.formula(paste0("~sommer::vs(genotype, Gu = as.matrix(K),
+                              Gtc = sommer::unsm(", nTrait, "))"))
   ## Fit model.
-  modFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
-                          rcov = rcov, data = dat, G = list(genotype = K),
-                          silent = TRUE, date.warning = FALSE)
+  modFit <- sommer::mmer(fixed = fixed, random = random, rcov = rcov,
+                         data = dat, verbose = FALSE, date.warning = FALSE,
+                         ## This is not really a good idea, but for now it
+                         ## is better than nothing.
+                         ## Has to be solved in sommer.
+                         tolparinv = 1e-3)
   ## Extract components from fitted model.
-  VgMat <- modFit$var.comp[[1]]
-  VeMat <- modFit$var.comp[[2]]
+  VgMat <- modFit$sigma[[1]]
+  VeMat <- modFit$sigma[[2]]
   ## Keep diagonal for Vg and Ve away from 0.
   diag(VgMat)[diag(VgMat) <= 0] <- 1e-3 * smpVar[diag(VgMat) <= 0]
   diag(VeMat)[diag(VeMat) <= 0] <- 1e-3 * smpVar[diag(VeMat) <= 0]
@@ -132,12 +142,12 @@ covPW <- function(Y,
       fixed <- as.formula(paste(traits[i], " ~ 1"))
     }
     ## Fit model.
-    modFit <- sommer::mmer2(fixed = fixed, random = ~ g(genotype), data = dat,
-                            G = list(genotype = K), silent = TRUE,
-                            date.warning = FALSE)
+    modFit <- sommer::mmer(fixed = fixed,
+                           random = ~sommer::vs(genotype, Gu = as.matrix(K)),
+                           data = dat, verbose = FALSE, date.warning = FALSE)
     ## Extract components from fitted model.
-    VgVec[i] <- as.numeric(modFit$var.comp[[1]])
-    VeVec[i] <- as.numeric(modFit$var.comp[[2]])
+    VgVec[i] <- as.numeric(modFit$sigma[[1]])
+    VeVec[i] <- as.numeric(modFit$sigma[[2]])
   }
   ## Keep diagonal for Vg and Ve away from 0.
   VgVec[VgVec <= 0] <- 1e-3 * smpVar[VgVec <= 0]
@@ -161,14 +171,21 @@ covPW <- function(Y,
     } else {
       fixed <- formula(paste0("cbind(", traits[i], ", ", traits[j], ") ~ 1"))
     }
-    modFit <- sommer::mmer2(fixed = fixed, random = ~ us(trait):g(genotype),
-                            rcov = ~ us(trait):units,
-                            data = dat[, c("genotype", traits[i], traits[j],
-                                           colnames(X)[-1])],
-                            G = list(genotype = K),
-                            silent = TRUE, date.warning = FALSE)
-    return(c(modFit$var.comp[[1]][1, 2],
-             modFit$var.comp[[2]][1, 2]))
+    modFit <- sommer::mmer(fixed = fixed,
+                           random = ~ sommer::vs(genotype, Gu = as.matrix(K),
+                                                 Gtc = sommer::unsm(2),
+                                                 Gt = VgMat[c(i, j), c(i, j)]),
+                           rcov = ~ sommer::vs(units, Gtc = sommer::unsm(2),
+                                               Gt = VeMat[c(i, j), c(i, j)]),
+                           data = dat[, c("genotype", traits[i], traits[j],
+                                          colnames(X)[-1])],
+                           verbose = FALSE, date.warning = FALSE,
+                           ## This is not really a good idea, but for now it
+                           ## is better than nothing.
+                           ## Has to be solved in sommer.
+                           tolparinv = 1e-3)
+    return(c(modFit$sigma[[1]][1, 2],
+             modFit$sigma[[2]][1, 2]))
   }
   comb <- combn(x = seq_along(traits), m = 2)
   pwVar <- foreach::foreach(i = comb[1, ], j = comb[2, ],
@@ -196,10 +213,4 @@ covPW <- function(Y,
   VeMat <- Matrix::nearPD(VeMat, corr = corMat)$mat
   return(list(Vg = as.matrix(VgMat), Ve = as.matrix(VeMat)))
 }
-
-
-
-
-
-
 

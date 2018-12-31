@@ -2,7 +2,7 @@
 #'
 #' A collection of functions for calculating kinship matrices using different
 #' algorithms. The following algorithms are included: astle (Astle and Balding,
-#' 2009), GRM, Identity By State (IBS) and VanRaden (VanRaden, 2008) for
+#' 2009), Identity By State (IBS) and VanRaden (VanRaden, 2008) for
 #' marker matrices and multiAllKin for three-dimensional marker arrays as
 #' created by \code{\link{readIBDProbs}}.
 #'
@@ -12,7 +12,7 @@
 #' Then some form of scaling is done which differs per algorithm. This gives a
 #' scaled matrix \code{Z}. The matrix \eqn{ZZ^t / denominator} is returned.
 #' By default the denominator is equal to the number of columns in \code{Z} for
-#' \code{astle}, \code{GRM} and \code{IBS} and \eqn{2 * p * (1-p)} where
+#' \code{astle} and \code{IBS} and \eqn{2 * p * (1-p)} where
 #' \eqn{p = colSums(X) / (2 * nrow(X))} for \code{vanRaden}. This denominator
 #' can be overwritten by the user, e.g. when computing kinship matrices by
 #' splitting \code{X} in smaller matrices and then adding the results together
@@ -43,15 +43,13 @@
 #'
 #' @examples X <- matrix(c(1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1), nrow = 3)
 #' kinship(X, method = "astle")
-#' kinship(X, method = "GRM")
 #' kinship(X, method = "IBS")
 #' kinship(X, method = "vanRaden")
 #'
 #' @export
 kinship <- function(X,
                     map = NULL,
-                    method = c("astle", "GRM", "IBS", "vanRaden",
-                               "multiAllKin"),
+                    method = c("astle", "IBS", "vanRaden", "multiAllKin"),
                     denominator = NULL) {
   method = match.arg(method);
   if (!is.null(denominator)) {

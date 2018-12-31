@@ -65,3 +65,21 @@ test_that("GWAS manhattan plot functions properly", {
             output = FALSE)
   expect_is(p, "ggplot")
 })
+
+XArr <- matrix(runif(n = 90), nrow = 30)
+XArr <- XArr / rowSums(XArr)
+dim(XArr) <- c(10, 3, 3)
+rownames(XArr) <- paste0("G", 1:10)
+colnames(XArr) <- paste0("M", 1:3)
+dimnames(XArr)[[3]] <- paste0("A", 1:3)
+gDataTestIBD <- createGData(map = map, geno = XArr, kin = Sigma, pheno = pheno)
+
+test_that("GWAS matrix plot functions properly", {
+  stgIBD <- runSingleTraitGwasIBD(gDataTestIBD, traits = "X1")
+  p <- plot(stgIBD, plotType = "matrix", output = FALSE)
+  expect_is(p, "ggplot")
+  p1 <- plot(stgIBD, plotType = "matrix", xLab = "labx", yLab = "laby",
+             output = FALSE)
+  expect_equal(p1$labels$x, "labx")
+  expect_equal(p1$labels$y, "laby")
+})

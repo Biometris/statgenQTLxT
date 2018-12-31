@@ -30,16 +30,20 @@ only contains results for one trait \code{trait} may be \code{NULL}.}
 \code{FALSE} only a list of ggplot objects is invisibly returned.}
 }
 \description{
-Creates a plot of an object of S3 class \code{GWAS}. Three types of plots
-can be made:
+Creates a plot of an object of S3 class \code{GWAS}. The following types of
+plot can be made:
 \itemize{
 \item{a manhattan plot, a plot of LOD-scores per SNP}
 \item{a qq plot of observed LOD-scores versus expected LOD-scores}
-\item{a qtl plot of effect sizes and directions for multiple traits}
+\item{a qtl plot of effect sizes and directions for multiple traits (not
+for IBD based QTL mapping)}
+\item{a matrix plot of effect sizes and directions per founder (only for IBD
+based QTL mapping)}
 }
-Manhattan plots and qq plots are made for a single trait which should be
-indicated using the parameter \code{trait}, the qtl plot will plot all
-traits analysed.\cr
+Manhattan plots, qq plots and matrix plots are made for a single trait which
+should be indicated using the parameter \code{trait} unless the analysis was
+done for only one trait in which case it is detected automatically. The qtl
+plot will plot all traits analysed.\cr
 See details for a detailed description of the plots and the plot options
 specific to the different plots.
 }
@@ -66,7 +70,7 @@ coloring is done by chromosome, using royalblue and maroon.}
 \item{\code{yThr}} {A numerical value for the LOD-threshold. As default value
 the value from the GWAS analysis is used.}
 \item{\code{signLwd}} {A numerical value giving the thickness of the
-points that are false/true positives/negatives. Defaule = 0.6}
+points that are false/true positives/negatives. Default = 0.6}
 \item{\code{lod}} {A positive numerical value. For the snps with a LOD-value
 below this value only 5% is plotted. The chance of a snp being plotting is
 proportional to its LOD-value. This option can be useful when plotting a
@@ -87,7 +91,7 @@ Segura et al. (2012) and adapted.
 \section{QTL Plot}{
 
 A plot of effect sizes for the significant snps found in the GWAS analysis
-if created. Each horizontal line in the plot contains QTLs of one trait,
+is created. Each horizontal line in the plot contains QTLs of one trait,
 phenotypic trait or environment. Optionally Vertical white lines can indicate
 chromosome subdivision, genes of interest, known QTL, etc. Circle diameters
 are proportional to the absolute value of allelic effect. Colors indicate the
@@ -114,6 +118,19 @@ the value from the GWAS analysis is used.}
 Default = \code{FALSE}}
 \item{\code{pptxName}} {A character string, the name of the .pptx file to
 which the plot is exported. Ignored if exportPptx = \code{FALSE}.}
+}
+}
+
+\section{Matrix Plot}{
+
+A plot of effect sizes for each of the founders for the significant snps
+found in the IBD based QTL mapping is created.\cr
+Extra parameter options:
+\itemize{
+\item{\code{xLab}} {A character string, the x-axis label. Default =
+\code{"Chromosomes"}}
+\item{\code{yLab}} {A character string, the y-axis label. Default =
+\code{"Parents"}}
 }
 }
 

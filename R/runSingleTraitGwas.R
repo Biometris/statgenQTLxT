@@ -30,14 +30,14 @@
 #' or from the \code{dsyMatrix} class, the class of symmetric matrices in the
 #' Matrix package.\cr
 #' If \code{GLSMethod} = "single" then one matrix should be provided, if
-#' \code{GLSMethod} = "multi" a list of chromosome specific matrices of lenght
+#' \code{GLSMethod} = "multi" a list of chromosome specific matrices of length
 #' equal to the number of chromosomes in \code{map} in \code{gData}.\cr
 #' If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
 #' If both \code{kin} is provided and \code{gData} contains a matrix
 #' \code{kinship} then \code{kin} is used.
 #' @param kinshipMethod An optional character indicating the method used for
 #' calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
-#' 2009), "GRM", "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
+#' 2009), "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
 #' kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
 #' \code{kinshipMethod} is ignored.
 #' @param remlAlgo An character string indicating the algorithm used to estimate
@@ -48,13 +48,13 @@
 #' or \code{multi} for using chromosome specific kinship matrices.
 #' @param useMAF Should the minor allele frequency be used for selecting SNPs
 #' for the analysis. If \code{FALSE} the minor allele count is used instead.
-#' @param MAF A numerical value between 0 and 1. SNPs with minor allele
-#' frequency below this value are not taken into account for the analysis,
-#' i.e. p-values and effect sizes are put to missing (NA). Ignored if
-#' \code{useMAF} is \code{FALSE}.
+#' @param MAF The minor allele frequency (MAF) threshold used in GWAS. A
+#' numerical value between 0 and 1. SNPs with MAF below this value are not taken
+#' into account in the analysis, i.e. p-values and effect sizes are put to
+#' missing (\code{NA}). Ignored if \code{useMAF} is \code{FALSE}.
 #' @param MAC A numerical value. SNPs with minor allele count below this value
 #' are not taken into account for the analysis, i.e. p-values and effect sizes
-#' are put to missing (NA). Ignored if \code{useMAF} is \code{TRUE}.
+#' are put to missing (\code{NA}). Ignored if \code{useMAF} is \code{TRUE}.
 #' @param genomicControl Should genomic control correction as in Devlin and
 #' Roeder (1999) be applied?
 #' @param thrType An character string indicating the type of threshold used for
@@ -120,8 +120,7 @@ runSingleTraitGwas <- function(gData,
                                covar = NULL,
                                snpCov = NULL,
                                kin = NULL,
-                               kinshipMethod = c("astle", "GRM", "IBS",
-                                                 "vanRaden"),
+                               kinshipMethod = c("astle", "IBS", "vanRaden"),
                                remlAlgo = c("EMMA", "NR"),
                                GLSMethod = c("single", "multi"),
                                useMAF = TRUE,

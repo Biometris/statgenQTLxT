@@ -1,8 +1,8 @@
 Package: genStatPipeline
 Type: Package
 Title: Genome Wide Association Studies in R
-Version: 0.0.0.9000
-Date: 2018-08-01
+Version: 0.0.1
+Date: 2019-01-01
 Authors@R: c(
     person("Bart-Jan", "van Rossum", email = "bart-jan.vanrossum@wur.nl", 
            role = c("aut", "cre")),
@@ -14,12 +14,13 @@ Description: More about what it does (maybe more than one line)
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
+Depends: R (>= 3.3)
 Imports: data.table,
     ggplot2 (>= 3.0.0),
     Matrix (>= 1.2-10),
     methods,
-    sommer (>= 3.5),
+    sommer (>= 3.7.3),
     foreach,
     Rcpp
 Suggests: covr,
