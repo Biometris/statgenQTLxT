@@ -35,4 +35,12 @@ test_that("function matrixRoot functions properly", {
   expect_equal(as.numeric(matrixRoot(Matrix::crossprod(M2))), c(2, 1, 1, 2))
 })
 
+test_that("function reduceKinship functions properly", {
+  K1 <- reduceKinship(K = K, nPca = 2)
+  expect_is(K1, "matrix")
+  expect_equal(dim(K1), dim(K))
+  expect_known_output(K1, file = test_path("test-redKin1.txt"), print = TRUE)
+  K2 <- reduceKinship(K = K, nPca = 5)
+  expect_known_output(K2, file = test_path("test-redKin2.txt"), print = TRUE)
+})
 
