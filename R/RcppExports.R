@@ -137,6 +137,21 @@ EMFA <- function(y, k, size_param_x = NULL, cmHet = FALSE, dmHet = FALSE, tolera
     .Call(`_genStatPipeline_EMFA`, y, k, size_param_x, cmHet, dmHet, tolerance, maxIter, size_param_cmStart, size_param_dmStart, mG, mE, maxDiag, stopIfDecreasing)
 }
 
+#' EMMA helper functions
+#'
+#' Helper functions for computing REML estimates of genetic and residual
+#' variance components using the EMMA algorithm.
+#'
+#' @inheritParams EMMA
+#' @param X a q x n covariate matrix, q being the number of covariates and n
+#' being the number of genotypes. q has to be at least one (typically an
+#' intercept).
+#'
+#' @keywords internal
+emmaEigenR <- function(k, x) {
+    .Call(`_genStatPipeline_emmaEigenR`, k, x)
+}
+
 #' Compute tYPY as in Zhou and Stephens eqn. 50.
 #'
 #' Compute \eqn{t(y) * P * y}, part of the log-likelihood functions from

@@ -137,7 +137,7 @@ EMMA <- function(gData,
   delta <- exp(logDelta)
   if (is.null(Z)) {
     ## Compute n-q non-zero eigenvalues and corresponding eigenvectors.
-    eigR <- emmaEigenR(K = K, X = X)
+    eigR <- emmaEigenR(k = as.matrix(K), x = as.matrix(X))
     ## Define eta as in eqn. 7 of Kang.
     etas <- Matrix::crossprod(eigR$vectors, y)
     ## Define etas1 and etas2 to use same optimisation as for Z not NULL.
@@ -146,7 +146,7 @@ EMMA <- function(gData,
     ## Compute square of eta for usage in vectorised form.
     etasQ <- etas ^ 2
     ## Define lambda as in eqn. 7 of Kang for usage in vectorised form.
-    lambdas <- Matrix::Matrix(eigR$values, nrow = n - q, ncol = m) +
+    lambdas <- Matrix::Matrix(as.numeric(eigR$values), nrow = n - q, ncol = m) +
       Matrix::Matrix(delta, nrow = n - q, ncol = m, byrow = TRUE)
     ## Compute derivative of LL as in eqn. 9 of Kang for all grid endpoints.
     dLL <- 0.5 * delta * ((n - q) * Matrix::colSums(etasQ / lambdas ^ 2) /
@@ -163,7 +163,7 @@ EMMA <- function(gData,
     ## Compute square of eta for usage in vectorised form.
     etasQ <- Matrix::Matrix(etas1 ^ 2, nrow = t - q, ncol = m)
     ## Define lambda as in eqn. 7 of Kang for usage in vectorised form.
-    lambdas <- Matrix::Matrix(eigR$values, nrow = t - q, ncol = m) +
+    lambdas <- Matrix::Matrix(as.numeric(eigR$values), nrow = t - q, ncol = m) +
       Matrix::Matrix(delta, nrow = t - q, ncol = m, byrow = TRUE)
     ## Compute derivative of LL as in eqn. 9 of Kang for all grid endpoints.
     dLL <- 0.5 * delta * ((n - q) *
@@ -212,35 +212,6 @@ EMMA <- function(gData,
   vcovMatrix <- maxVg * K + Matrix::Diagonal(n = nrow(K), x = maxVe)
   rownames(vcovMatrix) <- colnames(vcovMatrix) <- rownames(K)
   return(list(varComp = c(Vg = maxVg, Ve = maxVe), vcovMatrix = vcovMatrix))
-}
-
-#' EMMA helper functions
-#'
-#' Helper functions for computing REML estimates of genetic and residual
-#' variance components using the EMMA algorithm.
-#'
-#' @inheritParams EMMA
-#' @param X a q x n covariate matrix, q being the number of covariates and n
-#' being the number of genotypes. q has to be at least one (typically an
-#' intercept).
-#'
-#' @keywords internal
-emmaEigenR <- function(K,
-                       X) {
-  n <- nrow(X)
-  q <- ncol(X)
-  ## Compute n-q non-zero eigenvalues of SHS as defined in eqn. 5 of Kang.
-  if (q == 1) {
-    S <- Matrix::Diagonal(n = n) - 1 / n
-  } else {
-    S <- Matrix::Diagonal(n = n) - X %*%
-      Matrix::solve(Matrix::crossprod(X), Matrix::t(X))
-  }
-  eig <- eigen(S %*% (K + Matrix::Diagonal(n = n)) %*% S, symmetric = TRUE)
-  if (is.complex(eig$values))
-    stop("Complex eigen values found.\n")
-  return(list(values = eig$values[1:(n - q)] - 1,
-              vectors = eig$vectors[, 1:(n - q)]))
 }
 
 #' @keywords internal

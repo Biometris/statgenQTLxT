@@ -106,6 +106,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// emmaEigenR
+List emmaEigenR(const arma::mat k, const arma::mat x);
+RcppExport SEXP _genStatPipeline_emmaEigenR(SEXP kSEXP, SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const arma::mat >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(emmaEigenR(k, x));
+    return rcpp_result_gen;
+END_RCPP
+}
 // LLQuadFormDiagCPP
 double LLQuadFormDiagCPP(const arma::mat& y, const arma::cube& vInv, Rcpp::Nullable<Rcpp::NumericVector> size_param_x);
 RcppExport SEXP _genStatPipeline_LLQuadFormDiagCPP(SEXP ySEXP, SEXP vInvSEXP, SEXP size_param_xSEXP) {
@@ -251,6 +263,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_genStatPipeline_vecInvDiag", (DL_FUNC) &_genStatPipeline_vecInvDiag, 2},
     {"_genStatPipeline_tracePInvDiag", (DL_FUNC) &_genStatPipeline_tracePInvDiag, 2},
     {"_genStatPipeline_EMFA", (DL_FUNC) &_genStatPipeline_EMFA, 13},
+    {"_genStatPipeline_emmaEigenR", (DL_FUNC) &_genStatPipeline_emmaEigenR, 2},
     {"_genStatPipeline_LLQuadFormDiagCPP", (DL_FUNC) &_genStatPipeline_LLQuadFormDiagCPP, 3},
     {"_genStatPipeline_estEffsCPP", (DL_FUNC) &_genStatPipeline_estEffsCPP, 9},
     {"_genStatPipeline_fastGLSCPP", (DL_FUNC) &_genStatPipeline_fastGLSCPP, 5},
@@ -261,7 +274,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_genStatPipeline_vanRadenCPP", (DL_FUNC) &_genStatPipeline_vanRadenCPP, 2},
     {"_genStatPipeline_multiAllKinCPP", (DL_FUNC) &_genStatPipeline_multiAllKinCPP, 3},
     {"_genStatPipeline_reduceKinship", (DL_FUNC) &_genStatPipeline_reduceKinship, 2},
-    {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 0},
+    {"run_testthat_tests",                 (DL_FUNC) &run_testthat_tests,                  0},
     {NULL, NULL, 0}
 };
 

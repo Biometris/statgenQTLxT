@@ -20,7 +20,7 @@ using namespace arma;
 //' @keywords internal
 // [[Rcpp::export]]
 arma::mat reduceKinship(const arma::mat K,
-                         const int nPca) {
+                        const int nPca) {
   arma::vec eigVals( K.n_cols );
   arma::mat eigVecs( size(K) );
   arma::eig_sym(eigVals, eigVecs, K);
