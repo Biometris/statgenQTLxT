@@ -24,6 +24,8 @@ arma::mat reduceKinship(const arma::mat K,
   arma::vec eigVals( K.n_cols );
   arma::mat eigVecs( size(K) );
   arma::eig_sym(eigVals, eigVecs, K);
+  // fliplr and reverse are needed because eigenVals and eigenVecs are returned
+  // sorted in ascending order.
   eigVecs = fliplr( eigVecs.tail_cols(nPca) );
   arma::mat S = arma::diagmat( reverse(eigVals.tail(nPca)) );
   return eigVecs * S * eigVecs.t();

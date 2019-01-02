@@ -14,7 +14,6 @@ estEffTot <- function(markers,
                       MAF,
                       estCom,
                       nCores = NULL) {
-  p <- ncol(Y)
   segMarkers <- which(allFreq < MAF | allFreq > 1 - MAF)
   ## Add snpCovariates to segregating markers.
   excludedMarkers <- union(c(segMarkers, ncol(markers) + 1),

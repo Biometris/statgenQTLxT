@@ -261,7 +261,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_genStatPipeline_vanRadenCPP", (DL_FUNC) &_genStatPipeline_vanRadenCPP, 2},
     {"_genStatPipeline_multiAllKinCPP", (DL_FUNC) &_genStatPipeline_multiAllKinCPP, 3},
     {"_genStatPipeline_reduceKinship", (DL_FUNC) &_genStatPipeline_reduceKinship, 2},
-    {"run_testthat_tests",                 (DL_FUNC) &run_testthat_tests,                  0},
+    {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 0},
     {NULL, NULL, 0}
 };
 
