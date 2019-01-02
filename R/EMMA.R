@@ -146,7 +146,7 @@ EMMA <- function(gData,
     ## Compute square of eta for usage in vectorised form.
     etasQ <- etas ^ 2
     ## Define lambda as in eqn. 7 of Kang for usage in vectorised form.
-    lambdas <- Matrix::Matrix(as.numeric(eigR$values), nrow = n - q, ncol = m) +
+    lambdas <- Matrix::Matrix(eigR$values, nrow = n - q, ncol = m) +
       Matrix::Matrix(delta, nrow = n - q, ncol = m, byrow = TRUE)
     ## Compute derivative of LL as in eqn. 9 of Kang for all grid endpoints.
     dLL <- 0.5 * delta * ((n - q) * Matrix::colSums(etasQ / lambdas ^ 2) /
@@ -163,7 +163,7 @@ EMMA <- function(gData,
     ## Compute square of eta for usage in vectorised form.
     etasQ <- Matrix::Matrix(etas1 ^ 2, nrow = t - q, ncol = m)
     ## Define lambda as in eqn. 7 of Kang for usage in vectorised form.
-    lambdas <- Matrix::Matrix(as.numeric(eigR$values), nrow = t - q, ncol = m) +
+    lambdas <- Matrix::Matrix(eigR$values, nrow = t - q, ncol = m) +
       Matrix::Matrix(delta, nrow = t - q, ncol = m, byrow = TRUE)
     ## Compute derivative of LL as in eqn. 9 of Kang for all grid endpoints.
     dLL <- 0.5 * delta * ((n - q) *
@@ -179,13 +179,14 @@ EMMA <- function(gData,
   if (dLL[1] < eps) {
     optLogDelta <- c(optLogDelta, lLim)
     optLL <- c(optLL, emmaREMLLL(logDelta = lLim, lambda = eigR$values,
-                                 etas1 = etas1, n = n, t = t, etas2 = etas2))
+                                 etas1 = as.matrix(etas1), n = n, t = t,
+                                 etas2 = etas2))
   }
   ## Check last item in dLL. If > - eps include LL value as possible optimum.
   if (dLL[m] > -eps) {
     optLogDelta <- c(optLogDelta, uLim)
     optLL <- c(optLL, emmaREMLLL(logDelta = uLim, lambda = eigR$values,
-                                 etas1 = etas, n = 0, t = 0, etas2 = 0))
+                                 etas1 = as.matrix(etas), n = 0, t = 0, etas2 = 0))
   }
   ## If derivative changes sign on an interval, compute local optimum for LL
   ## on that interval and add it to possible optima.
@@ -193,7 +194,7 @@ EMMA <- function(gData,
     if ((dLL[i] > 0 && dLL[i + 1] < 0) || dLL[i] * dLL[i + 1] < eps ^ 2) {
       r <- optimise(f = emmaREMLLL, lower = logDelta[i],
                     upper = logDelta[i + 1], lambda = eigR$values,
-                    etas1 = etas, n = 0, t = 0, etas2 = 0, maximum = TRUE)
+                    etas1 = as.matrix(etas), n = 0, t = 0, etas2 = 0, maximum = TRUE)
       optLogDelta <- c(optLogDelta, r$maximum)
       optLL <- c(optLL, r$objective)
     }
@@ -238,14 +239,3 @@ emmaEigenRZ <- function(Z,
               vectors = qr.Q(qr(cbind(SZ %*% eig$vectors[, 1:(t - q)], qrX)),
                              complete = TRUE)[, c(1:(t - q), (t + 1):n)]))
 }
-
-emmaREMLLL <- function(logDelta, lambda, etas1, n, t, etas2) {
-  ## Compute the REML LL as in eqn. 7 of Kang.
-  nq <- length(etas1) + n - t
-  delta <- exp(logDelta)
-  lDelta <- lambda + delta
-  return(0.5 * (nq * (log(nq / (2 * pi)) - 1 -
-                        log(sum(etas1 ^ 2 / (lDelta)) + etas2 / delta)) -
-                  (sum(log(lDelta)) + (n - t) * logDelta)))
-}
-

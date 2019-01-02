@@ -152,6 +152,10 @@ emmaEigenR <- function(k, x) {
     .Call(`_genStatPipeline_emmaEigenR`, k, x)
 }
 
+emmaREMLLL <- function(logDelta, lambda, etas1, n, t, etas2) {
+    .Call(`_genStatPipeline_emmaREMLLL`, logDelta, lambda, etas1, n, t, etas2)
+}
+
 #' Compute tYPY as in Zhou and Stephens eqn. 50.
 #'
 #' Compute \eqn{t(y) * P * y}, part of the log-likelihood functions from

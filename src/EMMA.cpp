@@ -1,5 +1,8 @@
 #include <RcppArmadillo.h>
 
+#define _USE_MATH_DEFINES // for C++
+#include <cmath>
+
 // Correctly setup the build environment
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -32,6 +35,23 @@ List emmaEigenR(const arma::mat k,
   arma::vec eigVals(n);
   arma::mat eigVecs(n, n);
   arma::eig_sym(eigVals, eigVecs, s * (k + eye(n, n)) * s);
-  return List::create(_["values"] = reverse(eigVals.tail(n - q)) - 1,
+  eigVals = reverse(eigVals.tail(n - q)) - 1;
+  return List::create(_["values"] = arma::conv_to< std::vector<double>>::from(eigVals),
                       _["vectors"] = fliplr( eigVecs.tail_cols(n - q) ));
+}
+
+// [[Rcpp::export]]
+std::vector<double> emmaREMLLL(double logDelta,
+                               arma::vec lambda,
+                               arma::vec etas1,
+                               double n,
+                               double t,
+                               arma::vec etas2) {
+  // Compute the REML LL as in eqn. 7 of Kang.
+  double nq = etas1.n_elem + n - t;
+  double delta = exp(logDelta);
+  lambda += delta;
+  arma::vec ll = 0.5 * (nq * (log(nq / (2 * M_PI)) - 1 - log(sum(square(etas1) /
+    lambda) + etas2 / delta)) - sum(log(lambda)) + (t - n) * logDelta);
+  return arma::conv_to< std::vector<double>>::from(ll);
 }

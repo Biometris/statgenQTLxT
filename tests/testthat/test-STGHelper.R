@@ -77,12 +77,11 @@ test_that("extra options in EMMA don't significantly change results", {
 
 test_that("emmaEigenR produces correct results", {
   expect_equal(dim(emmaEigenR(k = as.matrix(Sigma), x = covs)[[2]]), c(10, 8))
-  expect_equivalent(emmaEigenR(k = as.matrix(Sigma)[1:3, 1:3],
-                               x = covs[1:3, ])[[1]],
-               1.96517890694063)
+  expect_equal(emmaEigenR(k = as.matrix(Sigma)[1:3, 1:3], x = covs[1:3, ])[[1]],
+                    1.96517890694063)
   expect_equivalent(emmaEigenR(k = as.matrix(Sigma)[1:3, 1:3],
                                x = covs[1:3, ])[[2]],
-               c(0.118208501113814, -0.364967722967346, 0.923485414858543))
+                    c(0.118208501113814, -0.364967722967346, 0.923485414858543))
   expect_error(emmaEigenR(k = as.matrix(Sigma), x = covs[1:3, ]))
   expect_error(emmaEigenR(k = as.matrix(Sigma)[1:3, ], x = covs))
 })
@@ -90,7 +89,7 @@ test_that("emmaEigenR produces correct results", {
 test_that("emmaEigenR produces correct results with only intercept as cov", {
   expect_equal(dim(emmaEigenR(k = as.matrix(Sigma),
                               x = covs[, 1, drop = FALSE])[[2]]), c(10, 9))
-  expect_equivalent(emmaEigenR(k = as.matrix(Sigma)[1:3, 1:3],
+  expect_equal(emmaEigenR(k = as.matrix(Sigma)[1:3, 1:3],
                                x = covs[1:3, 1, drop = FALSE])[[1]],
                     c(1.54816861118242, 0.797096357276858))
   expect_equivalent(emmaEigenR(k = as.matrix(Sigma)[1:3, 1:3],
@@ -99,14 +98,13 @@ test_that("emmaEigenR produces correct results with only intercept as cov", {
                       0.67847782177043, 0.0541449779870151, -0.732622799757445))
 })
 
-
 test_that("EMMAREMLLL produces correct output", {
-  expect_equal(emmaREMLLL(logDelta = -1, lambda = 1, etas1 = 2, n = 0, t = 0,
-                          etas2 = 0), -2.11208571376462)
-  expect_equal(emmaREMLLL(logDelta = -1, lambda = 1:10, etas1 = 1:10, n = 0,
-                          t = 0, etas2 = 0), -30.4461091155684)
-  expect_equal(emmaREMLLL(logDelta = -1, lambda = 1:10, etas1 = 1:10, n = 3,
-                          t = 2, etas2 = 1:2),
+  expect_equal(emmaREMLLL(logDelta = -1, lambda = 1, etas1 = 2, n = 0,
+                          t = 0, etas2 = 0), -2.11208571376462)
+  expect_equal(emmaREMLLL(logDelta = -1, lambda = 1:10, etas1 = 1:10,
+                          n = 0, t = 0, etas2 = 0), -30.4461091155684)
+  expect_equal(emmaREMLLL(logDelta = -1, lambda = 1:10, etas1 = 1:10,
+                          n = 3, t = 2, etas2 = 1:2),
                c(-31.9439236241564, -32.2122231996107))
 })
 

@@ -118,6 +118,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// emmaREMLLL
+std::vector<double> emmaREMLLL(double logDelta, arma::vec lambda, arma::vec etas1, double n, double t, arma::vec etas2);
+RcppExport SEXP _genStatPipeline_emmaREMLLL(SEXP logDeltaSEXP, SEXP lambdaSEXP, SEXP etas1SEXP, SEXP nSEXP, SEXP tSEXP, SEXP etas2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type logDelta(logDeltaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type etas1(etas1SEXP);
+    Rcpp::traits::input_parameter< double >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type t(tSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type etas2(etas2SEXP);
+    rcpp_result_gen = Rcpp::wrap(emmaREMLLL(logDelta, lambda, etas1, n, t, etas2));
+    return rcpp_result_gen;
+END_RCPP
+}
 // LLQuadFormDiagCPP
 double LLQuadFormDiagCPP(const arma::mat& y, const arma::cube& vInv, Rcpp::Nullable<Rcpp::NumericVector> size_param_x);
 RcppExport SEXP _genStatPipeline_LLQuadFormDiagCPP(SEXP ySEXP, SEXP vInvSEXP, SEXP size_param_xSEXP) {
@@ -264,6 +280,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_genStatPipeline_tracePInvDiag", (DL_FUNC) &_genStatPipeline_tracePInvDiag, 2},
     {"_genStatPipeline_EMFA", (DL_FUNC) &_genStatPipeline_EMFA, 13},
     {"_genStatPipeline_emmaEigenR", (DL_FUNC) &_genStatPipeline_emmaEigenR, 2},
+    {"_genStatPipeline_emmaREMLLL", (DL_FUNC) &_genStatPipeline_emmaREMLLL, 6},
     {"_genStatPipeline_LLQuadFormDiagCPP", (DL_FUNC) &_genStatPipeline_LLQuadFormDiagCPP, 3},
     {"_genStatPipeline_estEffsCPP", (DL_FUNC) &_genStatPipeline_estEffsCPP, 9},
     {"_genStatPipeline_fastGLSCPP", (DL_FUNC) &_genStatPipeline_fastGLSCPP, 5},
