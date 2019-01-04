@@ -28,11 +28,11 @@ test_that(paste("function dfBind removes empty data.frames lists from",
                 })
 
 test_that("function matrixRoot functions properly", {
-  M1 <- Matrix::Matrix(1:4, nrow = 2)
-  M2 <- Matrix::Matrix(c(1:2, 2:1), nrow = 2)
-  expect_error(matrixRoot(M1), "should be a symmetric matrix")
-  expect_error(matrixRoot(M2), "should be a positive definite matrix")
-  expect_equal(as.numeric(matrixRoot(Matrix::crossprod(M2))), c(2, 1, 1, 2))
+  M1 <- matrix(1:4, nrow = 2)
+  M2 <- matrix(c(1:2, 2:1), nrow = 2)
+  expect_error(matrixRoot(M1), "should be a symmetric positive definite matrix")
+  expect_error(matrixRoot(M2), "should be a symmetric positive definite matrix")
+  expect_equal(as.numeric(matrixRoot(crossprod(M2))), c(2, 1, 1, 2))
 })
 
 test_that("function reduceKinship functions properly", {

@@ -68,14 +68,15 @@ estVarComp <- function(GLSMethod,
       ## Compute varcov matrix using var components from model.
       vcMod <- modFit$sigma
       modK <- K[nonMissRepId, nonMissRepId]
-      varComp <- setNames(
-        unlist(vcMod)[c(1, length(unlist(vcMod)))], c("Vg", "Ve"))
+      varComp <- setNames(unlist(vcMod)[c(1, length(unlist(vcMod)))],
+                          c("Vg", "Ve"))
       vcovMatrix <- unlist(vcMod)[1] * modK +
         Matrix::Diagonal(n = nrow(modK),
                          x = unlist(vcMod)[length(unlist(vcMod))])
       if (any(eigen(vcovMatrix, symmetric = TRUE,
-                    only.values = TRUE)$values <= 1e-8))
+                    only.values = TRUE)$values <= 1e-8)) {
         vcovMatrix <- Matrix::nearPD(vcovMatrix)$mat
+      }
     } else if (GLSMethod == "multi") {
       for (chr in chrs) {
         ## Get chromosome specific kinship.

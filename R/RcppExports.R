@@ -257,6 +257,20 @@ multiAllKinCPP <- function(x, posCor, denom = NULL) {
     .Call(`_genStatPipeline_multiAllKinCPP`, x, posCor, denom)
 }
 
+#' Compute square root of a symmetric, positive definite matrix
+#'
+#' Given a symmetric, positive definite matrix X a matrix Y is computed such
+#' that \eqn{Y^2 = X}. Computation is done using eigendecomposition of X.
+#'
+#' @param X A symmetric, positive definite matrix.
+#'
+#' @return A matrix Y such that \eqn{Y^2 = X}.
+#'
+#' @keywords internal
+matrixRoot <- function(x) {
+    .Call(`_genStatPipeline_matrixRoot`, x)
+}
+
 #' Reduce the kinship matrix
 #'
 #' The kinship matrix is reduced using nPca eigenvectors of K.
