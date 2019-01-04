@@ -148,12 +148,20 @@ EMFA <- function(y, k, size_param_x = NULL, cmHet = FALSE, dmHet = FALSE, tolera
 #' intercept).
 #'
 #' @keywords internal
-emmaEigenR <- function(k, x) {
-    .Call(`_genStatPipeline_emmaEigenR`, k, x)
+emmaEigenR <- function(k, x, eigVals, eigVecs) {
+    invisible(.Call(`_genStatPipeline_emmaEigenR`, k, x, eigVals, eigVecs))
 }
 
 emmaREMLLL <- function(logDelta, lambda, etas1, n, t, etas2) {
     .Call(`_genStatPipeline_emmaREMLLL`, logDelta, lambda, etas1, n, t, etas2)
+}
+
+goldenSectionSearch <- function(upperBound, center, lowerBound, absolutePrecision, lambda, etas1, n, t, etas2) {
+    .Call(`_genStatPipeline_goldenSectionSearch`, upperBound, center, lowerBound, absolutePrecision, lambda, etas1, n, t, etas2)
+}
+
+emmaCPP <- function(y, k, x, nGrids = 100L, uLim = 10, lLim = -10, eps = 1e-3) {
+    .Call(`_genStatPipeline_emmaCPP`, y, k, x, nGrids, uLim, lLim, eps)
 }
 
 #' Compute tYPY as in Zhou and Stephens eqn. 50.

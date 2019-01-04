@@ -61,7 +61,7 @@ EMMA <- function(gData,
                  nGrids = 100,
                  lLim = -10,
                  uLim = 10,
-                 eps = 1e-10) {
+                 eps = .Machine$double.eps ^ 0.25) {
   ## Checks.
   chkGData(gData, comps = "pheno")
   if (missing(environment) || length(environment) > 1 ||
@@ -108,134 +108,26 @@ EMMA <- function(gData,
   } else {
     K <- K[nonMiss, nonMiss]
   }
-  y <- as(phEnv[nonMissId, trait], "dgeMatrix")
+  y <- phEnv[nonMissId, trait]
   ## Define intercept.
-  X <- Matrix::Matrix(data = 1, nrow = length(nonMiss), ncol = 1)
+  X <- matrix(data = 1, nrow = length(nonMiss), ncol = 1)
   if (!is.null(covar)) {
     ## Add covars to intercept.
-    X <- Matrix::cbind2(X, as(as.matrix(gData$covar[nonMiss, covar]),
-                              "dgeMatrix"))
+    X <- cbind(X, as.matrix(gData$covar[nonMiss, covar, drop = FALSE]))
   }
   if (!is.null(snpName)) {
     ## Add extra snp to intercept + covars.
-    X <- Matrix::cbind2(X, as.numeric(gData$markers[phEnv$genotype,
-                                                    snpName][nonMiss]))
+    X <- cbind(X, as.numeric(gData$markers[phEnv$genotype, snpName][nonMiss]))
   }
   ## Check resulting X for singularity.
-  if (!inherits(try(Matrix::solve(Matrix::crossprod(X)), silent = TRUE),
-                "Matrix")) {
+  if (!is.matrix(try(solve(crossprod(X)), silent = TRUE))) {
     warning("X is singular.")
     return(list(varcomp = c(0, 0), K = K))
   }
-  ## Using notation of Kang et al.
-  n <- length(y)
-  t <- nrow(K)
-  q <- ncol(X)
-  ## Define intervals used for computing local optimums.
-  m <- nGrids + 1
-  logDelta <- (0:nGrids) / nGrids * (uLim - lLim) + lLim
-  delta <- exp(logDelta)
-  if (is.null(Z)) {
-    ## Compute n-q non-zero eigenvalues and corresponding eigenvectors.
-    eigR <- emmaEigenR(k = as.matrix(K), x = as.matrix(X))
-    ## Define eta as in eqn. 7 of Kang.
-    etas <- Matrix::crossprod(eigR$vectors, y)
-    ## Define etas1 and etas2 to use same optimisation as for Z not NULL.
-    etas1 <- etas
-    etas2 <- 0
-    ## Compute square of eta for usage in vectorised form.
-    etasQ <- etas ^ 2
-    ## Define lambda as in eqn. 7 of Kang for usage in vectorised form.
-    lambdas <- Matrix::Matrix(eigR$values, nrow = n - q, ncol = m) +
-      Matrix::Matrix(delta, nrow = n - q, ncol = m, byrow = TRUE)
-    ## Compute derivative of LL as in eqn. 9 of Kang for all grid endpoints.
-    dLL <- 0.5 * delta * ((n - q) * Matrix::colSums(etasQ / lambdas ^ 2) /
-                            Matrix::colSums(etasQ / lambdas) -
-                            Matrix::colSums(1 / lambdas))
-  } else {
-    ## Compute n-q non-zero eigenvalues and corresponding eigenvectors.
-    eigR <- emmaEigenRZ(Z = Z, K = K, X = X)
-    ## Define eta as in eqn. 7 of Kang.
-    etas <- Matrix::crossprod(eigR$vectors, y)
-    ## Split etas
-    etas1 <- etas[1:(t - q)]
-    etas2 <- sum(etas[(t - q + 1):(n - q)] ^ 2)
-    ## Compute square of eta for usage in vectorised form.
-    etasQ <- Matrix::Matrix(etas1 ^ 2, nrow = t - q, ncol = m)
-    ## Define lambda as in eqn. 7 of Kang for usage in vectorised form.
-    lambdas <- Matrix::Matrix(eigR$values, nrow = t - q, ncol = m) +
-      Matrix::Matrix(delta, nrow = t - q, ncol = m, byrow = TRUE)
-    ## Compute derivative of LL as in eqn. 9 of Kang for all grid endpoints.
-    dLL <- 0.5 * delta * ((n - q) *
-                            (Matrix::colSums(etasQ / (lambdas ^ 2)) + etas2 /
-                               (delta ^ 2)) /
-                            (Matrix::colSums(etasQ / lambdas) + etas2 / delta) -
-                            (Matrix::colSums(1 / lambdas) + (n - t) / delta))
-  }
-  ## Find optimum of LL
-  optLogDelta <- numeric()
-  optLL <- numeric()
-  ## Check first item in dLL. If < eps include LL value as possible optimum.
-  if (dLL[1] < eps) {
-    optLogDelta <- c(optLogDelta, lLim)
-    optLL <- c(optLL, emmaREMLLL(logDelta = lLim, lambda = eigR$values,
-                                 etas1 = as.matrix(etas1), n = n, t = t,
-                                 etas2 = etas2))
-  }
-  ## Check last item in dLL. If > - eps include LL value as possible optimum.
-  if (dLL[m] > -eps) {
-    optLogDelta <- c(optLogDelta, uLim)
-    optLL <- c(optLL, emmaREMLLL(logDelta = uLim, lambda = eigR$values,
-                                 etas1 = as.matrix(etas), n = 0, t = 0, etas2 = 0))
-  }
-  ## If derivative changes sign on an interval, compute local optimum for LL
-  ## on that interval and add it to possible optima.
-  for (i in 1:(m - 1)) {
-    if ((dLL[i] > 0 && dLL[i + 1] < 0) || dLL[i] * dLL[i + 1] < eps ^ 2) {
-      r <- optimise(f = emmaREMLLL, lower = logDelta[i],
-                    upper = logDelta[i + 1], lambda = eigR$values,
-                    etas1 = as.matrix(etas), n = 0, t = 0, etas2 = 0, maximum = TRUE)
-      optLogDelta <- c(optLogDelta, r$maximum)
-      optLL <- c(optLL, r$objective)
-    }
-  }
-  ## Compute absolute LL maximum from possible optima.
-  maxDelta <- exp(optLogDelta[which.max(optLL)])
-  maxLL <- max(optLL)
-  ## Compute variance components.
-  if (is.null(Z)) {
-    maxVg <- sum(etas ^ 2 / (eigR$values + maxDelta)) / (n - q)
-  } else {
-    maxVg <- (sum(etas1 ^ 2 / (eigR$values + maxDelta)) + etas2 / maxDelta) /
-      (n - q)
-  }
-  maxVe <- maxVg * maxDelta
-  vcovMatrix <- maxVg * K + Matrix::Diagonal(n = nrow(K), x = maxVe)
+  resEmma <- emmaCPP(y = y, k = as.matrix(K), x = X,
+                     eps = .Machine$double.eps ^ 0.25)
+  vcovMatrix <- resEmma$vcovMatrix
   rownames(vcovMatrix) <- colnames(vcovMatrix) <- rownames(K)
-  return(list(varComp = c(Vg = maxVg, Ve = maxVe), vcovMatrix = vcovMatrix))
-}
-
-#' @keywords internal
-emmaEigenRZ <- function(Z,
-                        K,
-                        X,
-                        complete = TRUE) {
-  if (!complete) {
-    vIds <- colSums(Z) > 0
-    Z <- Z[, vIds]
-    K <- K[vIds, vIds]
-  }
-  n <- nrow(Z)
-  t <- ncol(Z)
-  q <- ncol(X)
-  SZ <- Z - X %*% solve(crossprod(X), crossprod(X, Z))
-  eig <- eigen(K %*% tcrossprod(Z, SZ), symmetric = FALSE)
-  if (is.complex(eig$values)) {
-    eig$values <- Re(eig$values)
-    eig$vectors <- Re(eig$vectors)
-  }
-  qrX <- qr.Q(qr(X))
-  return(list(values = eig$values[1:(t - q)],
-              vectors = qr.Q(qr(cbind(SZ %*% eig$vectors[, 1:(t - q)], qrX)),
-                             complete = TRUE)[, c(1:(t - q), (t + 1):n)]))
+  return(list(varComp = c(Vg = resEmma$maxVg, Ve = resEmma$maxVe),
+              vcovMatrix = vcovMatrix))
 }

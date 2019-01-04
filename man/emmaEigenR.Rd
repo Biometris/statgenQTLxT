@@ -4,7 +4,7 @@
 \alias{emmaEigenR}
 \title{EMMA helper functions}
 \usage{
-emmaEigenR(k, x)
+emmaEigenR(k, x, eigVals, eigVecs)
 }
 \arguments{
 \item{X}{a q x n covariate matrix, q being the number of covariates and n

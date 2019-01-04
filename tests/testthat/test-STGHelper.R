@@ -17,16 +17,16 @@ gDataTest <- createGData(map = map, geno = X, kin = Sigma, pheno = pheno,
 
 test_that("EMMA produces correct results with default settings", {
   expect_equivalent(EMMA(gData = gDataTest, trait = 2, environment = 1)[[1]],
-                    c(0.0214570264923801, 1.85343825287729))
+                    c(0.020597492367456, 1.85412717490278))
   expect_equivalent(EMMA(gData = gDataTest, trait = "X1",
                          environment = 1)[[1]],
-                    c(0.0214570264923801, 1.85343825287729))
+                    c(0.020597492367456, 1.85412717490278))
   expect_equivalent(EMMA(gData = gDataTest, trait = "X1",
                          environment = "pheno")[[1]],
-                    c(0.0214570264923801, 1.85343825287729))
+                    c(0.020597492367456, 1.85412717490278))
   expect_equivalent(EMMA(gData = gDataTest, trait = 2,
                          environment = 1, K = Sigma)[[1]],
-                    c(0.0214570264923801, 1.85343825287729))
+                    c(0.020597492367456, 1.85412717490278))
 })
 
 test_that("EMMA produces correct results with covariates", {
@@ -41,16 +41,16 @@ test_that("EMMA produces correct results with covariates", {
                     c(8.76962021955844e-05, 1.93163739799549))
   expect_equivalent(EMMA(gData = gDataTest, trait = 2,
                          environment = 1, snpName = "M1")[[1]],
-                    c(0.199457967788946, 1.82420297857926))
+                    c(0.184076137051078, 1.83600897652493))
   expect_equivalent(EMMA(gData = gDataTest, trait = 2,
                          environment = 1, K = Sigma, snpName = "M1")[[1]],
-                    c(0.199457967788946, 1.82420297857926))
+                    c(0.184076137051078, 1.83600897652493))
   expect_equivalent(EMMA(gData = gDataTest, trait = 2,
                          environment = 1, covar = 1, snpName = "M1")[[1]],
-                    c(0.140158216807375, 1.71023973698722))
+                    c(0.140370911511506, 1.71006778174736))
   expect_equivalent(EMMA(gData = gDataTest, trait = 2, environment = 1,
                          K = Sigma, covar = 1, snpName = "M1")[[1]],
-                    c(0.140158216807375, 1.71023973698722))
+                    c(0.140370911511506, 1.71006778174736))
 })
 
 test_that("extra options in EMMA don't significantly change results", {
@@ -75,37 +75,37 @@ test_that("extra options in EMMA don't significantly change results", {
                EMMA0, tolerance = 1e-6)
 })
 
-test_that("emmaEigenR produces correct results", {
-  expect_equal(dim(emmaEigenR(k = as.matrix(Sigma), x = covs)[[2]]), c(10, 8))
-  expect_equal(emmaEigenR(k = as.matrix(Sigma)[1:3, 1:3], x = covs[1:3, ])[[1]],
-                    1.96517890694063)
-  expect_equivalent(emmaEigenR(k = as.matrix(Sigma)[1:3, 1:3],
-                               x = covs[1:3, ])[[2]],
-                    c(0.118208501113814, -0.364967722967346, 0.923485414858543))
-  expect_error(emmaEigenR(k = as.matrix(Sigma), x = covs[1:3, ]))
-  expect_error(emmaEigenR(k = as.matrix(Sigma)[1:3, ], x = covs))
-})
-
-test_that("emmaEigenR produces correct results with only intercept as cov", {
-  expect_equal(dim(emmaEigenR(k = as.matrix(Sigma),
-                              x = covs[, 1, drop = FALSE])[[2]]), c(10, 9))
-  expect_equal(emmaEigenR(k = as.matrix(Sigma)[1:3, 1:3],
-                               x = covs[1:3, 1, drop = FALSE])[[1]],
-                    c(1.54816861118242, 0.797096357276858))
-  expect_equivalent(emmaEigenR(k = as.matrix(Sigma)[1:3, 1:3],
-                               x = covs[1:3, 1, drop = FALSE])[[2]],
-                    c(-0.454240588270488, 0.814699323692767, -0.360458735422279,
-                      0.67847782177043, 0.0541449779870151, -0.732622799757445))
-})
+# test_that("emmaEigenR produces correct results", {
+#   expect_equal(dim(emmaEigenR(k = as.matrix(Sigma), x = covs)[[2]]), c(10, 8))
+#   expect_equal(emmaEigenR(k = as.matrix(Sigma)[1:3, 1:3], x = covs[1:3, ])[[1]],
+#                     1.96517890694063)
+#   expect_equivalent(emmaEigenR(k = as.matrix(Sigma)[1:3, 1:3],
+#                                x = covs[1:3, ])[[2]],
+#                     c(0.118208501113814, -0.364967722967346, 0.923485414858543))
+#   expect_error(emmaEigenR(k = as.matrix(Sigma), x = covs[1:3, ]))
+#   expect_error(emmaEigenR(k = as.matrix(Sigma)[1:3, ], x = covs))
+# })
+#
+# test_that("emmaEigenR produces correct results with only intercept as cov", {
+#   expect_equal(dim(emmaEigenR(k = as.matrix(Sigma),
+#                               x = covs[, 1, drop = FALSE])[[2]]), c(10, 9))
+#   expect_equal(emmaEigenR(k = as.matrix(Sigma)[1:3, 1:3],
+#                                x = covs[1:3, 1, drop = FALSE])[[1]],
+#                     c(1.54816861118242, 0.797096357276858))
+#   expect_equivalent(emmaEigenR(k = as.matrix(Sigma)[1:3, 1:3],
+#                                x = covs[1:3, 1, drop = FALSE])[[2]],
+#                     c(-0.454240588270488, 0.814699323692767, -0.360458735422279,
+#                       0.67847782177043, 0.0541449779870151, -0.732622799757445))
+# })
 
 test_that("EMMAREMLLL produces correct output", {
-  expect_equal(emmaREMLLL(logDelta = -1, lambda = 1, etas1 = 2, n = 0,
-                          t = 0, etas2 = 0), -2.11208571376462)
-  expect_equal(emmaREMLLL(logDelta = -1, lambda = 1:10, etas1 = 1:10,
-                          n = 0, t = 0, etas2 = 0), -30.4461091155684)
-  expect_equal(emmaREMLLL(logDelta = -1, lambda = 1:10, etas1 = 1:10,
-                          n = 3, t = 2, etas2 = 1:2),
-               c(-31.9439236241564, -32.2122231996107))
+  expect_equivalent(emmaREMLLL(logDelta = -1, lambda = 1, etas1 = 2, n = 0,
+                               t = 0, etas2 = 0), -2.11208571376462)
+  expect_equivalent(emmaREMLLL(logDelta = -1, lambda = 1:10, etas1 = 1:10,
+                               n = 0, t = 0, etas2 = 0), -30.4461091155684)
+  expect_equivalent(emmaREMLLL(logDelta = -1, lambda = 1:10, etas1 = 1:10,
+                               n = 3, t = 2, etas2 = 1:2),
+                    c(-31.9439236241564, -32.2122231996107))
 })
 
 GLS0 <- fastGLS(y = y, X = X, Sigma = Sigma)

@@ -62,9 +62,9 @@ estVarComp <- function(GLSMethod,
     }
     if (GLSMethod == "single") {
       ## Fit model.
-      modFit <- sommer::mmer2(fixed = fixed, data = pheno,
-                              random = ~ sommer::vs(genotype, Gu = K),
-                              verbose = FALSE, date.warning = FALSE)
+      modFit <- sommer::mmer(fixed = fixed, data = pheno,
+                             random = ~ sommer::vs(genotype, Gu = as.matrix(K)),
+                             verbose = FALSE, date.warning = FALSE)
       ## Compute varcov matrix using var components from model.
       vcMod <- modFit$sigma
       modK <- K[nonMissRepId, nonMissRepId]
@@ -81,9 +81,9 @@ estVarComp <- function(GLSMethod,
         ## Get chromosome specific kinship.
         K <- KChr[[which(chrs == chr)]][nonMiss, nonMiss]
         ## Fit mmer model using chromosome specific kinship.
-        modFit <- sommer::mmer2(fixed = fixed, data = pheno,
-                                random = ~ sommer::vs(genotype, Gu = K),
-                                verbose = FALSE, date.warning = FALSE)
+        modFit <- sommer::mmer(fixed = fixed, data = pheno,
+                               random = ~ sommer::vs(genotype, Gu = K),
+                               verbose = FALSE, date.warning = FALSE)
         ## Compute varcov matrix using var components from model.
         vcMod <- modFit$sigma
         modK <- K[nonMissRepId, nonMissRepId]

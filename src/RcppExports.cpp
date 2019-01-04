@@ -107,19 +107,20 @@ BEGIN_RCPP
 END_RCPP
 }
 // emmaEigenR
-List emmaEigenR(const arma::mat k, const arma::mat x);
-RcppExport SEXP _genStatPipeline_emmaEigenR(SEXP kSEXP, SEXP xSEXP) {
+void emmaEigenR(const arma::mat k, const arma::mat x, arma::vec& eigVals, arma::mat& eigVecs);
+RcppExport SEXP _genStatPipeline_emmaEigenR(SEXP kSEXP, SEXP xSEXP, SEXP eigValsSEXP, SEXP eigVecsSEXP) {
 BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat >::type k(kSEXP);
     Rcpp::traits::input_parameter< const arma::mat >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(emmaEigenR(k, x));
-    return rcpp_result_gen;
+    Rcpp::traits::input_parameter< arma::vec& >::type eigVals(eigValsSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type eigVecs(eigVecsSEXP);
+    emmaEigenR(k, x, eigVals, eigVecs);
+    return R_NilValue;
 END_RCPP
 }
 // emmaREMLLL
-std::vector<double> emmaREMLLL(double logDelta, arma::vec lambda, arma::vec etas1, double n, double t, arma::vec etas2);
+arma::vec emmaREMLLL(double logDelta, arma::vec lambda, arma::vec etas1, double n, double t, arma::vec etas2);
 RcppExport SEXP _genStatPipeline_emmaREMLLL(SEXP logDeltaSEXP, SEXP lambdaSEXP, SEXP etas1SEXP, SEXP nSEXP, SEXP tSEXP, SEXP etas2SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -131,6 +132,42 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type t(tSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type etas2(etas2SEXP);
     rcpp_result_gen = Rcpp::wrap(emmaREMLLL(logDelta, lambda, etas1, n, t, etas2));
+    return rcpp_result_gen;
+END_RCPP
+}
+// goldenSectionSearch
+double goldenSectionSearch(double upperBound, double center, double lowerBound, double absolutePrecision, arma::vec lambda, arma::vec etas1, double n, double t, arma::vec etas2);
+RcppExport SEXP _genStatPipeline_goldenSectionSearch(SEXP upperBoundSEXP, SEXP centerSEXP, SEXP lowerBoundSEXP, SEXP absolutePrecisionSEXP, SEXP lambdaSEXP, SEXP etas1SEXP, SEXP nSEXP, SEXP tSEXP, SEXP etas2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type upperBound(upperBoundSEXP);
+    Rcpp::traits::input_parameter< double >::type center(centerSEXP);
+    Rcpp::traits::input_parameter< double >::type lowerBound(lowerBoundSEXP);
+    Rcpp::traits::input_parameter< double >::type absolutePrecision(absolutePrecisionSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type etas1(etas1SEXP);
+    Rcpp::traits::input_parameter< double >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type t(tSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type etas2(etas2SEXP);
+    rcpp_result_gen = Rcpp::wrap(goldenSectionSearch(upperBound, center, lowerBound, absolutePrecision, lambda, etas1, n, t, etas2));
+    return rcpp_result_gen;
+END_RCPP
+}
+// emmaCPP
+List emmaCPP(arma::vec y, arma::mat k, arma::mat x, int nGrids, double uLim, double lLim, double eps);
+RcppExport SEXP _genStatPipeline_emmaCPP(SEXP ySEXP, SEXP kSEXP, SEXP xSEXP, SEXP nGridsSEXP, SEXP uLimSEXP, SEXP lLimSEXP, SEXP epsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type nGrids(nGridsSEXP);
+    Rcpp::traits::input_parameter< double >::type uLim(uLimSEXP);
+    Rcpp::traits::input_parameter< double >::type lLim(lLimSEXP);
+    Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
+    rcpp_result_gen = Rcpp::wrap(emmaCPP(y, k, x, nGrids, uLim, lLim, eps));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -279,8 +316,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_genStatPipeline_vecInvDiag", (DL_FUNC) &_genStatPipeline_vecInvDiag, 2},
     {"_genStatPipeline_tracePInvDiag", (DL_FUNC) &_genStatPipeline_tracePInvDiag, 2},
     {"_genStatPipeline_EMFA", (DL_FUNC) &_genStatPipeline_EMFA, 13},
-    {"_genStatPipeline_emmaEigenR", (DL_FUNC) &_genStatPipeline_emmaEigenR, 2},
+    {"_genStatPipeline_emmaEigenR", (DL_FUNC) &_genStatPipeline_emmaEigenR, 4},
     {"_genStatPipeline_emmaREMLLL", (DL_FUNC) &_genStatPipeline_emmaREMLLL, 6},
+    {"_genStatPipeline_goldenSectionSearch", (DL_FUNC) &_genStatPipeline_goldenSectionSearch, 9},
+    {"_genStatPipeline_emmaCPP", (DL_FUNC) &_genStatPipeline_emmaCPP, 7},
     {"_genStatPipeline_LLQuadFormDiagCPP", (DL_FUNC) &_genStatPipeline_LLQuadFormDiagCPP, 3},
     {"_genStatPipeline_estEffsCPP", (DL_FUNC) &_genStatPipeline_estEffsCPP, 9},
     {"_genStatPipeline_fastGLSCPP", (DL_FUNC) &_genStatPipeline_fastGLSCPP, 5},
@@ -291,7 +330,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_genStatPipeline_vanRadenCPP", (DL_FUNC) &_genStatPipeline_vanRadenCPP, 2},
     {"_genStatPipeline_multiAllKinCPP", (DL_FUNC) &_genStatPipeline_multiAllKinCPP, 3},
     {"_genStatPipeline_reduceKinship", (DL_FUNC) &_genStatPipeline_reduceKinship, 2},
-    {"run_testthat_tests",                 (DL_FUNC) &run_testthat_tests,                  0},
+    {"run_testthat_tests",                   (DL_FUNC) &run_testthat_tests,                    0},
     {NULL, NULL, 0}
 };
 
