@@ -287,3 +287,7 @@ reduceKinship <- function(K, nPca) {
     .Call(`_genStatPipeline_reduceKinship`, K, nPca)
 }
 
+nearestPD <- function(x, corr = FALSE, keepDiag = FALSE, do2eigen = TRUE, doSym = FALSE, doDykstra = TRUE, eigTol = 1e-6, convTol = 1e-7, posdTol = 1e-8, maxIter = 100L) {
+    .Call(`_genStatPipeline_nearestPD`, x, corr, keepDiag, do2eigen, doSym, doDykstra, eigTol, convTol, posdTol, maxIter)
+}
+

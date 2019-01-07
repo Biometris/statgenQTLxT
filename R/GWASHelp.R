@@ -75,7 +75,7 @@ estVarComp <- function(GLSMethod,
                          x = unlist(vcMod)[length(unlist(vcMod))])
       if (any(eigen(vcovMatrix, symmetric = TRUE,
                     only.values = TRUE)$values <= 1e-8)) {
-        vcovMatrix <- Matrix::nearPD(vcovMatrix)$mat
+        nearestPD(as.matrix(vcovMatrix))
       }
     } else if (GLSMethod == "multi") {
       for (chr in chrs) {
@@ -97,7 +97,7 @@ estVarComp <- function(GLSMethod,
       vcovMatrix <- lapply(vcovMatrix, FUN = function(vc) {
         if (any(eigen(vc, symmetric = TRUE,
                       only.values = TRUE)$values <= 1e-8)) {
-          Matrix::nearPD(vc)$mat
+          nearestPD(as.matrix(vc))
         } else {
           vc
         }

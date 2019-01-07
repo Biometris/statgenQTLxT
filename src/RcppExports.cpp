@@ -317,6 +317,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// nearestPD
+arma::mat nearestPD(arma::mat x, const bool corr, const bool keepDiag, const bool do2eigen, const bool doSym, const bool doDykstra, const double eigTol, const double convTol, const double posdTol, const int maxIter);
+RcppExport SEXP _genStatPipeline_nearestPD(SEXP xSEXP, SEXP corrSEXP, SEXP keepDiagSEXP, SEXP do2eigenSEXP, SEXP doSymSEXP, SEXP doDykstraSEXP, SEXP eigTolSEXP, SEXP convTolSEXP, SEXP posdTolSEXP, SEXP maxIterSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const bool >::type corr(corrSEXP);
+    Rcpp::traits::input_parameter< const bool >::type keepDiag(keepDiagSEXP);
+    Rcpp::traits::input_parameter< const bool >::type do2eigen(do2eigenSEXP);
+    Rcpp::traits::input_parameter< const bool >::type doSym(doSymSEXP);
+    Rcpp::traits::input_parameter< const bool >::type doDykstra(doDykstraSEXP);
+    Rcpp::traits::input_parameter< const double >::type eigTol(eigTolSEXP);
+    Rcpp::traits::input_parameter< const double >::type convTol(convTolSEXP);
+    Rcpp::traits::input_parameter< const double >::type posdTol(posdTolSEXP);
+    Rcpp::traits::input_parameter< const int >::type maxIter(maxIterSEXP);
+    rcpp_result_gen = Rcpp::wrap(nearestPD(x, corr, keepDiag, do2eigen, doSym, doDykstra, eigTol, convTol, posdTol, maxIter));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 RcppExport SEXP run_testthat_tests();
 
@@ -342,6 +362,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_genStatPipeline_multiAllKinCPP", (DL_FUNC) &_genStatPipeline_multiAllKinCPP, 3},
     {"_genStatPipeline_matrixRoot", (DL_FUNC) &_genStatPipeline_matrixRoot, 1},
     {"_genStatPipeline_reduceKinship", (DL_FUNC) &_genStatPipeline_reduceKinship, 2},
+    {"_genStatPipeline_nearestPD", (DL_FUNC) &_genStatPipeline_nearestPD, 10},
     {"run_testthat_tests",                   (DL_FUNC) &run_testthat_tests,                    0},
     {NULL, NULL, 0}
 };

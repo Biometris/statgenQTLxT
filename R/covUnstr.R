@@ -88,12 +88,12 @@ covUnstr <- function(Y,
   ## Keep diagonal for Vg and Ve away from 0.
   diag(VgMat)[diag(VgMat) <= 0] <- 1e-3 * smpVar[diag(VgMat) <= 0]
   diag(VeMat)[diag(VeMat) <= 0] <- 1e-3 * smpVar[diag(VeMat) <= 0]
-  ## Make Vg and Ve positive definite
-  VgMat <- Matrix::nearPD(VgMat)$mat
-  VeMat <- Matrix::nearPD(VeMat)$mat
+  ## Make Vg and Ve positive definite.
+  VgMat <- nearestPD(VgMat)
+  VeMat <- nearestPD(VeMat)
   colnames(VgMat) <- rownames(VgMat) <- traits
   colnames(VeMat) <- rownames(VeMat) <- traits
-  return(list(Vg = as.matrix(VgMat), Ve = as.matrix(VeMat)))
+  return(list(Vg = VgMat, Ve = VeMat))
 }
 
 #' @rdname covUnstr
@@ -209,8 +209,8 @@ covPW <- function(Y,
     VeMat <- cor(VeMat)
   }
   ## Make positive definite.
-  VgMat <- Matrix::nearPD(VgMat, corr = corMat)$mat
-  VeMat <- Matrix::nearPD(VeMat, corr = corMat)$mat
-  return(list(Vg = as.matrix(VgMat), Ve = as.matrix(VeMat)))
+  VgMat <- nearestPD(VgMat, corr = corMat)
+  VeMat <- nearestPD(VeMat, corr = corMat)
+  return(list(Vg = VgMat, Ve = VeMat))
 }
 
