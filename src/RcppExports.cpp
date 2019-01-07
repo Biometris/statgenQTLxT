@@ -363,7 +363,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_genStatPipeline_matrixRoot", (DL_FUNC) &_genStatPipeline_matrixRoot, 1},
     {"_genStatPipeline_reduceKinship", (DL_FUNC) &_genStatPipeline_reduceKinship, 2},
     {"_genStatPipeline_nearestPD", (DL_FUNC) &_genStatPipeline_nearestPD, 10},
-    {"run_testthat_tests",                   (DL_FUNC) &run_testthat_tests,                    0},
+    {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 0},
     {NULL, NULL, 0}
 };
 

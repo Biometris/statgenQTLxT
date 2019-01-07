@@ -96,7 +96,7 @@ arma::mat nearestPD(arma::mat x,
       DykS = xUpdate - r;
     }
     if (doSym) {
-      xUpdate = (xUpdate * xUpdate.t()) / 2;
+      xUpdate = (xUpdate + xUpdate.t()) / 2;
     }
     if (corr) {
       xUpdate.diag().ones();

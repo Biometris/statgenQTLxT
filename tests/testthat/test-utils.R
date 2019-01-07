@@ -44,3 +44,45 @@ test_that("function reduceKinship functions properly", {
   expect_known_output(K2, file = test_path("test-redKin2.txt"), print = TRUE)
 })
 
+set.seed(1234)
+M <- matrix(data = runif(9), nrow = 3)
+## Assure symmetry.
+M <- M + t(M)
+test_that("function nearestPD functions properly", {
+  M1 <- nearestPD(M)
+  expect_is(M1, "matrix")
+  expect_true(isSymmetric(M1))
+  expect_equivalent(M1,
+                    c(0.604727709553899, 1.04559967845123, 0.586415044934283,
+                      1.04559967845123, 1.82792523675371, 0.890017983604708,
+                      0.586415044934283, 0.890017983604709, 1.33494200875219))
+})
+
+test_that("parameters in nearestPD function properly", {
+  M1 <- nearestPD(M, corr = TRUE)
+  expect_equivalent(M1, c(1, 0.984775432717047, 0.680679114763,
+                          0.984775432717047, 1, 0.7976616570699, 0.680679114763,
+                          0.7976616570699, 1))
+  expect_warning(nearestPD(M, keepDiag = TRUE),
+                 "did not converge in 100 iterations")
+  M2 <- nearestPD(M, keepDiag = TRUE, maxIter = 120)
+  expect_equivalent(M2,
+                    c(0.227406822610646, 0.614704685973532, 0.414723676348398,
+                      0.614704685973532, 1.72183076711372, 0.934827342556341,
+                      0.414723676348398, 0.934827342556341, 1.3321675164625))
+  M3 <- nearestPD(M, do2eigen = FALSE)
+  expect_equivalent(M3,
+                    c(0.604727709553899, 1.04559971368566, 0.586415058601556,
+                      1.04559971368566, 1.82792523675371, 0.890017984212184,
+                      0.586415058601556, 0.890017984212184, 1.33494200875219))
+  M4 <- nearestPD(M, doDykstra = FALSE)
+  expect_equivalent(M4,
+                    c(0.604727709553899, 1.04559967845123, 0.586415044934283,
+                      1.04559967845123, 1.82792523675371, 0.890017983604708,
+                      0.586415044934283, 0.890017983604708, 1.33494200875219))
+  M5 <- nearestPD(M, doSym = TRUE)
+  expect_equivalent(M5,
+                    c(0.604727709553899, 1.04559967845123, 0.586415044934283,
+                      1.04559967845123, 1.82792523675371, 0.890017983604708,
+                      0.586415044934283, 0.890017983604708, 1.33494200875219))
+})
