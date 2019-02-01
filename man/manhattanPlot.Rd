@@ -6,7 +6,7 @@
 \usage{
 manhattanPlot(xValues, yValues, map, xLab = "Chromosomes",
   yLab = expression(-log[10](p)), xSig = integer(),
-  xEffects = integer(), colPalette = rep(c("royalblue", "maroon"), 50),
+  xEffects = integer(), colPalette = rep(c("black", "grey50"), 50),
   yThr = NULL, signLwd = 0.6, ..., output = TRUE)
 }
 \arguments{

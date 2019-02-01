@@ -222,26 +222,26 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' treshold is plotted as a horizontal line. If there are previously known
 #' marker effect also false positives and true negatives can be marked.\cr
 #' Extra parameter options:
-#' \itemize{
-#' \item{\code{xLab}} {A character string, the x-axis label. Default =
+#' \describe{
+#' \item{\code{xLab}}{A character string, the x-axis label. Default =
 #' \code{"Chromosomes"}}
-#' \item{\code{yLab}} {A character string, the y-axis label. Default =
+#' \item{\code{yLab}}{A character string, the y-axis label. Default =
 #' \code{-10log(p)}}
-#' \item{\code{effects}} {A character vector, indicating which snps correspond
+#' \item{\code{effects}}{A character vector, indicating which snps correspond
 #' to a real (known) effect. Used for determining true/false positives and
 #' false negatives. True positives are colored green, false positives orange and
 #' false negatives yellow.}
-#' \item{\code{colPalette}} {A color palette used for plotting. Default the
-#' coloring is done by chromosome, using royalblue and maroon.}
-#' \item{\code{yThr}} {A numerical value for the LOD-threshold. As default value
+#' \item{\code{colPalette}}{A color palette used for plotting. Default the
+#' coloring is done by chromosome, using black and grey.}
+#' \item{\code{yThr}}{A numerical value for the LOD-threshold. As default value
 #' the value from the GWAS analysis is used.}
-#' \item{\code{signLwd}} {A numerical value giving the thickness of the
+#' \item{\code{signLwd}}{A numerical value giving the thickness of the
 #' points that are false/true positives/negatives. Default = 0.6}
-#' \item{\code{lod}} {A positive numerical value. For the snps with a LOD-value
-#' below this value only 5% is plotted. The chance of a snp being plotting is
+#' \item{\code{lod}}{A positive numerical value. For the snps with a LOD-value
+#' below this value only 5\% is plotted. The chance of a snp being plotting is
 #' proportional to its LOD-value. This option can be useful when plotting a
 #' large number of snps.}
-#' \item{\code{chr}} {A vector of chromosomes to be plotted. By default all
+#' \item{\code{chr}}{A vector of chromosomes to be plotted. By default all
 #' chromosomes are plotted. Using this option this can be restricted to a
 #' subset of chromosomes.}
 #' }
@@ -260,25 +260,28 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' direction of the effect: green when the allele increases the trait value,
 #' and blue when it decreases the value.\cr
 #' Extra parameter options:
-#' \itemize{
-#' \item{\code{normalize}} {Should the snpEffect be normalized? Default =
+#' \describe{
+#' \item{\code{normalize}}{Should the snpEffect be normalized? Default =
 #' \code{FALSE}}
-#' \item{\code{sortData}} {Should the data be sorted before plotting? Either
+#' \item{\code{sortData}}{Should the data be sorted before plotting? Either
 #' \code{FALSE} if no sorting should be done or a character string indicating
 #' the data column on which the data should be sorted. Default =
 #' \code{FALSE}}
-#' \item{\code{binPositions}} {An optional data.frame containing at leasts two
+#' \item{\code{binPositions}}{An optional data.frame containing at leasts two
 #' columns, chr(omosome) and pos(ition). Vertical lines are plotted at those
 #' positions. Default = \code{NULL}}
-#' \item{\code{printVertGrid}} {Should default vertical grid lines be plotted.
+#' \item{\code{printVertGrid}}{Should default vertical grid lines be plotted.
 #' Default = \code{TRUE}}
-#' \item{\code{yLab}} {A character string, the y-axis label. Default =
+#' \item{\code{yLab}}{A character string, the y-axis label. Default =
 #' \code{"Traits"}}
-#' \item{\code{yThr}} {A numerical value for the LOD-threshold. As default value
+#' \item{\code{yThr}}{A numerical value for the LOD-threshold. As default value
 #' the value from the GWAS analysis is used.}
-#' \item{\code{exportPptx}} {Should the plot be exported to a .pptx file?
+#' \item{\code{chr}}{A vector of chromosomes to be plotted. By default all
+#' chromosomes are plotted. Using this option this can be restricted to a
+#' subset of chromosomes.}
+#' \item{\code{exportPptx}}{Should the plot be exported to a .pptx file?
 #' Default = \code{FALSE}}
-#' \item{\code{pptxName}} {A character string, the name of the .pptx file to
+#' \item{\code{pptxName}}{A character string, the name of the .pptx file to
 #' which the plot is exported. Ignored if exportPptx = \code{FALSE}.}
 #' }
 #'
@@ -286,10 +289,10 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' A plot of effect sizes for each of the founders for the significant snps
 #' found in the IBD based QTL mapping is created.\cr
 #' Extra parameter options:
-#' \itemize{
-#' \item{\code{xLab}} {A character string, the x-axis label. Default =
+#' \describe{
+#' \item{\code{xLab}}{A character string, the x-axis label. Default =
 #' \code{"Chromosomes"}}
-#' \item{\code{yLab}} {A character string, the y-axis label. Default =
+#' \item{\code{yLab}}{A character string, the y-axis label. Default =
 #' \code{"Parents"}}
 #' }
 #'
@@ -447,12 +450,17 @@ plot.GWAS <- function(x,
     if (is.null(signSnp)) {
       stop("No significant SNPs found. No plot can be made.\n")
     }
+    map <- GWAResult[!is.na(GWAResult$pos), c("chr", "pos")]
+    if (!is.null(dotArgs$chr)) {
+      signSnp <- signSnp[signSnp$chr %in% dotArgs$chr, ]
+      map <- map[map$chr %in% dotArgs$chr, ]
+      if (nrow(signSnp) == 0) {
+        stop("Select at least one valid chromosome for plotting.\n")
+      }
+    }
     do.call(qtlPlot,
-            args = c(list(data = signSnp,
-                          map = GWAResult[!is.na(GWAResult$pos),
-                                          c("chr", "pos")],
-                          output = output),
-                     dotArgs[!(names(dotArgs) %in% c("yThr"))]
+            args = c(list(data = signSnp, map = map, output = output),
+                     dotArgs[!(names(dotArgs) %in% c("yThr", "chr"))]
                      ))
   } else if (plotType == "matrix") {
     ## Compute chromosome boundaries.
