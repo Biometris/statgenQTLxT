@@ -15,7 +15,7 @@ codeMarkers(gData, refAll = "minor", nMissGeno = 1, nMiss = 1,
 
 \item{refAll}{A character string indicating the reference allele used when
 recoding markers.\cr
-If "minor" then the recoding is done using the minor allele as reference
+If "minor", then the recoding is done using the minor allele as reference
 allele. Alternatively a single character can be supplied as a reference
 allele for the whole set of SNPs, or a character vector with a reference
 allele per SNP.}
