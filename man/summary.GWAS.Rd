@@ -12,7 +12,7 @@
 \item{...}{Not used}
 
 \item{environments}{A vector of strings or numeric indices indicating for
-which environment the summary should be made. If \code{NULL} a summary is
+which environment the summary should be made. If \code{NULL}, a summary is
 made for all environments.}
 }
 \description{

@@ -6,18 +6,18 @@
 #' al., 2008) or the Newton-Raphson algorithm (Tunnicliffe, 1989) in the
 #' \code{sommer} package. Then a Generalized Least Squares (GLS) method is used
 #' for estimating the marker effects and corresponding p-values. This is done
-#' using either one kinship matrix for all chromosomes or different chromosome
-#' specific kinship matrices for each chromosome. Significant SNPs are selected
+#' using either one kinship matrix for all chromosomes or different chromosome-specific
+#' kinship matrices for each chromosome. Significant SNPs are selected
 #' based on a user defined threshold.
 #'
 #' @param gData An object of class \code{gData} containing at least \code{map},
 #' \code{markers} and \code{pheno}.
 #' @param traits A vector of traits on which to run GWAS. These can be either
-#' numeric indices or character names of columns in \code{pheno}. If \code{NULL}
+#' numeric indices or character names of columns in \code{pheno}. If \code{NULL},
 #' GWAS is run on all traits.
 #' @param environments A vector of environments on which to run GWAS. These can
 #' be either numeric indices or character names of list items in \code{pheno}.
-#' If \code{NULL} GWAS is run for all environments. GWAS is run for the
+#' If \code{NULL}, GWAS is run for all environments. GWAS is run for the
 #' selected environments in sequential order.
 #' @param covar An optional vector of covariates taken into account when
 #' running GWAS. These can be either numeric indices or character names of
@@ -30,7 +30,7 @@
 #' or from the \code{dsyMatrix} class, the class of symmetric matrices in the
 #' Matrix package.\cr
 #' If \code{GLSMethod} = "single" then one matrix should be provided, if
-#' \code{GLSMethod} = "multi" a list of chromosome specific matrices of length
+#' \code{GLSMethod} = "multi", a list of chromosome specific matrices of length
 #' equal to the number of chromosomes in \code{map} in \code{gData}.\cr
 #' If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
 #' If both \code{kin} is provided and \code{gData} contains a matrix
@@ -38,31 +38,31 @@
 #' @param kinshipMethod An optional character indicating the method used for
 #' calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
 #' 2009), "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
-#' kinship matrix is supplied either in \code{gData} or in parameter \code{kin}
+#' kinship matrix is supplied either in \code{gData} or in parameter \code{kin},
 #' \code{kinshipMethod} is ignored.
-#' @param remlAlgo An character string indicating the algorithm used to estimate
-#' the variance components. Either \code{EMMA} for the EMMA algorithm or
-#' \code{NR} for the Newton-Raphson algorithm.
+#' @param remlAlgo A character string indicating the algorithm used to estimate
+#' the variance components. Either \code{EMMA}, for the EMMA algorithm, or
+#' \code{NR}, for the Newton-Raphson algorithm.
 #' @param GLSMethod A character string indicating the method used to estimate
-#' the marker effects. Either \code{single} for using a single kinship matrix.
+#' the marker effects. Either \code{single} for using a single kinship matrix,
 #' or \code{multi} for using chromosome specific kinship matrices.
 #' @param useMAF Should the minor allele frequency be used for selecting SNPs
-#' for the analysis. If \code{FALSE} the minor allele count is used instead.
+#' for the analysis. If \code{FALSE}, the minor allele count is used instead.
 #' @param MAF The minor allele frequency (MAF) threshold used in GWAS. A
 #' numerical value between 0 and 1. SNPs with MAF below this value are not taken
 #' into account in the analysis, i.e. p-values and effect sizes are put to
 #' missing (\code{NA}). Ignored if \code{useMAF} is \code{FALSE}.
 #' @param MAC A numerical value. SNPs with minor allele count below this value
 #' are not taken into account for the analysis, i.e. p-values and effect sizes
-#' are put to missing (\code{NA}). Ignored if \code{useMAF} is \code{TRUE}.
+#' are set to missing (\code{NA}). Ignored if \code{useMAF} is \code{TRUE}.
 #' @param genomicControl Should genomic control correction as in Devlin and
 #' Roeder (1999) be applied?
-#' @param thrType An character string indicating the type of threshold used for
+#' @param thrType A character string indicating the type of threshold used for
 #' the selection of candidate loci. Either \code{bonf} for using the
 #' Bonferroni threshold, a LOD-threshold of \eqn{-log10(alpha/p)}, where p is
 #' the number of markers and alpha can be specified in \code{alpha},
-#' \code{fixed} for a self-chosen fixed LOD-threshold, specied in \code{LODThr}
-#' or \code{small}, the LOD-threshold is chosen such the the SNPs with the
+#' \code{fixed} for a self-chosen fixed LOD-threshold, specified in \code{LODThr}
+#' or \code{small}, the LOD-threshold is chosen such as the SNPs with the
 #' \code{nSnpLOD} smallest p-values are selected. \code{nSnpLOD} can be
 #' specified.
 #' @param alpha A numerical value used for calculating the LOD-threshold for
@@ -77,9 +77,9 @@
 #' @param minR2 A numerical value between 0 and 1. Restricts the SNPs included
 #' in the region close to significant SNPs to only those SNPs that are in
 #' sufficient Linkage Disequilibruim (LD) with the significant snp, where LD
-#' is measured in terms of r^2. If for example \code{sizeInclRegion} = 200000
+#' is measured in terms of \eqn{R^2}. If for example \code{sizeInclRegion} = 200000
 #' and \code{minR2} = 0.5, then for every significant SNP also those SNPs whose
-#' LD (\eqn{r^2}) with the significant SNP is at least 0.5 AND which are at
+#' LD (\eqn{R^2}) with the significant SNP is at least 0.5 AND which are at
 #' most 200kb away from this significant snp are included. Ignored if
 #' \code{sizeInclRegion} = 0.
 #' @param nCores A numerical value indicating the number of cores to be used by

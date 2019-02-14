@@ -9,7 +9,7 @@ createGData(gData = NULL, geno = NULL, map = NULL, kin = NULL,
   pheno = NULL, covar = NULL)
 }
 \arguments{
-\item{gData}{An optional gData object to be modified. If \code{NULL} a new
+\item{gData}{An optional gData object to be modified. If \code{NULL}, a new
 gData object is created.}
 
 \item{geno}{A matrix or data.frame with genotypes in the rows and markers in
@@ -18,34 +18,34 @@ provided as well as as matrix from the Matrix package.\cr
 A three dimensional array of probabilities may be provided as well with
 genotypes in the first, markers in the second and alleles in the third
 dimension.\cr
-If no row names are used they are taken from \code{pheno} (if supplied and
-dimension matches). If no column names are used the row names are taken
-from \code{map} (if supplied and dimension matches).}
+If no row names are provided, they are taken from \code{pheno} (if supplied and
+dimension matches). If no column names are provided, the row names
+from \code{map} are used (if supplied and dimension matches).}
 
 \item{map}{A data.frame with columns \code{chr} for chromosome and
-\code{pos} for position. Positions can be in basepair or centimorgan. They
+\code{pos} for position. Positions can be in base pair (bp) or centimorgan (cM). They
 should not be cumulative over the chromosomes. Other columns are ignored.
 Marker names should be in the row names. These should match the marker names
 in \code{geno} (if supplied).}
 
 \item{kin}{A kinship matrix or list of kinship matrices with genotype in
-rows and colums. These matrices can be from the \code{matrix} class as
-defined in the base package or from the \code{dsyMatrix} class, the class
+rows and colums. These matrices can be from the \code{matrix} class, as
+defined in the base package, or from the \code{dsyMatrix} class, the class
 of symmetric matrices in the Matrix package.\cr
 The genotypes should be identical to the genotypes in \code{geno}.\cr
 If a list of kinship matrices is provided these are supposed to be
-chromosome specific matrices. In that case their names should match those
-of the names of the chromosomes in \code{map} or in case no names are
-provided, the number of matrices should match the number of chromoses
+chromosome specific matrices. In that case their names should match
+the names of the chromosomes in \code{map}. If no names are
+provided, the number of matrices should match the number of chromosomes
 in \code{map} in which case default names are provided.}
 
 \item{pheno}{A data.frame or a list of data.frames with phenotypic data,
-with genotype in the first column \code{genotype} and traits in the
+with genotypes in the first column \code{genotype} and traits in the
 following columns. The trait columns should be numerical columns only.
 A list of data.frames can be used for replications, i.e. different
 environments.}
 
-\item{covar}{A data.frame with extra covariates per genotype. Genotype
+\item{covar}{A data.frame with extra covariates per genotype. Genotypes
 should be in the rows.}
 }
 \value{
@@ -55,9 +55,9 @@ chromosome and position.}
 \item{\code{markers}}{a sparse matrix from the Matrix package containing
 marker information in case of numerical genotypic data, a standard matrix
 otherwise.\cr
-If \code{geno} is a three dimensional array markers is a three dimensional
+If \code{geno} is a three dimensional array, \code{markers} is a three dimensional
 array as well.}
-\item{\code{pheno}}{a list of data.frames containing phenotypic data}
+\item{\code{pheno}}{a list of data.frames containing phenotypic data.}
 \item{\code{kinship}}{a kinship matrix of class \code{dsyMatrix} from the
  Matrix package.}
 \item{\code{covar}}{a data.frame with extra covariates.}

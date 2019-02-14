@@ -11,7 +11,7 @@ covPW(Y, K, X = NULL, fixDiag = FALSE, corMat = FALSE,
   parallel = FALSE)
 }
 \arguments{
-\item{Y}{An n x p matrix of observed phenotypes, on p traits or environments
+\item{Y}{An n \times p matrix of observed phenotypes, on p traits or environments
 for n individuals. No missing values are allowed.}
 
 \item{K}{An n x n kinship matrix.}
@@ -28,7 +28,7 @@ calculations? -- NOT YET IMPLEMENTED}
 covariance matrix?}
 
 \item{parallel}{Should the computation of variance components be done in
-parallel.}
+parallel?}
 }
 \value{
 A list of two matrices \code{Vg} and \code{Ve} containing genotypic

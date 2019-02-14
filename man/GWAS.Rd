@@ -11,8 +11,8 @@ createGWAS(GWAResult = NULL, signSnp = NULL, kin = NULL,
 \arguments{
 \item{GWAResult}{An optional data.frame or list of data.frames containing the
 overall analysis results. Should a least contain columns \code{trait}, the
-evaluated trait, \code{snp}, the name of the SNP, \code{chr}, the chromosome
-number, \code{pos}, the position of the SNP on the chromosome,
+evaluated trait, \code{snp}, the name of the SNP,
+\code{chr}, the chromosome number, \code{pos}, the position of the SNP on the chromosome,
 \code{pValue}, the p-values from the analysis and \code{LOD} the LOD-score.}
 
 \item{signSnp}{An optional data.frame or list of data.frames containing
@@ -21,7 +21,7 @@ significant SNPs. Should at least contain columns \code{trait}, the
 evaluated trait, \code{snp}, the name of the SNP, \code{pValue}, the p-values
 from the analysis and \code{LOD} the LOD-score.}
 
-\item{kin}{An optional kinship matrix or list of chromosome specific kinship
+\item{kin}{An optional kinship matrix or list of chromosome-specific kinship
 matrices.}
 
 \item{thr}{An optional numerical value, the threshold used in performing the

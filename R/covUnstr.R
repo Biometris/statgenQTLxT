@@ -3,7 +3,7 @@
 #' Compute unstructured covariance pairwise using \code{covPairwise} or using a
 #' single model using \code{covUnstr}.
 #'
-#' @param Y An n x p matrix of observed phenotypes, on p traits or environments
+#' @param Y An n \times p matrix of observed phenotypes, on p traits or environments
 #' for n individuals. No missing values are allowed.
 #' @param K An n x n kinship matrix.
 #' @param X An n x c covariate matrix, c being the number of covariates and n
@@ -14,7 +14,7 @@
 #' @param corMat Should the output be a correlation matrix instead of a
 #' covariance matrix?
 #' @param parallel Should the computation of variance components be done in
-#' parallel.
+#' parallel?
 #'
 #' @return A list of two matrices \code{Vg} and \code{Ve} containing genotypic
 #' and environmental variance components respectively.

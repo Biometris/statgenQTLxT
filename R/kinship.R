@@ -25,10 +25,10 @@
 #' to 1. Dividing by \eqn{\sum(dm)} can be overwritten by providing a value for
 #' \code{denominator}.
 #'
-#' @param X An n x m marker matrix with genotypes in the rows and markers in
-#' the columns.
-#' @param map An optional marker map. Only used when X is a 3 dimensional array.
-#' @param method The method used for computing the kinship matrix. If X is a
+#' @param X An n x m marker matrix with genotypes in the rows (n) and markers in
+#' the columns (m).
+#' @param map An optional marker map. Only used when \code{X} is a 3 dimensional array.
+#' @param method The method used for computing the kinship matrix. If \code{X} is a
 #' matrix method cannot be "multiAllKin", if it is a three-dimensional array it
 #' is automatically set to "multiAllKin".
 #' @param denominator A numerical value. See details.

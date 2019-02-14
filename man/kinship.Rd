@@ -8,12 +8,12 @@ kinship(X, map = NULL, method = c("astle", "IBS", "vanRaden",
   "multiAllKin"), denominator = NULL)
 }
 \arguments{
-\item{X}{An n x m marker matrix with genotypes in the rows and markers in
-the columns.}
+\item{X}{An n x m marker matrix with genotypes in the rows (n) and markers in
+the columns (m).}
 
-\item{map}{An optional marker map. Only used when X is a 3 dimensional array.}
+\item{map}{An optional marker map. Only used when \code{X} is a 3 dimensional array.}
 
-\item{method}{The method used for computing the kinship matrix. If X is a
+\item{method}{The method used for computing the kinship matrix. If \code{X} is a
 matrix method cannot be "multiAllKin", if it is a three-dimensional array it
 is automatically set to "multiAllKin".}
 

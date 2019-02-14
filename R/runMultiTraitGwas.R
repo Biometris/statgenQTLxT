@@ -5,7 +5,7 @@
 #' \code{gData} object.
 #'
 #' @section Details: runMultiTraitGwas estimates the effect of a SNP in
-#' different environments or on different traits, for each SNP in turn. Genetic
+#' different environments or on different traits, one SNP at a time. Genetic
 #' and residual covariances are fitted only once, for a model without SNPs.
 #' Following the diagonalization scheme of Zhou and Stephens (2014), the
 #' following model is fit
@@ -32,21 +32,21 @@
 #' (co)variances.
 #'
 #' @section Hypotheses for the SNP-effects:
-#' For each SNP the null-hypothesis \eqn{\beta_1 = \dots = \beta_p = 0} is
+#' For each SNP, the null-hypothesis \eqn{\beta_1 = \dots = \beta_p = 0} is
 #' tested, using the likelihood ratio test (LRT) described in Zhou and
-#' Stephens (2014). If estCom = TRUE, additional tests for a common effect and
+#' Stephens (2014). If \code{estCom = TRUE}, additional tests for a common effect and
 #' for QTL x E are performed, using the parameterization \eqn{\beta_j = \alpha +
-#' \alpha_j (1 \leq j \leq p)}. As in Korte et al (2012) we use likelihood ratio
+#' \alpha_j (1 \leq j \leq p)}. As in Korte et al (2012), we use likelihood ratio
 #' tests, but not restricted to the bivariate case. For the common effect, we
 #' fit the reduced model \eqn{\beta_j = \alpha}, and test if \eqn{\alpha = 0}.
-#' For QTL by environment interaction, we test if \eqn{\alpha_1 = \dots =
+#' For QTL-by-environment interaction, we test if \eqn{\alpha_1 = \dots =
 #' \alpha_p = 0}.
 #'
 #' @section Models for the genetic and residual covariance:
 #' \eqn{V_g} and \eqn{V_e} can be provided by the user
 #' (\code{fitVarComp = FALSE});
 #' otherwise one of the following models is used, depending on covModel.
-#' If \code{covModel = "unst"} an unstructured model is assumed, as in Zhou and
+#' If \code{covModel = "unst"}, an unstructured model is assumed, as in Zhou and
 #' Stephens (2014): \eqn{V_g} and \eqn{V_e} can be any positive-definite matrix,
 #' requiring a total of p(p+1)/2 parameters per matrix.
 #' If \code{covModel = "fa"}, a factor-analytic model is fitted using an
@@ -79,21 +79,21 @@
 #' \code{pheno}.
 #' @param covar An optional vector of covariates taken into account when
 #' running GWAS. These can be either numeric indices or character names of
-#' columns in \code{covar} in \code{gData}. If \code{NULL} no covariates are
+#' columns in \code{covar} in \code{gData}. If \code{NULL}, no covariates are
 #' used. An intercept is included automatically (and should not be assigned as
 #' covariate). SNP-covariates should be assigned using the snpCov parameter.
 #' @param snpCov An optional character vector of SNP-names to be included as
 #' covariates. SNP-names should match those used in \code{gData}.
 #' @param subsetMarkers Should GWAS be performed on a subset of markers?
-#' @param markerSubset A numeric or character vectorof marker names, indicating
+#' @param markerSubset A numeric or character vector of marker names, indicating
 #' on which markers in \code{gData$markers} GWAS is to be performed. Ignored if
 #' \code{subsetMarkers = FALSE}.
 #' @param MAF The minor allele frequency (MAF) threshold used in GWAS. A
 #' numerical value between 0 and 1. SNPs with MAF below this value are not taken
 #' into account in the analysis, i.e. p-values and effect sizes are put to
 #' missing (\code{NA}).
-#' @param fitVarComp Should the variance components be fitted? If \code{FALSE}
-#' they should be supplied in Vg and Ve
+#' @param fitVarComp Should the variance components be fitted? If \code{FALSE},
+#' they should be supplied in \code{Vg} and \code{Ve}.
 #' @param covModel A character string indicating the covariance model for the
 #' genetic background (Vg) and residual effects (Ve); see details.
 #' Either \code{unst} for unstructured for both Vg and
@@ -102,13 +102,13 @@
 #' factor-analytic for both Vg and Ve.\cr
 #' Ignored if \code{fitVarComp} = \code{FALSE}
 #' @param VeDiag Should there be environmental correlations if covModel = "unst"
-#' or "pw"? If traits are measured on the same individuals put \code{TRUE}.
+#' or "pw"? If traits are measured on the same individuals, put \code{TRUE}.
 #' @param tolerance A numerical value. The iterating process stops if the
 #' difference in conditional log-likelihood between two consecutive iterations
 #' drops below \code{tolerance}. Only used when \code{covModel = "fa"}.
 #' @param maxIter An integer for the maximum number of iterations. Only used
 #' when \code{covModel = "fa"}.
-#' @param maxDiag A numical value. The maximal value of the diagonal elements
+#' @param maxDiag A numerical value. The maximal value of the diagonal elements
 #' in the precision matrices Cm and Dm (ignoring the low-rank part W W^t).
 #' Only used when \code{covModel = "fa"}.
 #' @param mG An integer. The order of the genetic part of the factor analytic
@@ -122,11 +122,11 @@
 #' @param stopIfDecreasing Should the iterating process in the factor analytic
 #' model stop if after 50 iterations the log-likelihood decreases between two
 #' consecutive iterations? Only used when \code{covModel = "fa"}.
-#' @param Vg An optional matrix with genotypic variance components. Vg should
-#' have row names column names corresponding to the column names of
+#' @param Vg An optional matrix with genotypic variance components. \code{Vg} should
+#' have row and column names corresponding to the column names of
 #' \code{gData$pheno}. It may contain additional rows and columns which will be
 #' ignored. Ignored if fitVarComp = \code{TRUE}.
-#' @param Ve An optional matrix with environmental variance components. Ve
+#' @param Ve An optional matrix with environmental variance components. \code{Ve}
 #' should have row names column names corresponding to the column names of
 #' \code{gData$pheno}. It may contain additional rows and columns which will be
 #' ignored. Ignored if fitVarComp = \code{TRUE}.

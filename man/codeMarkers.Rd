@@ -20,12 +20,12 @@ allele. Alternatively a single character can be supplied as a reference
 allele for the whole set of SNPs, or a character vector with a reference
 allele per SNP.}
 
-\item{nMissGeno}{A numerical value between 0 and 1. genotypes with a
-fraction of missings higher then \code{nMissGeno} will be removed. Genotypes
+\item{nMissGeno}{A numerical value between 0 and 1. Genotypes with a
+fraction of missing values higher than \code{nMissGeno} will be removed. Genotypes
 with only missing values will always be removed.}
 
 \item{nMiss}{A numerical value between 0 and 1. SNPs with a fraction of
-missings higher then \code{nMiss} will be removed. SNPs with only missing
+missing values higher than \code{nMiss} will be removed. SNPs with only missing
 values will always be removed.}
 
 \item{MAF}{A numerical value between 0 and 1. SNPs with a Minor Allele
@@ -33,7 +33,7 @@ Frequency (MAF) below this value will be removed.}
 
 \item{removeDuplicates}{Should duplicate SNPs be removed?}
 
-\item{keep}{A vector of SNPs. These SNPs will never be removed in the whole
+\item{keep}{A vector of SNPs that should never be removed in the whole
 process.}
 
 \item{impute}{Should imputation of missing values be done?}
@@ -45,7 +45,7 @@ values should be done.\cr
 \item{random - missing values will be replaced by a random value calculated
 using allele frequencies per SNP.}
 \item{beagle - missing values will be imputed using beagle software. Beagle
-only accepts integers as map positions. If you use this option please cite
+only accepts integers as map positions. If you use this option, please cite
 the original papers in your publication.}
 }}
 
@@ -54,7 +54,7 @@ case \code{inputType} is fixed.}
 
 \item{naStrings}{A character vector of strings to be treated as NA.}
 
-\item{verbose}{Should a summary of the performed steps be printed.}
+\item{verbose}{Should a summary of the performed steps be printed?}
 }
 \value{
 A copy of the input \code{gData} object with markers replaced by
@@ -80,16 +80,16 @@ The function performs the following steps:\cr
 \examples{
 ## Create markers
 markers <- matrix(c(
-"AA",   "AB",   "AA",   "BB",   "BA",   "AB",   "AA",   "AA",  NA, "AA",
-"AA",   "AA",   "BB",   "BB",   "AA",   "AA",   "BB",   "AA",  NA, "AA",
-"AA",   "BA",   "AB",   "BB",   "AB",   "AB",   "AA",   "BB",  NA, "AA",
-"AA",   "AA",   "BB",   "BB",   "AA",   "AA",   "AA",   "AA",  NA, "AA",
+"AA",   "AB",   "AA",   "BB",   "BA",   "AB",   "AA",   "AA",   NA,  "AA",
+"AA",   "AA",   "BB",   "BB",   "AA",   "AA",   "BB",   "AA",   NA,  "AA",
+"AA",   "BA",   "AB",   "BB",   "AB",   "AB",   "AA",   "BB",   NA,  "AA",
+"AA",   "AA",   "BB",   "BB",   "AA",   "AA",   "AA",   "AA",   NA,  "AA",
 "AA",   "AA",   "BB",   "BB",   "AA",   "BB",   "BB",   "BB",  "AB", "AA",
-"AA",   "AA",   "BB",   "BB",   "AA",   NA,     "BB",   "AA",  NA, "AA",
-"AB",   "AB",   "BB",   "BB",   "BB",   "AA",   "BB",   "BB",  NA, "AB",
+"AA",   "AA",   "BB",   "BB",   "AA",    NA,    "BB",   "AA",   NA,  "AA",
+"AB",   "AB",   "BB",   "BB",   "BB",   "AA",   "BB",   "BB",   NA,  "AB",
 "AA",   "AA",    NA,    "BB",    NA,    "AA",   "AA",   "AA",  "AA", "AA",
 "AA",    NA,     NA,    "BB",   "BB",   "BB",   "BB",   "BB",  "AA", "AA",
-"AA",    NA,    "AA",   "BB",   "BB",   "BB",   "AA",   "AA",  NA, "AA"),
+"AA",    NA,    "AA",   "BB",   "BB",   "BB",   "AA",   "AA",   NA,  "AA"),
 ncol = 10, byrow = TRUE, dimnames = list(paste0("IND", 1:10),
 paste0("SNP", 1:10)))
 

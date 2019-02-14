@@ -4,7 +4,7 @@
 #'
 #' Each horizontal line contains QTLs of one trait, phenotypic trait or
 #' environment. Option: Vertical white lines can indicate chromosome
-#' subdivision, genes of interest, known QTL, etc. Circle diameters are
+#' subdivision, genes of interest, known QTLs, etc. Circle diameters are
 #' proportional to the absolute value of allelic effect. Colors indicate the
 #' direction of the effect: green when the allele increases the trait value,
 #' and blue when it decreases the value.
@@ -15,11 +15,11 @@
 #' @param trait A character string indicating the data column containing the
 #' trait name.
 #' @param snpEffect A character string indicating the data column containing
-#' the snp effect.
+#' the SNP effect.
 #' @param snpPosition A character string indicating the data column containing
-#' the position of the snp on the chromosome.
+#' the position of the SNP on the chromosome.
 #' @param map A data.frame with at least the columns \code{chr}, the number of
-#' the chromosome and \code{pos}, the position of the snp on the chromosome.
+#' the chromosome and \code{pos}, the position of the SNP on the chromosome.
 #' These are used for calculating the physical limits of the chromosome.
 #' @param normalize Should the snpEffect be normalized?
 #' @param sortData Should the data be sorted before plotting? Either

@@ -8,15 +8,15 @@
 #'
 #' @param GWAResult An optional data.frame or list of data.frames containing the
 #' overall analysis results. Should a least contain columns \code{trait}, the
-#' evaluated trait, \code{snp}, the name of the SNP, \code{chr}, the chromosome
-#' number, \code{pos}, the position of the SNP on the chromosome,
+#' evaluated trait, \code{snp}, the name of the SNP,
+#' \code{chr}, the chromosome number, \code{pos}, the position of the SNP on the chromosome,
 #' \code{pValue}, the p-values from the analysis and \code{LOD} the LOD-score.
 #' @param signSnp An optional data.frame or list of data.frames containing
 #' information on the significant SNPs and optionally the SNPs close to the
 #' significant SNPs. Should at least contain columns \code{trait}, the
 #' evaluated trait, \code{snp}, the name of the SNP, \code{pValue}, the p-values
 #' from the analysis and \code{LOD} the LOD-score.
-#' @param kin An optional kinship matrix or list of chromosome specific kinship
+#' @param kin An optional kinship matrix or list of chromosome-specific kinship
 #' matrices.
 #' @param thr An optional numerical value, the threshold used in performing the
 #' GWAS analysis.
@@ -103,7 +103,7 @@ createGWAS <- function(GWAResult = NULL,
 #' @param object An object of class \code{GWAS}
 #' @param ... Not used
 #' @param environments A vector of strings or numeric indices indicating for
-#' which environment the summary should be made. If \code{NULL} a summary is
+#' which environment the summary should be made. If \code{NULL}, a summary is
 #' made for all environments.
 #'
 #' @export
@@ -200,7 +200,7 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' Creates a plot of an object of S3 class \code{GWAS}. The following types of
 #' plot can be made:
 #' \itemize{
-#' \item{a manhattan plot, a plot of LOD-scores per SNP}
+#' \item{a manhattan plot, i.e. a plot of LOD-scores per SNP}
 #' \item{a qq plot of observed LOD-scores versus expected LOD-scores}
 #' \item{a qtl plot of effect sizes and directions for multiple traits (not
 #' for IBD based QTL mapping)}
@@ -220,41 +220,41 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' are taken from the result of the GWAS analysis however the LOD-threshold for
 #' significant parameters may be modified using the parameter \code{yThr}. The
 #' treshold is plotted as a horizontal line. If there are previously known
-#' marker effect also false positives and true negatives can be marked.\cr
+#' marker effect, false positives and true negatives can also be marked.\cr
 #' Extra parameter options:
 #' \describe{
 #' \item{\code{xLab}}{A character string, the x-axis label. Default =
 #' \code{"Chromosomes"}}
 #' \item{\code{yLab}}{A character string, the y-axis label. Default =
-#' \code{-10log(p)}}
-#' \item{\code{effects}}{A character vector, indicating which snps correspond
+#' \code{-log10(p)}}
+#' \item{\code{effects}}{A character vector, indicating which SNPs correspond
 #' to a real (known) effect. Used for determining true/false positives and
 #' false negatives. True positives are colored green, false positives orange and
 #' false negatives yellow.}
-#' \item{\code{colPalette}}{A color palette used for plotting. Default the
+#' \item{\code{colPalette}}{A color palette used for plotting. Default
 #' coloring is done by chromosome, using black and grey.}
-#' \item{\code{yThr}}{A numerical value for the LOD-threshold. As default value
-#' the value from the GWAS analysis is used.}
+#' \item{\code{yThr}}{A numerical value for the LOD-threshold. The value from
+#' the GWAS analysis is used as default.}
 #' \item{\code{signLwd}}{A numerical value giving the thickness of the
 #' points that are false/true positives/negatives. Default = 0.6}
-#' \item{\code{lod}}{A positive numerical value. For the snps with a LOD-value
-#' below this value only 5\% is plotted. The chance of a snp being plotting is
-#' proportional to its LOD-value. This option can be useful when plotting a
-#' large number of snps.}
-#' \item{\code{chr}}{A vector of chromosomes to be plotted. By default all
-#' chromosomes are plotted. Using this option this can be restricted to a
+#' \item{\code{lod}}{A positive numerical value. For the SNPs with a LOD-value
+#' below this value, only 5\% is plotted. The chance of a SNP being plotting is
+#' proportional to its LOD-score. This option can be useful when plotting a
+#' large number of SNPs.}
+#' \item{\code{chr}}{A vector of chromosomes to be plotted. By default, all
+#' chromosomes are plotted. Using this option allows restricting the plot to a
 #' subset of chromosomes.}
 #' }
 #'
 #' @section QQ Plot:
-#' From the LOD-scores calculated in the GWAS analysis a qq-plot is generated of
-#' observed LOD-scores versus expected LOD-scores. Code is copied from
-#' Segura et al. (2012) and adapted.
+#' From the LOD-scores calculated in the GWAS analysis, a qq-plot is generated with
+#' observed LOD-scores versus expected LOD-scores. Code is adapted from
+#' Segura et al. (2012).
 #'
 #' @section QTL Plot:
-#' A plot of effect sizes for the significant snps found in the GWAS analysis
-#' is created. Each horizontal line in the plot contains QTLs of one trait,
-#' phenotypic trait or environment. Optionally Vertical white lines can indicate
+#' A plot of effect sizes for the significant SNPs found in the GWAS analysis
+#' is created. Each horizontal line contains QTLs of one trait,
+#' phenotypic trait or environment. Optionally, vertical white lines can indicate
 #' chromosome subdivision, genes of interest, known QTL, etc. Circle diameters
 #' are proportional to the absolute value of allelic effect. Colors indicate the
 #' direction of the effect: green when the allele increases the trait value,
@@ -264,8 +264,8 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' \item{\code{normalize}}{Should the snpEffect be normalized? Default =
 #' \code{FALSE}}
 #' \item{\code{sortData}}{Should the data be sorted before plotting? Either
-#' \code{FALSE} if no sorting should be done or a character string indicating
-#' the data column on which the data should be sorted. Default =
+#' \code{FALSE}, if no sorting should be done, or a character string indicating
+#' the data column to use for sorting. Default =
 #' \code{FALSE}}
 #' \item{\code{binPositions}}{An optional data.frame containing at leasts two
 #' columns, chr(omosome) and pos(ition). Vertical lines are plotted at those
@@ -274,8 +274,8 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' Default = \code{TRUE}}
 #' \item{\code{yLab}}{A character string, the y-axis label. Default =
 #' \code{"Traits"}}
-#' \item{\code{yThr}}{A numerical value for the LOD-threshold. As default value
-#' the value from the GWAS analysis is used.}
+#' \item{\code{yThr}}{A numerical value for the LOD-threshold. The value from
+#' the GWAS analysis is used as default.}
 #' \item{\code{chr}}{A vector of chromosomes to be plotted. By default all
 #' chromosomes are plotted. Using this option this can be restricted to a
 #' subset of chromosomes.}
@@ -286,7 +286,7 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' }
 #'
 #' @section Matrix Plot:
-#' A plot of effect sizes for each of the founders for the significant snps
+#' A plot of effect sizes for each of the founders for the significant SNPs
 #' found in the IBD based QTL mapping is created.\cr
 #' Extra parameter options:
 #' \describe{
@@ -301,16 +301,16 @@ summary.GWAS <- function(object, ..., environments = NULL) {
 #' functions.
 #' @param plotType A character string indicating the type of plot to be made.
 #' One of "manhattan", "qq","qtl" and "matrix". "qtl" plots cannot be made for
-#' results of IBD based QTL mapping. "matrix" plot can only for IBD based QTL
+#' results of IBD based QTL mapping. "matrix" plot can only be made for IBD based QTL
 #' mapping.
 #' @param environment A character string or numeric index indicating for which
 #' environment the plot should be made. If \code{x} only contains results for
-#' one trait \code{environment} may be \code{NULL}.
+#' one environment, \code{environment} may be \code{NULL}.
 #' @param trait A character string indicating for which trait the results
 #' should be plotted. For \code{type} "qtl" all traits are plotted. If \code{x}
-#' only contains results for one trait \code{trait} may be \code{NULL}.
+#' only contains results for one trait, \code{trait} may be \code{NULL}.
 #' @param output Should the plot be output to the current device? If
-#' \code{FALSE} only a list of ggplot objects is invisibly returned.
+#' \code{FALSE}, only a list of ggplot objects is invisibly returned.
 #'
 #' @references Millet et al. (2016) Genome-wide analysis of yield in Europe:
 #' Allelic effects vary with drought and heat scenarios. Plant Physiology,

@@ -12,19 +12,19 @@ genomicPrediction(gData, traits = NULL, environments = NULL, training,
 \code{markers} and \code{pheno}.}
 
 \item{traits}{A vector of traits on which to run GWAS. These can be either
-numeric indices or character names of columns in \code{pheno}. If \code{NULL}
+numeric indices or character names of columns in \code{pheno}. If \code{NULL},
 GWAS is run on all traits.}
 
 \item{environments}{A vector of environments on which to run GWAS. These can
 be either numeric indices or character names of list items in \code{pheno}.
-If \code{NULL} GWAS is run for all environments. GWAS is run for the
+If \code{NULL}, GWAS is run for all environments. GWAS is run for the
 selected environments in sequential order.}
 
 \item{training}{A character vector with names of genotypes to use as
 training data for the prediction.}
 
 \item{useMAF}{Should the minor allele frequency be used for selecting SNPs
-for the analysis. If \code{FALSE} the minor allele count is used instead.}
+for the analysis. If \code{FALSE}, the minor allele count is used instead.}
 
 \item{MAF}{The minor allele frequency (MAF) threshold used in GWAS. A
 numerical value between 0 and 1. SNPs with MAF below this value are not taken
@@ -33,7 +33,7 @@ missing (\code{NA}). Ignored if \code{useMAF} is \code{FALSE}.}
 
 \item{MAC}{A numerical value. SNPs with minor allele count below this value
 are not taken into account for the analysis, i.e. p-values and effect sizes
-are put to missing (\code{NA}). Ignored if \code{useMAF} is \code{TRUE}.}
+are set to missing (\code{NA}). Ignored if \code{useMAF} is \code{TRUE}.}
 
 \item{keep}{A character vector with names of columns in \code{covar} in
 \code{gData} that should be included in the output.}
