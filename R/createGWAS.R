@@ -31,7 +31,7 @@
 NULL
 
 #' @rdname GWAS
-#' @export
+#' @keywords internal
 createGWAS <- function(GWAResult = NULL,
                        signSnp = NULL,
                        kin = NULL,
