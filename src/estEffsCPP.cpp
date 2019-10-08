@@ -138,7 +138,8 @@ List estEffsCPP(arma::mat y,
   int nThr = getThr(nCores);
 #pragma omp parallel for num_threads(nThr)
   for(unsigned int i = 0; i < n; i++) {
-    vInv.slice(i) = inv_sympd(dk(i) * vg + ve);
+    //vInv.slice(i) = inv_sympd(dk(i) * vg + ve);
+    vInv.slice(i) = (dk(i) * vg + ve).i();
     // vInvy is used is several equations so is computed once here.
     vInvy.col(i) = vInv.slice(i) * y.col(i);
   }
@@ -173,6 +174,9 @@ List estEffsCPP(arma::mat y,
     s1 = sum(vInvy, 0);
     s3 = sum(vInv, 1);
     s2 = sum(s3, 0);
+    for (unsigned int cv = 0; cv < nc; cv++) {
+      s3.each_row() %= w.row(cv);
+    }
   }
   arma::mat eff = zeros<mat>(p, ns);
   arma::mat effSe = zeros<mat>(p, ns);
@@ -255,14 +259,13 @@ List estEffsCPP(arma::mat y,
       // have been simplified.
       // Define SNP-dependent quantities.
       arma::cube x2Vinvx1Com = cube(nc, nsCh, p);
-      // Fill X2VinvX1ArrCom by looping over covariates.
+      // Fill x2Vinvx1Com by looping over covariates.
       for (unsigned int cv = 0; cv < nc; cv++) {
-        s3.each_row() %= w.row(cv);
-        x2Vinvx1Com( span(cv), span(), span() ) = x * s3.t();
+        x2Vinvx1Com( span(cv), span(), span() ) = x.rows(chStart, chEnd) * s3.t();
       }
       // Compute common VBeta and V per SNP - only depends on individuals.
-      arma::mat vSnpCom = x * s1.t();
-      arma::vec vBetaSnpCom = x2 * s2.t();
+      arma::mat vSnpCom = x.rows(chStart, chEnd) * s1.t();
+      arma::vec vBetaSnpCom = x2.rows(chStart, chEnd) * s2.t();
       arma::colvec vSnpQCom;
       if (returnSe) {
         // Compute VSnpQ for common effect.
@@ -301,7 +304,7 @@ List estEffsCPP(arma::mat y,
           qSnpCom(qSnpCom.size() - 1) = vSnpQCom(snp);
           ss1Com(snp) = qScal - as_scalar(qSnpCom.t() * qSnpInvCom * qSnpCom);
           // Compute p-values for common SNP effect.
-          double fValComx = (ss0 -  ss1Com(snp)) /  ss1Com(snp) * dfCom;
+          double fValComx = (ss0 - ss1Com(snp)) / ss1Com(snp) * dfCom;
           pValsCom(snp + chStart) = R::pf(fValComx, 1, dfCom, false, false);
           double fValQtlEx = ((ss1Com(snp) - ss1(snp)) / ss1(snp)) *
             dfFull / (p - 1);
