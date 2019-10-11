@@ -11,7 +11,7 @@ covPW(Y, K, X = NULL, fixDiag = FALSE, corMat = FALSE,
   parallel = FALSE)
 }
 \arguments{
-\item{Y}{An n \times p matrix of observed phenotypes, on p traits or environments
+\item{Y}{An n x p matrix of observed phenotypes, on p traits or environments
 for n individuals. No missing values are allowed.}
 
 \item{K}{An n x n kinship matrix.}
