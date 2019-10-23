@@ -432,7 +432,7 @@ plot.GWAS <- function(x,
     ## Create manhattan plot.
     do.call(manhattanPlot,
             args = c(list(xValues = map$cumPos, yValues = map$LOD,
-                          map = map[, -which(colnames(map) == "LOD")],
+                          map = map,
                           xSig = signSnpNr, xEffects = xEffects,
                           chrBoundaries = chrBnd[, 2], yThr = yThr,
                           output = output),
