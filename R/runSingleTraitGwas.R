@@ -119,10 +119,12 @@ runSingleTraitGwas <- function(gData,
                                environments = NULL,
                                covar = NULL,
                                snpCov = NULL,
+                               computeVarComp = TRUE,
                                kin = NULL,
                                kinshipMethod = c("astle", "IBS", "vanRaden"),
                                remlAlgo = c("EMMA", "NR"),
                                GLSMethod = c("single", "multi"),
+                               varCovMatrix = NULL,
                                useMAF = TRUE,
                                MAF = 0.01,
                                MAC = 10,
@@ -214,20 +216,24 @@ runSingleTraitGwas <- function(gData,
       ## Select genotypes where trait is not missing.
       nonMiss <- unique(phEnvTr$genotype)
       nonMissRepId <- phEnvTr$genotype
-      if (GLSMethod == "single") {
-        kinshipRed <- K[nonMiss, nonMiss]
-        chrs <- NULL
-      } else if (GLSMethod == "multi") {
-        chrs <- unique(gData$map$chr[rownames(gData$map) %in%
-                                       colnames(gData$markers)])
+      if (computeVarComp) {
+        if (GLSMethod == "single") {
+          kinshipRed <- K[nonMiss, nonMiss]
+          chrs <- NULL
+        } else if (GLSMethod == "multi") {
+          chrs <- unique(gData$map$chr[rownames(gData$map) %in%
+                                         colnames(gData$markers)])
+        }
+        ## Estimate variance components.
+        vc <- estVarComp(GLSMethod = GLSMethod, remlAlgo = remlAlgo,
+                         trait = trait, pheno = phEnvTr, covar = covEnv,
+                         K = kinshipRed, chrs = chrs, KChr = KChr,
+                         nonMiss = nonMiss, nonMissRepId = nonMissRepId)
+        varCompEnv[[trait]] <- vc$varComp
+        vcovMatrix <- vc$vcovMatrix
+      } else {
+        vcovMatrix <- varCovMatrix
       }
-      ## Estimate variance components.
-      vc <- estVarComp(GLSMethod = GLSMethod, remlAlgo = remlAlgo,
-                       trait = trait, pheno = phEnvTr, covar = covEnv,
-                       K = kinshipRed, chrs = chrs, KChr = KChr,
-                       nonMiss = nonMiss, nonMissRepId = nonMissRepId)
-      varCompEnv[[trait]] <- vc$varComp
-      vcovMatrix <- vc$vcovMatrix
       ## Compute allele frequencies based on genotypes for which phenotypic
       ## data is available.
       markersRed <- gData$markers[nonMiss, colnames(gData$markers) %in%

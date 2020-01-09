@@ -3,7 +3,6 @@
 \docType{package}
 \name{genStatPipeline}
 \alias{genStatPipeline}
-\alias{genStatPipeline-package}
 \title{\code{genStatPipeline} package}
 \description{
 genStatPipeline

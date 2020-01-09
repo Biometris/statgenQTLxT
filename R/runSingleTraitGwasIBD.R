@@ -20,10 +20,12 @@ runSingleTraitGwasIBD <- function(gData,
                                   environments = NULL,
                                   covar = NULL,
                                   snpCov = NULL,
+                                  computeVarComp = TRUE,
                                   kin = NULL,
                                   kinshipMethod = c("multiAllKin"),
                                   remlAlgo = c("EMMA", "NR"),
                                   GLSMethod = c("single", "multi"),
+                                  varCovMatrix = NULL,
                                   MAF = 0.01,
                                   genomicControl = FALSE,
                                   thrType = c("bonf", "fixed", "small"),
@@ -68,16 +70,20 @@ runSingleTraitGwasIBD <- function(gData,
     chkNum(nSnpLOD, min = 0)
   }
   chkNum(ref, min = 1, max = dim(gData$markers)[3])
-  if (GLSMethod == "single") {
-    ## Compute kinship matrix.
-    K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
-                    markers = gData$markers, map = gData$map,
-                    kinshipMethod = kinshipMethod)
-  } else if (GLSMethod == "multi") {
-    ## Compute kinship matrices per chromosome. Only needs to be done once.
-    KChr <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
-                       markers = gData$markers, map = gData$map,
-                       kinshipMethod = kinshipMethod)
+  ## Kinship matrices are only needed for computation of variance components.
+  ## If varcomp matrix is provided by user there is no need to compute them.
+  if (computeVarComp) {
+    if (GLSMethod == "single") {
+      ## Compute kinship matrix.
+      K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
+                      markers = gData$markers, map = gData$map,
+                      kinshipMethod = kinshipMethod)
+    } else if (GLSMethod == "multi") {
+      ## Compute kinship matrices per chromosome. Only needs to be done once.
+      KChr <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
+                         markers = gData$markers, map = gData$map,
+                         kinshipMethod = kinshipMethod)
+    }
   }
   ## Compute max value in markers.
   ###maxScore <- min(max(gData$markers, na.rm = TRUE), 2)
@@ -111,20 +117,24 @@ runSingleTraitGwasIBD <- function(gData,
       ## Select genotypes where trait is not missing.
       nonMiss <- unique(phEnvTr$genotype)
       nonMissRepId <- phEnvTr$genotype
-      if (GLSMethod == "single") {
-        kinshipRed <- K[nonMiss, nonMiss]
-        chrs <- NULL
-      } else if (GLSMethod == "multi") {
-        chrs <- unique(gData$map$chr[rownames(gData$map) %in%
-                                       colnames(gData$markers)])
+      if (computeVarComp) {
+        if (GLSMethod == "single") {
+          kinshipRed <- K[nonMiss, nonMiss]
+          chrs <- NULL
+        } else if (GLSMethod == "multi") {
+          chrs <- unique(gData$map$chr[rownames(gData$map) %in%
+                                         colnames(gData$markers)])
+        }
+        ## Estimate variance components.
+        vc <- estVarComp(GLSMethod = GLSMethod, remlAlgo = remlAlgo,
+                         trait = trait, pheno = phEnvTr, covar = covEnv,
+                         K = kinshipRed, chrs = chrs, KChr = KChr,
+                         nonMiss = nonMiss, nonMissRepId = nonMissRepId)
+        varCompEnv[[trait]] <- vc$varComp
+        vcovMatrix <- vc$vcovMatrix
+      } else {
+        vcovMatrix <- varCovMatrix
       }
-      ## Estimate variance components.
-      vc <- estVarComp(GLSMethod = GLSMethod, remlAlgo = remlAlgo,
-                       trait = trait, pheno = phEnvTr, covar = covEnv,
-                       K = kinshipRed, chrs = chrs, KChr = KChr,
-                       nonMiss = nonMiss, nonMissRepId = nonMissRepId)
-      varCompEnv[[trait]] <- vc$varComp
-      vcovMatrix <- vc$vcovMatrix
       ## Compute allele frequencies based on genotypes for which phenotypic
       ## data is available.
       markersRed <-
@@ -216,7 +226,7 @@ runSingleTraitGwasIBD <- function(gData,
           for (snpCovariate in intersect(snpCov, colnames(markersRedChr))) {
             GLSResultSnpCov <-
               fastGLSIBD(y = y, X = markersRedChr[nonMissRepId, snpCovariate, ,
-                                                   drop = FALSE],
+                                                  drop = FALSE],
                          Sigma = as.matrix(vcovMatrix[[which(chrs == chr)]]),
                          covs = Z[, !grepl(pattern = paste0(snpCovariate, "_"),
                                            x = colnames(Z)), drop = FALSE],

@@ -4,8 +4,14 @@
 \alias{plot.GWAS}
 \title{Plot function for the class \code{GWAS}}
 \usage{
-\method{plot}{GWAS}(x, ..., plotType = c("manhattan", "qq", "qtl",
-  "matrix"), environment = NULL, trait = NULL, output = TRUE)
+\method{plot}{GWAS}(
+  x,
+  ...,
+  plotType = c("manhattan", "qq", "qtl", "matrix"),
+  environment = NULL,
+  trait = NULL,
+  output = TRUE
+)
 }
 \arguments{
 \item{x}{An object of class \code{GWAS}.}

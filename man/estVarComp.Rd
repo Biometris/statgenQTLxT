@@ -4,8 +4,18 @@
 \alias{estVarComp}
 \title{Estimate variance components in single trait GWAS}
 \usage{
-estVarComp(GLSMethod, remlAlgo, trait, pheno, covar, K, chrs, KChr,
-  nonMiss, nonMissRepId)
+estVarComp(
+  GLSMethod,
+  remlAlgo,
+  trait,
+  pheno,
+  covar,
+  K,
+  chrs,
+  KChr,
+  nonMiss,
+  nonMissRepId
+)
 }
 \description{
 Helper function for estimating variance components in single trait GWAS.

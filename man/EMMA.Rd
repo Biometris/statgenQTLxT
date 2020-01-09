@@ -4,9 +4,19 @@
 \alias{EMMA}
 \title{Compute REML estimates of variance components using EMMA algorithm.}
 \usage{
-EMMA(gData, trait, environment, K = NULL, covar = NULL,
-  snpName = NULL, Z = NULL, nGrids = 100, lLim = -10, uLim = 10,
-  eps = .Machine$double.eps^0.25)
+EMMA(
+  gData,
+  trait,
+  environment,
+  K = NULL,
+  covar = NULL,
+  snpName = NULL,
+  Z = NULL,
+  nGrids = 100,
+  lLim = -10,
+  uLim = 10,
+  eps = .Machine$double.eps^0.25
+)
 }
 \arguments{
 \item{gData}{An object of class gData containing at least a data.frame

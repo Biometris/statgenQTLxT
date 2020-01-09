@@ -4,13 +4,29 @@
 \alias{runSingleTraitGwasIBD}
 \title{Perform IBD based QTL mapping for single trait.}
 \usage{
-runSingleTraitGwasIBD(gData, traits = NULL, environments = NULL,
-  covar = NULL, snpCov = NULL, kin = NULL,
-  kinshipMethod = c("multiAllKin"), remlAlgo = c("EMMA", "NR"),
-  GLSMethod = c("single", "multi"), MAF = 0.01,
-  genomicControl = FALSE, thrType = c("bonf", "fixed", "small"),
-  alpha = 0.05, LODThr = 4, nSnpLOD = 10, sizeInclRegion = 0,
-  minR2 = 0.5, ref = 1, nCores = NULL)
+runSingleTraitGwasIBD(
+  gData,
+  traits = NULL,
+  environments = NULL,
+  covar = NULL,
+  snpCov = NULL,
+  computeVarComp = TRUE,
+  kin = NULL,
+  kinshipMethod = c("multiAllKin"),
+  remlAlgo = c("EMMA", "NR"),
+  GLSMethod = c("single", "multi"),
+  varCovMatrix = NULL,
+  MAF = 0.01,
+  genomicControl = FALSE,
+  thrType = c("bonf", "fixed", "small"),
+  alpha = 0.05,
+  LODThr = 4,
+  nSnpLOD = 10,
+  sizeInclRegion = 0,
+  minR2 = 0.5,
+  ref = 1,
+  nCores = NULL
+)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},

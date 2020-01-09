@@ -5,8 +5,13 @@
 \alias{createGWAS}
 \title{S3 Class GWAS}
 \usage{
-createGWAS(GWAResult = NULL, signSnp = NULL, kin = NULL,
-  thr = NULL, GWASInfo = NULL)
+createGWAS(
+  GWAResult = NULL,
+  signSnp = NULL,
+  kin = NULL,
+  thr = NULL,
+  GWASInfo = NULL
+)
 }
 \arguments{
 \item{GWAResult}{An optional data.frame or list of data.frames containing the
@@ -43,3 +48,4 @@ of those should be provided as input.\cr
 \seealso{
 \code{\link{summary.GWAS}}, \code{\link{plot.GWAS}}
 }
+\keyword{internal}

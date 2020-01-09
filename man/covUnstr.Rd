@@ -7,8 +7,7 @@
 \usage{
 covUnstr(Y, K, X = NULL, fixDiag = FALSE, VeDiag = FALSE)
 
-covPW(Y, K, X = NULL, fixDiag = FALSE, corMat = FALSE,
-  parallel = FALSE)
+covPW(Y, K, X = NULL, fixDiag = FALSE, corMat = FALSE, parallel = FALSE)
 }
 \arguments{
 \item{Y}{An n x p matrix of observed phenotypes, on p traits or environments

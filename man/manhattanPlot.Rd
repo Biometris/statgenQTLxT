@@ -4,10 +4,20 @@
 \alias{manhattanPlot}
 \title{Create a manhattan plot}
 \usage{
-manhattanPlot(xValues, yValues, map, xLab = "Chromosomes",
-  yLab = expression(-log[10](p)), xSig = integer(),
-  xEffects = integer(), colPalette = rep(c("black", "grey50"), 50),
-  yThr = NULL, signLwd = 0.6, ..., output = TRUE)
+manhattanPlot(
+  xValues,
+  yValues,
+  map,
+  xLab = "Chromosomes",
+  yLab = expression(-log[10](p)),
+  xSig = integer(),
+  xEffects = integer(),
+  colPalette = rep(c("black", "grey50"), 50),
+  yThr = NULL,
+  signLwd = 0.6,
+  ...,
+  output = TRUE
+)
 }
 \arguments{
 \item{xValues}{A vector of cumulative marker positions.}

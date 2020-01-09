@@ -4,8 +4,17 @@
 \alias{matrixPlot}
 \title{Create a matrix plot}
 \usage{
-matrixPlot(effectDat, signSnp, map, xLab = "Chromosomes",
-  yLab = "Parent", chrBoundaries, founders, ..., output = TRUE)
+matrixPlot(
+  effectDat,
+  signSnp,
+  map,
+  xLab = "Chromosomes",
+  yLab = "Parent",
+  chrBoundaries,
+  founders,
+  ...,
+  output = TRUE
+)
 }
 \description{
 Create a matrix plot of effect sizes and directions per parent for

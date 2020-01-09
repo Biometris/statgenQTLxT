@@ -4,9 +4,19 @@
 \alias{updateFA}
 \title{Update W and P in EMFA algorithm}
 \usage{
-updateFA(y, wStart, pStart, wNew, pNew, m0, hetVar = FALSE,
-  maxDiag = 10000, tolerance = 1e-04, maxIter = 100L,
-  printProgress = FALSE)
+updateFA(
+  y,
+  wStart,
+  pStart,
+  wNew,
+  pNew,
+  m0,
+  hetVar = FALSE,
+  maxDiag = 10000,
+  tolerance = 1e-04,
+  maxIter = 100L,
+  printProgress = FALSE
+)
 }
 \arguments{
 \item{hetVar}{Should an extra diagonal part be added in the model for the

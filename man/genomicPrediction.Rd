@@ -4,8 +4,16 @@
 \alias{genomicPrediction}
 \title{Perform genomic prediction}
 \usage{
-genomicPrediction(gData, traits = NULL, environments = NULL, training,
-  useMAF = TRUE, MAF = 0.01, MAC = 10, keep = NULL)
+genomicPrediction(
+  gData,
+  traits = NULL,
+  environments = NULL,
+  training,
+  useMAF = TRUE,
+  MAF = 0.01,
+  MAC = 10,
+  keep = NULL
+)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},

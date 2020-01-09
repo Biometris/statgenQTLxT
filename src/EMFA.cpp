@@ -382,18 +382,18 @@ List EMFA(arma::mat y,
   arma::mat mu = zeros<mat>(n, p);
   // EM following the notation of Dahl et al.
   for (unsigned int i = 0; i < maxIter; i++) {
-    arma::mat dmSqrt = sqrtmat_sympd(dm);
+    arma::mat dmSqrt = sqrtmat_sympd(symmatu(dm));
     arma::mat dmSqrtInv = inv_sympd(dmSqrt);
     arma::vec v1(p);
     arma::mat q1(p, p);
-    eig_sym(v1, q1, dmSqrtInv * cm * dmSqrtInv);
+    eig_sym(v1, q1, symmatu(dmSqrtInv * cm * dmSqrtInv));
     v1 = reverse(v1);
     q1 = fliplr(q1);
-    arma::mat cmSqrt = sqrtmat_sympd(cm);
+    arma::mat cmSqrt = sqrtmat_sympd(symmatu(cm));
     arma::mat cmSqrtInv = inv_sympd(cmSqrt);
     arma::vec v2(p);
     arma::mat q2(p, p);
-    eig_sym(v2, q2, cmSqrtInv * dm * cmSqrtInv);
+    eig_sym(v2, q2, symmatu(cmSqrtInv * dm * cmSqrtInv));
     v2 = reverse(v2);
     q2 = fliplr(q2);
     arma::mat s1(size(y));

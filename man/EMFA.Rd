@@ -4,10 +4,21 @@
 \alias{EMFA}
 \title{Factor analytic variation of EM algoritm}
 \usage{
-EMFA(y, k, size_param_x = NULL, cmHet = FALSE, dmHet = FALSE,
-  tolerance = 1e-04, maxIter = 300L, size_param_cmStart = NULL,
-  size_param_dmStart = NULL, mG = 1L, mE = 1L, maxDiag = 10000,
-  stopIfDecreasing = FALSE)
+EMFA(
+  y,
+  k,
+  size_param_x = NULL,
+  cmHet = FALSE,
+  dmHet = FALSE,
+  tolerance = 1e-04,
+  maxIter = 300L,
+  size_param_cmStart = NULL,
+  size_param_dmStart = NULL,
+  mG = 1L,
+  mE = 1L,
+  maxDiag = 10000,
+  stopIfDecreasing = FALSE
+)
 }
 \arguments{
 \item{y}{An n x p matrix of observed phenotypes, on p traits or environments

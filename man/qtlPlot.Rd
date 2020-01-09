@@ -4,11 +4,23 @@
 \alias{qtlPlot}
 \title{Draw a qtl plot}
 \usage{
-qtlPlot(data, chromosome = "chr", trait = "trait",
-  snpEffect = "effect", snpPosition = "pos", map, normalize = FALSE,
-  sortData = FALSE, binPositions = NULL, printVertGrid = TRUE,
-  yLab = "Traits", exportPptx = FALSE, pptxName = "",
-  output = TRUE, ...)
+qtlPlot(
+  data,
+  chromosome = "chr",
+  trait = "trait",
+  snpEffect = "effect",
+  snpPosition = "pos",
+  map,
+  normalize = FALSE,
+  sortData = FALSE,
+  binPositions = NULL,
+  printVertGrid = TRUE,
+  yLab = "Traits",
+  exportPptx = FALSE,
+  pptxName = "",
+  output = TRUE,
+  ...
+)
 }
 \arguments{
 \item{data}{A data.frame with QTL data to be plotted}
