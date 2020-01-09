@@ -232,7 +232,7 @@ runMultiTraitGwas <- function(gData,
     chkNum(mG, min = 1)
     chkNum(mE, min = 1)
   }
-  if (covModel == "unst") {
+  if (fitVarComp && covModel == "unst") {
     nTraits <- ncol(gData$pheno[[1]]) - 1
     if (nTraits > 5 && nTraits < 10) {
       warning(paste("unstructured covariance models not recommended for 6 to 9",
