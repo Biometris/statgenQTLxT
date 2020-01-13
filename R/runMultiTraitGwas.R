@@ -325,6 +325,7 @@ runMultiTraitGwas <- function(gData,
     K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
                     markers = markersRed, kinshipMethod = kinshipMethod)
     K <- K[rownames(K) %in% rownames(Y), colnames(K) %in% rownames(Y)]
+    K <- K[rownames(Y), rownames(Y)]
     if (reduceK) {
       K <- reduceKinship(K = K, nPca = nPca)
     }
@@ -336,8 +337,9 @@ runMultiTraitGwas <- function(gData,
     KChr <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
                        markers = markersRed, map = mapRed,
                        kinshipMethod = kinshipMethod)
-    KChr <- lapply(X = KChr, FUN = function(x) {
-      x[rownames(x) %in% rownames(Y), colnames(x) %in% rownames(Y)]
+    KChr <- lapply(X = KChr, FUN = function(k) {
+      k <- k[rownames(k) %in% rownames(Y), colnames(k) %in% rownames(Y)]
+      k[rownames(Y), rownames(Y)]
     })
     if (reduceK) {
       KChr <- lapply(X = KChr, FUN = reduceKinship, nPca = nPca)

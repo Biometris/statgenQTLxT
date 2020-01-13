@@ -126,7 +126,7 @@ List estEffsCPP(arma::mat y,
   arma::mat uk;
   arma::vec dk;
   arma::eig_sym(dk, uk, k);
-  dk = clamp(dk, dk.max() * 1e-5, dk.max());
+  dk = clamp(dk, dk.max() * 1e-10, dk.max());
   // Transform y, w and x.
   y = y.t() * uk;
   w = w.t() * uk;
