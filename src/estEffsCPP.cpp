@@ -1,5 +1,6 @@
 #include <RcppArmadillo.h>
 #include "getThr.h"
+#include "utils.h"
 
 // Correctly setup the build environment
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -123,10 +124,10 @@ List estEffsCPP(arma::mat y,
   unsigned int nc = w.n_cols;
   unsigned int ns = x.n_cols;
   unsigned int nChunks = R::fmax2(R::fmin2(ns, ceil(p * nc * ns / 50000)), 1);
+  k = nearestPD(k, false, false, true, false, true, 1e-10, 1e-7, 1e-8, 100);
   arma::mat uk;
   arma::vec dk;
   arma::eig_sym(dk, uk, k);
-  dk = clamp(dk, dk.max() * 1e-10, dk.max());
   // Transform y, w and x.
   y = y.t() * uk;
   w = w.t() * uk;
