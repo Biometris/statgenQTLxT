@@ -1,5 +1,5 @@
 rm(list = ls())
-library(genStatPipeline)
+library(statgenPipeline)
 
 load("./example_data_drops/testData.Rdata")
 

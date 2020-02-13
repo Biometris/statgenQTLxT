@@ -3,9 +3,12 @@
 #' Compute statistics for the Generalized Least Squares (GLS) F-test for
 #' IBD based QTL Mapping.
 #'
-#' @inheritParams fastGLS
-#'
+#' @param y A numeric vector of length n of phenotypic scores. No missing
+#' values allowed.
 #' @param X An array of marker probabilities.
+#' @param Sigma An n x n covariance matrix. No missing values allowed.
+#' @param covs An n x c matrix of covariates (NOT including an intercept).
+#' No missing values allowed.
 #' @param ref An integer indicating the allele to use as reference allele in
 #' the computations.
 #'
@@ -17,26 +20,26 @@ fastGLSIBD <- function(y,
                        ref,
                        nCores = NULL) {
   ## Check class and missing values.
-  if (missing(y) || !(inherits(y, "Matrix") || is.numeric(y)) || anyNA(y)) {
+  if (missing(y) || !(inherits(y, "matrix") || is.numeric(y)) || anyNA(y)) {
     stop("y should be a numeric vector without missing values.\n")
   }
-  if (missing(Sigma) || !(inherits(Sigma, "Matrix") || is.matrix(Sigma)) ||
+  if (missing(Sigma) || !(inherits(Sigma, "matrix") || is.matrix(Sigma)) ||
       anyNA(Sigma)) {
     stop("Sigma should be a matrix without missing values.\n")
   }
-  if (!is.null(covs) && (!(inherits(covs, "Matrix") || is.matrix(covs)) ||
+  if (!is.null(covs) && (!(inherits(covs, "matrix") || is.matrix(covs)) ||
                          anyNA(covs))) {
     stop("covs should be a numeric vector without missing values.\n")
   }
   n <- length(y)
   ## Check dimensions.
   if (nrow(Sigma) != n || ncol(Sigma) != n) {
-    stop(paste("The number of elements in y should be identical to the",
-               "number of rows and columns in Sigma.\n"))
+    stop("The number of elements in y should be identical to the",
+         "number of rows and columns in Sigma.\n")
   }
   if (!is.null(covs) && nrow(covs) != n) {
-    stop(paste("The number of elements in y should be identical to the",
-               "number of rows in covs.\n"))
+    stop("The number of elements in y should be identical to the",
+         "number of rows in covs.\n")
   }
   resCpp <- fastGLSIBDCPP(X, y, Sigma, ref, covs, nCores = nCores)
   GLS <- cbind(resCpp$pVal, resCpp$RLR2, t(resCpp$beta2))

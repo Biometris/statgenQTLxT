@@ -113,6 +113,3 @@ gData2 <- createGData(gData = gData, kin = kin2, covar = covar)
 \seealso{
 \code{\link{summary.gData}}
 }
-\author{
-Bart-Jan van Rossum
-}

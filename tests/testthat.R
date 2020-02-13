@@ -1,4 +1,4 @@
 library(testthat)
-library(genStatPipeline)
+library(statgenPipeline)
 
-test_check("genStatPipeline")
+test_check("statgenPipeline")

@@ -1,6 +1,7 @@
 context("estEffs")
 
 ## Simulate data.
+RNGversion("3.5.3")
 set.seed(1234)
 Vg <- matrix(c(6.06, 4.97, 5.96, 4.97, 4.43, 5.29, 5.96, 5.29, 6.67), nrow = 3)
 Ve <- matrix(c(3.28, 0.18, 0.14, 0.18, 4.43, 0.13, 0.14, 0.13, 2.99), nrow = 3)

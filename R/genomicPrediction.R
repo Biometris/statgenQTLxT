@@ -2,8 +2,13 @@
 #'
 #' Perform genomic prediction
 #'
-#' @inheritParams runSingleTraitGwas
+#' @inheritParams runSingleTraitGwasIBD
 #'
+#' @param useMAF Should the minor allele frequency be used for selecting SNPs
+#' for the analysis. If \code{FALSE}, the minor allele count is used instead.
+#' @param MAC A numerical value. SNPs with minor allele count below this value
+#' are not taken into account for the analysis, i.e. p-values and effect sizes
+#' are set to missing (\code{NA}). Ignored if \code{useMAF} is \code{TRUE}.
 #' @param training A character vector with names of genotypes to use as
 #' training data for the prediction.
 #' @param keep A character vector with names of columns in \code{covar} in
@@ -22,11 +27,8 @@
 #' @export
 genomicPrediction <- function(gData,
                               traits = NULL,
-                              environments = NULL,
+                              trials = NULL,
                               training,
-                              # kin = NULL,
-                              # kinshipMethod = c("astle", "IBS",
-                              #                   "vanRaden"),
                               useMAF = TRUE,
                               MAF = 0.01,
                               MAC = 10,
@@ -34,16 +36,16 @@ genomicPrediction <- function(gData,
   ## Checks.
   chkGData(gData, comps = c("markers", "pheno", if (!is.null(keep)) "covar"))
   chkMarkers(gData$markers)
-  chkEnvs(environments, gData)
-  ## If environments is null set environments to all environments in pheno.
-  if (is.null(environments)) {
-    environments <- 1:length(gData$pheno)
+  chkTrials(trials, gData)
+  ## If trials is null set trials to all trials in pheno.
+  if (is.null(trials)) {
+    trials <- 1:length(gData$pheno)
   }
   if (missing(training) || !is.character(training) ||
       !all(training %in% rownames(gData$markers))) {
     stop("training should be a character vector indicating rows in markers.\n")
   }
-  chkTraits(traits, environments, gData)
+  chkTraits(traits, trials, gData)
   if (useMAF) {
     chkNum(MAF, min = 0, max = 1)
     MAF <- max(MAF, 1e-6)
@@ -56,45 +58,30 @@ genomicPrediction <- function(gData,
       stop("keep should be a character vector indicating columns in covar.\n")
     }
   }
-  # if (is.null(gData$kinship) && is.null(kin)) {
-  #   ## Compute kinship matrix.
-  #   kinshipMethod <- match.arg(kinshipMethod)
-  #   KTrain <- kinship(X = gData$markers[training, ], method = kinshipMethod)
-  # } else if (is.null(kin)) {
-  #   ## Restrict K to training dataset.
-  #   KTrain <- gData$kinship[training, training]
-  # } else if (is.matrix(kin)) {
-  #   ## Restrict K to training dataset.
-  #   KTrain <- as(kin, "dsyMatrix")[training, training]
-  # } else {
-  #   ## Restrict K to training dataset.
-  #   KTrain <- kin[training, training]
-  # }
   ## Compute max value in markers
   maxScore <- min(max(gData$markers, na.rm = TRUE), 2)
   ## Compute allele frequencies based on markers in training data.
-  allFreq <- Matrix::colMeans(gData$markers[training, ],
-                              na.rm = TRUE) / maxScore
+  allFreq <- colMeans(gData$markers[training, ], na.rm = TRUE) / maxScore
   if (!useMAF) {
     MAF <- MAC / (maxScore * length(training)) - 1e-5
   }
   ## Determine segregating markers.
   segMarkers <- allFreq >= MAF & allFreq <= (1 - MAF)
   markersRed <- gData$markers[, segMarkers]
-  p <- Matrix::colSums(markersRed) / (2 * nrow(markersRed))
+  p <- colSums(markersRed) / (2 * nrow(markersRed))
   Z <- scale(markersRed, center = 2 * p)
   Z <- Z / (2 * sqrt(sum(p * (1 - p))))
   ZTrain <- Z[training, ]
   KTrain <- tcrossprod(ZTrain)
   ## Extract training data for modeling.
-  dataPredict <- gData$pheno[[environments]]
+  dataPredict <- gData$pheno[[trials]]
   dataTrain <- dataPredict[dataPredict$genotype %in% training, ]
   ## Calculate predictions per trait.
   preds <- lapply(X = traits, FUN = function(trait) {
     ## Fit mixed model on training data.
     sommerFit <- sommer::mmer(fixed = as.formula(paste0(trait, "~ 1")),
                               random = ~ sommer::vs(genotype, Gu = KTrain),
-                               rcov = ~ units, data = dataTrain,
+                              rcov = ~ units, data = dataTrain,
                               verbose = FALSE, date.warning = FALSE)
     ## Extract y.
     y <- dataTrain[[trait]]
@@ -105,7 +92,7 @@ genomicPrediction <- function(gData,
     ## Extract inverse of V from fitted model.
     VInv <- sommerFit$Vi
     ## Compute marker effects.
-    u <- sigma2u * Matrix::crossprod(ZTrain, VInv %*% (y - mu))
+    u <- sigma2u * crossprod(ZTrain, VInv %*% (y - mu))
     ## Compute predictions.
     g <- Z %*% u + mu
     ## Save predictions for the current trait in a data.frame

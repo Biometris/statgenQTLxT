@@ -3,7 +3,7 @@
 #' Compute unstructured covariance pairwise using \code{covPairwise} or using a
 #' single model using \code{covUnstr}.
 #'
-#' @param Y An n x p matrix of observed phenotypes, on p traits or environments
+#' @param Y An n x p matrix of observed phenotypes, on p traits or trials
 #' for n individuals. No missing values are allowed.
 #' @param K An n x n kinship matrix.
 #' @param X An n x c covariate matrix, c being the number of covariates and n
@@ -30,10 +30,10 @@ covUnstr <- function(Y,
                      fixDiag = FALSE,
                      VeDiag = FALSE) {
   ## Check input.
-  if (missing(Y) || !(is.matrix(Y) || inherits(Y, "Matrix"))) {
+  if (missing(Y) || !(is.matrix(Y) || inherits(Y, "matrix"))) {
     stop("Y should be a matrix")
   }
-  if (missing(K) || !(is.matrix(K) || inherits(K, "Matrix"))) {
+  if (missing(K) || !(is.matrix(K) || inherits(K, "matrix"))) {
     stop("K should be a matrix")
   }
   if (fixDiag) {
@@ -105,10 +105,10 @@ covPW <- function(Y,
                   corMat = FALSE,
                   parallel = FALSE) {
   ## Check input.
-  if (missing(Y) || !(is.matrix(Y) || inherits(Y, "Matrix"))) {
+  if (missing(Y) || !(is.matrix(Y) || inherits(Y, "matrix"))) {
     stop("Y should be a matrix")
   }
-  if (missing(K) || !(is.matrix(K) || inherits(K, "Matrix"))) {
+  if (missing(K) || !(is.matrix(K) || inherits(K, "matrix"))) {
     stop("K should be a matrix")
   }
   if (fixDiag) {

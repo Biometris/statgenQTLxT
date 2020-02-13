@@ -6,7 +6,7 @@
 \usage{
 runMultiTraitGwas(
   gData,
-  environments = NULL,
+  trials = NULL,
   covar = NULL,
   snpCov = NULL,
   kin = NULL,
@@ -41,7 +41,7 @@ runMultiTraitGwas(
 values. Multi-trait or multi-environment GWAS is performed for all variables
 in \code{pheno}.}
 
-\item{environments}{A vector specifying the environment on which to run GWAS.
+\item{trials}{A vector specifying the environment on which to run GWAS.
 Thise can be either a numeric index or a character name of a list item in
 \code{pheno}.}
 
@@ -153,7 +153,7 @@ environment has to be setup by the user.}
 
 \item{nCores}{A numerical value indicating the number of cores to be used by
 the parallel part of the algorithm. If \code{NULL} the number of cores used
-will be equal to the number of cores available on the machine - 1.}
+will be equal to the number of cores available on the machine - 1.#'}
 }
 \value{
 An object of class \code{\link{GWAS}}.
@@ -165,7 +165,7 @@ Wide Association mapping on phenotypic and genotypic data contained in a
 }
 \section{Details}{
  runMultiTraitGwas estimates the effect of a SNP in
-different environments or on different traits, one SNP at a time. Genetic
+different trials or on different traits, one SNP at a time. Genetic
 and residual covariances are fitted only once, for a model without SNPs.
 Following the diagonalization scheme of Zhou and Stephens (2014), the
 following model is fit
@@ -177,7 +177,7 @@ following model is fit
 \left(\begin{array}{c} E_1 \\ \vdots \\ E_p\end{array}\right)}
 
 where Y is a np x 1 vector of phenotypic values for n genotypes and p traits
-or environments. x is the n x 1 vector of scores for the marker under
+or trials. x is the n x 1 vector of scores for the marker under
 consideration, and X the n x q design matrix for the other covariates. By
 default only a trait (environment) specific intercept is included. The vector
 of genetic background effects
@@ -223,7 +223,7 @@ specify the order used for respectively \eqn{V_g} and \eqn{V_e}.
 EM-algorithm.
 Finally, if \code{covModel = "pw"}, \eqn{V_g} and \eqn{V_e} are estimated
 'pairwise', as in Furlotte and Eskin (2015). Looping over pairs of traits
-or environments \eqn{1 \leq j < k \leq p},
+or trials \eqn{1 \leq j < k \leq p},
 \eqn{V_g[j,k] = V_g[k,j]} and \eqn{V_e[j,k] = V_e[k,j]}
 are estimated assuming a bivariate mixed model. The diagonals of
 \eqn{V_g} and \eqn{V_e} are fitted assuming univariate mixed models. If the

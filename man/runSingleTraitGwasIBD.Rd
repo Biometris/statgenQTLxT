@@ -7,7 +7,7 @@
 runSingleTraitGwasIBD(
   gData,
   traits = NULL,
-  environments = NULL,
+  trials = NULL,
   covar = NULL,
   snpCov = NULL,
   computeVarComp = TRUE,
@@ -36,10 +36,10 @@ runSingleTraitGwasIBD(
 numeric indices or character names of columns in \code{pheno}. If \code{NULL},
 GWAS is run on all traits.}
 
-\item{environments}{A vector of environments on which to run GWAS. These can
+\item{trials}{A vector of trials on which to run GWAS. These can
 be either numeric indices or character names of list items in \code{pheno}.
-If \code{NULL}, GWAS is run for all environments. GWAS is run for the
-selected environments in sequential order.}
+If \code{NULL}, GWAS is run for all trials. GWAS is run for the
+selected trials in sequential order.}
 
 \item{covar}{An optional vector of covariates taken into account when
 running GWAS. These can be either numeric indices or character names of
@@ -48,6 +48,9 @@ used.}
 
 \item{snpCov}{An optional character vector of snps to be included as
 covariates.}
+
+\item{computeVarComp}{Should the variance components be computed in the
+algorithm. If \code{FALSE} specify \code{varCovMatrix}.}
 
 \item{kin}{An optional kinship matrix or list of kinship matrices. These
 matrices can be from the \code{matrix} class as defined in the base package
@@ -73,6 +76,9 @@ the variance components. Either \code{EMMA}, for the EMMA algorithm, or
 \item{GLSMethod}{A character string indicating the method used to estimate
 the marker effects. Either \code{single} for using a single kinship matrix,
 or \code{multi} for using chromosome specific kinship matrices.}
+
+\item{varCovMatrix}{The variance covariance matrix used in the algorithm.
+Providing this skips the computation of this matrix by the algorithm.}
 
 \item{MAF}{The minor allele frequency (MAF) threshold used in GWAS. A
 numerical value between 0 and 1. SNPs with MAF below this value are not taken
@@ -106,11 +112,11 @@ or base pairs. Otherwise 0.}
 
 \item{minR2}{A numerical value between 0 and 1. Restricts the SNPs included
 in the region close to significant SNPs to only those SNPs that are in
-sufficient Linkage Disequilibruim (LD) with the significant snp, where LD
-is measured in terms of \eqn{R^2}. If for example \code{sizeInclRegion} = 200000
-and \code{minR2} = 0.5, then for every significant SNP also those SNPs whose
-LD (\eqn{R^2}) with the significant SNP is at least 0.5 AND which are at
-most 200kb away from this significant snp are included. Ignored if
+sufficient Linkage Disequilibrium (LD) with the significant snp, where LD
+is measured in terms of \eqn{R^2}. If for example \code{sizeInclRegion} =
+200000 and \code{minR2} = 0.5, then for every significant SNP also those SNPs
+whose LD (\eqn{R^2}) with the significant SNP is at least 0.5 AND which are
+at most 200000 away from this significant snp are included. Ignored if
 \code{sizeInclRegion} = 0.}
 
 \item{ref}{A numerical value indicating the founder allele to be used as
@@ -119,7 +125,7 @@ this reference allele.}
 
 \item{nCores}{A numerical value indicating the number of cores to be used by
 the parallel part of the algorithm. If \code{NULL} the number of cores used
-will be equal to the number of cores available on the machine - 1.}
+will be equal to the number of cores available on the machine - 1.#'}
 }
 \value{
 An object of class \code{\link{GWAS}}.

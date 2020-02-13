@@ -1,112 +1,3 @@
-#' Estimate variance components in single trait GWAS
-#'
-#' Helper function for estimating variance components in single trait GWAS.
-#'
-#' @keywords internal
-estVarComp <- function(GLSMethod,
-                       remlAlgo,
-                       trait,
-                       pheno,
-                       covar,
-                       K,
-                       chrs,
-                       KChr,
-                       nonMiss,
-                       nonMissRepId) {
-  ## Estimate variance components.
-  if (GLSMethod == "single") {
-    if (isTRUE(all.equal(K, Matrix::Diagonal(nrow(K)), check.names = FALSE))) {
-      ## Kinship matrix is computationally identical to identity matrix.
-      vcovMatrix <- Matrix::Diagonal(nrow(pheno))
-    }
-  } else if (GLSMethod == "multi") {
-    varComp <- vcovMatrix <-
-      setNames(vector(mode = "list", length = length(chrs)), paste("chr", chrs))
-  }
-  if (remlAlgo == "EMMA") {
-    ## emma algorithm takes covariates from gData.
-    gDataEmma <-
-      createGData(pheno = pheno[, c("genotype", trait)],
-                  covar = if (is.null(covar)) {
-                    NULL
-                  } else {
-                    as.data.frame(pheno[covar], row.names = pheno$genotype)
-                  })
-    if (GLSMethod == "single") {
-      remlObj <- EMMA(gData = gDataEmma, trait = trait, environment = 1,
-                      covar = covar, K = K)
-      ## Extract varComp and vcovMatrix
-      varComp <- remlObj$varComp
-      vcovMatrix <- remlObj$vcovMatrix
-    } else if (GLSMethod == "multi") {
-      for (chr in chrs) {
-        ## Get chromosome specific kinship.
-        K <- KChr[[which(chrs == chr)]][nonMiss, nonMiss]
-        ## Compute variance components using chromosome specific kinship.
-        remlObj <- EMMA(gData = gDataEmma, trait = trait,
-                        environment = 1, covar = covar, K = K)
-        ## Compute varcov matrix using var components.
-        varComp[[which(chrs == chr)]] <- remlObj$varComp
-        vcovMatrix[[which(chrs == chr)]] <- remlObj$vcovMatrix
-      }
-    }
-  } else if (remlAlgo == "NR") {
-    if (!is.null(covar)) {
-      ## Construct the formula for the fixed part of the model.
-      ## Define formula for fixed part. ` needed to accommodate -
-      ## in variable names.
-      fixed <- as.formula(paste0(trait," ~ `",
-                                 paste0(covar, collapse = "` + `"), "`"))
-    } else {
-      fixed <- as.formula(paste(trait, " ~ 1"))
-    }
-    if (GLSMethod == "single") {
-      ## Fit model.
-      modFit <- sommer::mmer(fixed = fixed, data = pheno,
-                             random = ~ sommer::vs(genotype, Gu = as.matrix(K)),
-                             verbose = FALSE, date.warning = FALSE)
-      ## Compute varcov matrix using var components from model.
-      vcMod <- modFit$sigma
-      modK <- K[nonMissRepId, nonMissRepId]
-      varComp <- setNames(unlist(vcMod)[c(1, length(unlist(vcMod)))],
-                          c("Vg", "Ve"))
-      vcovMatrix <- unlist(vcMod)[1] * modK +
-        Matrix::Diagonal(n = nrow(modK),
-                         x = unlist(vcMod)[length(unlist(vcMod))])
-      if (any(eigen(vcovMatrix, symmetric = TRUE,
-                    only.values = TRUE)$values <= 1e-8)) {
-        nearestPD(as.matrix(vcovMatrix))
-      }
-    } else if (GLSMethod == "multi") {
-      for (chr in chrs) {
-        ## Get chromosome specific kinship.
-        K <- KChr[[which(chrs == chr)]][nonMiss, nonMiss]
-        ## Fit mmer model using chromosome specific kinship.
-        modFit <- sommer::mmer(fixed = fixed, data = pheno,
-                               random = ~ sommer::vs(genotype, Gu = K),
-                               verbose = FALSE, date.warning = FALSE)
-        ## Compute varcov matrix using var components from model.
-        vcMod <- modFit$sigma
-        modK <- K[nonMissRepId, nonMissRepId]
-        varComp[[which(chrs == chr)]] <- setNames(
-          unlist(vcMod)[c(1, length(unlist(vcMod)))], c("Vg", "Ve"))
-        vcovMatrix[[which(chrs == chr)]] <- unlist(vcMod)[1] * modK +
-          unlist(vcMod)[length(unlist(vcMod))] *
-          Matrix::Diagonal(n = nrow(modK))
-      }
-      vcovMatrix <- lapply(vcovMatrix, FUN = function(vc) {
-        if (any(eigen(vc, symmetric = TRUE,
-                      only.values = TRUE)$values <= 1e-8)) {
-          nearestPD(as.matrix(vc))
-        } else {
-          vc
-        }
-      })
-    }
-  }
-  return(list(varComp = varComp, vcovMatrix = vcovMatrix))
-}
-
 #' Select markers to be excluded from GWAS scan.
 #'
 #' Helper function for selecting markers to be excluded from GWAS scan.
@@ -305,8 +196,8 @@ getSNPsInRegionSufLD <- function(gData,
   chkGData(gData, comps = c("map", "markers"))
   if (missing(snp) || length(snp) > 1 || !is.numeric(snp) ||
       snp != round(snp) || !snp %in% 1:nrow(gData$map)) {
-    stop(paste("snp should be a single integer indicating a row in",
-               "the map in gData.\n"))
+    stop("snp should be a single integer indicating a row in the map ",
+         "in gData.\n")
   }
   chkNum(regionSize, min = 0)
   chkNum(minR2, min = 0, max = 1)

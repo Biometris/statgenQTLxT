@@ -4,7 +4,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 example_data_drops
-examples_SGP.R
 beagle
-.gitlab-ci.yml
+.gitlab-ci.*
 docs

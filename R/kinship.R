@@ -63,21 +63,17 @@ kinship <- function(X,
   if (method == "multiAllKin") {
     ## Create an array of values for correction for position on the genome.
     ## Has to be done per chromosome since pos isn't necessary cumulative.
-    posCor <- unlist(sapply(X = unique(map$chr), FUN = function(c) {
-      pos <- map[map$chr == c, "pos"]
+    posCor <- unlist(sapply(X = unique(map$chr), FUN = function(chr) {
+      pos <- map[map$chr == chr, "pos"]
       ## First and last marker need special treatment. For those just take
       ## double the distance to the next/previous marker.
       posCor <- c(pos[2] - pos[1], diff(pos, lag = 2) / 2,
                   pos[length(pos)] - pos[length(pos) - 1])
     }))
-    K <- multiAllKinCPP(X, posCor, denominator)
+    K <- multiAllKin(X, posCor, denominator)
+    rownames(K) <- colnames(K) <- rownames(X)
   } else {
-    if (!is.matrix(X)) {
-      X <- as.matrix(X)
-    }
-    K <- do.call(what = paste0(method, "CPP"),
-                 args = list(x = X, denom = denominator))
+    K <- statgenGWAS::kinship(X = X, method = method, denominator = denominator)
   }
-  rownames(K) <- colnames(K) <- rownames(X)
   return(K)
 }

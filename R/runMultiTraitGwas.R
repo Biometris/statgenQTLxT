@@ -5,7 +5,7 @@
 #' \code{gData} object.
 #'
 #' @section Details: runMultiTraitGwas estimates the effect of a SNP in
-#' different environments or on different traits, one SNP at a time. Genetic
+#' different trials or on different traits, one SNP at a time. Genetic
 #' and residual covariances are fitted only once, for a model without SNPs.
 #' Following the diagonalization scheme of Zhou and Stephens (2014), the
 #' following model is fit
@@ -17,7 +17,7 @@
 #' \left(\begin{array}{c} E_1 \\ \vdots \\ E_p\end{array}\right)}
 #'
 #' where Y is a np x 1 vector of phenotypic values for n genotypes and p traits
-#' or environments. x is the n x 1 vector of scores for the marker under
+#' or trials. x is the n x 1 vector of scores for the marker under
 #' consideration, and X the n x q design matrix for the other covariates. By
 #' default only a trait (environment) specific intercept is included. The vector
 #' of genetic background effects
@@ -59,7 +59,7 @@
 #' EM-algorithm.
 #' Finally, if \code{covModel = "pw"}, \eqn{V_g} and \eqn{V_e} are estimated
 #' 'pairwise', as in Furlotte and Eskin (2015). Looping over pairs of traits
-#' or environments \eqn{1 \leq j < k \leq p},
+#' or trials \eqn{1 \leq j < k \leq p},
 #' \eqn{V_g[j,k] = V_g[k,j]} and \eqn{V_e[j,k] = V_e[k,j]}
 #' are estimated assuming a bivariate mixed model. The diagonals of
 #' \eqn{V_g} and \eqn{V_e} are fitted assuming univariate mixed models. If the
@@ -68,13 +68,13 @@
 #' In case \code{covModel = "unst"} or \code{"pw"} it is possible to assume that
 #' \eqn{V_e} is diagonal (\code{VeDiag = TRUE})
 #'
-#' @inheritParams runSingleTraitGwas
+#' @inheritParams runSingleTraitGwasIBD
 #'
 #' @param gData An object of class \code{gData} containing at least \code{map},
 #' \code{markers} and \code{pheno}. The latter should not contain missing
 #' values. Multi-trait or multi-environment GWAS is performed for all variables
 #' in \code{pheno}.
-#' @param environments A vector specifying the environment on which to run GWAS.
+#' @param trials A vector specifying the environment on which to run GWAS.
 #' Thise can be either a numeric index or a character name of a list item in
 #' \code{pheno}.
 #' @param covar An optional vector of covariates taken into account when
@@ -166,7 +166,7 @@
 #'
 #' @export
 runMultiTraitGwas <- function(gData,
-                              environments = NULL,
+                              trials = NULL,
                               covar = NULL,
                               snpCov = NULL,
                               kin = NULL,
@@ -196,18 +196,16 @@ runMultiTraitGwas <- function(gData,
   ## Checks.
   chkGData(gData)
   chkMarkers(gData$markers)
-  if (!is.null(environments) && ((!is.numeric(environments) &&
-                                  !is.character(environments)) ||
-                                 length(environments) > 1)) {
-    stop("environments should be a single numeric or character value.\n")
+  if (!is.null(trials) && ((!is.numeric(trials) && !is.character(trials)) ||
+                           length(trials) > 1)) {
+    stop("trials should be a single numeric or character value.\n")
   }
-  if ((is.character(environments) &&
-       !all(environments %in% names(gData$pheno))) ||
-      (is.numeric(environments) && any(environments > length(gData$pheno)))) {
-    stop("environments should be list items in pheno.\n")
+  if ((is.character(trials) && !all(trials %in% names(gData$pheno))) ||
+      (is.numeric(trials) && any(trials > length(gData$pheno)))) {
+    stop("trials should be list items in pheno.\n")
   }
-  if (is.null(environments) && length(gData$pheno) > 1) {
-    stop("pheno contains multiple environments. Environment cannot be NULL.\n")
+  if (is.null(trials) && length(gData$pheno) > 1) {
+    stop("pheno contains multiple trials. Trial cannot be NULL.\n")
   }
   chkCovar(covar, gData)
   ## If covar is given as numeric convert to character.
@@ -219,9 +217,9 @@ runMultiTraitGwas <- function(gData,
   ## singular matrices.
   chkNum(MAF, min = 0, max = 1)
   MAF <- max(MAF, 1e-6)
-  ## If environments is null set environments to only environment in pheno.
-  if (is.null(environments)) {
-    environments <- 1
+  ## If trials is null set trials to only trial in pheno.
+  if (is.null(trials)) {
+    trials <- 1
   }
   GLSMethod <- match.arg(GLSMethod)
   covModel <- match.arg(covModel)
@@ -235,18 +233,17 @@ runMultiTraitGwas <- function(gData,
   if (fitVarComp && covModel == "unst") {
     nTraits <- ncol(gData$pheno[[1]]) - 1
     if (nTraits > 5 && nTraits < 10) {
-      warning(paste("unstructured covariance models not recommended for 6 to 9",
-                    "traits. Consider using another covariance model",
-                    "instead.\n"),
+      warning("unstructured covariance models not recommended for 6 to 9",
+              "traits. Consider using another covariance model instead.\n",
               call. = FALSE)
     } else if (nTraits > 9) {
-      stop(paste("unstructured covariance models not possible for 10 or more",
-                 "traits. Try pairwise or factor analytic instead.\n"))
+      stop("unstructured covariance models not possible for 10 or more ",
+           "traits. Try pairwise or factor analytic instead.\n")
     }
   }
   chkKin(kin, gData, GLSMethod)
   kinshipMethod <- match.arg(kinshipMethod)
-  if (subsetMarkers && markerSubset == "") {
+  if (subsetMarkers && all(markerSubset == "")) {
     stop("If subsetting markers, markerSubset cannot be empty.\n")
   }
   ## Check Vg and Ve if variance components are not fitted.
@@ -260,14 +257,14 @@ runMultiTraitGwas <- function(gData,
     if (is.null(colnames(Vg)) || is.null(rownames(Vg)) ||
         any(colnames(Vg) != rownames(Vg)) ||
         !all(colnames(Vg) %in% colnames(gData$pheno[[1]])[-1])) {
-      stop(paste("Column names and rownames of Vg should be identical and",
-                 "included in column names of pheno.\n"))
+      stop("Column names and rownames of Vg should be identical and ",
+           "included in column names of pheno.\n")
     }
     if (is.null(colnames(Ve)) || is.null(rownames(Ve)) ||
         any(colnames(Ve) != rownames(Ve)) ||
         !all(colnames(Ve) %in% colnames(gData$pheno[[1]])[-1])) {
-      stop(paste("Column names and rownames of Ve should be identical and",
-                 "included in column names of pheno.\n"))
+      stop("Column names and rownames of Ve should be identical and ",
+           "included in column names of pheno.\n")
     }
     Vg <- Vg[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
     Ve <- Ve[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
@@ -294,17 +291,16 @@ runMultiTraitGwas <- function(gData,
     markersRed <- markers[, colnames(markers) %in% rownames(map)]
     mapRed <- map[rownames(map) %in% colnames(markers), ]
   }
-  ## Keep option open for extension to multiple environments.
-  env <- environments
+  ## Keep option open for extension to multiple trials.
+  trial <- trials
   ## Add covariates to phenotypic data.
-  phExp <- expandPheno(gData = gData, env = env, covar = covar,
+  phExp <- expandPheno(gData = gData, trial = trial, covar = covar,
                        snpCov = snpCov)
-  phEnv <- phExp$phEnv
-  covEnv <- phExp$covEnv
+  phTr <- phExp$phTr
+  covTr <- phExp$covTr
   ## Convert pheno and covariates to format suitable for fitting var components.
-  #X <- cbind(rep(1, nrow(phEnv)), as(as.matrix(phEnv[covEnv]), "dgeMatrix"))
-  X <- cbind(rep(1, nrow(phEnv)), as.matrix(phEnv[covEnv]))
-  rownames(X) <- phEnv$genotype
+  X <- cbind(rep(1, nrow(phTr)), as.matrix(phTr[covTr]))
+  rownames(X) <- phTr$genotype
   ## Add snpCovariates to X
   if (!is.null(snpCov)) {
     if (ncol(X) == length(snpCov)) {
@@ -314,7 +310,7 @@ runMultiTraitGwas <- function(gData,
     }
   }
   ## Construct Y from pheno data in gData.
-  Y <- phEnv[, !colnames(phEnv) %in% covEnv]
+  Y <- phTr[, !colnames(phTr) %in% covTr]
   rownames(Y) <- Y[["genotype"]]
   Y <- as.matrix(Y[, -which(colnames(Y) == "genotype")])
   if (anyNA(Y)) {
@@ -492,8 +488,8 @@ runMultiTraitGwas <- function(gData,
       }
     } #end GLSMethod multi
   } #end varComp
-  allFreq <- Matrix::colMeans(markersRed[rownames(Y),
-                                         rownames(mapRed)]) / max(markersRed)
+  allFreq <- colMeans(markersRed[rownames(Y), rownames(mapRed)]) /
+    max(markersRed)
   markersRed <- markersRed[rownames(Y), ]
   ## Run GWAS.
   if (GLSMethod == "single") {
@@ -505,13 +501,13 @@ runMultiTraitGwas <- function(gData,
   } else if (GLSMethod == "multi") {
     pValues <- pValCom <- pValQtlE <- numeric()
     ## Create an empty matrix with traits as header.
-    effs <- effsSe <- effsCom <- effsComSe <- t(gData$pheno[[env]][FALSE, -1])
+    effs <- effsSe <- effsCom <- effsComSe <- t(gData$pheno[[trial]][FALSE, -1])
     for (chr in chrs) {
       mapRedChr <- mapRed[mapRed$chr == chr, ]
       markersRedChr <-
         markersRed[, colnames(markersRed) %in% rownames(mapRedChr),
                    drop = FALSE]
-      allFreqChr <- Matrix::colMeans(markersRedChr) / max(markersRedChr)
+      allFreqChr <- colMeans(markersRedChr) / max(markersRedChr)
       snpCovChr <- snpCov[snpCov %in% colnames(markersRedChr)]
       chrNum <- which(chrs == chr)
       estEffRes <- estEffTot(markers = markersRedChr, X = X, Y = Y,
@@ -570,7 +566,7 @@ runMultiTraitGwas <- function(gData,
                    covModel = covModel,
                    varComp = list(Vg = Vg, Ve = Ve))
   return(createGWAS(GWAResult = setNames(list(GWAResult),
-                                         names(gData$pheno)[env]),
+                                         names(gData$pheno)[trial]),
                     signSnp = NULL,
                     kin = if (GLSMethod == "single") {
                       K

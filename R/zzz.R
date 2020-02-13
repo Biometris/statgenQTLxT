@@ -1,5 +1,5 @@
-.onLoad <- function(libname = find.package("genStatPipeline"),
-                    pkgname = "genStatPipeline"){
+.onLoad <- function(libname = find.package("statgenPipeline"),
+                    pkgname = "statgenPipeline"){
   ## CRAN Note avoidance.
   if (getRversion() >= "2.15.1") {
     utils::globalVariables("j")
@@ -8,5 +8,5 @@
 }
 
 .onUnload <- function(libpath) {
-  library.dynam.unload("genStatPipeline", libpath)
+  library.dynam.unload("statgenPipeline", libpath)
 }

@@ -1,25 +1,27 @@
-## Add covariates and snpCovariates to phenotypic data and convert covariate
-## factors to dummy varables.
+#' Add covariates and snpCovariates to phenotypic data and convert covariate
+#' factors to dummy varables.
+#'
+#' @noRd
 #' @keywords internal
 expandPheno <- function(gData,
-                        env,
+                        trial,
                         covar,
                         snpCov,
                         ref = NULL) {
   ## Add covariates to pheno data.
   if (is.null(covar)) {
-    phEnv <- gData$pheno[[env]]
-    covEnv <- NULL
+    phTr <- gData$pheno[[trial]]
+    covTr <- NULL
   } else {
     ## Append covariates to pheno data. Merge to remove values from pheno that
     ## are missing in covar.
-    phEnv <- merge(gData$pheno[[env]], gData$covar[covar],
-                   by.x = "genotype", by.y = "row.names")
-    ## Remove rows from phEnv with missing covar check if there are
+    phTr <- merge(gData$pheno[[trial]], gData$covar[covar],
+                  by.x = "genotype", by.y = "row.names")
+    ## Remove rows from phTr with missing covar check if there are
     ## missing values.
-    phEnv <- phEnv[complete.cases(phEnv[covar]), ]
+    phTr <- phTr[complete.cases(phTr[covar]), ]
     ## Expand covariates that are a factor (i.e. dummy variables are created)
-    ## using model.matrix. The new dummies are attached to phEnv, and covar
+    ## using model.matrix. The new dummies are attached to phTr, and covar
     ## is changed accordingly
     factorCovs <- which(sapply(X = gData$covar[covar], FUN = is.factor))
     if (length(factorCovs) > 0) {
@@ -27,81 +29,63 @@ expandPheno <- function(gData,
       covFormula <- as.formula(paste("genotype ~ ",
                                      paste(covar[factorCovs], collapse = "+")))
       extraCov <- as.data.frame(suppressWarnings(
-        model.matrix(object = covFormula, data = droplevels(phEnv))))[, -1]
+        model.matrix(object = covFormula, data = droplevels(phTr))))[, -1]
       ## Add dummy variables to pheno data.
-      phEnv <- cbind(phEnv[, -which(colnames(phEnv) %in% names(factorCovs))],
-                     extraCov)
+      phTr <- cbind(phTr[, -which(colnames(phTr) %in% names(factorCovs))],
+                    extraCov)
       ## Modify covar to suit newly defined columns
-      covEnv <- c(covar[-factorCovs], colnames(extraCov))
+      covTr <- c(covar[-factorCovs], colnames(extraCov))
     } else {
-      covEnv <- covar
+      covTr <- covar
     }
   }
   if (!is.null(snpCov)) {
-    ## Distinguish between 2- and 3-dimensional marker data.
-    if (length(dim(gData$markers)) == 2) {
-      ## Add snp covariates to covar.
-      covEnv <- c(covEnv, snpCov)
-      ## Add snp covariates to pheno data.
-      phEnv <- merge(phEnv, as.matrix(gData$markers[, snpCov, drop = FALSE]),
-                     by.x = "genotype", by.y = "row.names")
-      colnames(phEnv)[(ncol(phEnv) - length(snpCov) + 1):ncol(phEnv)] <- snpCov
-    } else if (length(dim(gData$markers)) == 3) {
-      allNames <- dimnames(gData$markers)[[3]][-ref]
-      for (snpCovar in snpCov) {
-        ## Get alleles for current covariate and remove reference allele.
-        allCov <- gData$markers[, snpCovar , -ref]
-        ## Remove alleles with only zeros.
-        allCov <- allCov[, apply(X = allCov, MARGIN = 2, FUN = function(a) {
-          any(a > 0)
-        })]
-        ## Rename columns to combination of allele and marker.
-        colnames(allCov) <- paste0(snpCovar, "_", colnames(allCov))
-        ## Add snp covariates to covar.
-        covEnv <- c(covEnv, colnames(allCov))
-        ## Add snp covariates to pheno data.
-        phEnv <- merge(phEnv, allCov, by.x = "genotype", by.y = "row.names")
-      }
-    }
+    ## Add snp covariates to covar.
+    covTr <- c(covTr, snpCov)
+    ## Add snp covariates to pheno data.
+    phTr <- merge(phTr, gData$markers[, snpCov, drop = FALSE],
+                  by.x = "genotype", by.y = "row.names")
+    colnames(phTr)[(ncol(phTr) - length(snpCov) + 1):ncol(phTr)] <- snpCov
   }
-  return(list(phEnv = phEnv, covEnv = covEnv))
+  return(list(phTr = phTr, covTr = covTr))
 }
 
-## Helper function for computing (or extracting kinship matrices)
-## 1 - If kin is supplied use kin
-## 2 - Get kin from gData object
-## 3 - Compute kin from markers (and map for GLSMethod multi)
-#' @importFrom methods as
+#' Helper function for computing (or extracting kinship matrices)
+#' 1 - If kin is supplied use kin
+#' 2 - Get kin from gData object
+#' 3 - Compute kin from markers (and map for GLSMethod multi)
+#'
+#' @noRd
 #' @keywords internal
 computeKin <- function(GLSMethod,
-                       kin,
-                       gData,
-                       markers,
+                       kin = NULL,
+                       gData = NULL,
+                       markers = NULL,
                        map = NULL,
-                       kinshipMethod) {
+                       kinshipMethod = NULL) {
   if (GLSMethod == "single") {
     if (!is.null(kin)) {
-      ## kin is supplied as input. Convert to dsyMatrix.
-      K <- as(kin, "dsyMatrix")
+      ## kin is supplied as input. Convert to matrix.
+      K <- as.matrix(kin)
     } else if (!is.null(gData$kinship) && !inherits(gData$kinship, "list")) {
       ## Get kin from gData object.
       K <- gData$kinship
     } else {
       ## Compute K from markers.
-      K <- kinship(X = markers, map = map, method = kinshipMethod)
+      K <- kinship(X = markers, method = kinshipMethod)
     }
     K <- K[order(match(rownames(K), rownames(markers))),
            order(match(colnames(K), rownames(markers)))]
   } else if (GLSMethod == "multi") {
     if (!is.null(kin)) {
-      ## kin is supplied as input. Convert to dsyMatrices.
-      K <- lapply(X = kin, FUN = as, Class = "dsyMatrix")
+      ## kin is supplied as input. Convert to matrices.
+      K <- lapply(X = kin, FUN = as.matrix)
     } else if (!is.null(gData$kinship) && inherits(gData$kinship, "list")) {
       ## Get kin from gData object.
       K <- gData$kinship
     } else {
       ## Compute chromosome specific kinship matrices.
-      K <- chrSpecKin(gData = createGData(geno = markers, map = map),
+      K <- chrSpecKin(markers = markers, map = map,
                       kinshipMethod = kinshipMethod)
     }
     K <- lapply(X = K, FUN = function(k) {
@@ -113,13 +97,53 @@ computeKin <- function(GLSMethod,
 }
 
 ## Compute chromosome specific kinship matrices.
-chrSpecKin <- function(gData,
+chrSpecKin <- function(markers,
+                       map,
+                       kinshipMethod) {
+  chrs <- unique(map[rownames(map) %in% colnames(markers), "chr"])
+  if (length(chrs) == 1) {
+    stop("Chromosome specific kinship calculation not possible since ",
+         "map contains only 1 chromosome.\n")
+  }
+  ## Create list of zero matrices.
+  KChr <- setNames(replicate(n = length(chrs),
+                             matrix(data = 0, nrow = nrow(markers),
+                                    ncol = nrow(markers),
+                                    dimnames = list(rownames(markers),
+                                                    rownames(markers))),
+                             simplify = FALSE), chrs)
+  ## Create vector of marker numbers per chromosome.
+  denom <- setNames(rep(x = 0, times = length(chrs)), chrs)
+  for (chr in chrs) {
+    ## Extract markers for current chromosome.
+    chrMrk <- which(colnames(markers) %in% rownames(map[map[["chr"]] == chr, ]))
+    ## Compute kinship for current chromosome only. Denominator = 1, division
+    ## is done later.
+    K <- kinship(X = markers[, chrMrk, drop = FALSE], method = kinshipMethod,
+                 denominator = 1)
+    ## Compute number of markers for other chromosomes.
+    denom[which(chrs == chr)] <- ncol(markers[, -chrMrk, drop = FALSE])
+    for (i in setdiff(seq_along(chrs), which(chr == chrs))) {
+      ## Add computed kinship to all other matrices in KChr.
+      KChr[[i]] <- KChr[[i]] + K
+    }
+  }
+  ## Divide matrix for current chromosome by number of markers in other
+  ## chromosomes.
+  for (i in seq_along(KChr)) {
+    KChr[[i]] <- KChr[[i]] / denom[i]
+  }
+  return(KChr)
+}
+
+## Compute chromosome specific kinship matrices.
+chrSpecKinOrig <- function(gData,
                        kinshipMethod) {
   chrs <- unique(gData$map$chr[rownames(gData$map) %in%
                                  colnames(gData$markers)])
   if (length(chrs) == 1) {
-    stop(paste("Chromosome specific kinship calculation not possible since",
-               "map contains only 1 chromosome.\n"))
+    stop("Chromosome specific kinship calculation not possible since",
+         "map contains only 1 chromosome.\n")
   }
   ## Create list of zero matrices.
   KChr <- setNames(
@@ -177,6 +201,7 @@ chrSpecKin <- function(gData,
 #'
 #' @param dfList A list of data.frames.
 #'
+#' @noRd
 #' @keywords internal
 dfBind <- function(dfList) {
   ## Filter empty data.frames from dfList
