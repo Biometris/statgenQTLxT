@@ -4,7 +4,7 @@ load(file = "testdata.rda")
 
 ## Test unstructured covariance.
 
-covUnst <- covUnstr(Y = Y, K = K)
+covUnst <- statgenPipeline:::covUnstr(Y = Y, K = K)
 
 # Check structure.
 
@@ -27,7 +27,7 @@ expect_equal(as.numeric(covUnst[["Ve"]]),
 
 # Add covariates.
 
-covUnstCov <- covUnstr(Y = Y, K = K, X = X)
+covUnstCov <- statgenPipeline:::covUnstr(Y = Y, K = K, X = X)
 expect_equal(as.numeric(covUnstCov[["Vg"]]),
              c(0.198793329675144, 0.20736260975725, 0.072203197308252,
                0.20736260975725, 0.535037803946231, 0.160488570530211,
@@ -39,12 +39,12 @@ expect_equal(as.numeric(covUnstCov[["Ve"]]),
 
 # Check option fixDiag.
 
-expect_warning(covUnstr(Y = Y, K = K, fixDiag = TRUE),
+expect_warning(statgenPipeline:::covUnstr(Y = Y, K = K, fixDiag = TRUE),
                "not implemented yet")
 
 # Check option veDiag.
 
-covUnstVeD <- covUnstr(Y = Y, K = K, VeDiag = TRUE)
+covUnstVeD <- statgenPipeline:::covUnstr(Y = Y, K = K, VeDiag = TRUE)
 expect_equal(as.numeric(covUnstVeD[["Vg"]]),
              c(0.218449152375622, 0.217596220872246, 0.117432384935249,
                0.217596220872246, 0.465832867214789, 0.23922669614095,
@@ -55,7 +55,7 @@ expect_equal(as.numeric(covUnstVeD[["Ve"]]),
 
 ## Test pariwise covariance.
 
-covPw <- covPW(Y = Y, K = K)
+covPw <- statgenPipeline:::covPW(Y = Y, K = K)
 
 # Check structure.
 
@@ -78,7 +78,7 @@ expect_equal(as.numeric(covPw[["Ve"]]),
 
 # Add covariates.
 
-covPwCov <- covPW(Y = Y, K = K, X = X)
+covPwCov <- statgenPipeline:::covPW(Y = Y, K = K, X = X)
 expect_equal(as.numeric(covPwCov[["Vg"]]),
              c(0.19103666356451, 0.193451475278944, 0.0806807914856754,
                0.193451475278944, 0.465681811227807, 0.127505265543004,
@@ -90,12 +90,12 @@ expect_equal(as.numeric(covPwCov[["Ve"]]),
 
 # Check option veDiag.
 
-expect_warning(covPW(Y = Y, K = K, fixDiag = TRUE),
+expect_warning(statgenPipeline:::covPW(Y = Y, K = K, fixDiag = TRUE),
                "not implemented yet")
 
 # Check option corMat.
 
-covPwCor <- covPW(Y = Y, K = K, corMat = TRUE)
+covPwCor <- statgenPipeline:::covPW(Y = Y, K = K, corMat = TRUE)
 expect_equal(as.numeric(covPwCor[["Vg"]]),
              c(1, -0.339741087256352, -0.632112286967153, -0.339741087256352, 1,
                -0.514031814619155, -0.632112286967153, -0.514031814619155, 1))
