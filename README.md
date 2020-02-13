@@ -14,7 +14,7 @@ The following functionality has been implemented:
 * fast multi trait GWAS
 * genomic prediction
 
-For single trait GWAS use statgenGWAS (```install.packages(statgenGWAS)```)
+For single trait GWAS use statgenGWAS (```install.packages("statgenGWAS")```)
 
 # Installation
 
