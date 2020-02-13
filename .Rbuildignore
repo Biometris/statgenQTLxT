@@ -4,6 +4,8 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 example_data_drops
-beagle
+^.apt$
+^ci
+ci
 .gitlab-ci.*
 docs
