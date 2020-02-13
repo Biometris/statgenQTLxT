@@ -46,6 +46,7 @@ Authors@R: c(person(given = "Bart-Jan",
                     family = "Zheng",
                     role = "ctb",
                     comment = c(ORCID = "0000-0001-6030-3933"))
+                    )
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: GPL-3

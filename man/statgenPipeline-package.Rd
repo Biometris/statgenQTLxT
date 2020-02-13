@@ -12,10 +12,22 @@ More about what it does (maybe more than one line)
 \author{
 \strong{Maintainer}: Bart-Jan van Rossum \email{bart-jan.vanrossum@wur.nl}
 
+Authors:
+\itemize{
+  \item Willem Kruijer (\href{https://orcid.org/0000-0001-7179-1733}{ORCID})
+}
+
 Other contributors:
 \itemize{
-  \item Willem Kruijer \email{willem.kruijer@wur.nl} [contributor]
-  \item Maikel Verouden \email{maikel.verouden@wur.nl} [contributor]
+  \item Fred van Eeuwijk (\href{https://orcid.org/0000-0003-3672-2921}{ORCID}) [contributor]
+  \item Martin Boer [contributor]
+  \item Marcos Malosetti (\href{https://orcid.org/0000-0002-8150-1397}{ORCID}) [contributor]
+  \item Daniela Bustos-Korts (\href{https://orcid.org/0000-0003-3827-6726}{ORCID}) [contributor]
+  \item Emilie Millet (\href{https://orcid.org/0000-0002-2913-4892}{ORCID}) [contributor]
+  \item Joao Paulo (\href{https://orcid.org/0000-0002-4180-0763}{ORCID}) [contributor]
+  \item Maikel Verouden (\href{https://orcid.org/0000-0002-4893-3323}{ORCID}) [contributor]
+  \item Ron Wehrens (\href{https://orcid.org/0000-0002-8798-5599}{ORCID}) [contributor]
+  \item Choazhi Zheng (\href{https://orcid.org/0000-0001-6030-3933}{ORCID}) [contributor]
 }
 
 }
