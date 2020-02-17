@@ -1,4 +1,6 @@
 #include <RcppArmadillo.h>
+#include "utils.h"
+
 // Correctly setup the build environment
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -342,6 +344,7 @@ List EMFA(arma::mat y,
   arma::mat xtxInvxt = solve(x.t() * x, x.t());
   arma::vec dk(n);
   arma::mat uk(n, n);
+  k = nearestPD(k, false, false, true, false, true, 1e-10, 1e-7, 1e-8, 100);
   eig_sym(dk, uk, inv_sympd(k));
   dk = reverse(dk);
   uk = fliplr(uk);
