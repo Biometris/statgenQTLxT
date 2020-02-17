@@ -1,7 +1,4 @@
 ## Create data for testing functions.
-## Restricted and anonymized version of DROPs data.
-#load(system.file("extdata", "testData.RData", package = "statgenPipeline"))
-
 set.seed(1234)
 
 trials <- c("Bol12R", "Bol12W", "Cam12R")
@@ -32,38 +29,20 @@ dropsMarkers <- statgenGWAS::dropsMarkers
 dropsMarkers <- as.matrix(dropsMarkers[dropsMarkers[["Ind"]] %in% genotypes, -1])
 K <- kinship(dropsMarkers)
 
-X <- t(t(sample(x = 2, size = 100, replace = TRUE)))
+X <- dropsMarkers[, 1:100]
+W <- matrix(sample(x = 2, size = 200, replace = TRUE), ncol = 2)
 
-rownames(Y) <- rownames(X) <- rownames(K) <- colnames(K) <-
+rownames(Y) <- rownames(X) <- rownames(K) <- colnames(K) <- rownames(W) <-
   paste0("G", formatC(1:100, width = 3, flag = "0"))
 colnames(Y) <- paste0("t", 1:3)
-colnames(X) <- "V1"
+colnames(X) <- paste0("M", formatC(1:100, width = 3, flag = "0"))
+colnames(W) <- c("V1", "V2")
 
+covUnst <- statgenPipeline:::covUnstr(Y = Y, K = K)
 
-# ## Create a dataset for unit testing.
-# set.seed(1234)
-# y <- matrix(rnorm(50, mean = 10, sd = 2), nrow = 10)
-# X <- matrix(sample(x = c(0, 1), size = 30, replace = TRUE), nrow = 10)
-# Sigma <- matrix(runif(n = 100), nrow = 10)
-# ## Assure sigma is symmetric.
-# Sigma <- tcrossprod(Sigma)
-# covs <- matrix(runif(n = 20, max = 100), nrow = 10)
-# pheno <- data.frame(genotype = paste0("G", 1:10), y)
-# ## Add random missing values to pheno2.
-# pheno2 <- pheno
-# for (i in 2:6) {
-#   pheno2[sample(x = 1:10, size = 2), i] <- NA
-# }
-# map <- data.frame(chr = c(1, 1, 2), pos = 1:3)
-# rownames(X) <- rownames(y) <- rownames(Sigma) <- colnames(Sigma) <-
-#   rownames(covs) <- paste0("G", 1:10)
-# colnames(X) <- rownames(map) <- paste0("M", 1:3)
-# colnames(y) <- paste0("t", 1:5)
-# ## Create gData object.
-# gDataTest <- createGData(map = map, geno = X, kin = Sigma,
-#                          pheno = list(ph1 = pheno, ph2 = pheno2),
-                         # covar = as.data.frame(covs))
-## Export to package
-save(#gDataTest, X, y, Sigma, map, covs,
-     Y, K, X,
+Vg <- covUnst[["Vg"]]
+Ve <- covUnst[["Ve"]]
+
+## Export to package.
+save(Y, K, X, W, Vg, Ve,
      file = "inst/tinytest/testdata.rda")
