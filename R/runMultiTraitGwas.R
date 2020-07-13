@@ -207,6 +207,9 @@ runMultiTraitGwas <- function(gData,
   if (is.null(trials) && length(gData$pheno) > 1) {
     stop("pheno contains multiple trials. Trial cannot be NULL.\n")
   }
+  if (is.numeric(trials)) {
+    trials <- names(gData$pheno)[trials]
+  }
   chkCovar(covar, gData)
   ## If covar is given as numeric convert to character.
   if (is.numeric(covar)) {
