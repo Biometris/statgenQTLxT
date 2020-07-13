@@ -4,7 +4,9 @@
 \name{gDataRiceCodedBeagle}
 \alias{gDataRiceCodedBeagle}
 \title{Data for vignette}
-\format{An object of class \code{gData} of length 5.}
+\format{
+An object of class \code{gData} of length 5.
+}
 \usage{
 gDataRiceCodedBeagle
 }

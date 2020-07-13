@@ -75,7 +75,7 @@
 #' \code{sizeInclRegion} = 0.
 #' @param nCores A numerical value indicating the number of cores to be used by
 #' the parallel part of the algorithm. If \code{NULL} the number of cores used
-#' will be equal to the number of cores available on the machine - 1.#'
+#' will be equal to the number of cores available on the machine - 1.
 #' @param ref A numerical value indicating the founder allele to be used as
 #' reference allele. Effects for the other founder allele are computed based on
 #' this reference allele.
@@ -159,7 +159,7 @@ runSingleTraitGwasIBD <- function(gData,
   for (trial in trials) {
     ## Add covariates to phenotypic data.
     phExp <- expandPheno(gData = gData, trial = trial, covar = covar,
-                         snpCov = snpCov, ref = ref)
+                         snpCov = snpCov)
     phTr <- phExp$phTr
     covTr <- phExp$covTr
     ## If traits is given as numeric convert to character.

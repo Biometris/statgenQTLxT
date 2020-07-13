@@ -233,7 +233,7 @@ runMultiTraitGwas <- function(gData,
   if (fitVarComp && covModel == "unst") {
     nTraits <- ncol(gData$pheno[[1]]) - 1
     if (nTraits > 5 && nTraits < 10) {
-      warning("unstructured covariance models not recommended for 6 to 9",
+      warning("unstructured covariance models not recommended for 6 to 9 ",
               "traits. Consider using another covariance model instead.\n",
               call. = FALSE)
     } else if (nTraits > 9) {
@@ -282,7 +282,7 @@ runMultiTraitGwas <- function(gData,
       if (!all(which(colnames(markers) %in% snpCov) %in% markerSubset)) {
         markerSubset <- union(markerSubset,
                               which(colnames(markers) %in% snpCov))
-        cat("snpCovariates have been added to the marker-subset\n")
+        cat("snpCovariates have been added to the markerSubset.\n")
       }
     }
     markersRed <- markers[, markerSubset]
@@ -381,17 +381,16 @@ runMultiTraitGwas <- function(gData,
       } else if (covModel == "fa") {
         ## FA models.
         ## Including snpCovariates.
-        varComp <- EMFA(y = Y, k = as.matrix(K),
-                        size_param_x = X, maxIter = maxIter,
+        varComp <- EMFA(y = Y, k = K, size_param_x = X, maxIter = maxIter,
                         tolerance = tolerance, mG = mG, mE = mE, cmHet = CmHet,
                         dmHet = DmHet, maxDiag = maxDiag,
                         stopIfDecreasing = stopIfDecreasing)
         if (!is.null(snpCov)) {
           ## Without snpCovariates.
-          varCompRed <- EMFA(y = Y, k = as.matrix(K),
-                             size_param_x = XRed, maxIter = maxIter,
-                             tolerance = tolerance, mG = mG, mE = mE,
-                             cmHet = TRUE, dmHet = TRUE, maxDiag = maxDiag,
+          varCompRed <- EMFA(y = Y, k = K, size_param_x = XRed,
+                             maxIter = maxIter, tolerance = tolerance, mG = mG,
+                             mE = mE, cmHet = TRUE, dmHet = TRUE,
+                             maxDiag = maxDiag,
                              stopIfDecreasing = stopIfDecreasing)
         }
       }
@@ -449,7 +448,7 @@ runMultiTraitGwas <- function(gData,
         ## FA models.
         ## Including snpCovariates.
         varComp <- sapply(X = chrs, FUN = function(chr) {
-          EMFA(y = as.matrix(Y), k = as.matrix(KChr[[which(chrs == chr)]]),
+          EMFA(y = Y, k = KChr[[which(chrs == chr)]],
                size_param_x = X, maxIter = maxIter, tolerance = tolerance,
                mG = mG, mE = mE, cmHet = CmHet, dmHet = DmHet,
                maxDiag = maxDiag, stopIfDecreasing = stopIfDecreasing)
@@ -457,7 +456,7 @@ runMultiTraitGwas <- function(gData,
         if (!is.null(snpCov)) {
           ## Without snpCovariates.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
-            EMFA(y = as.matrix(Y), k = as.matrix(KChr[[which(chrs == chr)]]),
+            EMFA(y = Y, k = KChr[[which(chrs == chr)]],
                  size_param_x = XRed, maxIter = maxIter, tolerance = tolerance,
                  mG = mG, mE = mE, cmHet = CmHet, dmHet = DmHet,
                  maxDiag = maxDiag, stopIfDecreasing = stopIfDecreasing)
@@ -534,7 +533,7 @@ runMultiTraitGwas <- function(gData,
                                  variable.name = "snp", value.name = "effectSe",
                                  id.vars = "trait")
   effsTot <- merge(effsLong, effsSeLong)
-  ## Set up a data.frame for storing results containing map info and
+  ## Set up a data.table for storing results containing map info and
   ## allele frequencies.
   GWAResult <- data.table::data.table(snp = rownames(mapRed), mapRed,
                                       allFreq = allFreq, key = "snp")
@@ -543,7 +542,7 @@ runMultiTraitGwas <- function(gData,
   GWAResult <- merge(GWAResult,
                      data.table::data.table(snp = names(pValues),
                                             pValue = pValues, key = "snp"))
-  GWAResult[, "LOD" := -log10(GWAResult$pValue)]
+  GWAResult[, "LOD" := -log10(GWAResult[["pValue"]])]
   if (estCom) {
     ## Bind common effects, SE, and pvalues together.
     comDat <- data.table::data.table(snp = names(pValCom), pValCom, effsCom,
@@ -565,8 +564,7 @@ runMultiTraitGwas <- function(gData,
                    GLSMethod = GLSMethod,
                    covModel = covModel,
                    varComp = list(Vg = Vg, Ve = Ve))
-  return(createGWAS(GWAResult = setNames(list(GWAResult),
-                                         names(gData$pheno)[trial]),
+  return(createGWAS(GWAResult = setNames(list(GWAResult), trials),
                     signSnp = NULL,
                     kin = if (GLSMethod == "single") {
                       K
