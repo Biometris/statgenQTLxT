@@ -330,7 +330,7 @@ List EMFA(arma::mat y,
           unsigned int mG = 1,
           unsigned int mE = 1,
           double maxDiag = 1e4,
-          bool stopIfDecreasing = false) {
+          bool stopIfDecreasing = true) {
   arma::mat x;
   if (size_param_x.isNotNull()) {
     x = Rcpp::as<arma::mat>(size_param_x);
