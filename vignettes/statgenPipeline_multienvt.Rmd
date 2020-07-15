@@ -114,27 +114,27 @@ Now a gData object containing only map and marker information can be created. Th
 gDataDrops <- createGData(geno = dropsMarkers, map = dropsMap)
 ```
 
-The next step involves adding phenotypic data to the gData object just created. dropsPheno contains genotypic means for 28 trials. To be able to run a GWAS analysis per trial the data has to be added as a list of 28 data.frames. These data.frames should have "genotype" as their first column and may only contain traits after that. Other columns need to be dropped.    
+The next step involves adding phenotypic data to the gData object just created. dropsPheno contains genotypic means for 28 trials. To be able to run a multi-environments GWAS analysis the data has to be added as a data.frame with "genotype" as first column and may only contain traits after that. Other columns need to be dropped.    
 The phenotypic data can be added to *gDataDrops* using the same function that was used for creating the object. Adding an argument `gData` to the function call will add new data to an existing gData object. If gDataDrops would have been non-empty, the phenotypic data already present would be overwritten.
 ```{r addPheno}
-## Convert phenotypic data to a list.
-dropsPhenoList <- split(x = dropsPheno, f = dropsPheno[["Experiment"]])
-## Rename Variety_ID to genotype and select relevant columns.
-dropsPhenoList <- lapply(X = dropsPhenoList, FUN = function(trial) {
-  colnames(trial)[colnames(trial) == "Variety_ID"] <- "genotype"
-  trial <- trial[c("genotype", "grain.yield", "grain.number", "anthesis", 
-                   "silking", "plant.height", "ear.height")]
-  return(trial)
-})
+## Reshape phenotypic data to data.frame in wide format containing only grain yield.
+PhenoDat <- reshape(dropsPheno[,c("Experiment","Variety_ID","grain.yield")], 
+                    timevar = "Experiment", 
+                    idvar = "Variety_ID", 
+                    direction = "wide", 
+                    v.names = "grain.yield")
+## Rename Variety_ID to genotype and other columns with the experiment name only.
+names(PhenoDat)[1] <- "genotype"
+names(PhenoDat)[2:ncol(PhenoDat)] <- gsub("grain.yield.","",names(PhenoDat)[2:ncol(PhenoDat)] )
 ## Add phenotypic data to gDataDrops.
-gDataDrops <- createGData(gData = gDataDrops, pheno = dropsPhenoList)
+gDataDrops <- createGData(gData = gDataDrops, pheno = PhenoDat)
 ```
 Note that if the phenotypic data consists of only one trial/experiment, it can be added as a single data.frame without first converting it to a list. In this case createGData will convert the input to a list with one item.
 
-To get an idea of the contents of the data a summary of the gData object can be made. This will give an overview of the content of the map and markers and also print a summary per trait per trial. Since there are 28 trials and 8 traits in gDataDrops giving a very large summary, the output is restricted here to one trial using the `trials` parameter of the summary function.
+To get an idea of the contents of the data a summary of the gData object can be made. This will give an overview of the content of the map and markers and also print a summary per trait per trial (here only one).
 ```{r sumGData}
 ## Summarize gDataDrops.
-summary(gDataDrops, trials = "Mur13W")
+summary(gDataDrops)
 ```
 
 ## **Recoding and cleaning of markers**
@@ -147,50 +147,14 @@ gDataDropsDedup <- codeMarkers(gDataDrops, impute = FALSE, verbose = TRUE)
 
 Note that duplicate SNPs are removed at random. To get reproducible results make sure to set a seed.
 
-To demonstrate the options of the *codeMarkers* function, we randomly replace 1% of the values in the marker matrix by NA.
-```{r addMissings}
-## Copy gData object.
-gDataDropsMiss <- gDataDrops
-## Add random missing values to 1% of the values in the marker matrix.
-set.seed(1)
-nVal <- nrow(gDataDropsMiss$markers) * ncol(gDataDropsMiss$markers)
-gDataDropsMiss$markers[sample(x = 1:nVal, size = nVal / 100)] <- NA
-```
-
-To re-impute the missing values added above, *codeMarkers* has to be run with `impute = TRUE`. Then the type of imputation can be chosen setting the parameter `imputeType`:
-
-* `imputeType = "fixed"`: Impute all missing values by a single fixed value. Use the parameter `fixedValue` to set this value. 
-* `imputeType = "random"`: Impute missing values with a random value based on the non-missing values for a SNP. 
-* `imputeType = "beagle"`: Impute missing values using the independent beagle software [@Browning2016]. This software is included in the package and is called with its default settings. It requieres java to run. Since running beagle takes a long time for the current data, the call to beagle is only shown here but not run.    
-
-Before imputation, genotypes with a high proportion of missing values in the marker matrix can be removed by setting the parameter nMissGeno. Setting it to 0.1 will remove all genotypes with a proportion of missing values higher than 0.1. In a similar way SNPs with a high proportion of missing values can be removed setting nMiss. The default value for both parameters is 1, so genotypes and SNPs with only missing values are always removed.  
-The parameter MAF can be used to remove SNPs with a Minor Allele Frequency (MAF) lower than the specified MAF. As with removing duplicate SNPs this will be done both before and after imputation.
-
-```{r imputeMissings}
-## Impute missing values with random value.
-## Remove SNPs and genotypes with proportion of NA larger than 0.01.
-gDataDropsImputed <- codeMarkers(gData = gDataDropsMiss, 
-                                 nMissGeno = 0.01, 
-                                 nMiss = 0.01, 
-                                 impute = TRUE, 
-                                 imputeType = "random", 
-                                 verbose = TRUE)
-```
-
-```{r imputeMissingsBeagle, eval=FALSE}
-## Impute missing values using beagle software.
-gDataDropsImputedBeagle <- codeMarkers(gData = gDataDropsMiss, 
-                                       impute = TRUE,
-                                       imputeType = "beagle",
-                                       verbose = TRUE)
-```
+To demonstrate the options of the *codeMarkers* function, see the statgenGWAS vignette. 
 
 ## **Multi-trait GWAS**
 
-The cleaned gData object can be used for performing multi-trait GWAS analysis. In the examples below the trial Mur13W is used to demonstrate the options of the *runMultiTraitGwas* function. 
+The cleaned gData object can be used for performing multi-trait GWAS analysis. In the examples below the trait grain yield is used in multiple trials to demonstrate the options of the *runMultiTraitGwas* function. 
 ```{r mtg}
-## Run multi-trait GWAS for traits 'grain.yield' and 'anthesis' for trial Mur13W.
-GWASDrops <- runMultiTraitGwas(gData = gDataDropsDedup, trials = "Mur13W", covModel = "fa")
+## Run multi-trait GWAS for traits 'grain.yield' in multiple trials.
+GWASDrops <- runMultiTraitGwas(gData = gDataDropsDedup, covModel = "fa")
 ```
 
 The output of the *runMultiTraitGwas* function is an object of class GWAS. This is a list consisting of five components described below.  
@@ -208,7 +172,7 @@ The output of the *runMultiTraitGwas* function is an object of class GWAS. This 
 | effectSe | standard error of the effect of the SNP on the trait value |
 | allFreq | allele frequency of the SNP |
 ```{r gwaRes}
-head(GWASDrops$GWAResult$Mur13W)
+head(GWASDrops$GWAResult$`1`)
 ```
 
 **signSnp**: a list of data.tables, one for each trial for which the analysis was run, containing the significant SNPs. Optionally also the SNPs close to the significant SNPs are included in the data.table. See [**3.6.7**](#sign) for more information on how to do this. The data.tables in signSnp consist of the same columns as those in GWAResult described above. Two extra columns are added:
@@ -218,7 +182,7 @@ head(GWASDrops$GWAResult$Mur13W)
 | snpStatus | either "significant SNP" or "within ... of a significant SNP" |
 | propSnpVar | proportion of the variance explained by the SNP |
 ```{r signSnp}
-print(GWASDrops$signSnp$Mur13W, row.names = FALSE)
+print(GWASDrops$signSnp$`1`, row.names = FALSE)
 ```
 
 **kinship**: the kinship matrix (or matrices) used in the GWAS analysis. This can either be the user provided kinship matrix or the kinship matrix computed when running the *runMultiTraitGwas* function.
@@ -259,7 +223,7 @@ To change the threshold when plotting, without having to redo the GWAS analysis,
 ```{r manhattanMtgThr}
 ## Plot a manhattan plot of GWAS Drops.
 ## Set significance threshold to 4 and only plot chromosomes 6 to 8.
-plot(GWASDrops, plotType = "manhattan", trait = "grain.yield", yThr = 4, chr = 6:8)
+plot(GWASDrops, plotType = "manhattan", yThr = 4, chr = 6:8)
 ```
 
 If the number of SNPs is large, the plotting might get slow. This can be dealt with by setting the parameter `lod`. For the SNPs with a LOD-value below `lod`, only 5% will be plotted. The chance of a SNP being plotted is proportional to its LOD-value. SNPs with a higher LOD have a higher chance of being plotted. Since most SNPs will have low LOD-values, this restriction doesn't very much affect the resulting plot. Note that the 5% of the SNPs that is plotted, is selected randomly. For reproducible results make sure to set a seed. 
@@ -268,7 +232,7 @@ If the number of SNPs is large, the plotting might get slow. This can be dealt w
 ## Plot a manhattan plot of GWAS Drops.
 ## Plot only 5% of SNPs with a LOD below 3.
 set.seed(1)
-plot(GWASDrops, plotType = "manhattan", trait = "grain.yield", lod = 3)
+plot(GWASDrops, plotType = "manhattan",  lod = 3)
 ```
 
 The user can specify known effects (`effects`), which will be used for determining true/false positives and false negatives. These are displayed in green, orange and yellow, respectively. Also the visual appearence of the plot can be altered. See for specifics on how to do this `help(plot.GWAS)`.
@@ -280,9 +244,9 @@ A qtl plot can be made by setting `plotType = "qtl"`. In this plot the significa
 Since the traits are measured on a different scale, the effect estimates cannot be compared directly. For better comparison, one can set `normalize = TRUE`, which divides the estimates by the standard deviation of the phenotype.
 
 ```{r qtlMtgNorm}
-## Plot a qtl plot of GWAS Drops for Mur13W.
-## Set significance threshold to 3 and normalize effect estimates.
-plot(GWASDrops, plotType = "qtl", yThr = 6, normalize = TRUE)
+## Plot a qtl plot of GWAS DROPS for grain yield.
+## Set significance threshold to 6 and do not normalize effect estimates.
+plot(GWASDrops, plotType = "qtl", yThr = 6, normalize = FALSE)
 ```
 
 Other parameters can be used to plot a subset of the chromosomes (`chr`) and directly export the plot to .pptx (`exportPptx = TRUE` and specify `pptxName`). Note that the officer package is required for this. A full list of parameters can be found by running `help(plot.GWAS)`. 
@@ -294,10 +258,9 @@ The *runMultiTraitGwas* function has an argument `kinshipMethod`, which defines 
 By default, the same kinship matrix is used for testing all SNPs (`GLSMethod = "single"`). When `GLSMethod = "multi"`, the kinship matrix is chromosome-specific. In this case, the function fits variance components and computes effect-estimates and P-values for each chromosome in turn, using the kinship matrix for that chromosome. Each chromosome-specific kinship matrix is computed using the method specified by the argument `kinshipMethod`, using all SNPs that are **not** on this chromosome. As shown by @Rincent2014, this often gives a considerable improvement in power.
 
 ```{r mtgChrSpec}
-## Run multi-trait GWAS for trial 'Mur13W'.
+## Run multi-trait GWAS for grain yield in multiple trials.
 ## Use chromosome specific kinship matrices computed using method of van Raden.
 GWASDropsChrSpec <- runMultiTraitGwas(gData = gDataDropsDedup, 
-                                      trials = "Mur13W",
                                       GLSMethod = "multi",
                                       kinshipMethod = "vanRaden",
                                       covModel = "fa")
@@ -313,10 +276,9 @@ The *runMultiTraitGwas* function has many more parameters that can be specified.
 The threshold for selecting significant SNPs in a GWAS analysis is computed by default using Bonferroni correction, with an alpha of 0.05. The alpha can be modified setting the option *alpha* when calling *runMultiTraitGwas*. Two other threshold types can be used: a fixed threshold (`thrType = "fixed"`) specifying the $-\log_{10}(p)$ (*LODThr*) value of the threshold, or a threshold that defines the n SNPs with the highest $-\log_{10}(p)$ scores as significant SNPs. Set `thrType = "small"` together with `nSnpLOD = n` to do this. In the following example, we select all SNPs with $p < 10^{-4}$.
 
 ```{r mtgSNPFixThr}
-## Run multi-trait GWAS for Mur13W.
+## Run multi-trait GWAS for grain yield in multiple trials.
 ## Use a fixed significance threshold of 4.
 GWASDropsFixThr <- runMultiTraitGwas(gData = gDataDropsDedup,
-                                     trials = "Mur13W", 
                                      covModel = "fa")
 ```
 
@@ -327,16 +289,14 @@ There are three ways to compute the variance components used in the GWAS analysi
 **Note that `covModel = unst` can only be used for less than 10 traits or trials. It is not recommended to use it for six to nine trials for computational reasons.**
 
 ```{r mtgSNPNR}
-## Run multi-trait GWAS for for Mur13W.
+## Run multi-trait GWAS for for grain yield in multiple trials.
 ## Use a factor analytic model for computing the variance components.
 GWASDropsFA <- runMultiTraitGwas(gData = gDataDropsDedup,
-                                 trials = "Mur13W",
                                  covModel = "fa")
 
 ## Rerun the analysis, using the variance components computed in the 
 ## previous model as inputs.
 GWASDropsFA2 <- runMultiTraitGwas(gData = gDataDropsDedup,
-                                  trials = "Mur13W",
                                   fitVarComp  = FALSE,
                                   Vg = GWASDropsFA$GWASInfo$varComp$Vg,
                                   Ve = GWASDropsFA$GWASInfo$varComp$Ve)
@@ -349,10 +309,9 @@ Covariates can be included as extra fixed effects in the GWAS model. The *runMul
 In case SNP-covariates are used, GWAS for all the other SNPs is performed with the the SNP-covariates as extra fixed effect; also the null model used to estimate the variance components includes these effects. For each SNP in SNP-covariates, a p-value is obtained using the same F-test and null model to estimate the variance components, but with only all other SNPs (if any) in SNP-covariates as fixed effects.
 
 ```{r mtgSNPCovar}
-## Run multi-trait GWAS for Mur13W.
+## Run multi-trait GWAS for grain yield in multiple trials.
 ## Use PZE-106021410, the most significant SNP, a SNP covariate.
 GWASDropsSnpCov <- runMultiTraitGwas(gData = gDataDropsDedup,
-                                     trials = "Mur13W",
                                      snpCov = "PZE-106021410",
                                      covModel = "fa")
 ```
@@ -363,10 +322,9 @@ It is recommended to remove SNPs with a low minor allele frequency (MAF) from th
 By default all SNPs with a MAF lower than 0.01 are excluded from the analysis. This can be controlled by the parameter `MAF`. Setting MAF to 0 will still exclude duplicate SNPs since duplicates cause problems when fitting the underlying models. 
 
 ```{r mtgMAF}
-## Run multi-trait GWAS for Mur13W.
+## Run multi-trait GWAS for grain yield in multiple trials.
 ## Only include SNPs that have a MAF of 0.05 or higher.
 GWASDropsMAF <- runMultiTraitGwas(gData = gDataDropsDedup,
-                                  trials = "Mur13W",
                                   covModel = "fa",
                                   MAF = 0.05)
 ```
@@ -375,13 +333,12 @@ GWASDropsMAF <- runMultiTraitGwas(gData = gDataDropsDedup,
 
 Besides a normal SNP-effect model, it is possible to fit a common SNP-effect model as well (see [**2.2.1**](#common)). When doing so, in addition to the SNP-effect, also the common SNP-effect and the QTL×E effect and corresponding standard errors and P-values are returned. These are included as extra columns in the GWAResult data.table in the function output.
 ```{r mtgCommon}
-## Run multi-trait GWAS for Mur13W.
+## Run multi-trait GWAS for grain yield in multiple trials.
 ## Fit an additional common sNP effect model.
 GWASDropsCommon <- runMultiTraitGwas(gData = gDataDropsDedup,
-                                     trials = "Mur13W",
                                      covModel = "fa",
                                      estCom = TRUE)
-head(GWASDropsCommon$GWAResult$Mur13W)
+head(GWASDropsCommon$GWAResult$`1`)
 
 ```
 
