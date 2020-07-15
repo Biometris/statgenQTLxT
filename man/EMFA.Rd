@@ -17,7 +17,7 @@ EMFA(
   mG = 1L,
   mE = 1L,
   maxDiag = 10000,
-  stopIfDecreasing = FALSE
+  stopIfDecreasing = TRUE
 )
 }
 \arguments{

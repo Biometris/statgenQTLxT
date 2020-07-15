@@ -84,6 +84,9 @@
 #' covariate). SNP-covariates should be assigned using the snpCov parameter.
 #' @param snpCov An optional character vector of SNP-names to be included as
 #' covariates. SNP-names should match those used in \code{gData}.
+#' @param estCom Should the common SNP-effect model be fitted? If \code{TRUE}
+#' not only the SNP-effects but also the common SNP-effect and QTL x E effect
+#' are estimated.
 #' @param MAF The minor allele frequency (MAF) threshold used in GWAS. A
 #' numerical value between 0 and 1. SNPs with MAF below this value are not taken
 #' into account in the analysis, i.e. p-values and effect sizes are put to
@@ -113,9 +116,33 @@
 #' should have row names column names corresponding to the column names of
 #' \code{gData$pheno}. It may contain additional rows and columns which will be
 #' ignored. Ignored if fitVarComp = \code{TRUE}.
-#' @param estCom Should the common SNP-effect model be fitted? If \code{TRUE}
-#' not only the SNP-effects but also the common SNP-effect and QTL x E effect
-#' are estimated.
+#' @param thrType A character string indicating the type of threshold used for
+#' the selection of candidate loci. Either \code{bonf} for using the
+#' Bonferroni threshold, a LOD-threshold of \eqn{-log10(alpha/p)}, where p is
+#' the number of markers and alpha can be specified in \code{alpha},
+#' \code{fixed} for a self-chosen fixed LOD-threshold, specified in \code{LODThr}
+#' or \code{small}, the LOD-threshold is chosen such as the SNPs with the
+#' \code{nSnpLOD} smallest p-values are selected. \code{nSnpLOD} can be
+#' specified.
+#' @param alpha A numerical value used for calculating the LOD-threshold for
+#' \code{thrType} = "bonf".
+#' @param LODThr A numerical value used as a LOD-threshold when
+#' \code{thrType} = "fixed".
+#' @param nSnpLOD A numerical value indicating the number of SNPs with the
+#' smallest p-values that are selected when \code{thrType} = "small".
+#' @param rho A numerical value ...
+#' @param pThr A numerical value ...
+#' @param sizeInclRegion An integer. Should the results for SNPs close to
+#' significant SNPs be included? If so, the size of the region in centimorgan
+#' or base pairs. Otherwise 0.
+#' @param minR2 A numerical value between 0 and 1. Restricts the SNPs included
+#' in the region close to significant SNPs to only those SNPs that are in
+#' sufficient Linkage Disequilibrium (LD) with the significant snp, where LD
+#' is measured in terms of \eqn{R^2}. If for example \code{sizeInclRegion} =
+#' 200000 and \code{minR2} = 0.5, then for every significant SNP also those SNPs
+#' whose LD (\eqn{R^2}) with the significant SNP is at least 0.5 AND which are
+#' at most 200000 away from this significant snp are included. Ignored if
+#' \code{sizeInclRegion} = 0.
 #' @param parallel Should the computation of variance components be done in
 #' parallel? Only used if \code{covModel = "pw"}. A parallel computing
 #' environment has to be setup by the user.
@@ -141,7 +168,6 @@
 #' February 2014, Vol. 11, p. 407–409.
 #'
 #' @importFrom data.table :=
-#' @importFrom methods as
 #'
 #' @export
 runMultiTraitGwas <- function(gData,
@@ -151,17 +177,24 @@ runMultiTraitGwas <- function(gData,
                               kin = NULL,
                               kinshipMethod = c("astle", "IBS", "vanRaden"),
                               GLSMethod = c("single", "multi"),
+                              estCom = FALSE,
                               MAF = 0.01,
                               fitVarComp = TRUE,
                               covModel = c("unst", "pw", "fa"),
                               VeDiag = TRUE,
-                              tolerance = 1e-6,
                               maxIter = 2e5,
                               mG = 1,
                               mE = 1,
                               Vg = NULL,
                               Ve = NULL,
-                              estCom = FALSE,
+                              thrType = c("bonf", "fixed", "small", "fdr"),
+                              alpha = 0.05,
+                              LODThr = 4,
+                              nSnpLOD = 10,
+                              pThr = 0.05,
+                              rho = 0.5,
+                              sizeInclRegion = 0,
+                              minR2 = 0.5,
                               parallel = FALSE,
                               nCores = NULL) {
   ## Checks.
@@ -212,6 +245,22 @@ runMultiTraitGwas <- function(gData,
       stop("unstructured covariance models not possible for 10 or more ",
            "traits. Try pairwise or factor analytic instead.\n")
     }
+  }
+  thrType <- match.arg(thrType)
+  if (thrType == "bonf") {
+    chkNum(alpha, min = 0)
+  } else if (thrType == "fixed") {
+    chkNum(LODThr, min = 0)
+  } else if (thrType == "small") {
+    chkNum(nSnpLOD, min = 0)
+  } else if (thrType == "fdr") {
+    chkNum(alpha, min = 0)
+    chkNum(rho, min = 0, max = 1)
+    chkNum(pThr, min = 0, max = 1)
+  }
+  chkNum(sizeInclRegion, min = 0)
+  if (sizeInclRegion > 0) {
+    chkNum(minR2, min = 0, max = 1)
   }
   chkKin(kin, gData, GLSMethod)
   kinshipMethod <- match.arg(kinshipMethod)
@@ -494,21 +543,59 @@ runMultiTraitGwas <- function(gData,
                               "pValQtlE")})
   ## Reorder columns.
   data.table::setcolorder(x = GWAResult, neworder = relCols)
+
+
+  ## When thrType is bonferroni or small, determine the LOD threshold.
+  if (thrType == "bonf") {
+    ## Compute LOD threshold using Bonferroni correction.
+    LODThr <- -log10(alpha / sum(!is.na(GWAResult[["pValue"]])))
+  } else if (thrType == "small") {
+    ## Compute LOD threshold by computing the 10log of the nSnpLOD item
+    ## of ordered p values.
+    LODThr <- sort(na.omit(GWAResult[["LOD"]]), decreasing = TRUE)[nSnpLOD]
+  }
+  ## Select the SNPs whose LOD-scores are above the threshold.
+
+  maxScore <- max(markersRed)
+  traits <- colnames(Y)
+  LODThrTr <- setNames(rep(LODThr, length(traits)), traits)
+  if (thrType == "fdr") {
+    signSnpTr <- lapply(X = traits, FUN = function(tr) {
+      extrSignSnpsFDR(GWAResult = GWAResult[GWAResult[["trait"]] == tr],
+                      markers = markersRed,
+                      maxScore = maxScore, pheno = phTr[, tr, drop = FALSE],
+                      trait = tr, rho = rho, pThr = pThr,
+                      alpha = alpha)
+    })
+  } else {
+    signSnpTr <- lapply(X = traits, FUN = function(tr) {
+      extrSignSnps(GWAResult = GWAResult[GWAResult[["trait"]] == tr],
+                   LODThr = LODThr, sizeInclRegion = sizeInclRegion,
+                   minR2 = minR2, map = mapRed, markers = markersRed,
+                   maxScore = maxScore, pheno = phTr[, tr, drop = FALSE],
+                   trait = tr)
+    })
+  }
+  signSnp <- do.call(rbind, signSnpTr)
+
+
   ## Sort columns.
   data.table::setkeyv(x = GWAResult, cols = c("trait", "chr", "pos"))
   ## Collect info.
   GWASInfo <- list(call = match.call(),
                    MAF = MAF,
+                   thrType = thrType,
                    GLSMethod = GLSMethod,
                    covModel = covModel,
                    varComp = list(Vg = Vg, Ve = Ve))
   return(createGWAS(GWAResult = setNames(list(GWAResult), trials),
-                    signSnp = NULL,
+                    signSnp = setNames(list(signSnp), trials),
                     kin = if (GLSMethod == "single") {
                       K
                     } else {
                       KChr
                     },
-                    thr = NULL,
+                    thr = setNames(rep(list(LODThrTr),
+                                       length(trials)), trials),
                     GWASInfo = GWASInfo))
 }

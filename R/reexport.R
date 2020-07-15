@@ -10,3 +10,9 @@ expandPheno <- getFromNamespace(x = "expandPheno", ns = "statgenGWAS")
 
 #' @keywords internal
 computeKin <- getFromNamespace(x = "computeKin", ns = "statgenGWAS")
+
+#' @keywords internal
+extrSignSnps <- getFromNamespace(x = "extrSignSnps", ns = "statgenGWAS")
+
+#' @keywords internal
+extrSignSnpsFDR <- getFromNamespace(x = "extrSignSnpsFDR", ns = "statgenGWAS")
