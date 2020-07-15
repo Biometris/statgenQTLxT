@@ -189,18 +189,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// reduceKinship
-arma::mat reduceKinship(const arma::mat K, const int nPca);
-RcppExport SEXP _statgenPipeline_reduceKinship(SEXP KSEXP, SEXP nPcaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const int >::type nPca(nPcaSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduceKinship(K, nPca));
-    return rcpp_result_gen;
-END_RCPP
-}
 // nearestPD
 arma::mat nearestPD(arma::mat x, const bool corr, const bool keepDiag, const bool do2eigen, const bool doSym, const bool doDykstra, const double eigTol, const double convTol, const double posdTol, const int maxIter);
 RcppExport SEXP _statgenPipeline_nearestPD(SEXP xSEXP, SEXP corrSEXP, SEXP keepDiagSEXP, SEXP do2eigenSEXP, SEXP doSymSEXP, SEXP doDykstraSEXP, SEXP eigTolSEXP, SEXP convTolSEXP, SEXP posdTolSEXP, SEXP maxIterSEXP) {
@@ -235,7 +223,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_statgenPipeline_getThr", (DL_FUNC) &_statgenPipeline_getThr, 1},
     {"_statgenPipeline_multiAllKin", (DL_FUNC) &_statgenPipeline_multiAllKin, 3},
     {"_statgenPipeline_matrixRoot", (DL_FUNC) &_statgenPipeline_matrixRoot, 1},
-    {"_statgenPipeline_reduceKinship", (DL_FUNC) &_statgenPipeline_reduceKinship, 2},
     {"_statgenPipeline_nearestPD", (DL_FUNC) &_statgenPipeline_nearestPD, 10},
     {NULL, NULL, 0}
 };

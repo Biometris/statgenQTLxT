@@ -34,17 +34,6 @@ M1 <- matrix(c(1:2, 2:1), nrow = 2)
 expect_equal(as.numeric(statgenPipeline:::matrixRoot(crossprod(M1))),
              c(2, 1, 1, 2))
 
-## Test reduceKinship
-
-K1 <- statgenPipeline:::reduceKinship(K = K, nPca = 2)
-expect_true(inherits(K1, "matrix"))
-expect_equal(dim(K1), dim(K))
-expect_equal(K1[1:10],
-             c(0.275958592649926, 0.0755268623583533, 0.0871087757501913,
-               0.059879262726509, 0.0617597336440798, 0.0316564097963844,
-               0.0913098771271908, -0.0120651280191346, 0.0496193372132824,
-               -0.190509001746542))
-
 ## Test nearestPD
 
 set.seed(1234)

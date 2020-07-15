@@ -84,10 +84,6 @@
 #' covariate). SNP-covariates should be assigned using the snpCov parameter.
 #' @param snpCov An optional character vector of SNP-names to be included as
 #' covariates. SNP-names should match those used in \code{gData}.
-#' @param subsetMarkers Should GWAS be performed on a subset of markers?
-#' @param markerSubset A numeric or character vector of marker names, indicating
-#' on which markers in \code{gData$markers} GWAS is to be performed. Ignored if
-#' \code{subsetMarkers = FALSE}.
 #' @param MAF The minor allele frequency (MAF) threshold used in GWAS. A
 #' numerical value between 0 and 1. SNPs with MAF below this value are not taken
 #' into account in the analysis, i.e. p-values and effect sizes are put to
@@ -103,25 +99,12 @@
 #' Ignored if \code{fitVarComp} = \code{FALSE}
 #' @param VeDiag Should there be environmental correlations if covModel = "unst"
 #' or "pw"? If traits are measured on the same individuals, put \code{TRUE}.
-#' @param tolerance A numerical value. The iterating process stops if the
-#' difference in conditional log-likelihood between two consecutive iterations
-#' drops below \code{tolerance}. Only used when \code{covModel = "fa"}.
 #' @param maxIter An integer for the maximum number of iterations. Only used
 #' when \code{covModel = "fa"}.
-#' @param maxDiag A numerical value. The maximal value of the diagonal elements
-#' in the precision matrices Cm and Dm (ignoring the low-rank part W W^t).
-#' Only used when \code{covModel = "fa"}.
 #' @param mG An integer. The order of the genetic part of the factor analytic
 #' model. Only used when \code{covModel = "fa"}.
 #' @param mE An integer. The order of the environmental part of the factor
 #' analytic model. Only used when \code{covModel = "fa"}.
-#' @param CmHet Should an extra diagonal part be added in the model for the
-#' precision matrix Cm? Only used when \code{covModel = "fa"}.
-#' @param DmHet Should an extra diagonal part be added in the model for the
-#' precision matrix Dm? Only used when \code{covModel = "fa"}.
-#' @param stopIfDecreasing Should the iterating process in the factor analytic
-#' model stop if after 50 iterations the log-likelihood decreases between two
-#' consecutive iterations? Only used when \code{covModel = "fa"}.
 #' @param Vg An optional matrix with genotypic variance components. \code{Vg} should
 #' have row and column names corresponding to the column names of
 #' \code{gData$pheno}. It may contain additional rows and columns which will be
@@ -130,10 +113,6 @@
 #' should have row names column names corresponding to the column names of
 #' \code{gData$pheno}. It may contain additional rows and columns which will be
 #' ignored. Ignored if fitVarComp = \code{TRUE}.
-#' @param reduceK Should the kinship matrix be reduced? See
-#' \code{\link{reduceKinship}}
-#' @param nPca An integer giving the number of Pcas used when reducing the
-#' kinship matrix. Ignored if \code{reduceK} = \code{FALSE}.
 #' @param estCom Should the common SNP-effect model be fitted? If \code{TRUE}
 #' not only the SNP-effects but also the common SNP-effect and QTL x E effect
 #' are estimated.
@@ -172,24 +151,16 @@ runMultiTraitGwas <- function(gData,
                               kin = NULL,
                               kinshipMethod = c("astle", "IBS", "vanRaden"),
                               GLSMethod = c("single", "multi"),
-                              subsetMarkers = FALSE,
-                              markerSubset = "",
                               MAF = 0.01,
                               fitVarComp = TRUE,
                               covModel = c("unst", "pw", "fa"),
                               VeDiag = TRUE,
                               tolerance = 1e-6,
                               maxIter = 2e5,
-                              maxDiag = 1e4,
                               mG = 1,
                               mE = 1,
-                              CmHet = TRUE,
-                              DmHet = TRUE,
-                              stopIfDecreasing = TRUE,
                               Vg = NULL,
                               Ve = NULL,
-                              reduceK = FALSE,
-                              nPca = NULL,
                               estCom = FALSE,
                               parallel = FALSE,
                               nCores = NULL) {
@@ -227,9 +198,7 @@ runMultiTraitGwas <- function(gData,
   GLSMethod <- match.arg(GLSMethod)
   covModel <- match.arg(covModel)
   if (covModel == "fa") {
-    chkNum(tolerance, min = 0)
     chkNum(maxIter, min = 1)
-    chkNum(maxDiag, min = 0)
     chkNum(mG, min = 1)
     chkNum(mE, min = 1)
   }
@@ -246,9 +215,6 @@ runMultiTraitGwas <- function(gData,
   }
   chkKin(kin, gData, GLSMethod)
   kinshipMethod <- match.arg(kinshipMethod)
-  if (subsetMarkers && all(markerSubset == "")) {
-    stop("If subsetting markers, markerSubset cannot be empty.\n")
-  }
   ## Check Vg and Ve if variance components are not fitted.
   if (!fitVarComp) {
     if (is.null(Vg) || !is.matrix(Vg)) {
@@ -273,27 +239,11 @@ runMultiTraitGwas <- function(gData,
     Ve <- Ve[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
     colnames(Vg) <- rownames(Vg) <- colnames(Ve) <- rownames(Ve) <- NULL
   }
-  if (reduceK) {
-    chkNum(nPca, min = 1)
-  }
   markers <- gData$markers
   map <- gData$map
-  ## Make sure that when subsetting markers snpCovariates are included in
-  ## the subset
-  if (subsetMarkers) {
-    if (!is.null(snpCov)) {
-      if (!all(which(colnames(markers) %in% snpCov) %in% markerSubset)) {
-        markerSubset <- union(markerSubset,
-                              which(colnames(markers) %in% snpCov))
-        cat("snpCovariates have been added to the markerSubset.\n")
-      }
-    }
-    markersRed <- markers[, markerSubset]
-    mapRed <- map[markerSubset, ]
-  } else {
-    markersRed <- markers[, colnames(markers) %in% rownames(map)]
-    mapRed <- map[rownames(map) %in% colnames(markers), ]
-  }
+  ## Restrict map and markers to markers present in both.
+  markersRed <- markers[, colnames(markers) %in% rownames(map)]
+  mapRed <- map[rownames(map) %in% colnames(markers), ]
   ## Keep option open for extension to multiple trials.
   trial <- trials
   ## Add covariates to phenotypic data.
@@ -325,9 +275,6 @@ runMultiTraitGwas <- function(gData,
                     markers = markersRed, kinshipMethod = kinshipMethod)
     K <- K[rownames(K) %in% rownames(Y), colnames(K) %in% rownames(Y)]
     K <- K[rownames(Y), rownames(Y)]
-    if (reduceK) {
-      K <- reduceKinship(K = K, nPca = nPca)
-    }
     Y <- Y[rownames(Y) %in% rownames(K), ]
     X <- X[rownames(X) %in% rownames(K), , drop = FALSE]
   } else if (GLSMethod == "multi") {
@@ -340,9 +287,6 @@ runMultiTraitGwas <- function(gData,
       k <- k[rownames(k) %in% rownames(Y), colnames(k) %in% rownames(Y)]
       k[rownames(Y), rownames(Y)]
     })
-    if (reduceK) {
-      KChr <- lapply(X = KChr, FUN = reduceKinship, nPca = nPca)
-    }
     Y <- Y[rownames(Y) %in% rownames(KChr[[1]]), ]
     X <- X[rownames(X) %in% rownames(KChr[[1]]), , drop = FALSE]
   }
@@ -385,16 +329,11 @@ runMultiTraitGwas <- function(gData,
         ## FA models.
         ## Including snpCovariates.
         varComp <- EMFA(y = Y, k = K, size_param_x = X, maxIter = maxIter,
-                        tolerance = tolerance, mG = mG, mE = mE, cmHet = CmHet,
-                        dmHet = DmHet, maxDiag = maxDiag,
-                        stopIfDecreasing = stopIfDecreasing)
+                        mG = mG, mE = mE)
         if (!is.null(snpCov)) {
           ## Without snpCovariates.
           varCompRed <- EMFA(y = Y, k = K, size_param_x = XRed,
-                             maxIter = maxIter, tolerance = tolerance, mG = mG,
-                             mE = mE, cmHet = TRUE, dmHet = TRUE,
-                             maxDiag = maxDiag,
-                             stopIfDecreasing = stopIfDecreasing)
+                             maxIter = maxIter, mG = mG, mE = mE)
         }
       }
       Vg <- varComp$Vg
@@ -452,17 +391,13 @@ runMultiTraitGwas <- function(gData,
         ## Including snpCovariates.
         varComp <- sapply(X = chrs, FUN = function(chr) {
           EMFA(y = Y, k = KChr[[which(chrs == chr)]],
-               size_param_x = X, maxIter = maxIter, tolerance = tolerance,
-               mG = mG, mE = mE, cmHet = CmHet, dmHet = DmHet,
-               maxDiag = maxDiag, stopIfDecreasing = stopIfDecreasing)
+               size_param_x = X, maxIter = maxIter, mG = mG, mE = mE)
         }, simplify = FALSE)
         if (!is.null(snpCov)) {
           ## Without snpCovariates.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
             EMFA(y = Y, k = KChr[[which(chrs == chr)]],
-                 size_param_x = XRed, maxIter = maxIter, tolerance = tolerance,
-                 mG = mG, mE = mE, cmHet = CmHet, dmHet = DmHet,
-                 maxDiag = maxDiag, stopIfDecreasing = stopIfDecreasing)
+                 size_param_x = XRed, maxIter = maxIter, mG = mG, mE = mE)
           }, simplify = FALSE)
         }
       }

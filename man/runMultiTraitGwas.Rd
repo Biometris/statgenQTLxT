@@ -12,24 +12,16 @@ runMultiTraitGwas(
   kin = NULL,
   kinshipMethod = c("astle", "IBS", "vanRaden"),
   GLSMethod = c("single", "multi"),
-  subsetMarkers = FALSE,
-  markerSubset = "",
   MAF = 0.01,
   fitVarComp = TRUE,
   covModel = c("unst", "pw", "fa"),
   VeDiag = TRUE,
   tolerance = 1e-06,
   maxIter = 2e+05,
-  maxDiag = 10000,
   mG = 1,
   mE = 1,
-  CmHet = TRUE,
-  DmHet = TRUE,
-  stopIfDecreasing = TRUE,
   Vg = NULL,
   Ve = NULL,
-  reduceK = FALSE,
-  nPca = NULL,
   estCom = FALSE,
   parallel = FALSE,
   nCores = NULL
@@ -75,12 +67,6 @@ kinship matrix is supplied either in \code{gData} or in parameter \code{kin},
 the marker effects. Either \code{single} for using a single kinship matrix,
 or \code{multi} for using chromosome specific kinship matrices.}
 
-\item{subsetMarkers}{Should GWAS be performed on a subset of markers?}
-
-\item{markerSubset}{A numeric or character vector of marker names, indicating
-on which markers in \code{gData$markers} GWAS is to be performed. Ignored if
-\code{subsetMarkers = FALSE}.}
-
 \item{MAF}{The minor allele frequency (MAF) threshold used in GWAS. A
 numerical value between 0 and 1. SNPs with MAF below this value are not taken
 into account in the analysis, i.e. p-values and effect sizes are put to
@@ -100,32 +86,14 @@ Ignored if \code{fitVarComp} = \code{FALSE}}
 \item{VeDiag}{Should there be environmental correlations if covModel = "unst"
 or "pw"? If traits are measured on the same individuals, put \code{TRUE}.}
 
-\item{tolerance}{A numerical value. The iterating process stops if the
-difference in conditional log-likelihood between two consecutive iterations
-drops below \code{tolerance}. Only used when \code{covModel = "fa"}.}
-
 \item{maxIter}{An integer for the maximum number of iterations. Only used
 when \code{covModel = "fa"}.}
-
-\item{maxDiag}{A numerical value. The maximal value of the diagonal elements
-in the precision matrices Cm and Dm (ignoring the low-rank part W W^t).
-Only used when \code{covModel = "fa"}.}
 
 \item{mG}{An integer. The order of the genetic part of the factor analytic
 model. Only used when \code{covModel = "fa"}.}
 
 \item{mE}{An integer. The order of the environmental part of the factor
 analytic model. Only used when \code{covModel = "fa"}.}
-
-\item{CmHet}{Should an extra diagonal part be added in the model for the
-precision matrix Cm? Only used when \code{covModel = "fa"}.}
-
-\item{DmHet}{Should an extra diagonal part be added in the model for the
-precision matrix Dm? Only used when \code{covModel = "fa"}.}
-
-\item{stopIfDecreasing}{Should the iterating process in the factor analytic
-model stop if after 50 iterations the log-likelihood decreases between two
-consecutive iterations? Only used when \code{covModel = "fa"}.}
 
 \item{Vg}{An optional matrix with genotypic variance components. \code{Vg} should
 have row and column names corresponding to the column names of
@@ -136,12 +104,6 @@ ignored. Ignored if fitVarComp = \code{TRUE}.}
 should have row names column names corresponding to the column names of
 \code{gData$pheno}. It may contain additional rows and columns which will be
 ignored. Ignored if fitVarComp = \code{TRUE}.}
-
-\item{reduceK}{Should the kinship matrix be reduced? See
-\code{\link{reduceKinship}}}
-
-\item{nPca}{An integer giving the number of Pcas used when reducing the
-kinship matrix. Ignored if \code{reduceK} = \code{FALSE}.}
 
 \item{estCom}{Should the common SNP-effect model be fitted? If \code{TRUE}
 not only the SNP-effects but also the common SNP-effect and QTL x E effect

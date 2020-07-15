@@ -133,7 +133,7 @@ tracePInvDiag <- function(x, y) {
 #'
 #' @keywords internal
 #'
-EMFA <- function(y, k, size_param_x = NULL, cmHet = FALSE, dmHet = FALSE, tolerance = 1e-4, maxIter = 300L, size_param_cmStart = NULL, size_param_dmStart = NULL, mG = 1L, mE = 1L, maxDiag = 1e4, stopIfDecreasing = FALSE) {
+EMFA <- function(y, k, size_param_x = NULL, cmHet = TRUE, dmHet = TRUE, tolerance = 1e-6, maxIter = 300L, size_param_cmStart = NULL, size_param_dmStart = NULL, mG = 1L, mE = 1L, maxDiag = 1e4, stopIfDecreasing = FALSE) {
     .Call(`_statgenPipeline_EMFA`, y, k, size_param_x, cmHet, dmHet, tolerance, maxIter, size_param_cmStart, size_param_dmStart, mG, mE, maxDiag, stopIfDecreasing)
 }
 
@@ -226,22 +226,6 @@ multiAllKin <- function(x, posCor, denom = NULL) {
 #' @keywords internal
 matrixRoot <- function(x) {
     .Call(`_statgenPipeline_matrixRoot`, x)
-}
-
-#' Reduce the kinship matrix
-#'
-#' The kinship matrix is reduced using nPca eigenvectors of K.
-#'
-#' @inheritParams runMultiTraitGwas
-#'
-#' @param nPca An integer, the number of eigenvectors used for reducing the
-#' kinship matrix.
-#'
-#' @return The reduced kinship matrix
-#'
-#' @keywords internal
-reduceKinship <- function(K, nPca) {
-    .Call(`_statgenPipeline_reduceKinship`, K, nPca)
 }
 
 nearestPD <- function(x, corr = FALSE, keepDiag = FALSE, do2eigen = TRUE, doSym = FALSE, doDykstra = TRUE, eigTol = 1e-6, convTol = 1e-7, posdTol = 1e-8, maxIter = 100L) {
