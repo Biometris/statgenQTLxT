@@ -74,6 +74,9 @@
 #' \code{markers} and \code{pheno}. The latter should not contain missing
 #' values. Multi-trait or multi-environment GWAS is performed for all variables
 #' in \code{pheno}.
+#' @param traits A vector of traits on which to run GWAS. These can be either
+#' numeric indices or character names of columns in \code{pheno}. If \code{NULL},
+#' GWAS is run on all traits.
 #' @param trials A vector specifying the environment on which to run GWAS.
 #' Thise can be either a numeric index or a character name of a list item in
 #' \code{pheno}.
@@ -172,6 +175,7 @@
 #' @export
 runMultiTraitGwas <- function(gData,
                               trials = NULL,
+                              traits = NULL,
                               covar = NULL,
                               snpCov = NULL,
                               kin = NULL,
@@ -214,6 +218,18 @@ runMultiTraitGwas <- function(gData,
   if (is.numeric(trials)) {
     trials <- names(gData$pheno)[trials]
   }
+  ## Keep option open for extension to multiple trials.
+  trial <- trials
+  chkTraits(traits, trials, gData, multi = TRUE)
+  if (is.numeric(traits)) {
+    ## If traits is given as numeric convert to character.
+    traits <- colnames(gData$pheno[[trial]])[traits]
+  } else if (is.null(traits)) {
+    ## If no traits supplied extract them from pheno data.
+    traits <- colnames(gData$pheno[[trial]])[-1]
+  }
+  ## Restrict phenotypic data to selected traits.
+  gData$pheno[[trial]] <- gData$pheno[[trial]][c("genotype", traits)]
   chkCovar(covar, gData)
   ## If covar is given as numeric convert to character.
   if (is.numeric(covar)) {
@@ -236,7 +252,7 @@ runMultiTraitGwas <- function(gData,
     chkNum(mE, min = 1)
   }
   if (fitVarComp && covModel == "unst") {
-    nTraits <- ncol(gData$pheno[[1]]) - 1
+    nTraits <- length(traits)
     if (nTraits > 5 && nTraits < 10) {
       warning("unstructured covariance models not recommended for 6 to 9 ",
               "traits. Consider using another covariance model instead.\n",
@@ -293,8 +309,6 @@ runMultiTraitGwas <- function(gData,
   ## Restrict map and markers to markers present in both.
   markersRed <- markers[, colnames(markers) %in% rownames(map)]
   mapRed <- map[rownames(map) %in% colnames(markers), ]
-  ## Keep option open for extension to multiple trials.
-  trial <- trials
   ## Add covariates to phenotypic data.
   phExp <- expandPheno(gData = gData, trial = trial, covar = covar,
                        snpCov = snpCov)
