@@ -219,7 +219,11 @@ runMultiTraitGwas <- function(gData,
     trials <- names(gData$pheno)[trials]
   }
   ## Keep option open for extension to multiple trials.
-  trial <- trials
+  if (!is.null(trials)) {
+    trial <- trials
+  } else {
+    trial <- names(gData$pheno)
+  }
   chkTraits(traits, trials, gData, multi = TRUE)
   if (is.numeric(traits)) {
     ## If traits is given as numeric convert to character.
