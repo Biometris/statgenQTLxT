@@ -226,7 +226,7 @@ runMultiTraitGwas <- function(gData,
   MAF <- max(MAF, 1e-6)
   ## If trials is null set trials to only trial in pheno.
   if (is.null(trials)) {
-    trials <- 1
+    trials <- names(gData$pheno)
   }
   GLSMethod <- match.arg(GLSMethod)
   covModel <- match.arg(covModel)
