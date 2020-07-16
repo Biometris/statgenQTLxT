@@ -164,10 +164,11 @@ To demonstrate the options of the *codeMarkers* function, see ```help(codeMarker
 
 The cleaned gData object can be used for performing multi-trait GWAS analysis. In this example the trial *Mur13W* is used to demonstrate the options of the *runMultiTraitGwas* function. 
 
-*Add here the option with trait selection*
 ```{r mtg}
-## Run multi-trait GWAS for xx traits in trial Mur13W.
+## Run multi-trait GWAS for 5 traits in trial Mur13W.
 GWASDrops <- runMultiTraitGwas(gData = gDataDropsDedup, 
+                               traits = c("grain.yield","grain.number",
+                                          "anthesis","silking" ,"plant.height"),
                                trials = "Mur13W", 
                                covModel = "fa")
 ```
@@ -196,8 +197,8 @@ head(GWASDrops$GWAResult$Mur13W)
 |:-----|:--------------------------------------------------|
 | snpStatus | either "significant SNP" or "within ... of a significant SNP" |
 | propSnpVar | proportion of the variance explained by the SNP |
-```{r signSnp}
-print(GWASDrops$signSnp$Mur13W, row.names = FALSE)
+```{r signSnp, eval = FALSE}
+GWASDrops$signSnp$Mur13W
 ```
 
 **kinship**: the kinship matrix (or matrices) used in the GWAS analysis. This can either be the user provided kinship matrix or the kinship matrix computed when running the *runMultiTraitGwas* function.
@@ -210,8 +211,8 @@ print(GWASDrops$signSnp$Mur13W, row.names = FALSE)
 
 For a quick overview of the results, e.g. the number of significant SNPs, use the summary function.
 ```{r sumMtg}
-## Create summary of GWASDrops.
-summary(GWASDrops)
+## Create summary of GWASDrops for the trait grain number.
+summary(GWASDrops, traits = "grain.number")
 ```
 
 ### GWAS Plots
@@ -306,7 +307,7 @@ gDataDropsDedupxE <- codeMarkers(gDataDropsxE, impute = FALSE, verbose = TRUE)
 
 *Add here the option with trait selection*
 ```{r mtgxE}
-## Run multi-trait GWAS for xx traits in trial Mur13W.
+## Run multi-trait GWAS for one trait in all trials.
 GWASDropsxE <- runMultiTraitGwas(gData = gDataDropsDedupxE, 
                                  covModel = "fa")
 ```
@@ -325,7 +326,7 @@ head(GWASDropsxE$signSnp$PhenoDat, row.names = FALSE)
 
 For a quick overview of the results, e.g. the number of significant SNPs, use the summary function.
 ```{r sumMtgxE}
-summary(GWASDropsxE)
+summary(GWASDropsxE, traits = c("Ner12W","Cam12W","Gra13R"))
 ```
 
 ### GWAS Plots

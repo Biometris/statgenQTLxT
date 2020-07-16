@@ -50,20 +50,22 @@ summary(gDataDrops, trials = "Mur13W")
 gDataDropsDedup <- codeMarkers(gDataDrops, impute = FALSE, verbose = TRUE) 
 
 ## ----mtg------------------------------------------------------------------------------------------
-## Run multi-trait GWAS for xx traits in trial Mur13W.
+## Run multi-trait GWAS for 5 traits in trial Mur13W.
 GWASDrops <- runMultiTraitGwas(gData = gDataDropsDedup, 
+                               traits = c("grain.yield","grain.number",
+                                          "anthesis","silking" ,"plant.height"),
                                trials = "Mur13W", 
                                covModel = "fa")
 
 ## ----gwaRes---------------------------------------------------------------------------------------
 head(GWASDrops$GWAResult$Mur13W)
 
-## ----signSnp--------------------------------------------------------------------------------------
-print(GWASDrops$signSnp$Mur13W, row.names = FALSE)
+## ----signSnp, eval = FALSE------------------------------------------------------------------------
+#  GWASDrops$signSnp$Mur13W
 
 ## ----sumMtg---------------------------------------------------------------------------------------
-## Create summary of GWASDrops.
-summary(GWASDrops)
+## Create summary of GWASDrops for the trait grain number.
+summary(GWASDrops, traits = "grain.number")
 
 ## ----qqMtg----------------------------------------------------------------------------------------
 ## Plot a qq plot of GWAS Drops.
@@ -75,8 +77,8 @@ plot(GWASDrops, plotType = "manhattan")
 
 ## ----qtlMtgNorm-----------------------------------------------------------------------------------
 ## Plot a qtl plot of GWAS Drops for Mur13W.
-## Set significance threshold to 4 and normalize effect estimates.
-plot(GWASDrops, plotType = "qtl", yThr = 4, normalize = TRUE)
+## Set significance threshold to 5 and normalize effect estimates.
+plot(GWASDrops, plotType = "qtl", yThr = 5, normalize = TRUE)
 
 ## ----mtgChrSpec, eval = FALSE---------------------------------------------------------------------
 #  ## Run multi-trait GWAS for trial 'Mur13W'.
@@ -94,9 +96,10 @@ PhenoDat <- reshape(dropsPheno[,c("Experiment","Variety_ID","grain.yield")],
                     idvar = "Variety_ID", 
                     direction = "wide", 
                     v.names = "grain.yield")
-## Rename Variety_ID to genotype and other columns with the experiment name only.
+## Rename Variety_ID to genotype and other columns with the trial name only.
 names(PhenoDat)[1] <- "genotype"
-names(PhenoDat)[2:ncol(PhenoDat)] <-  gsub("grain.yield.","",names(PhenoDat)[2:ncol(PhenoDat)] )
+names(PhenoDat)[2:ncol(PhenoDat)] <-  gsub("grain.yield.","",
+                                           names(PhenoDat)[2:ncol(PhenoDat)] )
 
 ## ----createGdataxE--------------------------------------------------------------------------------
 ## Create a gData object containing map, marker and phenotypic information.
@@ -110,9 +113,10 @@ summary(gDataDropsxE)
 gDataDropsDedupxE <- codeMarkers(gDataDropsxE, impute = FALSE, verbose = TRUE) 
 
 ## ----mtgxE----------------------------------------------------------------------------------------
-## Run multi-trait GWAS for xx traits in trial Mur13W.
+## Run multi-trait GWAS for one trait in all trials.
 GWASDropsxE <- runMultiTraitGwas(gData = gDataDropsDedupxE, 
-                                 covModel = "fa")
+                                 covModel = "fa",
+                                 trials ="PhenoDat")
 
 ## ----gwaResxE-------------------------------------------------------------------------------------
 head(GWASDropsxE$GWAResult$PhenoDat)
@@ -121,7 +125,7 @@ head(GWASDropsxE$GWAResult$PhenoDat)
 head(GWASDropsxE$signSnp$PhenoDat, row.names = FALSE)
 
 ## ----sumMtgxE-------------------------------------------------------------------------------------
-summary(GWASDropsxE)
+summary(GWASDropsxE, traits = c("Ner12W","Cam12W","Gra13R"))
 
 ## ----qqMtgxE--------------------------------------------------------------------------------------
 plot(GWASDropsxE, plotType = "qq")
