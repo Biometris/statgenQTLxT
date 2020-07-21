@@ -202,30 +202,12 @@ estEffsCPP <- function(y, w, x, vg, ve, k, returnSe = TRUE, estCom = FALSE, nCor
     .Call(`_statgenQTLxT_estEffsCPP`, y, w, x, vg, ve, k, returnSe, estCom, nCores)
 }
 
-fastGLSIBDCPP <- function(mp, y, sigma, ref, size_param = NULL, nCores = NULL) {
-    .Call(`_statgenQTLxT_fastGLSIBDCPP`, mp, y, sigma, ref, size_param, nCores)
-}
-
 getThr <- function(nCores = NULL) {
     .Call(`_statgenQTLxT_getThr`, nCores)
 }
 
 multiAllKin <- function(x, posCor, denom = NULL) {
     .Call(`_statgenQTLxT_multiAllKin`, x, posCor, denom)
-}
-
-#' Compute square root of a symmetric, positive definite matrix
-#'
-#' Given a symmetric, positive definite matrix X a matrix Y is computed such
-#' that \eqn{Y^2 = X}. Computation is done using eigendecomposition of X.
-#'
-#' @param X A symmetric, positive definite matrix.
-#'
-#' @return A matrix Y such that \eqn{Y^2 = X}.
-#'
-#' @keywords internal
-matrixRoot <- function(x) {
-    .Call(`_statgenQTLxT_matrixRoot`, x)
 }
 
 nearestPD <- function(x, corr = FALSE, keepDiag = FALSE, do2eigen = TRUE, doSym = FALSE, doDykstra = TRUE, eigTol = 1e-6, convTol = 1e-7, posdTol = 1e-8, maxIter = 100L) {

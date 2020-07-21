@@ -138,22 +138,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// fastGLSIBDCPP
-List fastGLSIBDCPP(const arma::cube& mp, const arma::vec& y, const arma::mat& sigma, unsigned int ref, Rcpp::Nullable<Rcpp::NumericVector> size_param, Rcpp::Nullable<Rcpp::IntegerVector> nCores);
-RcppExport SEXP _statgenQTLxT_fastGLSIBDCPP(SEXP mpSEXP, SEXP ySEXP, SEXP sigmaSEXP, SEXP refSEXP, SEXP size_paramSEXP, SEXP nCoresSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::cube& >::type mp(mpSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type ref(refSEXP);
-    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type size_param(size_paramSEXP);
-    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type nCores(nCoresSEXP);
-    rcpp_result_gen = Rcpp::wrap(fastGLSIBDCPP(mp, y, sigma, ref, size_param, nCores));
-    return rcpp_result_gen;
-END_RCPP
-}
 // getThr
 int getThr(Rcpp::Nullable<Rcpp::IntegerVector> nCores);
 RcppExport SEXP _statgenQTLxT_getThr(SEXP nCoresSEXP) {
@@ -175,17 +159,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type posCor(posCorSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type denom(denomSEXP);
     rcpp_result_gen = Rcpp::wrap(multiAllKin(x, posCor, denom));
-    return rcpp_result_gen;
-END_RCPP
-}
-// matrixRoot
-arma::mat matrixRoot(const arma::mat x);
-RcppExport SEXP _statgenQTLxT_matrixRoot(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(matrixRoot(x));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -219,10 +192,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_statgenQTLxT_EMFA", (DL_FUNC) &_statgenQTLxT_EMFA, 13},
     {"_statgenQTLxT_LLQuadFormDiagCPP", (DL_FUNC) &_statgenQTLxT_LLQuadFormDiagCPP, 3},
     {"_statgenQTLxT_estEffsCPP", (DL_FUNC) &_statgenQTLxT_estEffsCPP, 9},
-    {"_statgenQTLxT_fastGLSIBDCPP", (DL_FUNC) &_statgenQTLxT_fastGLSIBDCPP, 6},
     {"_statgenQTLxT_getThr", (DL_FUNC) &_statgenQTLxT_getThr, 1},
     {"_statgenQTLxT_multiAllKin", (DL_FUNC) &_statgenQTLxT_multiAllKin, 3},
-    {"_statgenQTLxT_matrixRoot", (DL_FUNC) &_statgenQTLxT_matrixRoot, 1},
     {"_statgenQTLxT_nearestPD", (DL_FUNC) &_statgenQTLxT_nearestPD, 10},
     {NULL, NULL, 0}
 };

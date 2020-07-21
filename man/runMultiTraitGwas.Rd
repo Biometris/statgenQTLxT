@@ -58,27 +58,6 @@ covariate). SNP-covariates should be assigned using the snpCov parameter.}
 \item{snpCov}{An optional character vector of SNP-names to be included as
 covariates. SNP-names should match those used in \code{gData}.}
 
-\item{kin}{An optional kinship matrix or list of kinship matrices. These
-matrices can be from the \code{matrix} class as defined in the base package
-or from the \code{dsyMatrix} class, the class of symmetric matrices in the
-Matrix package.\cr
-If \code{GLSMethod} = "single" then one matrix should be provided, if
-\code{GLSMethod} = "multi", a list of chromosome specific matrices of length
-equal to the number of chromosomes in \code{map} in \code{gData}.\cr
-If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
-If both \code{kin} is provided and \code{gData} contains a matrix
-\code{kinship} then \code{kin} is used.}
-
-\item{kinshipMethod}{An optional character indicating the method used for
-calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
-2009), "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
-kinship matrix is supplied either in \code{gData} or in parameter \code{kin},
-\code{kinshipMethod} is ignored.}
-
-\item{GLSMethod}{A character string indicating the method used to estimate
-the marker effects. Either \code{single} for using a single kinship matrix,
-or \code{multi} for using chromosome specific kinship matrices.}
-
 \item{estCom}{Should the common SNP-effect model be fitted? If \code{TRUE}
 not only the SNP-effects but also the common SNP-effect and QTL x E effect
 are estimated.}
@@ -159,10 +138,6 @@ at most 200000 away from this significant snp are included. Ignored if
 \item{parallel}{Should the computation of variance components be done in
 parallel? Only used if \code{covModel = "pw"}. A parallel computing
 environment has to be setup by the user.}
-
-\item{nCores}{A numerical value indicating the number of cores to be used by
-the parallel part of the algorithm. If \code{NULL} the number of cores used
-will be equal to the number of cores available on the machine - 1.}
 }
 \value{
 An object of class \code{\link{GWAS}}.

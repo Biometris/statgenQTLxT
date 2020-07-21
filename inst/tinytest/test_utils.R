@@ -28,12 +28,6 @@ expect_equal(statgenQTLxT:::dfBind(list(data.frame(), df1)), df1)
 expect_equal(statgenQTLxT:::dfBind(list(df1, data.frame())), df1)
 expect_equal(statgenQTLxT:::dfBind(list(data.frame())), data.frame())
 
-
-## Test matrixRoot
-M1 <- matrix(c(1:2, 2:1), nrow = 2)
-expect_equal(as.numeric(statgenQTLxT:::matrixRoot(crossprod(M1))),
-             c(2, 1, 1, 2))
-
 ## Test nearestPD
 
 set.seed(1234)
