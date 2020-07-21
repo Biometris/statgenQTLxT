@@ -1,4 +1,4 @@
-Package: statgenPipeline
+Package: statgenQTLxT
 Type: Package
 Title: Genome Wide Association Studies in R
 Version: 0.0.1

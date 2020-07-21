@@ -8,7 +8,7 @@ using namespace Rcpp;
 
 // updateFAHomVar
 void updateFAHomVar(arma::mat s, arma::mat& wNew, arma::mat& pNew, unsigned int m, double maxDiag);
-RcppExport SEXP _statgenPipeline_updateFAHomVar(SEXP sSEXP, SEXP wNewSEXP, SEXP pNewSEXP, SEXP mSEXP, SEXP maxDiagSEXP) {
+RcppExport SEXP _statgenQTLxT_updateFAHomVar(SEXP sSEXP, SEXP wNewSEXP, SEXP pNewSEXP, SEXP mSEXP, SEXP maxDiagSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type s(sSEXP);
@@ -22,7 +22,7 @@ END_RCPP
 }
 // updateFA
 void updateFA(arma::mat y, arma::mat wStart, arma::mat pStart, arma::mat& wNew, arma::mat& pNew, unsigned int m0, bool hetVar, double maxDiag, double tolerance, unsigned int maxIter, bool printProgress);
-RcppExport SEXP _statgenPipeline_updateFA(SEXP ySEXP, SEXP wStartSEXP, SEXP pStartSEXP, SEXP wNewSEXP, SEXP pNewSEXP, SEXP m0SEXP, SEXP hetVarSEXP, SEXP maxDiagSEXP, SEXP toleranceSEXP, SEXP maxIterSEXP, SEXP printProgressSEXP) {
+RcppExport SEXP _statgenQTLxT_updateFA(SEXP ySEXP, SEXP wStartSEXP, SEXP pStartSEXP, SEXP wNewSEXP, SEXP pNewSEXP, SEXP m0SEXP, SEXP hetVarSEXP, SEXP maxDiagSEXP, SEXP toleranceSEXP, SEXP maxIterSEXP, SEXP printProgressSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
@@ -42,7 +42,7 @@ END_RCPP
 }
 // updatePrec
 void updatePrec(unsigned int m, unsigned int nc, arma::mat omega, const arma::mat w, const arma::mat p, arma::mat& wNew, arma::mat& pNew, arma::mat& cNew, bool het, double maxDiag);
-RcppExport SEXP _statgenPipeline_updatePrec(SEXP mSEXP, SEXP ncSEXP, SEXP omegaSEXP, SEXP wSEXP, SEXP pSEXP, SEXP wNewSEXP, SEXP pNewSEXP, SEXP cNewSEXP, SEXP hetSEXP, SEXP maxDiagSEXP) {
+RcppExport SEXP _statgenQTLxT_updatePrec(SEXP mSEXP, SEXP ncSEXP, SEXP omegaSEXP, SEXP wSEXP, SEXP pSEXP, SEXP wNewSEXP, SEXP pNewSEXP, SEXP cNewSEXP, SEXP hetSEXP, SEXP maxDiagSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< unsigned int >::type m(mSEXP);
@@ -61,7 +61,7 @@ END_RCPP
 }
 // vecInvDiag
 arma::mat vecInvDiag(arma::vec x, arma::vec y);
-RcppExport SEXP _statgenPipeline_vecInvDiag(SEXP xSEXP, SEXP ySEXP) {
+RcppExport SEXP _statgenQTLxT_vecInvDiag(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -73,7 +73,7 @@ END_RCPP
 }
 // tracePInvDiag
 arma::vec tracePInvDiag(arma::vec x, arma::vec y);
-RcppExport SEXP _statgenPipeline_tracePInvDiag(SEXP xSEXP, SEXP ySEXP) {
+RcppExport SEXP _statgenQTLxT_tracePInvDiag(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -85,7 +85,7 @@ END_RCPP
 }
 // EMFA
 List EMFA(arma::mat y, arma::mat k, Rcpp::Nullable<Rcpp::NumericVector> size_param_x, bool cmHet, bool dmHet, double tolerance, unsigned int maxIter, Rcpp::Nullable<Rcpp::NumericVector> size_param_cmStart, Rcpp::Nullable<Rcpp::NumericVector> size_param_dmStart, unsigned int mG, unsigned int mE, double maxDiag, bool stopIfDecreasing);
-RcppExport SEXP _statgenPipeline_EMFA(SEXP ySEXP, SEXP kSEXP, SEXP size_param_xSEXP, SEXP cmHetSEXP, SEXP dmHetSEXP, SEXP toleranceSEXP, SEXP maxIterSEXP, SEXP size_param_cmStartSEXP, SEXP size_param_dmStartSEXP, SEXP mGSEXP, SEXP mESEXP, SEXP maxDiagSEXP, SEXP stopIfDecreasingSEXP) {
+RcppExport SEXP _statgenQTLxT_EMFA(SEXP ySEXP, SEXP kSEXP, SEXP size_param_xSEXP, SEXP cmHetSEXP, SEXP dmHetSEXP, SEXP toleranceSEXP, SEXP maxIterSEXP, SEXP size_param_cmStartSEXP, SEXP size_param_dmStartSEXP, SEXP mGSEXP, SEXP mESEXP, SEXP maxDiagSEXP, SEXP stopIfDecreasingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -108,7 +108,7 @@ END_RCPP
 }
 // LLQuadFormDiagCPP
 double LLQuadFormDiagCPP(const arma::mat& y, const arma::cube& vInv, Rcpp::Nullable<Rcpp::NumericVector> size_param_x);
-RcppExport SEXP _statgenPipeline_LLQuadFormDiagCPP(SEXP ySEXP, SEXP vInvSEXP, SEXP size_param_xSEXP) {
+RcppExport SEXP _statgenQTLxT_LLQuadFormDiagCPP(SEXP ySEXP, SEXP vInvSEXP, SEXP size_param_xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -121,7 +121,7 @@ END_RCPP
 }
 // estEffsCPP
 List estEffsCPP(arma::mat y, arma::mat w, arma::mat x, arma::mat& vg, arma::mat& ve, arma::mat& k, bool returnSe, bool estCom, Rcpp::Nullable<Rcpp::IntegerVector> nCores);
-RcppExport SEXP _statgenPipeline_estEffsCPP(SEXP ySEXP, SEXP wSEXP, SEXP xSEXP, SEXP vgSEXP, SEXP veSEXP, SEXP kSEXP, SEXP returnSeSEXP, SEXP estComSEXP, SEXP nCoresSEXP) {
+RcppExport SEXP _statgenQTLxT_estEffsCPP(SEXP ySEXP, SEXP wSEXP, SEXP xSEXP, SEXP vgSEXP, SEXP veSEXP, SEXP kSEXP, SEXP returnSeSEXP, SEXP estComSEXP, SEXP nCoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -140,7 +140,7 @@ END_RCPP
 }
 // fastGLSIBDCPP
 List fastGLSIBDCPP(const arma::cube& mp, const arma::vec& y, const arma::mat& sigma, unsigned int ref, Rcpp::Nullable<Rcpp::NumericVector> size_param, Rcpp::Nullable<Rcpp::IntegerVector> nCores);
-RcppExport SEXP _statgenPipeline_fastGLSIBDCPP(SEXP mpSEXP, SEXP ySEXP, SEXP sigmaSEXP, SEXP refSEXP, SEXP size_paramSEXP, SEXP nCoresSEXP) {
+RcppExport SEXP _statgenQTLxT_fastGLSIBDCPP(SEXP mpSEXP, SEXP ySEXP, SEXP sigmaSEXP, SEXP refSEXP, SEXP size_paramSEXP, SEXP nCoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -156,7 +156,7 @@ END_RCPP
 }
 // getThr
 int getThr(Rcpp::Nullable<Rcpp::IntegerVector> nCores);
-RcppExport SEXP _statgenPipeline_getThr(SEXP nCoresSEXP) {
+RcppExport SEXP _statgenQTLxT_getThr(SEXP nCoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -167,7 +167,7 @@ END_RCPP
 }
 // multiAllKin
 arma::mat multiAllKin(arma::cube x, arma::vec posCor, Rcpp::Nullable<Rcpp::NumericVector> denom);
-RcppExport SEXP _statgenPipeline_multiAllKin(SEXP xSEXP, SEXP posCorSEXP, SEXP denomSEXP) {
+RcppExport SEXP _statgenQTLxT_multiAllKin(SEXP xSEXP, SEXP posCorSEXP, SEXP denomSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -180,7 +180,7 @@ END_RCPP
 }
 // matrixRoot
 arma::mat matrixRoot(const arma::mat x);
-RcppExport SEXP _statgenPipeline_matrixRoot(SEXP xSEXP) {
+RcppExport SEXP _statgenQTLxT_matrixRoot(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -191,7 +191,7 @@ END_RCPP
 }
 // nearestPD
 arma::mat nearestPD(arma::mat x, const bool corr, const bool keepDiag, const bool do2eigen, const bool doSym, const bool doDykstra, const double eigTol, const double convTol, const double posdTol, const int maxIter);
-RcppExport SEXP _statgenPipeline_nearestPD(SEXP xSEXP, SEXP corrSEXP, SEXP keepDiagSEXP, SEXP do2eigenSEXP, SEXP doSymSEXP, SEXP doDykstraSEXP, SEXP eigTolSEXP, SEXP convTolSEXP, SEXP posdTolSEXP, SEXP maxIterSEXP) {
+RcppExport SEXP _statgenQTLxT_nearestPD(SEXP xSEXP, SEXP corrSEXP, SEXP keepDiagSEXP, SEXP do2eigenSEXP, SEXP doSymSEXP, SEXP doDykstraSEXP, SEXP eigTolSEXP, SEXP convTolSEXP, SEXP posdTolSEXP, SEXP maxIterSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -211,23 +211,23 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_statgenPipeline_updateFAHomVar", (DL_FUNC) &_statgenPipeline_updateFAHomVar, 5},
-    {"_statgenPipeline_updateFA", (DL_FUNC) &_statgenPipeline_updateFA, 11},
-    {"_statgenPipeline_updatePrec", (DL_FUNC) &_statgenPipeline_updatePrec, 10},
-    {"_statgenPipeline_vecInvDiag", (DL_FUNC) &_statgenPipeline_vecInvDiag, 2},
-    {"_statgenPipeline_tracePInvDiag", (DL_FUNC) &_statgenPipeline_tracePInvDiag, 2},
-    {"_statgenPipeline_EMFA", (DL_FUNC) &_statgenPipeline_EMFA, 13},
-    {"_statgenPipeline_LLQuadFormDiagCPP", (DL_FUNC) &_statgenPipeline_LLQuadFormDiagCPP, 3},
-    {"_statgenPipeline_estEffsCPP", (DL_FUNC) &_statgenPipeline_estEffsCPP, 9},
-    {"_statgenPipeline_fastGLSIBDCPP", (DL_FUNC) &_statgenPipeline_fastGLSIBDCPP, 6},
-    {"_statgenPipeline_getThr", (DL_FUNC) &_statgenPipeline_getThr, 1},
-    {"_statgenPipeline_multiAllKin", (DL_FUNC) &_statgenPipeline_multiAllKin, 3},
-    {"_statgenPipeline_matrixRoot", (DL_FUNC) &_statgenPipeline_matrixRoot, 1},
-    {"_statgenPipeline_nearestPD", (DL_FUNC) &_statgenPipeline_nearestPD, 10},
+    {"_statgenQTLxT_updateFAHomVar", (DL_FUNC) &_statgenQTLxT_updateFAHomVar, 5},
+    {"_statgenQTLxT_updateFA", (DL_FUNC) &_statgenQTLxT_updateFA, 11},
+    {"_statgenQTLxT_updatePrec", (DL_FUNC) &_statgenQTLxT_updatePrec, 10},
+    {"_statgenQTLxT_vecInvDiag", (DL_FUNC) &_statgenQTLxT_vecInvDiag, 2},
+    {"_statgenQTLxT_tracePInvDiag", (DL_FUNC) &_statgenQTLxT_tracePInvDiag, 2},
+    {"_statgenQTLxT_EMFA", (DL_FUNC) &_statgenQTLxT_EMFA, 13},
+    {"_statgenQTLxT_LLQuadFormDiagCPP", (DL_FUNC) &_statgenQTLxT_LLQuadFormDiagCPP, 3},
+    {"_statgenQTLxT_estEffsCPP", (DL_FUNC) &_statgenQTLxT_estEffsCPP, 9},
+    {"_statgenQTLxT_fastGLSIBDCPP", (DL_FUNC) &_statgenQTLxT_fastGLSIBDCPP, 6},
+    {"_statgenQTLxT_getThr", (DL_FUNC) &_statgenQTLxT_getThr, 1},
+    {"_statgenQTLxT_multiAllKin", (DL_FUNC) &_statgenQTLxT_multiAllKin, 3},
+    {"_statgenQTLxT_matrixRoot", (DL_FUNC) &_statgenQTLxT_matrixRoot, 1},
+    {"_statgenQTLxT_nearestPD", (DL_FUNC) &_statgenQTLxT_nearestPD, 10},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_statgenPipeline(DllInfo *dll) {
+RcppExport void R_init_statgenQTLxT(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

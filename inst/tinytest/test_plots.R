@@ -17,9 +17,9 @@ gDataTestIBD <- createGData(map = map, geno = XArr, kin = Sigma, pheno = pheno)
 ## Test matrix plot
 
 stgIBD <- runSingleTraitGwasIBD(gDataTestIBD, traits = "X1")
-p <- statgenPipeline:::plot.GWAS(stgIBD, plotType = "matrix")
+p <- statgenQTLxT:::plot.GWAS(stgIBD, plotType = "matrix")
 expect_true(inherits(p, "ggplot"))
-p1 <- statgenPipeline:::plot.GWAS(stgIBD, plotType = "matrix", xLab = "labx",
+p1 <- statgenQTLxT:::plot.GWAS(stgIBD, plotType = "matrix", xLab = "labx",
                                   yLab = "laby")
 expect_equal(p1$labels$x, "labx")
 expect_equal(p1$labels$y, "laby")

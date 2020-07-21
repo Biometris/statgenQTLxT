@@ -2,10 +2,10 @@ load(file = "testdata.rda")
 
 ## Test estimation of effects.
 
-effs0 <- statgenPipeline:::estEffsCPP(y = Y, w = W[, 1, drop = FALSE], x = X,
-                                      vg = Vg, ve = Ve, k = K)
-effs1 <- statgenPipeline:::estEffsCPP(y = Y, w = W[, 1, drop = FALSE], x = X,
-                                      vg = Vg, ve = Ve, k = K, estCom = TRUE)
+effs0 <- statgenQTLxT:::estEffsCPP(y = Y, w = W[, 1, drop = FALSE], x = X,
+                                   vg = Vg, ve = Ve, k = K)
+effs1 <- statgenQTLxT:::estEffsCPP(y = Y, w = W[, 1, drop = FALSE], x = X,
+                                   vg = Vg, ve = Ve, k = K, estCom = TRUE)
 
 # Check structure.
 
@@ -67,12 +67,12 @@ expect_equal(effs1[["pValsQtlE"]][1:10],
 
 # Check options returnSe.
 
-effs0a <- statgenPipeline:::estEffsCPP(y = Y, w = W[, 1, drop = FALSE], x = X,
-                                       vg = Vg, ve = Ve, k = K,
-                                       returnSe = FALSE)
-effs1a <- statgenPipeline:::estEffsCPP(y = Y, w = W[, 1, drop = FALSE], x = X,
-                                       vg = Vg, ve = Ve, k = K,
-                                       returnSe = FALSE, estCom = TRUE)
+effs0a <- statgenQTLxT:::estEffsCPP(y = Y, w = W[, 1, drop = FALSE], x = X,
+                                    vg = Vg, ve = Ve, k = K,
+                                    returnSe = FALSE)
+effs1a <- statgenQTLxT:::estEffsCPP(y = Y, w = W[, 1, drop = FALSE], x = X,
+                                    vg = Vg, ve = Ve, k = K,
+                                    returnSe = FALSE, estCom = TRUE)
 expect_true(all(effs0a[["effsSe"]] == 0))
 expect_true(all(effs0a[["pVals"]] == 0))
 expect_true(all(effs0a[["effsCom"]] == 0))
@@ -83,10 +83,10 @@ expect_equal(effs1a[c("effs", "effsCom")], effs1[c("effs", "effsCom")])
 
 # Add covariates.
 
-effs0c <- statgenPipeline:::estEffsCPP(y = Y, w = W, x = X, vg = Vg, ve = Ve,
-                                       k = K)
-effs1c <- statgenPipeline:::estEffsCPP(y = Y, w = W, x = X, vg = Vg, ve = Ve,
-                                       k = K, estCom = TRUE)
+effs0c <- statgenQTLxT:::estEffsCPP(y = Y, w = W, x = X, vg = Vg, ve = Ve,
+                                    k = K)
+effs1c <- statgenQTLxT:::estEffsCPP(y = Y, w = W, x = X, vg = Vg, ve = Ve,
+                                    k = K, estCom = TRUE)
 expect_equal(effs0c[c("effs", "effsSe", "pVals")],
              effs1c[c("effs", "effsSe", "pVals")])
 expect_equal(effs1c[["effs"]][1:10],

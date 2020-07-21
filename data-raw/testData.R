@@ -38,7 +38,7 @@ colnames(Y) <- paste0("t", 1:3)
 colnames(X) <- paste0("M", formatC(1:100, width = 3, flag = "0"))
 colnames(W) <- c("V1", "V2")
 
-covUnst <- statgenPipeline:::covUnstr(Y = Y, K = K)
+covUnst <- statgenQTLxT:::covUnstr(Y = Y, K = K)
 
 Vg <- covUnst[["Vg"]]
 Ve <- covUnst[["Ve"]]

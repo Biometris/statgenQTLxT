@@ -19,7 +19,7 @@ gDataTest <- createGData(geno = X, kin = Sigma, pheno = pheno,
 
 # Check structure.
 
-GLS0 <- statgenPipeline:::fastGLSIBD(y = y, X = X, Sigma = Sigma, ref = 1)
+GLS0 <- statgenQTLxT:::fastGLSIBD(y = y, X = X, Sigma = Sigma, ref = 1)
 
 expect_true(inherits(GLS0, "matrix"))
 expect_equal(dim(GLS0), c(3, 4))
@@ -36,15 +36,15 @@ expect_equal(as.numeric(GLS0),
 
 # Check that choice of ref allele doesn't change output.
 
-GLS1 <- statgenPipeline:::fastGLSIBD(y = y, X = X, Sigma = Sigma, ref = 2)
+GLS1 <- statgenQTLxT:::fastGLSIBD(y = y, X = X, Sigma = Sigma, ref = 2)
 
 expect_equal(GLS0[, "pValue"], GLS1[, "pValue"])
 expect_equal(GLS0[, "A2"], -GLS1[, "A1"])
 
 # Add covariates.
 
-GLS2 <- statgenPipeline:::fastGLSIBD(y = y, X = X, Sigma = Sigma,
-                                     covs = covs, ref = 1)
+GLS2 <- statgenQTLxT:::fastGLSIBD(y = y, X = X, Sigma = Sigma,
+                                  covs = covs, ref = 1)
 
 expect_equal(as.numeric(GLS2),
              c(0.537681841019699, 0.430915845432764, 0.188623090467351,
@@ -56,7 +56,7 @@ expect_equal(as.numeric(GLS2),
 
 X2 <- X
 X2[, , 1] <- 0
-expect_error(statgenPipeline:::fastGLSIBD(y = y, X = X2, Sigma = Sigma,
-                                          covs = covs, ref = 1),
+expect_error(statgenQTLxT:::fastGLSIBD(y = y, X = X2, Sigma = Sigma,
+                                       covs = covs, ref = 1),
              "Invalid reference allele")
 

@@ -15,7 +15,7 @@
 #' @keywords internal
 #'
 updateFAHomVar <- function(s, wNew, pNew, m, maxDiag = 1e4) {
-    invisible(.Call(`_statgenPipeline_updateFAHomVar`, s, wNew, pNew, m, maxDiag))
+    invisible(.Call(`_statgenQTLxT_updateFAHomVar`, s, wNew, pNew, m, maxDiag))
 }
 
 #' Update W and P in EMFA algorithm
@@ -37,7 +37,7 @@ updateFAHomVar <- function(s, wNew, pNew, m, maxDiag = 1e4) {
 #' @keywords internal
 #'
 updateFA <- function(y, wStart, pStart, wNew, pNew, m0, hetVar = FALSE, maxDiag = 1e4, tolerance = 1e-4, maxIter = 100L, printProgress = FALSE) {
-    invisible(.Call(`_statgenPipeline_updateFA`, y, wStart, pStart, wNew, pNew, m0, hetVar, maxDiag, tolerance, maxIter, printProgress))
+    invisible(.Call(`_statgenQTLxT_updateFA`, y, wStart, pStart, wNew, pNew, m0, hetVar, maxDiag, tolerance, maxIter, printProgress))
 }
 
 #' Helper function for updating precision matrix.
@@ -59,7 +59,7 @@ updateFA <- function(y, wStart, pStart, wNew, pNew, m0, hetVar = FALSE, maxDiag 
 #' @keywords internal
 #'
 updatePrec <- function(m, nc, omega, w, p, wNew, pNew, cNew, het, maxDiag) {
-    invisible(.Call(`_statgenPipeline_updatePrec`, m, nc, omega, w, p, wNew, pNew, cNew, het, maxDiag))
+    invisible(.Call(`_statgenQTLxT_updatePrec`, m, nc, omega, w, p, wNew, pNew, cNew, het, maxDiag))
 }
 
 #' Helper functions for the penalized EM algorithm
@@ -79,13 +79,13 @@ updatePrec <- function(m, nc, omega, w, p, wNew, pNew, cNew, het, maxDiag) {
 #' @keywords internal
 #'
 vecInvDiag <- function(x, y) {
-    .Call(`_statgenPipeline_vecInvDiag`, x, y)
+    .Call(`_statgenQTLxT_vecInvDiag`, x, y)
 }
 
 #' @rdname vecInvDiag
 #'
 tracePInvDiag <- function(x, y) {
-    .Call(`_statgenPipeline_tracePInvDiag`, x, y)
+    .Call(`_statgenQTLxT_tracePInvDiag`, x, y)
 }
 
 #' Factor analytic variation of EM algoritm
@@ -134,7 +134,7 @@ tracePInvDiag <- function(x, y) {
 #' @keywords internal
 #'
 EMFA <- function(y, k, size_param_x = NULL, cmHet = TRUE, dmHet = TRUE, tolerance = 1e-6, maxIter = 300L, size_param_cmStart = NULL, size_param_dmStart = NULL, mG = 1L, mE = 1L, maxDiag = 1e4, stopIfDecreasing = TRUE) {
-    .Call(`_statgenPipeline_EMFA`, y, k, size_param_x, cmHet, dmHet, tolerance, maxIter, size_param_cmStart, size_param_dmStart, mG, mE, maxDiag, stopIfDecreasing)
+    .Call(`_statgenQTLxT_EMFA`, y, k, size_param_x, cmHet, dmHet, tolerance, maxIter, size_param_cmStart, size_param_dmStart, mG, mE, maxDiag, stopIfDecreasing)
 }
 
 #' Compute tYPY as in Zhou and Stephens eqn. 50.
@@ -166,7 +166,7 @@ EMFA <- function(y, k, size_param_x = NULL, cmHet = TRUE, dmHet = TRUE, toleranc
 #'
 #' @keywords internal
 LLQuadFormDiagCPP <- function(y, vInv, size_param_x = NULL) {
-    .Call(`_statgenPipeline_LLQuadFormDiagCPP`, y, vInv, size_param_x)
+    .Call(`_statgenQTLxT_LLQuadFormDiagCPP`, y, vInv, size_param_x)
 }
 
 #' Estimates for covariates
@@ -199,19 +199,19 @@ LLQuadFormDiagCPP <- function(y, vInv, size_param_x = NULL) {
 #' February 2014, Vol. 11, p. 407–409
 #' @keywords internal
 estEffsCPP <- function(y, w, x, vg, ve, k, returnSe = TRUE, estCom = FALSE, nCores = NULL) {
-    .Call(`_statgenPipeline_estEffsCPP`, y, w, x, vg, ve, k, returnSe, estCom, nCores)
+    .Call(`_statgenQTLxT_estEffsCPP`, y, w, x, vg, ve, k, returnSe, estCom, nCores)
 }
 
 fastGLSIBDCPP <- function(mp, y, sigma, ref, size_param = NULL, nCores = NULL) {
-    .Call(`_statgenPipeline_fastGLSIBDCPP`, mp, y, sigma, ref, size_param, nCores)
+    .Call(`_statgenQTLxT_fastGLSIBDCPP`, mp, y, sigma, ref, size_param, nCores)
 }
 
 getThr <- function(nCores = NULL) {
-    .Call(`_statgenPipeline_getThr`, nCores)
+    .Call(`_statgenQTLxT_getThr`, nCores)
 }
 
 multiAllKin <- function(x, posCor, denom = NULL) {
-    .Call(`_statgenPipeline_multiAllKin`, x, posCor, denom)
+    .Call(`_statgenQTLxT_multiAllKin`, x, posCor, denom)
 }
 
 #' Compute square root of a symmetric, positive definite matrix
@@ -225,10 +225,10 @@ multiAllKin <- function(x, posCor, denom = NULL) {
 #'
 #' @keywords internal
 matrixRoot <- function(x) {
-    .Call(`_statgenPipeline_matrixRoot`, x)
+    .Call(`_statgenQTLxT_matrixRoot`, x)
 }
 
 nearestPD <- function(x, corr = FALSE, keepDiag = FALSE, do2eigen = TRUE, doSym = FALSE, doDykstra = TRUE, eigTol = 1e-6, convTol = 1e-7, posdTol = 1e-8, maxIter = 100L) {
-    .Call(`_statgenPipeline_nearestPD`, x, corr, keepDiag, do2eigen, doSym, doDykstra, eigTol, convTol, posdTol, maxIter)
+    .Call(`_statgenQTLxT_nearestPD`, x, corr, keepDiag, do2eigen, doSym, doDykstra, eigTol, convTol, posdTol, maxIter)
 }
 

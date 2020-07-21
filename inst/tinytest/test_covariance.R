@@ -4,7 +4,7 @@ load(file = "testdata.rda")
 
 ## Test unstructured covariance.
 
-covUnst <- statgenPipeline:::covUnstr(Y = Y, K = K)
+covUnst <- statgenQTLxT:::covUnstr(Y = Y, K = K)
 
 # Check structure.
 
@@ -27,7 +27,7 @@ expect_equal(as.numeric(covUnst[["Ve"]]),
 
 # Add covariates.
 
-covUnstCov <- statgenPipeline:::covUnstr(Y = Y, K = K, X = W)
+covUnstCov <- statgenQTLxT:::covUnstr(Y = Y, K = K, X = W)
 expect_equal(as.numeric(covUnstCov[["Vg"]]),
              c(0.196165320462335, 0.213742429599169, 0.0719881355611577,
                0.213742429599169, 0.503904252678917, 0.167546528651886,
@@ -39,12 +39,12 @@ expect_equal(as.numeric(covUnstCov[["Ve"]]),
 
 # Check option fixDiag.
 
-expect_warning(statgenPipeline:::covUnstr(Y = Y, K = K, fixDiag = TRUE),
+expect_warning(statgenQTLxT:::covUnstr(Y = Y, K = K, fixDiag = TRUE),
                "not implemented yet")
 
 # Check option veDiag.
 
-covUnstVeD <- statgenPipeline:::covUnstr(Y = Y, K = K, VeDiag = TRUE)
+covUnstVeD <- statgenQTLxT:::covUnstr(Y = Y, K = K, VeDiag = TRUE)
 expect_equal(as.numeric(covUnstVeD[["Vg"]]),
              c(0.218449152375622, 0.217596220872246, 0.117432384935249,
                0.217596220872246, 0.465832867214789, 0.23922669614095,
@@ -55,7 +55,7 @@ expect_equal(as.numeric(covUnstVeD[["Ve"]]),
 
 ## Test pariwise covariance.
 
-covPw <- statgenPipeline:::covPW(Y = Y, K = K)
+covPw <- statgenQTLxT:::covPW(Y = Y, K = K)
 
 # Check structure.
 
@@ -78,7 +78,7 @@ expect_equal(as.numeric(covPw[["Ve"]]),
 
 # Add covariates.
 
-covPwCov <- statgenPipeline:::covPW(Y = Y, K = K, X = W)
+covPwCov <- statgenQTLxT:::covPW(Y = Y, K = K, X = W)
 expect_equal(as.numeric(covPwCov[["Vg"]]),
              c(0.186173926875856, 0.20032684419104, 0.0795057155921952,
                0.20032684419104, 0.457805148681881, 0.127690509266447,
@@ -90,12 +90,12 @@ expect_equal(as.numeric(covPwCov[["Ve"]]),
 
 # Check option veDiag.
 
-expect_warning(statgenPipeline:::covPW(Y = Y, K = K, fixDiag = TRUE),
+expect_warning(statgenQTLxT:::covPW(Y = Y, K = K, fixDiag = TRUE),
                "not implemented yet")
 
 # Check option corMat.
 
-covPwCor <- statgenPipeline:::covPW(Y = Y, K = K, corMat = TRUE)
+covPwCor <- statgenQTLxT:::covPW(Y = Y, K = K, corMat = TRUE)
 expect_equal(as.numeric(covPwCor[["Vg"]]),
              c(1, -0.339741087256352, -0.632112286967153, -0.339741087256352, 1,
                -0.514031814619155, -0.632112286967153, -0.514031814619155, 1))

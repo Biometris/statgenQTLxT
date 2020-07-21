@@ -581,7 +581,7 @@ PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 PACKAGE_URL=
 
-ac_unique_file="statGenPipeline"
+ac_unique_file="statgenQTLxT"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 OPENMP_FLAG
