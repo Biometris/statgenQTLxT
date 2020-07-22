@@ -338,9 +338,9 @@ runMultiTraitGwas <- function(gData,
     ## Compute kinship matrix.
     K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
                     markers = markersRed, kinshipMethod = kinshipMethod)
+    Y <- Y[rownames(Y) %in% rownames(K), ]
     K <- K[rownames(K) %in% rownames(Y), colnames(K) %in% rownames(Y)]
     K <- K[rownames(Y), rownames(Y)]
-    Y <- Y[rownames(Y) %in% rownames(K), ]
     X <- X[rownames(X) %in% rownames(K), , drop = FALSE]
   } else if (GLSMethod == "multi") {
     ## Compute kinship matrices per chromosome. Only needs to be done once.
