@@ -391,14 +391,16 @@ runMultiTraitGwas <- function(gData,
           }, fixDiag = FALSE, corMat = FALSE, parallel = parallel)
         }
       } else if (covModel == "fa") {
+        maxDiag <- 1000 * max(abs(solve(var(Y))))
         ## FA models.
         ## Including snpCovariates.
         varComp <- EMFA(y = Y, k = K, size_param_x = X, maxIter = maxIter,
-                        mG = mG, mE = mE)
+                        mG = mG, mE = mE, maxDiag = maxDiag)
         if (!is.null(snpCov)) {
           ## Without snpCovariates.
           varCompRed <- EMFA(y = Y, k = K, size_param_x = XRed,
-                             maxIter = maxIter, mG = mG, mE = mE)
+                             maxIter = maxIter, mG = mG, mE = mE,
+                             maxDiag = maxDiag)
         }
       }
       Vg <- varComp$Vg
@@ -452,17 +454,18 @@ runMultiTraitGwas <- function(gData,
           }, simplify = FALSE)
         }
       } else if (covModel == "fa") {
+        maxDiag <- 1000 * max(abs(solve(var(Y))))
         ## FA models.
         ## Including snpCovariates.
         varComp <- sapply(X = chrs, FUN = function(chr) {
-          EMFA(y = Y, k = KChr[[which(chrs == chr)]],
-               size_param_x = X, maxIter = maxIter, mG = mG, mE = mE)
+          EMFA(y = Y, k = KChr[[which(chrs == chr)]], size_param_x = X,
+               maxIter = maxIter, mG = mG, mE = mE, maxDiag = maxDiag)
         }, simplify = FALSE)
         if (!is.null(snpCov)) {
           ## Without snpCovariates.
           varCompRed <- sapply(X = chrs, FUN = function(chr) {
-            EMFA(y = Y, k = KChr[[which(chrs == chr)]],
-                 size_param_x = XRed, maxIter = maxIter, mG = mG, mE = mE)
+            EMFA(y = Y, k = KChr[[which(chrs == chr)]], size_param_x = XRed,
+                 maxIter = maxIter, mG = mG, mE = mE, maxDiag = maxDiag)
           }, simplify = FALSE)
         }
       }
@@ -559,8 +562,6 @@ runMultiTraitGwas <- function(gData,
                               "pValQtlE")})
   ## Reorder columns.
   data.table::setcolorder(x = GWAResult, neworder = relCols)
-
-
   ## When thrType is bonferroni or small, determine the LOD threshold.
   if (thrType == "bonf") {
     ## Compute LOD threshold using Bonferroni correction.
@@ -569,9 +570,10 @@ runMultiTraitGwas <- function(gData,
     ## Compute LOD threshold by computing the 10log of the nSnpLOD item
     ## of ordered p values.
     LODThr <- sort(na.omit(GWAResult[["LOD"]]), decreasing = TRUE)[nSnpLOD]
+  } else if (thrType == "fdr") {
+    LODThr <- NA
   }
   ## Select the SNPs whose LOD-scores are above the threshold.
-
   maxScore <- max(markersRed)
   traits <- colnames(Y)
   LODThrTr <- setNames(rep(LODThr, length(traits)), traits)
@@ -593,8 +595,6 @@ runMultiTraitGwas <- function(gData,
     })
   }
   signSnp <- do.call(rbind, signSnpTr)
-
-
   ## Sort columns.
   data.table::setkeyv(x = GWAResult, cols = c("trait", "chr", "pos"))
   ## Collect info.
