@@ -84,8 +84,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // EMFA
-List EMFA(arma::mat y, arma::mat k, Rcpp::Nullable<Rcpp::NumericVector> size_param_x, bool cmHet, bool dmHet, double tolerance, unsigned int maxIter, Rcpp::Nullable<Rcpp::NumericVector> size_param_cmStart, Rcpp::Nullable<Rcpp::NumericVector> size_param_dmStart, unsigned int mG, unsigned int mE, double maxDiag, bool stopIfDecreasing);
-RcppExport SEXP _statgenQTLxT_EMFA(SEXP ySEXP, SEXP kSEXP, SEXP size_param_xSEXP, SEXP cmHetSEXP, SEXP dmHetSEXP, SEXP toleranceSEXP, SEXP maxIterSEXP, SEXP size_param_cmStartSEXP, SEXP size_param_dmStartSEXP, SEXP mGSEXP, SEXP mESEXP, SEXP maxDiagSEXP, SEXP stopIfDecreasingSEXP) {
+List EMFA(arma::mat y, arma::mat k, Rcpp::Nullable<Rcpp::NumericVector> size_param_x, bool cmHet, bool dmHet, double tolerance, unsigned int maxIter, Rcpp::Nullable<Rcpp::NumericVector> size_param_cmStart, Rcpp::Nullable<Rcpp::NumericVector> size_param_dmStart, unsigned int mG, unsigned int mE, double maxDiag, bool stopIfDecreasing, Rcpp::CharacterVector traits);
+RcppExport SEXP _statgenQTLxT_EMFA(SEXP ySEXP, SEXP kSEXP, SEXP size_param_xSEXP, SEXP cmHetSEXP, SEXP dmHetSEXP, SEXP toleranceSEXP, SEXP maxIterSEXP, SEXP size_param_cmStartSEXP, SEXP size_param_dmStartSEXP, SEXP mGSEXP, SEXP mESEXP, SEXP maxDiagSEXP, SEXP stopIfDecreasingSEXP, SEXP traitsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -102,7 +102,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< unsigned int >::type mE(mESEXP);
     Rcpp::traits::input_parameter< double >::type maxDiag(maxDiagSEXP);
     Rcpp::traits::input_parameter< bool >::type stopIfDecreasing(stopIfDecreasingSEXP);
-    rcpp_result_gen = Rcpp::wrap(EMFA(y, k, size_param_x, cmHet, dmHet, tolerance, maxIter, size_param_cmStart, size_param_dmStart, mG, mE, maxDiag, stopIfDecreasing));
+    Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type traits(traitsSEXP);
+    rcpp_result_gen = Rcpp::wrap(EMFA(y, k, size_param_x, cmHet, dmHet, tolerance, maxIter, size_param_cmStart, size_param_dmStart, mG, mE, maxDiag, stopIfDecreasing, traits));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -189,7 +190,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_statgenQTLxT_updatePrec", (DL_FUNC) &_statgenQTLxT_updatePrec, 10},
     {"_statgenQTLxT_vecInvDiag", (DL_FUNC) &_statgenQTLxT_vecInvDiag, 2},
     {"_statgenQTLxT_tracePInvDiag", (DL_FUNC) &_statgenQTLxT_tracePInvDiag, 2},
-    {"_statgenQTLxT_EMFA", (DL_FUNC) &_statgenQTLxT_EMFA, 13},
+    {"_statgenQTLxT_EMFA", (DL_FUNC) &_statgenQTLxT_EMFA, 14},
     {"_statgenQTLxT_LLQuadFormDiagCPP", (DL_FUNC) &_statgenQTLxT_LLQuadFormDiagCPP, 3},
     {"_statgenQTLxT_estEffsCPP", (DL_FUNC) &_statgenQTLxT_estEffsCPP, 9},
     {"_statgenQTLxT_getThr", (DL_FUNC) &_statgenQTLxT_getThr, 1},

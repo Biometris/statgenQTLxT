@@ -133,8 +133,8 @@ tracePInvDiag <- function(x, y) {
 #'
 #' @keywords internal
 #'
-EMFA <- function(y, k, size_param_x = NULL, cmHet = TRUE, dmHet = TRUE, tolerance = 1e-6, maxIter = 300L, size_param_cmStart = NULL, size_param_dmStart = NULL, mG = 1L, mE = 1L, maxDiag = 1e4, stopIfDecreasing = TRUE) {
-    .Call(`_statgenQTLxT_EMFA`, y, k, size_param_x, cmHet, dmHet, tolerance, maxIter, size_param_cmStart, size_param_dmStart, mG, mE, maxDiag, stopIfDecreasing)
+EMFA <- function(y, k, size_param_x = NULL, cmHet = TRUE, dmHet = TRUE, tolerance = 1e-6, maxIter = 300L, size_param_cmStart = NULL, size_param_dmStart = NULL, mG = 1L, mE = 1L, maxDiag = 1e4, stopIfDecreasing = TRUE, traits = "") {
+    .Call(`_statgenQTLxT_EMFA`, y, k, size_param_x, cmHet, dmHet, tolerance, maxIter, size_param_cmStart, size_param_dmStart, mG, mE, maxDiag, stopIfDecreasing, traits)
 }
 
 #' Compute tYPY as in Zhou and Stephens eqn. 50.

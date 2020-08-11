@@ -326,6 +326,8 @@ runMultiTraitGwas <- function(gData,
     } else {
       XRed <- X[, 1:(ncol(X) - length(snpCov)), drop = FALSE]
     }
+  } else {
+    XRed <- NULL
   }
   ## Construct Y from pheno data in gData.
   Y <- phTr[, !colnames(phTr) %in% covTr]
@@ -334,172 +336,42 @@ runMultiTraitGwas <- function(gData,
   if (anyNA(Y)) {
     stop("Phenotypic data cannot contain any missing values.\n")
   }
+  ## Compute kinship matrix (GSLMethod single)
+  ## or kinship matrices per chromosome (GLSMethod multi).
+  K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
+                  markers = gData$markers, map = gData$map,
+                  kinshipMethod = kinshipMethod)
   if (GLSMethod == "single") {
-    ## Compute kinship matrix.
-    K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
-                    markers = markersRed, kinshipMethod = kinshipMethod)
     Y <- Y[rownames(Y) %in% rownames(K), ]
     K <- K[rownames(K) %in% rownames(Y), colnames(K) %in% rownames(Y)]
     K <- K[rownames(Y), rownames(Y)]
     X <- X[rownames(X) %in% rownames(K), , drop = FALSE]
   } else if (GLSMethod == "multi") {
-    ## Compute kinship matrices per chromosome. Only needs to be done once.
     chrs <- unique(mapRed$chr[rownames(mapRed) %in% colnames(markersRed)])
-    KChr <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
-                       markers = markersRed, map = mapRed,
-                       kinshipMethod = kinshipMethod)
-    KChr <- lapply(X = KChr, FUN = function(k) {
+    K <- lapply(X = K, FUN = function(k) {
       k <- k[rownames(k) %in% rownames(Y), colnames(k) %in% rownames(Y)]
       k[rownames(Y), rownames(Y)]
     })
-    Y <- Y[rownames(Y) %in% rownames(KChr[[1]]), ]
-    X <- X[rownames(X) %in% rownames(KChr[[1]]), , drop = FALSE]
+    Y <- Y[rownames(Y) %in% rownames(K[[1]]), ]
+    X <- X[rownames(X) %in% rownames(K[[1]]), , drop = FALSE]
   }
   ## fit variance components.
   if (fitVarComp) {
-    if (GLSMethod == "single") {
-      if (covModel == "unst") {
-        ## Unstructured models.
-        ## Sommer always adds an intercept so remove it from X.
-        varComp <- covUnstr(Y = Y, K = K, X = if (ncol(X) == 1) {
-          NULL
-        } else {
-          X[, -1, drop = FALSE]
-        }, fixDiag = FALSE, VeDiag = VeDiag)
-        if (!is.null(snpCov)) {
-          ## Sommer always adds an intercept so remove it from XRed.
-          varCompRed <- covUnstr(Y = Y, K = K, X = if (ncol(XRed) == 1) {
-            NULL
-          } else {
-            XRed[, -1, drop = FALSE]
-          }, fixDiag = FALSE, VeDiag = VeDiag)
-        }
-      } else if (covModel == "pw") {
-        ## Unstructured (pairwise) models.
-        ## Sommer always adds an intercept so remove it from X.
-        varComp <- covPW(Y = Y, K = K, X = if (ncol(X) == 1) {
-          NULL
-        } else {
-          X[, -1, drop = FALSE]
-        }, fixDiag = FALSE, corMat = FALSE, parallel = parallel)
-        if (!is.null(snpCov)) {
-          ## Sommer always adds an intercept so remove it from XRed.
-          varCompRed <- covPW(Y = Y, K = K, X = if (ncol(XRed) == 1) {
-            NULL
-          } else {
-            XRed[, -1, drop = FALSE]
-          }, fixDiag = FALSE, corMat = FALSE, parallel = parallel)
-        }
-      } else if (covModel == "fa") {
-        maxDiag <- 1000 * max(abs(solve(var(Y))))
-        ## FA models.
-        ## Including snpCovariates.
-        varComp <- EMFA(y = Y, k = K, size_param_x = X, maxIter = maxIter,
-                        mG = mG, mE = mE, maxDiag = maxDiag)
-        if (!is.null(snpCov)) {
-          ## Without snpCovariates.
-          varCompRed <- EMFA(y = Y, k = K, size_param_x = XRed,
-                             maxIter = maxIter, mG = mG, mE = mE,
-                             maxDiag = maxDiag)
-        }
-      }
-      Vg <- varComp$Vg
-      Ve <- varComp$Ve
-      rownames(Vg) <- colnames(Vg) <- rownames(Ve) <- colnames(Ve) <-
-        colnames(Y)
-      if (!is.null(snpCov)) {
-        VgRed <- varCompRed$Vg
-        VeRed <- varCompRed$Ve
-        rownames(VgRed) <- colnames(VgRed) <- rownames(VeRed) <-
-          colnames(VeRed) <- colnames(Y)
-      }
-    } else if (GLSMethod == "multi") {
-      if (covModel == "unst") {
-        ## Unstructured models.
-        ## Sommer always adds an intercept so remove it from X.
-        varComp <- sapply(X = chrs, FUN = function(chr) {
-          covUnstr(Y = Y, K = KChr[[which(chrs == chr)]],
-                   X = if (ncol(X) == 1) NULL else X[, -1, drop = FALSE],
-                   fixDiag = FALSE, VeDiag = VeDiag)
-        }, simplify = FALSE)
-        if (!is.null(snpCov)) {
-          ## Sommer always adds an intercept so remove it from XRed.
-          varCompRed <- sapply(X = chrs, FUN = function(chr) {
-            covUnstr(Y = Y, K = KChr[[which(chrs == chr)]],
-                     X = if (ncol(XRed) == 1) NULL else
-                       XRed[, -1, drop = FALSE], fixDiag = FALSE,
-                     VeDiag = VeDiag)
-          }, simplify = FALSE)
-        }
-      } else if (covModel == "pw") {
-        ## Unstructured (pairwise) models.
-        ## Sommer always adds an intercept so remove it from X.
-        varComp <- sapply(X = chrs, FUN = function(chr) {
-          covPW(Y = Y, K = KChr[[which(chrs == chr)]],
-                X = if (ncol(X) == 1) {
-                  NULL
-                } else {
-                  X[, -1, drop = FALSE]
-                }, fixDiag = FALSE, corMat = FALSE, parallel = parallel)
-        }, simplify = FALSE)
-        if (!is.null(snpCov)) {
-          ## Sommer always adds an intercept so remove it from XRed.
-          varCompRed <- sapply(X = chrs, FUN = function(chr) {
-            covPW(Y = Y, K = KChr[[which(chrs == chr)]],
-                  X = if (ncol(XRed) == 1) {
-                    NULL
-                  } else {
-                    XRed[, -1, drop = FALSE]
-                  }, fixDiag = FALSE, corMat = FALSE, parallel = parallel)
-          }, simplify = FALSE)
-        }
-      } else if (covModel == "fa") {
-        maxDiag <- 1000 * max(abs(solve(var(Y))))
-        ## FA models.
-        ## Including snpCovariates.
-        varComp <- sapply(X = chrs, FUN = function(chr) {
-          EMFA(y = Y, k = KChr[[which(chrs == chr)]], size_param_x = X,
-               maxIter = maxIter, mG = mG, mE = mE, maxDiag = maxDiag)
-        }, simplify = FALSE)
-        if (!is.null(snpCov)) {
-          ## Without snpCovariates.
-          varCompRed <- sapply(X = chrs, FUN = function(chr) {
-            EMFA(y = Y, k = KChr[[which(chrs == chr)]], size_param_x = XRed,
-                 maxIter = maxIter, mG = mG, mE = mE, maxDiag = maxDiag)
-          }, simplify = FALSE)
-        }
-      }
-      Vg <- setNames(lapply(X = varComp, FUN = function(Vc) {
-        Vg0 <- Vc[[1]]
-        rownames(Vg0) <- colnames(Vg0) <- colnames(X)
-        return(Vg0)
-      }), paste("chr", chrs))
-      Ve <- setNames(lapply(X = varComp, FUN = function(Vc) {
-        Ve0 <- Vc[[2]]
-        rownames(Ve0) <- colnames(Ve0) <- colnames(X)
-        return(Ve0)
-      }), paste("chr", chrs))
-      if (!is.null(snpCov)) {
-        VgRed <- setNames(lapply(X = varCompRed, FUN = function(Vc) {
-          Vg0 <- Vc[[1]]
-          rownames(Vg0) <- colnames(Vg0) <- colnames(XRed)
-          return(Vg0)
-        }), paste("chr", chrs))
-        VeRed <- setNames(lapply(X = varCompRed, FUN = function(Vc) {
-          Ve0 <- Vc[[2]]
-          rownames(Ve0) <- colnames(Ve0) <- colnames(XRed)
-          return(Ve0)
-        }), paste("chr", chrs))
-      }
-    } #end GLSMethod multi
-  } #end varComp
+    estVarCompRes <- estVarComp(GLSMethod = GLSMethod, covModel = covModel,
+                               Y = Y, K = K, X = X, VeDiag = VeDiag,
+                               snpCov = snpCov, XRed = XRed,
+                               parallel = parallel, maxIter = maxIter, mG = mG,
+                               mE = mE, chrs = chrs)
+    list2env(estVarCompRes, envir = environment())
+  }
   allFreq <- colMeans(markersRed[rownames(Y), rownames(mapRed)]) /
     max(markersRed)
   markersRed <- markersRed[rownames(Y), ]
   ## Run GWAS.
   if (GLSMethod == "single") {
     estEffRes <- estEffTot(markers = markersRed, X = X, Y = Y, K = K,
-                           XRed = XRed, Vg = Vg, Ve = Ve, snpCov = snpCov,
+                           XRed = XRed, Vg = Vg, Ve = Ve, VgRed = VgRed,
+                           VeRed = VeRed, snpCov = snpCov,
                            allFreq = allFreq, MAF = MAF, estCom = estCom,
                            nCores = nCores)
     list2env(estEffRes, envir = environment())
@@ -516,8 +388,9 @@ runMultiTraitGwas <- function(gData,
       snpCovChr <- snpCov[snpCov %in% colnames(markersRedChr)]
       chrNum <- which(chrs == chr)
       estEffRes <- estEffTot(markers = markersRedChr, X = X, Y = Y,
-                             K = KChr[[chrNum]], XRed = XRed, Vg = Vg[[chrNum]],
-                             Ve = Ve[[chrNum]], snpCov = snpCovChr,
+                             K = K[[chrNum]], XRed = XRed, Vg = Vg[[chrNum]],
+                             Ve = Ve[[chrNum]], VgRed = VgRed[[chrNum]],
+                             VeRed = VeRed[[chrNum]], snpCov = snpCovChr,
                              allFreq = allFreqChr, MAF = MAF, estCom = estCom,
                              nCores = nCores)
       pValues <- c(pValues, estEffRes$pValues)
@@ -606,11 +479,7 @@ runMultiTraitGwas <- function(gData,
                    varComp = list(Vg = Vg, Ve = Ve))
   return(createGWAS(GWAResult = setNames(list(GWAResult), trials),
                     signSnp = setNames(list(signSnp), trials),
-                    kin = if (GLSMethod == "single") {
-                      K
-                    } else {
-                      KChr
-                    },
+                    kin = K,
                     thr = setNames(rep(list(LODThrTr),
                                        length(trials)), trials),
                     GWASInfo = GWASInfo))

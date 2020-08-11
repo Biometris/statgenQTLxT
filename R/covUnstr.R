@@ -211,6 +211,8 @@ covPW <- function(Y,
   ## Make positive definite.
   VgMat <- nearestPD(VgMat, corr = corMat)
   VeMat <- nearestPD(VeMat, corr = corMat)
+  colnames(VgMat) <- rownames(VgMat) <- traits
+  colnames(VeMat) <- rownames(VeMat) <- traits
   return(list(Vg = VgMat, Ve = VeMat))
 }
 

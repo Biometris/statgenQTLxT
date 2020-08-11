@@ -3,9 +3,6 @@
 createGWAS <- getFromNamespace(x = "createGWAS", ns = "statgenGWAS")
 
 #' @keywords internal
-estVarComp <- getFromNamespace(x = "estVarComp", ns = "statgenGWAS")
-
-#' @keywords internal
 expandPheno <- getFromNamespace(x = "expandPheno", ns = "statgenGWAS")
 
 #' @keywords internal

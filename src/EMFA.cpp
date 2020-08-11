@@ -330,7 +330,8 @@ List EMFA(arma::mat y,
           unsigned int mG = 1,
           unsigned int mE = 1,
           double maxDiag = 1e4,
-          bool stopIfDecreasing = true) {
+          bool stopIfDecreasing = true,
+          Rcpp::CharacterVector traits = "") {
   arma::mat x;
   if (size_param_x.isNotNull()) {
     x = Rcpp::as<arma::mat>(size_param_x);
@@ -445,8 +446,11 @@ List EMFA(arma::mat y,
       break;
     }
   }
-  return List::create(_["Vg"] = inv_sympd(cm),
-                      _["Ve"] = inv_sympd(dm));
+  Rcpp::NumericMatrix VgMat = wrap(inv_sympd(cm));
+  Rcpp::NumericMatrix VeMat = wrap(inv_sympd(dm));
+  VgMat.attr("dimnames") = List::create(traits, traits);
+  VeMat.attr("dimnames") = List::create(traits, traits);
+  return List::create(_["Vg"] = VgMat, _["Ve"] = VeMat);
 }
 
 
