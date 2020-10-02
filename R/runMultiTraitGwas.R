@@ -358,10 +358,10 @@ runMultiTraitGwas <- function(gData,
   ## fit variance components.
   if (fitVarComp) {
     estVarCompRes <- estVarComp(GLSMethod = GLSMethod, covModel = covModel,
-                               Y = Y, K = K, X = X, VeDiag = VeDiag,
-                               snpCov = snpCov, XRed = XRed,
-                               parallel = parallel, maxIter = maxIter, mG = mG,
-                               mE = mE, chrs = chrs)
+                                Y = Y, K = K, X = X, VeDiag = VeDiag,
+                                snpCov = snpCov, XRed = XRed,
+                                parallel = parallel, maxIter = maxIter, mG = mG,
+                                mE = mE, chrs = chrs)
     list2env(estVarCompRes, envir = environment())
   }
   allFreq <- colMeans(markersRed[rownames(Y), rownames(mapRed)]) /

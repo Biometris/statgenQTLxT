@@ -17,7 +17,8 @@ EMFA(
   mG = 1L,
   mE = 1L,
   maxDiag = 10000,
-  stopIfDecreasing = TRUE
+  stopIfDecreasing = TRUE,
+  traits = ""
 )
 }
 \arguments{

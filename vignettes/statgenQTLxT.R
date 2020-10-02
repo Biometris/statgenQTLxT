@@ -1,30 +1,30 @@
-## ----setup, include = FALSE-----------------------------------------------------------------------
+## ----setup, include = FALSE---------------------------------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.dim = c(7, 4)
 )
 library(statgenQTLxT)
-options(width = 100, digits = 2)
+options(width = 110, digits = 2)
 
-## ----loadData-------------------------------------------------------------------------------------
+## ----loadData-----------------------------------------------------------------------------------------------
 library(statgenGWAS)
 data(dropsMarkers)
 data(dropsMap)
 data(dropsPheno)
 
-## ----convertMarkers, echo=FALSE-------------------------------------------------------------------
+## ----convertMarkers, echo=FALSE-----------------------------------------------------------------------------
 ## Add genotypes as row names of dropsMarkers and drop Ind column.
 rownames(dropsMarkers) <- dropsMarkers[["Ind"]]
 dropsMarkers <- dropsMarkers[colnames(dropsMarkers) != "Ind"]
 
-## ----convertMap, echo=FALSE-----------------------------------------------------------------------
+## ----convertMap, echo=FALSE---------------------------------------------------------------------------------
 ## Add genotypes as row names of dropsMap.
 rownames(dropsMap) <- dropsMap[["SNP.names"]]
 ## Rename Chomosome and Position columns.
 colnames(dropsMap)[match(c("Chromosome", "Position"), colnames(dropsMap))] <- c("chr", "pos")
 
-## ----addPheno-------------------------------------------------------------------------------------
+## ----addPheno-----------------------------------------------------------------------------------------------
 ## Convert phenotypic data to a list.
 dropsPhenoList <- split(x = dropsPheno, f = dropsPheno[["Experiment"]])
 ## Rename Variety_ID to genotype and select relevant columns.
@@ -35,52 +35,52 @@ dropsPhenoList <- lapply(X = dropsPhenoList, FUN = function(trial) {
   return(trial)
 })
 
-## ----createGdata----------------------------------------------------------------------------------
+## ----createGdata--------------------------------------------------------------------------------------------
 ## Create a gData object containing map, marker and phenotypic information.
 gDataDrops <- createGData(geno = dropsMarkers,
                           map = dropsMap, 
                           pheno = dropsPhenoList)
 
-## ----sumGData-------------------------------------------------------------------------------------
+## ----sumGData-----------------------------------------------------------------------------------------------
 ## Summarize gDataDrops.
 summary(gDataDrops, trials = "Mur13W")
 
-## ----removeDupMarkers-----------------------------------------------------------------------------
+## ----removeDupMarkers---------------------------------------------------------------------------------------
 ## Remove duplicate SNPs from gDataDrops.
 gDataDropsDedup <- codeMarkers(gDataDrops, impute = FALSE, verbose = TRUE) 
 
-## ----mtg------------------------------------------------------------------------------------------
+## ----mtg----------------------------------------------------------------------------------------------------
 ## Run multi-trait GWAS for 5 traits in trial Mur13W.
 GWASDrops <- runMultiTraitGwas(gData = gDataDropsDedup, 
                                traits = c("grain.yield","grain.number",
-                                          "anthesis","silking" ,"plant.height"),
+                                          "anthesis", "silking" ,"plant.height"),
                                trials = "Mur13W", 
                                covModel = "fa")
 
-## ----gwaRes---------------------------------------------------------------------------------------
+## ----gwaRes-------------------------------------------------------------------------------------------------
 head(GWASDrops$GWAResult$Mur13W)
 
-## ----signSnp, eval = FALSE------------------------------------------------------------------------
+## ----signSnp, eval = FALSE----------------------------------------------------------------------------------
 #  GWASDrops$signSnp$Mur13W
 
-## ----sumMtg---------------------------------------------------------------------------------------
+## ----sumMtg-------------------------------------------------------------------------------------------------
 ## Create summary of GWASDrops for the trait grain number.
 summary(GWASDrops, traits = "grain.number")
 
-## ----qqMtg----------------------------------------------------------------------------------------
+## ----qqMtg--------------------------------------------------------------------------------------------------
 ## Plot a qq plot of GWAS Drops.
 plot(GWASDrops, plotType = "qq")
 
-## ----manhattanMtg---------------------------------------------------------------------------------
+## ----manhattanMtg-------------------------------------------------------------------------------------------
 ## Plot a manhattan plot of GWAS Drops.
 plot(GWASDrops, plotType = "manhattan")
 
-## ----qtlMtgNorm-----------------------------------------------------------------------------------
+## ----qtlMtgNorm---------------------------------------------------------------------------------------------
 ## Plot a qtl plot of GWAS Drops for Mur13W.
 ## Set significance threshold to 5 and normalize effect estimates.
 plot(GWASDrops, plotType = "qtl", yThr = 5, normalize = TRUE)
 
-## ----mtgChrSpec, eval = FALSE---------------------------------------------------------------------
+## ----mtgChrSpec, eval = FALSE-------------------------------------------------------------------------------
 #  ## Run multi-trait GWAS for trial 'Mur13W'.
 #  ## Use chromosome specific kinship matrices computed using method of van Raden.
 #  GWASDropsChrSpec <- runMultiTraitGwas(gData = gDataDropsDedup,
@@ -89,7 +89,7 @@ plot(GWASDrops, plotType = "qtl", yThr = 5, normalize = TRUE)
 #                                        kinshipMethod = "vanRaden",
 #                                        covModel = "fa")
 
-## ----addPhenoxE-----------------------------------------------------------------------------------
+## ----addPhenoxE---------------------------------------------------------------------------------------------
 ## Reshape phenotypic data to data.frame in wide format containing only grain yield.
 PhenoDat <- reshape(dropsPheno[,c("Experiment","Variety_ID","grain.yield")], 
                     timevar = "Experiment", 
@@ -98,52 +98,54 @@ PhenoDat <- reshape(dropsPheno[,c("Experiment","Variety_ID","grain.yield")],
                     v.names = "grain.yield")
 ## Rename Variety_ID to genotype and other columns with the trial name only.
 names(PhenoDat)[1] <- "genotype"
-names(PhenoDat)[2:ncol(PhenoDat)] <-  gsub("grain.yield.","",
+names(PhenoDat)[2:ncol(PhenoDat)] <-  gsub("grain.yield.", "",
                                            names(PhenoDat)[2:ncol(PhenoDat)] )
 
-## ----createGdataxE--------------------------------------------------------------------------------
+## ----createGdataxE------------------------------------------------------------------------------------------
 ## Create a gData object containing map, marker and phenotypic information.
 gDataDropsxE <- createGData(geno = dropsMarkers,
                             map = dropsMap, 
                             pheno = PhenoDat)
 summary(gDataDropsxE)
 
-## ----removeDupMarkersxE---------------------------------------------------------------------------
+## ----removeDupMarkersxE-------------------------------------------------------------------------------------
 ## Remove duplicate SNPs from gDataDrops.
 gDataDropsDedupxE <- codeMarkers(gDataDropsxE, impute = FALSE, verbose = TRUE) 
 
-## ----mtgxE----------------------------------------------------------------------------------------
+## ----mtgxE--------------------------------------------------------------------------------------------------
 ## Run multi-trait GWAS for one trait in all trials.
 GWASDropsxE <- runMultiTraitGwas(gData = gDataDropsDedupxE, 
                                  covModel = "fa")
 
-## ----gwaResxE-------------------------------------------------------------------------------------
+## ----gwaResxE-----------------------------------------------------------------------------------------------
 head(GWASDropsxE$GWAResult$PhenoDat)
 
-## ----signSnpxE------------------------------------------------------------------------------------
+## ----signSnpxE----------------------------------------------------------------------------------------------
 head(GWASDropsxE$signSnp$PhenoDat, row.names = FALSE)
 
-## ----sumMtgxE-------------------------------------------------------------------------------------
+## ----sumMtgxE-----------------------------------------------------------------------------------------------
 summary(GWASDropsxE, traits = c("Ner12W","Cam12W","Gra13R"))
 
-## ----qqMtgxE--------------------------------------------------------------------------------------
+## ----qqMtgxE------------------------------------------------------------------------------------------------
 plot(GWASDropsxE, plotType = "qq")
 
-## ----manhattanMtgxE-------------------------------------------------------------------------------
+## ----manhattanMtgxE-----------------------------------------------------------------------------------------
 plot(GWASDropsxE, plotType = "manhattan")
 
-## ----qtlMtgNormxE---------------------------------------------------------------------------------
+## ----qtlMtgNormxE-------------------------------------------------------------------------------------------
 ## Set significance threshold to 6 and do not normalize effect estimates.
 plot(GWASDropsxE, plotType = "qtl", yThr = 6, normalize = FALSE)
 
-## ----mtgSNPFixThr, eval = FALSE-------------------------------------------------------------------
+## ----mtgSNPFixThr, eval = FALSE-----------------------------------------------------------------------------
 #  ## Run multi-trait GWAS for Mur13W.
 #  ## Use a fixed significance threshold of 4.
 #  GWASDropsFixThr <- runMultiTraitGwas(gData = gDataDropsDedup,
 #                                       trials = "Mur13W",
-#                                       covModel = "fa")
+#                                       covModel = "fa",
+#                                       thrType = "fixed",
+#                                       LODThr = 4)
 
-## ----mtgSNPNR, eval = FALSE-----------------------------------------------------------------------
+## ----mtgSNPNR, eval = FALSE---------------------------------------------------------------------------------
 #  ## Run multi-trait GWAS for for Mur13W.
 #  ## Use a factor analytic model for computing the variance components.
 #  GWASDropsFA <- runMultiTraitGwas(gData = gDataDropsDedup,
@@ -158,7 +160,7 @@ plot(GWASDropsxE, plotType = "qtl", yThr = 6, normalize = FALSE)
 #                                    Vg = GWASDropsFA$GWASInfo$varComp$Vg,
 #                                    Ve = GWASDropsFA$GWASInfo$varComp$Ve)
 
-## ----mtgSNPCovar, eval = FALSE--------------------------------------------------------------------
+## ----mtgSNPCovar, eval = FALSE------------------------------------------------------------------------------
 #  ## Run multi-trait GWAS for Mur13W.
 #  ## Use PZE-106021410, the most significant SNP, a SNP covariate.
 #  GWASDropsSnpCov <- runMultiTraitGwas(gData = gDataDropsDedup,
@@ -166,7 +168,7 @@ plot(GWASDropsxE, plotType = "qtl", yThr = 6, normalize = FALSE)
 #                                       snpCov = "PZE-106021410",
 #                                       covModel = "fa")
 
-## ----mtgMAF, eval = FALSE-------------------------------------------------------------------------
+## ----mtgMAF, eval = FALSE-----------------------------------------------------------------------------------
 #  ## Run multi-trait GWAS for Mur13W.
 #  ## Only include SNPs that have a MAF of 0.05 or higher.
 #  GWASDropsMAF <- runMultiTraitGwas(gData = gDataDropsDedup,
@@ -174,7 +176,7 @@ plot(GWASDropsxE, plotType = "qtl", yThr = 6, normalize = FALSE)
 #                                    covModel = "fa",
 #                                    MAF = 0.05)
 
-## ----mtgCommon, eval = FALSE----------------------------------------------------------------------
+## ----mtgCommon, eval = FALSE--------------------------------------------------------------------------------
 #  ## Run multi-trait GWAS for Mur13W.
 #  ## Fit an additional common sNP effect model.
 #  GWASDropsCommon <- runMultiTraitGwas(gData = gDataDropsDedup,

@@ -20,10 +20,10 @@ knitr::opts_chunk$set(
   fig.dim = c(7, 4)
 )
 library(statgenQTLxT)
-options(width = 100, digits = 2)
+options(width = 110, digits = 2)
 ```
 
-The statgenQTLxT package has been designed for performing multi-trait Genome Wide Association Studies (GWAS). It builds on the statgenGWAS package (for single trait GWAS) which is available from CRAN (https://cran.r-project.org/web/packages/statgenGWAS/index.html). The package uses data structures and plots defined in the stagenGWAS package. It is recommended to read the vignette of this package, accessible in R via `vignette(package = "statgenGWAS")` to get a general idea of those.
+The statgenQTLxT package has been designed for performing multi-trait Genome Wide Association Studies (GWAS). It builds on the statgenGWAS package (for single trait GWAS) which is available from CRAN (https://cran.r-project.org/web/packages/statgenGWAS/index.html). The package uses data structures and plots defined in the statgenGWAS package. It is recommended to read the vignette of this package, accessible in R via `vignette("Introduction to the statgenGWAS package", package = "statgenGWAS")` to get a general idea of those.
 
 ----
 
@@ -46,10 +46,6 @@ For more details see the statgenGWAS package.
 # Multi-Trait GWAS
 
 ## Theoretical background
-
-*Not sure we need more than the application here.*
-
-## Application in the package
 
 Multi-trait GWAS in the statgenQTLxT package estimates the effect of a SNP in different trials or on different traits, one SNP at a time. Genetic and residual covariances are fitted only once, for a model without SNPs. Following the diagonalization scheme of [@Zhou2014], the following model is fit
 
@@ -81,11 +77,11 @@ data(dropsMarkers)
 data(dropsMap)
 data(dropsPheno)
 ```
-dropsMarkers contains the coded marker information for 41,722 SNPs and 246 genotypes. dropsMap contains information about the positions of those SNPs on the B73 reference genome V2. dropsPheno contains data for the genotypic means (Best Linear Unbiased Estimators, BLUEs), with one value per experiment per genotype, for eight traits. For a more detailed description of the contents of the data see ```help(createGData, package = statgenGWAS)```.
+dropsMarkers contains the coded marker information for 41,722 SNPs and 246 genotypes. dropsMap contains information about the positions of those SNPs on the B73 reference genome V2. dropsPheno contains data for the genotypic means (Best Linear Unbiased Estimators, BLUEs), with one value per experiment per genotype, for eight traits. For a more detailed description of the contents of the data see ```help(dropsData, package = statgenGWAS)```.
 
 ## **Create gData object**
 
-The next step is to create a **gData** object from the raw data that can be used for the GWAS analysis. For this the raw data has to be converted to a suitable format for a **gData** object, see ```help(dropsData, package = statgenGWAS)``` and the statgenGWAS vignette for more details.
+The next step is to create a **gData** object from the raw data that can be used for the GWAS analysis. For this the raw data has to be converted to a suitable format for a **gData** object, see ```help(createGData, package = statgenGWAS)``` and the statgenGWAS vignette for more details.
 
 ```{r convertMarkers, echo=FALSE}
 ## Add genotypes as row names of dropsMarkers and drop Ind column.
@@ -118,7 +114,7 @@ For using one trait in multiple trials (environments), the **gData** object shou
 | G3 | 0.5 | 0.8 | 0.2 |
 | G4 | 0.7 | 0.5 | 0.4 |
 
-In this example, we will use several traits measured in one environment. ´dropsPheno´ contains genotypic means for 28 trials. To be able to run a GWAS analysis per trial the data has to be added as a list of 28 data.frames. These data.frames should have "genotype" as their first column and may only contain traits after that. Other columns need to be dropped.    
+In this example, we will use several traits measured in one environment. `dropsPheno` contains genotypic means for 28 trials. To be able to run a GWAS analysis per trial the data has to be added as a list of 28 data.frames. These data.frames should have "genotype" as their first column and may only contain traits after that. Other columns need to be dropped.    
 
 ```{r addPheno}
 ## Convert phenotypic data to a list.
@@ -168,7 +164,7 @@ The cleaned gData object can be used for performing multi-trait GWAS analysis. I
 ## Run multi-trait GWAS for 5 traits in trial Mur13W.
 GWASDrops <- runMultiTraitGwas(gData = gDataDropsDedup, 
                                traits = c("grain.yield","grain.number",
-                                          "anthesis","silking" ,"plant.height"),
+                                          "anthesis", "silking" ,"plant.height"),
                                trials = "Mur13W", 
                                covModel = "fa")
 ```
@@ -283,7 +279,7 @@ PhenoDat <- reshape(dropsPheno[,c("Experiment","Variety_ID","grain.yield")],
                     v.names = "grain.yield")
 ## Rename Variety_ID to genotype and other columns with the trial name only.
 names(PhenoDat)[1] <- "genotype"
-names(PhenoDat)[2:ncol(PhenoDat)] <-  gsub("grain.yield.","",
+names(PhenoDat)[2:ncol(PhenoDat)] <-  gsub("grain.yield.", "",
                                            names(PhenoDat)[2:ncol(PhenoDat)] )
 ```
 
@@ -371,8 +367,16 @@ The threshold for selecting significant SNPs in a GWAS analysis is computed by d
 ## Use a fixed significance threshold of 4.
 GWASDropsFixThr <- runMultiTraitGwas(gData = gDataDropsDedup,
                                      trials = "Mur13W", 
-                                     covModel = "fa")
+                                     covModel = "fa",
+                                     thrType = "fixed",
+                                     LODThr = 4)
 ```
+
+**Controlling false discovery rate**
+
+A final option for selecting significant SNPs is by setting `thrType = "fdr"`. When doing so the significant SNPs won't be selected by computing a genome wide threshold, but by trying to control the rate of false discoveries as in @Brzyski2016.    
+
+First, a list is defined containing all SNPs with a p-Value below `pThr`. Then clusters of SNPs are created using a two step iterative process in which SNPs with the lowest p-values are selected as cluster representatives. This SNP and all SNPs that have a correlation with this SNP of $\rho$ or higher (specified by the function parameter `rho`) will form a cluster. The selected SNPs are removed from the list and the procedure is repeated until no SNPs are left. At the end of this step, one has a list of clusters, with corresponding vector of p-values of the cluster representatives.  Finally, to determine the number of significant clusters, the first cluster is determined for which the p-value of the cluster representative is larger than $cluster_{number} * \alpha / m$, where $m$ is the number of SNPs and $\alpha$ can be specified by the corresponding function parameter. All previous clusters are selected as significant.
 
 ## Variance components
 
@@ -427,7 +431,7 @@ GWASDropsMAF <- runMultiTraitGwas(gData = gDataDropsDedup,
 
 ## Estimation of common SNP effects and QTL×E effects.
 
-Besides a normal SNP-effect model, it is possible to fit a common SNP-effect model as well (see [**2.2.1**](#common)). When doing so, in addition to the SNP-effect, also the common SNP-effect and the QTL×E effect and corresponding standard errors and P-values are returned. These are included as extra columns in the GWAResult data.table in the function output.
+Besides a normal SNP-effect model, it is possible to fit a common SNP-effect model as well (see [**2.1.1**](#common)). When doing so, in addition to the SNP-effect, also the common SNP-effect and the QTL×E effect and corresponding standard errors and P-values are returned. These are included as extra columns in the GWAResult data.table in the output of the function.
 ```{r mtgCommon, eval = FALSE}
 ## Run multi-trait GWAS for Mur13W.
 ## Fit an additional common sNP effect model.
