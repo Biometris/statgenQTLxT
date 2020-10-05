@@ -305,6 +305,8 @@ runMultiTraitGwas <- function(gData,
     Vg <- Vg[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
     Ve <- Ve[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
     colnames(Vg) <- rownames(Vg) <- colnames(Ve) <- rownames(Ve) <- NULL
+    VgRed <- Vg
+    VeRed <- Ve
   }
   markers <- gData$markers
   map <- gData$map

@@ -1,5 +1,5 @@
 ## Helper function for estimating effect.
-## Function is a wrapper around estEffsCPP, usefull for usage in chromosome
+## Function is a wrapper around estEffsCPP, useful for usage in chromosome
 ## specific calculations.
 #' @keywords internal
 estEffTot <- function(markers,
