@@ -446,7 +446,7 @@ runMultiTraitGwas <- function(gData,
     ## of ordered p values.
     LODThr <- sort(na.omit(GWAResult[["LOD"]]), decreasing = TRUE)[nSnpLOD]
   } else if (thrType == "fdr") {
-    LODThr <- NA
+    LODThr <- NA_real_
   }
   ## Select the SNPs whose LOD-scores are above the threshold.
   maxScore <- max(markersRed)
@@ -470,6 +470,10 @@ runMultiTraitGwas <- function(gData,
     })
   }
   signSnp <- do.call(rbind, signSnpTr)
+  ## No significant SNPs should return NULL instead of data.table().
+  if (nrow(signSnp) == 0) {
+    signSnp <- NULL
+  }
   ## Sort columns.
   data.table::setkeyv(x = GWAResult, cols = c("trait", "chr", "pos"))
   ## Collect info.
