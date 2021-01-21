@@ -177,10 +177,12 @@ runMultiTraitGwas <- function(gData,
                               covar = NULL,
                               snpCov = NULL,
                               kin = NULL,
-                              kinshipMethod = c("astle", "IBS", "vanRaden"),
+                              kinshipMethod = c("astle", "IBS", "vanRaden",
+                                                "identity"),
                               GLSMethod = c("single", "multi"),
                               estCom = FALSE,
                               MAF = 0.01,
+                              genomicControl = FALSE,
                               fitVarComp = TRUE,
                               covModel = c("unst", "pw", "fa"),
                               VeDiag = TRUE,
@@ -321,7 +323,7 @@ runMultiTraitGwas <- function(gData,
   ## Convert pheno and covariates to format suitable for fitting var components.
   X <- cbind(rep(1, nrow(phTr)), as.matrix(phTr[covTr]))
   rownames(X) <- phTr$genotype
-  ## Add snpCovariates to X
+  ## Add snpCovariates to X.
   if (!is.null(snpCov)) {
     if (ncol(X) == length(snpCov)) {
       XRed <- matrix(nrow = nrow(X), ncol = 0, dimnames = list(rownames(X)))
@@ -340,9 +342,20 @@ runMultiTraitGwas <- function(gData,
   }
   ## Compute kinship matrix (GSLMethod single)
   ## or kinship matrices per chromosome (GLSMethod multi).
-  K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gData,
-                  markers = gData$markers, map = gData$map,
-                  kinshipMethod = kinshipMethod)
+  if (kinshipMethod == "identity") {
+    K <- diag(x = 1, nrow = nrow(Y), ncol = nrow(Y))
+    rownames(K) <- colnames(K) <- rownames(Y)
+  } else {
+    markersRest <- gData$markers[, !grepl(pattern = "EXT",
+                                          x = colnames(gData$markers))]
+    mapRest <- gData$map[!grepl(pattern = "EXT", rownames(gData$map)), ]
+    gDataRest <- gData
+    gDataRest$markers <- markersRest
+    gDataRest$map <- mapRest
+    K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gDataRest,
+                    markers = markersRest, map = mapRest,
+                    kinshipMethod = kinshipMethod)
+  }
   if (GLSMethod == "single") {
     Y <- Y[rownames(Y) %in% rownames(K), ]
     K <- K[rownames(K) %in% rownames(Y), colnames(K) %in% rownames(Y)]
@@ -423,6 +436,15 @@ runMultiTraitGwas <- function(gData,
   GWAResult <- merge(GWAResult,
                      data.table::data.table(snp = names(pValues),
                                             pValue = pValues, key = "snp"))
+
+  ## Calculate the genomic inflation factor.
+  GC <- statgenGWAS:::genCtrlPVals(pVals = GWAResult[["pValue"]][1:(nrow(GWAResult) / length(traits))],
+                                   nObs = nrow(GWAResult) / length(traits), nCov = length(covTr))
+  inflationFactor <- GC$inflation
+  ## Rescale p-values.
+  if (genomicControl) {
+    GWAResult[, "pValue" := rep(GC$pValues, length(traits))]
+  }
   GWAResult[, "LOD" := -log10(GWAResult[["pValue"]])]
   if (estCom) {
     ## Bind common effects, SE, and pvalues together.
@@ -482,7 +504,9 @@ runMultiTraitGwas <- function(gData,
                    thrType = thrType,
                    GLSMethod = GLSMethod,
                    covModel = covModel,
-                   varComp = list(Vg = Vg, Ve = Ve))
+                   varComp = list(Vg = Vg, Ve = Ve),
+                   genomicControl = genomicControl,
+                   inflationFactor = inflationFactor)
   return(createGWAS(GWAResult = setNames(list(GWAResult), trials),
                     signSnp = setNames(list(signSnp), trials),
                     kin = K,

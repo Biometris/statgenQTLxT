@@ -100,8 +100,16 @@ estVarComp <- function(GLSMethod,
       }
     }
   }
-  return(list(Vg = varComp$Vg, Ve = varComp$Ve, VgRed = varCompRed$Vg,
-              VeRed = varCompRed$Ve))
+  if (GLSMethod == "single") {
+    res <- list(Vg = varComp$Vg, Ve = varComp$Ve, VgRed = varCompRed$Vg,
+                VeRed = varCompRed$Ve)
+  } else if (GLSMethod == "multi") {
+    res <- list(Vg = lapply(X = varComp, FUN = `[[`, "Vg"),
+                Ve = lapply(X = varComp, FUN = `[[`, "Ve"),
+                VgRed = lapply(X = varCompRed, FUN = `[[`, "Vg"),
+                VeRed = lapply(X = varCompRed, FUN = `[[`, "Ve"))
+  }
+  return(res)
 }
 
 #' Select markers to be excluded from GWAS scan.

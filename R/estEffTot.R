@@ -22,10 +22,19 @@ estEffTot <- function(markers,
                            exclMarkers(snpCov = snpCov, markers = markers,
                                        allFreq = allFreq))
   if (!is.null(snpCov)) {
-    effEstSnpCov <- estEffsCPP(y = Y, w = XRed,
-                               x = as.matrix(markers[, snpCov, drop = FALSE]),
-                               vg = VgRed, ve = VeRed, k = as.matrix(K),
-                               estCom = estCom, nCores = nCores)
+    effEstSnpCovs <- lapply(X = snpCov, FUN = function(snp) {
+      estEffsCPP(y = Y, w = X[, -which(colnames(X) == snp)],
+                 x = as.matrix(markers[, snp, drop = FALSE]),
+                 vg = VgRed, ve = VeRed, k = as.matrix(K),
+                 estCom = estCom, nCores = nCores)
+    })
+    effEstSnpCov <- list(effs = do.call(cbind, lapply(X = effEstSnpCovs, `[[`, "effs")),
+                         effsSe = do.call(cbind, lapply(X = effEstSnpCovs, `[[`, "effsSe")),
+                         pVals = sapply(X = effEstSnpCovs, `[[`, "pVals"),
+                         effsCom = sapply(X = effEstSnpCovs, `[[`, "effsCom"),
+                         effsComSe = sapply(X = effEstSnpCovs, `[[`, "effsComSe"),
+                         pValsCom = sapply(X = effEstSnpCovs, `[[`, "pValsCom"),
+                         pValsQtlE = sapply(X = effEstSnpCovs, `[[`, "pValsQtlE"))
   } else {
     ## Set to NULL so binding can be done in next step.
     effEstSnpCov <- NULL
