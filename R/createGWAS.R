@@ -99,7 +99,7 @@
 #' \code{"Parents"}}
 #' }
 #'
-#' @param x An object of class \code{GWAS}.
+#' @param x An object of class \code{SIM}.
 #' @param ... further arguments to be passed on to the actual plotting
 #' functions.
 #' @param plotType A character string indicating the type of plot to be made.
@@ -124,7 +124,7 @@
 #' doi:10.1038/ng.2314.
 #'
 #' @export
-plot.GWAS <- function(x,
+plot.SIM <- function(x,
                       ...,
                       plotType = c("manhattan", "qq", "qtl", "matrix"),
                       trial = NULL,
@@ -140,7 +140,8 @@ plot.GWAS <- function(x,
   }
   if (plotType %in% c("manhattan", "qq", "qtl")) {
     statgenGWAS:::plot.GWAS(x = x, ... = ..., plotType = plotType,
-                            trial = trial, trait = trait, output = output)
+                            trial = trial, trait = trait, type = "lines",
+                            output = output)
   } else {
     dotArgs <- list(...)
     ## Checks.
