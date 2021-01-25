@@ -386,9 +386,8 @@ runMultiTraitGwas <- function(gData,
   if (GLSMethod == "single") {
     estEffRes <- estEffTot(markers = markersRed, X = X, Y = Y, K = K,
                            XRed = XRed, Vg = Vg, Ve = Ve, VgRed = VgRed,
-                           VeRed = VeRed, snpCov = snpCov,
-                           allFreq = allFreq, MAF = MAF, estCom = estCom,
-                           nCores = nCores)
+                           VeRed = VeRed, snpCov = snpCov, allFreq = allFreq,
+                           MAF = MAF, estCom = estCom, nCores = nCores)
     list2env(estEffRes, envir = environment())
   } else if (GLSMethod == "multi") {
     pValues <- pValCom <- pValQtlE <- numeric()
@@ -402,12 +401,14 @@ runMultiTraitGwas <- function(gData,
       allFreqChr <- colMeans(markersRedChr) / max(markersRedChr)
       snpCovChr <- snpCov[snpCov %in% colnames(markersRedChr)]
       chrNum <- which(chrs == chr)
-      estEffRes <- estEffTot(markers = markersRedChr, X = X, Y = Y,
-                             K = K[[chrNum]], XRed = XRed, Vg = Vg[[chrNum]],
-                             Ve = Ve[[chrNum]], VgRed = VgRed[[chrNum]],
-                             VeRed = VeRed[[chrNum]], snpCov = snpCovChr,
-                             allFreq = allFreqChr, MAF = MAF, estCom = estCom,
-                             nCores = nCores)
+      # XChr <- X[, !colnames(X) %in% colnames(markersRedChr), drop = FALSE]
+      XChr <- X
+      estEffRes <- estEffTot(markers = markersRedChr,
+                             X = XChr, Y = Y, K = K[[chrNum]], XRed = XRed,
+                             Vg = Vg[[chrNum]], Ve = Ve[[chrNum]],
+                             VgRed = VgRed[[chrNum]], VeRed = VeRed[[chrNum]],
+                             snpCov = snpCovChr, allFreq = allFreqChr,
+                             MAF = MAF, estCom = estCom, nCores = nCores)
       pValues <- c(pValues, estEffRes$pValues)
       effs <- cbind(effs, estEffRes$effs)
       effsSe <- cbind(effsSe, estEffRes$effsSe)
@@ -436,22 +437,22 @@ runMultiTraitGwas <- function(gData,
   GWAResult <- merge(GWAResult,
                      data.table::data.table(snp = names(pValues),
                                             pValue = pValues, key = "snp"))
-
-  ## Calculate the genomic inflation factor.
-  GC <- statgenGWAS:::genCtrlPVals(pVals = GWAResult[["pValue"]][1:(nrow(GWAResult) / length(traits))],
-                                   nObs = nrow(GWAResult) / length(traits), nCov = length(covTr))
-  inflationFactor <- GC$inflation
-  ## Rescale p-values.
-  if (genomicControl) {
-    GWAResult[, "pValue" := rep(GC$pValues, length(traits))]
-  }
-  GWAResult[, "LOD" := -log10(GWAResult[["pValue"]])]
   if (estCom) {
     ## Bind common effects, SE, and pvalues together.
     comDat <- data.table::data.table(snp = names(pValCom), pValCom, effsCom,
                                      effsComSe, pValQtlE)
     GWAResult <- merge(GWAResult, comDat)
   }
+  ## Calculate the genomic inflation factor.
+  GC <- statgenGWAS:::genCtrlPVals(pVals = GWAResult[trait == traits[1]][["pValue"]],
+                                   nObs = nrow(GWAResult) / length(traits),
+                                   nCov = length(covTr))
+  inflationFactor <- GC$inflation
+  ## Rescale p-values.
+  if (genomicControl) {
+    GWAResult[, "pValue" := rep(x = GC$pValues, each = length(traits))]
+  }
+  GWAResult[, "LOD" := -log10(GWAResult[["pValue"]])]
   ## Select relevant columns.
   relCols <- c("snp", "trait", "chr", "pos", "pValue", "LOD", "effect",
                "effectSe", "allFreq",

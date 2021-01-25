@@ -216,7 +216,8 @@ SIM <- function(gData,
   ## Now run multi-trait GWAS.
   resGWAS <- runMultiTraitGwas(
     gData = gData, trials = trials, traits = traits, covar = covar,
-    kin = K, estCom = estCom, MAF = MAF, fitVarComp = fitVarComp,
+    kin = K, estCom = estCom, MAF = MAF, genomicControl = genomicControl,
+    fitVarComp = fitVarComp,
     covModel = covModel, VeDiag = VeDiag, maxIter = maxIter, mG = mG, mE = mE,
     Vg = Vg, Ve = Ve, thrType = thrType, alpha = alpha, LODThr = LODThr,
     nSnpLOD = nSnpLOD, pThr = pThr, rho = rho, sizeInclRegion = sizeInclRegion,

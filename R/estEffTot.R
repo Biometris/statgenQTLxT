@@ -21,7 +21,7 @@ estEffTot <- function(markers,
   excludedMarkers <- union(c(segMarkers, ncol(markers) + 1),
                            exclMarkers(snpCov = snpCov, markers = markers,
                                        allFreq = allFreq))
-  if (!is.null(snpCov)) {
+  if (length(snpCov) > 0) {
     effEstSnpCovs <- lapply(X = snpCov, FUN = function(snp) {
       estEffsCPP(y = Y, w = X[, -which(colnames(X) == snp)],
                  x = as.matrix(markers[, snp, drop = FALSE]),

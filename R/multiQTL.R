@@ -170,14 +170,39 @@
 #'
 #' @export
 multiQTL <- function(SIM,
-                     gData) {
+                     gData,
+                     kinshipMethod = c("astle", "IBS", "vanRaden", "identity")) {
   ## Checks.
   chkGData(gData)
   chkMarkers(gData$markers)
+  kinshipMethod <- match.arg(kinshipMethod)
   peaks <- SIM$peaks
-  K <- SIM$kinship
+
+
+  # K <- rep(list(SIM$kinship), nChr)
+
+
+  ## Kinship needs to be computed on observed markers.
+  markersRest <- gData$markers[, !grepl(pattern = "EXT",
+                                        x = colnames(gData$markers))]
+  mapRest <- gData$map[!grepl(pattern = "EXT", rownames(gData$map)), ]
+  ## Kinship computation requires markers on a 0-2 scale.
+  markersRest <- markersRest + 1
+  gDataRest <- gData
+  gDataRest$markers <- markersRest
+  gDataRest$map <- mapRest
+  ## Compute kinship matrix (GSLMethod single)
+  ## or kinship matrices per chromosome (GLSMethod multi).
+  K <- computeKin(GLSMethod = "multi", gData = gDataRest,
+                  markers = markersRest, map = mapRest,
+                  kinshipMethod = kinshipMethod)
+
+
+
+
   trials <- names(SIM$GWAResult)
   traits <- unique(SIM$GWAResult[[trials]][["trait"]])
+  nChr <- length(unique(SIM$GWAResult[[trials]][["chr"]]))
   covModel <- SIM$GWASInfo$covModel
   MAF <- SIM$GWASInfo$MAF
   thrType <- SIM$GWASInfo$thrType
@@ -186,9 +211,9 @@ multiQTL <- function(SIM,
   ## Now run multi-trait GWAS.
   resGWAS <- runMultiTraitGwas(
     gData = gData, trials = trials, traits = traits,
-    snpCov = unique(peaks[["snp"]]), kin = K, GLSMethod = "single",
-    fitVarComp = TRUE, covModel = covModel, VeDiag = VeDiag,
-    thrType = thrType)
+    snpCov = unique(peaks[["snp"]]), kin = K,
+    GLSMethod = "multi", fitVarComp = TRUE, covModel = covModel,
+    VeDiag = VeDiag, thrType = thrType)
   ## Get the peaks found.
   peaks <- getPeaks(resGWAS)
   res <- resGWAS
