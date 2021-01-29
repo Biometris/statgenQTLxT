@@ -10,6 +10,7 @@ runMultiTraitGwas(
   traits = NULL,
   covar = NULL,
   snpCov = NULL,
+  minCofactorProximity = 50,
   kin = NULL,
   kinshipMethod = c("astle", "IBS", "vanRaden", "identity"),
   GLSMethod = c("single", "multi"),

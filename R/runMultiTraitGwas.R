@@ -176,6 +176,7 @@ runMultiTraitGwas <- function(gData,
                               traits = NULL,
                               covar = NULL,
                               snpCov = NULL,
+                              minCofactorProximity = 50,
                               kin = NULL,
                               kinshipMethod = c("astle", "IBS", "vanRaden",
                                                 "identity"),
@@ -384,10 +385,11 @@ runMultiTraitGwas <- function(gData,
   markersRed <- markersRed[rownames(Y), ]
   ## Run GWAS.
   if (GLSMethod == "single") {
-    estEffRes <- estEffTot(markers = markersRed, X = X, Y = Y, K = K,
-                           XRed = XRed, Vg = Vg, Ve = Ve, VgRed = VgRed,
-                           VeRed = VeRed, snpCov = snpCov, allFreq = allFreq,
-                           MAF = MAF, estCom = estCom, nCores = nCores)
+    estEffRes <- estEffTot(markers = markersRed, map = mapRed,
+                           X = X, Y = Y, K = K, XRed = XRed, Vg = Vg, Ve = Ve,
+                           VgRed = VgRed, VeRed = VeRed, snpCov = snpCov,
+                           allFreq = allFreq, MAF = MAF, estCom = estCom,
+                           nCores = nCores)
     list2env(estEffRes, envir = environment())
   } else if (GLSMethod == "multi") {
     pValues <- pValCom <- pValQtlE <- numeric()
@@ -401,10 +403,9 @@ runMultiTraitGwas <- function(gData,
       allFreqChr <- colMeans(markersRedChr) / max(markersRedChr)
       snpCovChr <- snpCov[snpCov %in% colnames(markersRedChr)]
       chrNum <- which(chrs == chr)
-      # XChr <- X[, !colnames(X) %in% colnames(markersRedChr), drop = FALSE]
-      XChr <- X
-      estEffRes <- estEffTot(markers = markersRedChr,
-                             X = XChr, Y = Y, K = K[[chrNum]], XRed = XRed,
+      estEffRes <- estEffTot(markers = markersRedChr, map = mapRedChr,
+                             minCofactorProximity = minCofactorProximity,
+                             X = X, Y = Y, K = K[[chrNum]], XRed = XRed,
                              Vg = Vg[[chrNum]], Ve = Ve[[chrNum]],
                              VgRed = VgRed[[chrNum]], VeRed = VeRed[[chrNum]],
                              snpCov = snpCovChr, allFreq = allFreqChr,
@@ -478,8 +479,8 @@ runMultiTraitGwas <- function(gData,
   if (thrType == "fdr") {
     signSnpTr <- lapply(X = traits, FUN = function(tr) {
       extrSignSnpsFDR(GWAResult = GWAResult[GWAResult[["trait"]] == tr],
-                      markers = markersRed,
-                      maxScore = maxScore, pheno = phTr[, tr, drop = FALSE],
+                      markers = markersRed + 1,
+                      maxScore = maxScore + 1, pheno = phTr[, tr, drop = FALSE],
                       trait = tr, rho = rho, pThr = pThr,
                       alpha = alpha)
     })

@@ -197,6 +197,7 @@ SIM <- function(gData,
   ## Checks.
   chkGData(gData)
   chkMarkers(gData$markers)
+  thrType <- match.arg(thrType)
   kinshipMethod <- match.arg(kinshipMethod)
   ## SIM is essentially a standard multi-trait GWAS.
   ## Kinship needs to be computed on observed markers.

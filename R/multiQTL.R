@@ -171,17 +171,13 @@
 #' @export
 multiQTL <- function(SIM,
                      gData,
+                     minCofactorProximity = 50,
                      kinshipMethod = c("astle", "IBS", "vanRaden", "identity")) {
   ## Checks.
   chkGData(gData)
   chkMarkers(gData$markers)
   kinshipMethod <- match.arg(kinshipMethod)
   peaks <- SIM$peaks
-
-
-  # K <- rep(list(SIM$kinship), nChr)
-
-
   ## Kinship needs to be computed on observed markers.
   markersRest <- gData$markers[, !grepl(pattern = "EXT",
                                         x = colnames(gData$markers))]
@@ -196,10 +192,6 @@ multiQTL <- function(SIM,
   K <- computeKin(GLSMethod = "multi", gData = gDataRest,
                   markers = markersRest, map = mapRest,
                   kinshipMethod = kinshipMethod)
-
-
-
-
   trials <- names(SIM$GWAResult)
   traits <- unique(SIM$GWAResult[[trials]][["trait"]])
   nChr <- length(unique(SIM$GWAResult[[trials]][["chr"]]))
@@ -211,6 +203,7 @@ multiQTL <- function(SIM,
   ## Now run multi-trait GWAS.
   resGWAS <- runMultiTraitGwas(
     gData = gData, trials = trials, traits = traits,
+    minCofactorProximity = minCofactorProximity,
     snpCov = unique(peaks[["snp"]]), kin = K,
     GLSMethod = "multi", fitVarComp = TRUE, covModel = covModel,
     VeDiag = VeDiag, thrType = thrType)

@@ -4,7 +4,12 @@
 \alias{multiQTL}
 \title{Perform multi-trait GWAS}
 \usage{
-multiQTL(SIM, gData, kinshipMethod = c("astle", "IBS", "vanRaden", "identity"))
+multiQTL(
+  SIM,
+  gData,
+  minCofactorProximity = 50,
+  kinshipMethod = c("astle", "IBS", "vanRaden", "identity")
+)
 }
 \arguments{
 \item{gData}{An object of class \code{gData} containing at least \code{map},
