@@ -199,19 +199,32 @@ multiQTL <- function(SIM,
   MAF <- SIM$GWASInfo$MAF
   thrType <- SIM$GWASInfo$thrType
   Ve <- SIM$GWASInfo$varComp$Ve
+  Vg <- SIM$GWASInfo$varComp$Vg
+  VeLst <- rep(list(Ve), times = nChr)
+  VgLst <- rep(list(Vg), times = nChr)
   VeDiag <- all(upper.tri(Ve, diag = FALSE) == 0)
   ## Now run multi-trait GWAS.
   resGWAS <- runMultiTraitGwas(
     gData = gData, trials = trials, traits = traits,
     minCofactorProximity = minCofactorProximity,
     snpCov = unique(peaks[["snp"]]), kin = K,
-    GLSMethod = "multi", fitVarComp = TRUE, covModel = covModel,
+    GLSMethod = "multi",
+    fitVarComp = FALSE, Ve = VeLst, Vg = VgLst,
+    #fitVarComp = TRUE, covModel = covModel,
     VeDiag = VeDiag, thrType = thrType)
+  ## Add parent info to result.
+  par1 <- attr(gData, which = "parents")[1]
+  par2 <- attr(gData, which = "parents")[2]
+  resGWAS$GWAResult[[1]][["highValueAllele"]] <-
+    ifelse(resGWAS$GWAResult[[1]][["effect"]] > 0, par1, par2)
+  resGWAS$signSnp[[1]][["highValueAllele"]] <-
+    ifelse(resGWAS$signSnp[[1]][["effect"]] > 0, par1, par2)
   ## Get the peaks found.
   peaks <- getPeaks(resGWAS)
   res <- resGWAS
   res$peaks <- resGWAS$signSnp[[1]][snp %in% peaks, ]
   class(res) <- c("multiQTL", class(res))
+  attr(res, which = "parents") <- attr(gData, which = "parents")
   return(res)
 }
 

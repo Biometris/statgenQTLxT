@@ -223,11 +223,19 @@ SIM <- function(gData,
     Vg = Vg, Ve = Ve, thrType = thrType, alpha = alpha, LODThr = LODThr,
     nSnpLOD = nSnpLOD, pThr = pThr, rho = rho, sizeInclRegion = sizeInclRegion,
     minR2 = minR2, parallel = parallel, nCores = nCores)
+  ## Add parent info to result.
+  par1 <- attr(gData, which = "parents")[1]
+  par2 <- attr(gData, which = "parents")[2]
+  resGWAS$GWAResult[[1]][["highValueAllele"]] <-
+    ifelse(resGWAS$GWAResult[[1]][["effect"]] > 0, par1, par2)
+  resGWAS$signSnp[[1]][["highValueAllele"]] <-
+    ifelse(resGWAS$signSnp[[1]][["effect"]] > 0, par1, par2)
   ## Get the peaks found.
   peaks <- getPeaks(resGWAS)
   res <- resGWAS
   res$peaks <- resGWAS$signSnp[[1]][snp %in% peaks, ]
   class(res) <- c("SIM", class(res))
+  attr(res, which = "parents") <- attr(gData, which = "parents")
   return(res)
 }
 
