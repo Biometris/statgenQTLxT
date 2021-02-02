@@ -1,20 +1,9 @@
-installIfNeeded <- function(pkg,
-                            quiet) {
-  pkgPath <- find.package(pkg, quiet = quiet)
-  if (length(pkgPath) == 0) {
-    message("NOTE: pkg ", pkg, " missing, installing...")
-    install.packages(pkg, quiet = FALSE)
-  } else {
-    update.packages(pkg, ask = FALSE)
-  }
-}
-
 pkgsUpdate <- function(quiet = TRUE,
                        instPkgdown = FALSE) {
-  installIfNeeded(pkg = "remotes", quiet = quiet)
-  if (instPkgdown) {
-    installIfNeeded(pkg = "pkgdown", quiet = quiet)
-  }
+  rver <- paste0(R.version$major, ".", R.version$minor)
+  instld <- as.data.frame(installed.packages())
+  upd <- rownames(instld[instld$Built != rver, ])
+  install.packages(upd, quiet = FALSE)
   remotes::install_deps(dependencies = TRUE, quiet = quiet)
   cat("INSTALLED:\n")
   instld <- as.data.frame(installed.packages())
@@ -22,6 +11,3 @@ pkgsUpdate <- function(quiet = TRUE,
   print(instld[, c("Package", "Version")])
   return(invisible(TRUE))
 }
-
-
-

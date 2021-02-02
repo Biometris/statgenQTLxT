@@ -198,6 +198,7 @@ multiQTL <- function(SIM,
   covModel <- SIM$GWASInfo$covModel
   MAF <- SIM$GWASInfo$MAF
   thrType <- SIM$GWASInfo$thrType
+  thr <- SIM$thr[[1]][1]
   Ve <- SIM$GWASInfo$varComp$Ve
   Vg <- SIM$GWASInfo$varComp$Vg
   VeLst <- rep(list(Ve), times = nChr)
@@ -209,9 +210,9 @@ multiQTL <- function(SIM,
     minCofactorProximity = minCofactorProximity,
     snpCov = unique(peaks[["snp"]]), kin = K,
     GLSMethod = "multi",
-    fitVarComp = FALSE, Ve = VeLst, Vg = VgLst,
-    #fitVarComp = TRUE, covModel = covModel,
-    VeDiag = VeDiag, thrType = thrType)
+    #fitVarComp = FALSE, Ve = VeLst, Vg = VgLst,
+    fitVarComp = TRUE, covModel = covModel,
+    VeDiag = VeDiag, thrType = thrType, LODThr = thr)
   ## Add parent info to result.
   par1 <- attr(gData, which = "parents")[1]
   par2 <- attr(gData, which = "parents")[2]
@@ -223,6 +224,8 @@ multiQTL <- function(SIM,
   peaks <- getPeaks(resGWAS)
   res <- resGWAS
   res$peaks <- resGWAS$signSnp[[1]][snp %in% peaks, ]
+  res$signSnp[[1]][!snp %in% peaks, "snpStatus"] <-
+    "within LD of significant SNP"
   class(res) <- c("multiQTL", class(res))
   attr(res, which = "parents") <- attr(gData, which = "parents")
   return(res)

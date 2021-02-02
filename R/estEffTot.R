@@ -33,7 +33,8 @@ estEffTot <- function(markers,
     effEstSnps <- lapply(X = colnames(markers), FUN = function(snp) {
       snpPos <- which(colnames(markers) == snp)
       snpCovSnp <- snpCov[snpRanges[snpPos, ]]
-      effEstSnp <- estEffsCPP(y = Y, w = X[, !colnames(X) %in% snpCovSnp],
+      effEstSnp <- estEffsCPP(y = Y,
+                              w = X[, !colnames(X) %in% snpCovSnp, drop = FALSE],
                               x = as.matrix(markers[, snp, drop = FALSE]),
                               vg = Vg, ve = Ve, k = K, estCom = estCom,
                               nCores = nCores)

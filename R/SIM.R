@@ -234,18 +234,34 @@ SIM <- function(gData,
   peaks <- getPeaks(resGWAS)
   res <- resGWAS
   res$peaks <- resGWAS$signSnp[[1]][snp %in% peaks, ]
+  res$signSnp[[1]][!snp %in% peaks, "snpStatus"] <-
+    "within LD of significant SNP"
   class(res) <- c("SIM", class(res))
   attr(res, which = "parents") <- attr(gData, which = "parents")
   return(res)
 }
 
-getPeaks <- function(GWAS) {
+getPeaks <- function(GWAS,
+                     minPeakDist = 50) {
   thrType <- GWAS$GWASInfo$thrType
   if (thrType == "fdr") {
     sigSnps <- GWAS$signSnp[[1]][["snpStatus"]] == "significant SNP"
     peaks <- unique(GWAS$signSnp[[1]][sigSnps, snp])
   } else {
+    sigSnps <- GWAS$signSnp[[1]][["snpStatus"]] == "significant SNP" &
+      GWAS$signSnp[[1]][["trait"]] == GWAS$signSnp[[1]][["trait"]][1]
     peaks <- NULL
+    if (sum(sigSnps) > 0) {
+      cand <- GWAS$signSnp[[1]][sigSnps, ]
+      while (nrow(cand) > 0) {
+        peak <- which.min(cand[["pValue"]])
+        peakChr <- cand[[peak, "chr"]]
+        peakPos <- cand[[peak, "pos"]]
+        peaks <- c(peaks, cand[[peak, "snp"]])
+        cand <- cand[cand[["chr"]] != peakChr |
+                       abs(cand[["pos"]] - peakPos) > minPeakDist, ]
+      }
+    }
   }
   return(peaks)
 }
