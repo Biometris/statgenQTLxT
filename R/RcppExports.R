@@ -210,7 +210,7 @@ multiAllKin <- function(x, posCor, denom = NULL) {
     .Call(`_statgenQTLxT_multiAllKin`, x, posCor, denom)
 }
 
-nearestPD <- function(x, corr = FALSE, keepDiag = FALSE, do2eigen = TRUE, doSym = FALSE, doDykstra = TRUE, eigTol = 1e-6, convTol = 1e-7, posdTol = 1e-8, maxIter = 100L) {
-    .Call(`_statgenQTLxT_nearestPD`, x, corr, keepDiag, do2eigen, doSym, doDykstra, eigTol, convTol, posdTol, maxIter)
+nearestPD2 <- function(x, corr = FALSE, keepDiag = FALSE, do2eigen = TRUE, doSym = FALSE, doDykstra = TRUE, eigTol = 1e-6, convTol = 1e-7, posdTol = 1e-8, maxIter = 100L) {
+    .Call(`_statgenQTLxT_nearestPD2`, x, corr, keepDiag, do2eigen, doSym, doDykstra, eigTol, convTol, posdTol, maxIter)
 }
 

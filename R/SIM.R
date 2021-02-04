@@ -199,6 +199,7 @@ SIM <- function(gData,
   chkMarkers(gData$markers)
   thrType <- match.arg(thrType)
   kinshipMethod <- match.arg(kinshipMethod)
+  covModel <- match.arg(covModel)
   ## SIM is essentially a standard multi-trait GWAS.
   ## Kinship needs to be computed on observed markers.
   markersRest <- gData$markers[, !grepl(pattern = "EXT",
@@ -232,7 +233,19 @@ SIM <- function(gData,
     ifelse(resGWAS$signSnp[[1]][["effect"]] > 0, par1, par2)
   ## Get the peaks found.
   peaks <- getPeaks(resGWAS)
+  ## Recompute Vg and Ve with peaks found.
+  estVarCompRes <- estVarComp(GLSMethod = "single", covModel = covModel,
+                              Y = resGWAS$GWASInfo$Y, K = K,
+                              X = resGWAS$GWASInfo$X, VeDiag = VeDiag,
+                              snpCov = peaks,
+                              XRed = cbind(resGWAS$GWASInfo$X,
+                                           gData$markers[, peaks]),
+                              parallel = parallel, maxIter = maxIter, mG = mG,
+                              mE = mE, chrs = NULL)
   res <- resGWAS
+  ## Replace Vg and Ve by recomputed values for model with peaks.
+  res$GWASInfo$varComp$Vg <- estVarCompRes$VgRed
+  res$GWASInfo$varComp$Ve <- estVarCompRes$VeRed
   res$peaks <- resGWAS$signSnp[[1]][snp %in% peaks, ]
   res$signSnp[[1]][!snp %in% peaks, "snpStatus"] <-
     "within LD of significant SNP"

@@ -81,7 +81,7 @@ covUnstr <- function(Y,
                          ## This is not really a good idea, but for now it
                          ## is better than nothing.
                          ## Has to be solved in sommer.
-                         tolparinv = 1e-3)
+                         tolparinv = 1e-3, method = "AI")
   ## Extract components from fitted model.
   VgMat <- modFit$sigma[[1]]
   VeMat <- modFit$sigma[[2]]
@@ -89,8 +89,8 @@ covUnstr <- function(Y,
   diag(VgMat)[diag(VgMat) <= 0] <- 1e-3 * smpVar[diag(VgMat) <= 0]
   diag(VeMat)[diag(VeMat) <= 0] <- 1e-3 * smpVar[diag(VeMat) <= 0]
   ## Make Vg and Ve positive definite.
-  VgMat <- nearestPD(VgMat)
-  VeMat <- nearestPD(VeMat)
+  VgMat <- statgenGWAS:::nearestPD(VgMat)
+  VeMat <- statgenGWAS:::nearestPD(VeMat)
   colnames(VgMat) <- rownames(VgMat) <- traits
   colnames(VeMat) <- rownames(VeMat) <- traits
   return(list(Vg = VgMat, Ve = VeMat))
@@ -209,8 +209,8 @@ covPW <- function(Y,
     VeMat <- cor(VeMat)
   }
   ## Make positive definite.
-  VgMat <- nearestPD(VgMat, corr = corMat)
-  VeMat <- nearestPD(VeMat, corr = corMat)
+  VgMat <- statgenGWAS:::nearestPD(VgMat, corr = corMat)
+  VeMat <- statgenGWAS:::nearestPD(VeMat, corr = corMat)
   colnames(VgMat) <- rownames(VgMat) <- traits
   colnames(VeMat) <- rownames(VeMat) <- traits
   return(list(Vg = VgMat, Ve = VeMat))

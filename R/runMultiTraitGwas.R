@@ -508,7 +508,8 @@ runMultiTraitGwas <- function(gData,
                    covModel = covModel,
                    varComp = list(Vg = Vg, Ve = Ve),
                    genomicControl = genomicControl,
-                   inflationFactor = inflationFactor)
+                   inflationFactor = inflationFactor,
+                   X = X, Y = Y)
   return(createGWAS(GWAResult = setNames(list(GWAResult), trials),
                     signSnp = setNames(list(signSnp), trials),
                     kin = K,

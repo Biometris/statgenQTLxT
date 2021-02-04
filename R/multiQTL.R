@@ -210,8 +210,8 @@ multiQTL <- function(SIM,
     minCofactorProximity = minCofactorProximity,
     snpCov = unique(peaks[["snp"]]), kin = K,
     GLSMethod = "multi",
-    #fitVarComp = FALSE, Ve = VeLst, Vg = VgLst,
-    fitVarComp = TRUE, covModel = covModel,
+    fitVarComp = FALSE, Ve = VeLst, Vg = VgLst,
+    #fitVarComp = TRUE, covModel = covModel,
     VeDiag = VeDiag, thrType = thrType, LODThr = thr)
   ## Add parent info to result.
   par1 <- attr(gData, which = "parents")[1]

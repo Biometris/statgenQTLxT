@@ -7,7 +7,7 @@ using namespace Rcpp;
 using namespace arma;
 
 // [[Rcpp::export]]
-arma::mat nearestPD(arma::mat x,
+arma::mat nearestPD2(arma::mat x,
                     const bool corr = false,
                     const bool keepDiag = false,
                     const bool do2eigen = true,
@@ -64,14 +64,14 @@ arma::mat nearestPD(arma::mat x,
     converged = (conv <= convTol);
   } // end while
   if (!converged) {
-     warning("'nearestPD()' did not converge in " + std::to_string(iter) +
-       " iterations.\n");
+    warning("'nearestPD()' did not converge in " + std::to_string(iter) +
+      " iterations.\n");
   }
   if (do2eigen) {
     arma::vec eigVals(n);
     arma::mat eigVecs( size(x) );
     arma::eig_sym(eigVals, eigVecs, xUpdate);
-    double eps = posdTol * as_scalar(abs( eigVals.tail(1) ));
+    double eps = posdTol * fabs(as_scalar(eigVals.tail(1)));
     if (eigVals(0) < eps) {
       eigVals = clamp(eigVals, eps, eigVals.max());
       arma::vec oDiag = xUpdate.diag();
