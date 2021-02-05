@@ -193,7 +193,8 @@ multiQTL <- function(SIM,
                   markers = markersRest, map = mapRest,
                   kinshipMethod = kinshipMethod)
   trials <- names(SIM$GWAResult)
-  traits <- unique(SIM$GWAResult[[trials]][["trait"]])
+  traits <- names(gData$pheno[[1]])[names(gData$pheno[[1]]) %in%
+                                      SIM$GWAResult[[trials]][["trait"]]]
   nChr <- length(unique(SIM$GWAResult[[trials]][["chr"]]))
   covModel <- SIM$GWASInfo$covModel
   MAF <- SIM$GWASInfo$MAF
