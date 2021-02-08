@@ -28,11 +28,13 @@ matrixPlot <- function(effectDat,
   ## Compute chromosome boundaries.
   chrBnd <- cumsum(chrBoundaries[, 2])[-nrow(chrBoundaries)]
   ## Add cumulative position from map to effects.
-  parEffData <- merge(effectDat, map[, c("snp", "cumPos")], by = "snp")
+  parEffData <- merge(effectDat, map[, c("snp", "cumPos")],
+                      by = "snp", sort = FALSE)
   ## Add 5 to cumPos since geom_tile uses center of tile and has width 10.
   parEffData$cumPos <- parEffData$cumPos + 5
   ## Only plotting the effects for significant SNPs. Set all others to NA.
-  parEffData[!parEffData$snp %in% signSnp$snp, "effect"] <- NA
+  parEffData[!interaction(parEffData$snp, parEffData$trait) %in%
+              interaction(signSnp$snp, signSnp$trait), "effect"] <- NA
   p <- ggplot2::ggplot(data = parEffData,
                        ggplot2::aes_string(x = "cumPos", y = "trait",
                                            fill = "effect")) +

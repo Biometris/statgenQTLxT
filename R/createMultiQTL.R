@@ -135,61 +135,65 @@ plot.multiQTL <- function(x,
     statgenGWAS:::plot.GWAS(x = x, ... = ..., plotType = plotType,
                             trial = trial, trait = trait, type = "lines",
                             output = output)
-  } else if (plotType == "qtlEff") {
-    ## Get peaks.
-    QTLS <- x$peaks
-    ## ggplot requires a factor.
-    QTLS$snp <- factor(QTLS$snp, levels = unique(QTLS$snp))
-    ## Create plot.
-    ggplot2::ggplot(data = QTLS,
-                         mapping = ggplot2::aes_string(x = "snp", y = "effect",
-                                                       fill = "trait")) +
-      ggplot2::geom_bar(stat = "identity",
-                        position = ggplot2::position_dodge()) +
-      ggplot2::geom_errorbar(ggplot2::aes_string(ymin = "effect - effectSe",
-                                                 ymax = "effect + effectSe"),
-                             position = ggplot2::position_dodge())
-
-  } else if (plotType == "trtEff") {
-    ## Get peaks.
-    QTLS <- x$peaks
-    ## ggplot requires a factor.
-    QTLS$snp <- factor(QTLS$snp, levels = unique(QTLS$snp))
-    ## Create plot.
-    ggplot2::ggplot(data = QTLS,
-                    mapping = ggplot2::aes_string(x = "trait", y = "effect",
-                                                  fill = "snp")) +
-      ggplot2::geom_bar(stat = "identity",
-                        position = ggplot2::position_dodge()) +
-      ggplot2::geom_errorbar(ggplot2::aes_string(ymin = "effect - effectSe",
-                                                 ymax = "effect + effectSe"),
-                             position = ggplot2::position_dodge())
-    } else {
+  } else {
     dotArgs <- list(...)
-    ## Checks.
-    if (!is.null(trial) && !is.character(trial) &&
-        !is.numeric(trial)) {
-      stop("trial should be a character or numerical value.\n")
-    }
-    if ((is.character(trial) && !trial %in% names(x$GWAResult)) ||
-        (is.numeric(trial) && !trial %in% 1:length(x$GWAResult))) {
-      stop("Trial should be in x.\n")
-    }
-    ## Convert character input to numeric.
-    if (is.character(trial)) {
-      trial <- which(names(x$GWAResult) == trial)
-    }
-    ## If NULL then summary of all trial.
-    if (is.null(trial)) {
-      if (length(x$GWAResult) != 1) {
-        stop("Trial not supplied but multiple trials detected in data.\n")
-      } else {
-        trial <- 1
-      }
-    }
-    GWAResult <- x$GWAResult[[trial]]
-    signSnp <- x$signSnp[[trial]]
-    if (plotType == "matrix") {
+    ## Get peaks.
+    QTLS <- x$peaks
+    ## Get mean effect per trait.
+    GWAResult <- x$GWAResult[[1]]
+    GWAResult[["trtMean"]] <- ave(abs(GWAResult[["effect"]]),
+                                  GWAResult[["trait"]])
+    QTLS <- merge(QTLS, GWAResult[, c("chr", "pos", "snp", "trait", "trtMean")],
+                  by = c("chr", "pos", "snp", "trait"))
+    QTLS[["effect"]] <- QTLS[["effect"]] / QTLS[["trtMean"]]
+    QTLS[["effectSe"]] <- QTLS[["effectSe"]] / QTLS[["trtMean"]]
+    ## Convert snp to factor to assure order matches the order on genome.
+    QTLS[["snp"]] <- factor(QTLS[["snp"]], levels = unique(QTLS[["snp"]]))
+    if (plotType == "qtlEff") {
+      ## Create plot.
+      ggplot2::ggplot(data = QTLS,
+                      mapping = ggplot2::aes_string(x = "snp", y = "effect",
+                                                    fill = "trait")) +
+        ggplot2::geom_bar(stat = "identity",
+                          position = ggplot2::position_dodge()) +
+        ggplot2::geom_errorbar(ggplot2::aes_string(ymin = "effect - effectSe",
+                                                   ymax = "effect + effectSe"),
+                               position = ggplot2::position_dodge())
+    } else if (plotType == "trtEff") {
+      ## Create plot.
+      ggplot2::ggplot(data = QTLS,
+                      mapping = ggplot2::aes_string(x = "trait", y = "effect",
+                                                    fill = "snp")) +
+        ggplot2::geom_bar(stat = "identity",
+                          position = ggplot2::position_dodge()) +
+        ggplot2::geom_errorbar(ggplot2::aes_string(ymin = "effect - effectSe",
+                                                   ymax = "effect + effectSe"),
+                               position = ggplot2::position_dodge())
+    } else if (plotType == "matrix") {
+      signSnp <- GWAResult
+      signSnp[["qtl"]] <- signSnp[["snp"]] %in% QTLS[["snp"]]
+      signSnp[["sign"]] <- abs(signSnp[["effect"]]) /
+        signSnp[["effectSe"]] > 1.96
+      signQTLS <- signSnp[signSnp[["qtl"]] & signSnp[["sign"]], ]
+      signQTL <- lapply(X = 1:nrow(signQTLS), FUN = function(j) {
+        z <- signQTLS[j, ]
+        chrQTL <- signSnp[signSnp[["chr"]] == z[["chr"]] &
+                            signSnp[["trait"]] == z[["trait"]], ]
+        signChrQTL <- chrQTL[chrQTL[["sign"]], ]
+        res <- lapply(X = 1:nrow(signChrQTL), FUN = function(i) {
+          y <- signChrQTL[i, ]
+          if ((y[["pos"]] <= z[["pos"]] &&
+               all(chrQTL[chrQTL[["pos"]] >= y[["pos"]] &
+                          chrQTL[["pos"]] <= z[["pos"]], ][["sign"]])) ||
+              (y[["pos"]] > z[["pos"]] &&
+               all(chrQTL[chrQTL[["pos"]] <= y[["pos"]] &
+                          chrQTL[["pos"]] >= z[["pos"]], ][["sign"]]))) {
+            y
+          }
+        })
+        do.call(rbind, res)
+      })
+      signSnp <- do.call(rbind, signQTL)
       ## Compute chromosome boundaries.
       GWAResult <- GWAResult[!is.na(GWAResult$pos), ]
       ## Select specific chromosome(s) for plotting.
@@ -199,12 +203,13 @@ plot.multiQTL <- function(x,
           stop("Select at least one valid chromosome for plotting.\n")
         }
       }
-      chrBnd <- aggregate(x = GWAResult$pos, by = list(GWAResult$chr), FUN = max)
+      GWAResComp <- GWAResult[GWAResult[["trait"]] == GWAResult[["trait"]][1], ]
+      chrBnd <- aggregate(x = GWAResComp$pos, by = list(GWAResComp$chr), FUN = max)
       ## Compute cumulative positions.
       addPos <- data.frame(chr = chrBnd[, 1],
                            add = c(0, cumsum(chrBnd[, 2]))[1:nrow(chrBnd)],
                            stringsAsFactors = FALSE)
-      map <- GWAResult[, c("snp", "chr", "pos", "LOD")]
+      map <- GWAResComp[, c("snp", "chr", "pos", "LOD")]
       map <- merge(map, addPos, by = "chr")
       map$cumPos <- map$pos + map$add
       do.call(matrixPlot,
@@ -214,6 +219,7 @@ plot.multiQTL <- function(x,
                        dotArgs[!(names(dotArgs) %in% c("effectDat", "signSnp",
                                                        "map", "chrBoundaries",
                                                        "founders"))]))
+
     }
   }
 }

@@ -9,7 +9,7 @@ matrixPlot(
   signSnp,
   map,
   xLab = "Chromosomes",
-  yLab = "QTL",
+  yLab = "trait",
   chrBoundaries,
   founders,
   ...,
