@@ -14,6 +14,7 @@ before_script:
   - export PATH="/usr/local/lib/R/site-library/littler/examples/:${PATH}"
   - echo "options(Ncpus = $(nproc --all))" >> /usr/local/lib/R/etc/Rprofile.site
   - install2.r devtools
+  - r -e 'devtools::install_git(url = "git@git.wur.nl:rossu027/statistical-genetic-pipeline/statgenQTL.git")'
   - r -e 'devtools::install_dev_deps()'
 
 r-release:
