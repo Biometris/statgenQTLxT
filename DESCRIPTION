@@ -60,7 +60,10 @@ Imports: data.table,
     sommer (>= 3.7.3),
     foreach,
     Rcpp,
-    statgenGWAS
+    statgenGWAS,
+    lme4,
+    scales,
+    statgenQTL
 Suggests: covr,
     knitr,
     rmarkdown,

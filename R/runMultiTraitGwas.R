@@ -68,85 +68,14 @@
 #' In case \code{covModel = "unst"} or \code{"pw"} it is possible to assume that
 #' \eqn{V_e} is diagonal (\code{VeDiag = TRUE})
 #'
-#' @param gData An object of class \code{gData} containing at least \code{map},
-#' \code{markers} and \code{pheno}. The latter should not contain missing
-#' values. Multi-trait or multi-environment GWAS is performed for all variables
-#' in \code{pheno}.
-#' @param trials A vector specifying the environment on which to run GWAS.
-#' Thise can be either a numeric index or a character name of a list item in
-#' \code{pheno}.
-#' @param traits A vector of traits on which to run GWAS. These can be either
-#' numeric indices or character names of columns in \code{pheno}. If \code{NULL},
-#' GWAS is run on all traits.
-#' @param covar An optional vector of covariates taken into account when
-#' running GWAS. These can be either numeric indices or character names of
-#' columns in \code{covar} in \code{gData}. If \code{NULL}, no covariates are
-#' used. An intercept is included automatically (and should not be assigned as
-#' covariate). SNP-covariates should be assigned using the snpCov parameter.
+#' @inheritParams SIM
+#' @inheritParams multiQTL
+#'
 #' @param snpCov An optional character vector of SNP-names to be included as
 #' covariates. SNP-names should match those used in \code{gData}.
-#' @param estCom Should the common SNP-effect model be fitted? If \code{TRUE}
-#' not only the SNP-effects but also the common SNP-effect and QTL x E effect
-#' are estimated.
-#' @param MAF The minor allele frequency (MAF) threshold used in GWAS. A
-#' numerical value between 0 and 1. SNPs with MAF below this value are not taken
-#' into account in the analysis, i.e. p-values and effect sizes are put to
-#' missing (\code{NA}).
-#' @param fitVarComp Should the variance components be fitted? If \code{FALSE},
-#' they should be supplied in \code{Vg} and \code{Ve}.
-#' @param covModel A character string indicating the covariance model for the
-#' genetic background (Vg) and residual effects (Ve); see details.
-#' Either \code{unst} for unstructured for both Vg and
-#' Ve (as in Zhou and Stephens (2014)), \code{pw} for unstructered for both Vg
-#' and Ve (pairwise, as in Furlotte and Eskin (2013)) or \code{fa} for
-#' factor-analytic for both Vg and Ve.\cr
-#' Ignored if \code{fitVarComp} = \code{FALSE}
-#' @param VeDiag Should there be environmental correlations if covModel = "unst"
-#' or "pw"? If traits are measured on the same individuals, put \code{TRUE}.
-#' @param maxIter An integer for the maximum number of iterations. Only used
-#' when \code{covModel = "fa"}.
-#' @param mG An integer. The order of the genetic part of the factor analytic
-#' model. Only used when \code{covModel = "fa"}.
-#' @param mE An integer. The order of the environmental part of the factor
-#' analytic model. Only used when \code{covModel = "fa"}.
-#' @param Vg An optional matrix with genotypic variance components. \code{Vg} should
-#' have row and column names corresponding to the column names of
-#' \code{gData$pheno}. It may contain additional rows and columns which will be
-#' ignored. Ignored if fitVarComp = \code{TRUE}.
-#' @param Ve An optional matrix with environmental variance components. \code{Ve}
-#' should have row names column names corresponding to the column names of
-#' \code{gData$pheno}. It may contain additional rows and columns which will be
-#' ignored. Ignored if fitVarComp = \code{TRUE}.
-#' @param thrType A character string indicating the type of threshold used for
-#' the selection of candidate loci. Either \code{bonf} for using the
-#' Bonferroni threshold, a LOD-threshold of \eqn{-log10(alpha/p)}, where p is
-#' the number of markers and alpha can be specified in \code{alpha},
-#' \code{fixed} for a self-chosen fixed LOD-threshold, specified in \code{LODThr}
-#' or \code{small}, the LOD-threshold is chosen such as the SNPs with the
-#' \code{nSnpLOD} smallest p-values are selected. \code{nSnpLOD} can be
-#' specified.
-#' @param alpha A numerical value used for calculating the LOD-threshold for
-#' \code{thrType} = "bonf".
-#' @param LODThr A numerical value used as a LOD-threshold when
-#' \code{thrType} = "fixed".
-#' @param nSnpLOD A numerical value indicating the number of SNPs with the
-#' smallest p-values that are selected when \code{thrType} = "small".
-#' @param rho A numerical value ...
-#' @param pThr A numerical value ...
-#' @param sizeInclRegion An integer. Should the results for SNPs close to
-#' significant SNPs be included? If so, the size of the region in centimorgan
-#' or base pairs. Otherwise 0.
-#' @param minR2 A numerical value between 0 and 1. Restricts the SNPs included
-#' in the region close to significant SNPs to only those SNPs that are in
-#' sufficient Linkage Disequilibrium (LD) with the significant snp, where LD
-#' is measured in terms of \eqn{R^2}. If for example \code{sizeInclRegion} =
-#' 200000 and \code{minR2} = 0.5, then for every significant SNP also those SNPs
-#' whose LD (\eqn{R^2}) with the significant SNP is at least 0.5 AND which are
-#' at most 200000 away from this significant snp are included. Ignored if
-#' \code{sizeInclRegion} = 0.
-#' @param parallel Should the computation of variance components be done in
-#' parallel? Only used if \code{covModel = "pw"}. A parallel computing
-#' environment has to be setup by the user.
+#' @param GLSMethod A character string indicating the method used to estimate
+#' the marker effects. Either \code{single} for using a single kinship matrix,
+#' or \code{multi} for using chromosome specific kinship matrices.
 #'
 #' @return An object of class \code{\link{GWAS}}.
 #'
@@ -170,7 +99,7 @@
 #'
 #' @importFrom data.table :=
 #'
-#' @export
+#' @keywords internal
 runMultiTraitGwas <- function(gData,
                               trials = NULL,
                               traits = NULL,
@@ -445,7 +374,7 @@ runMultiTraitGwas <- function(gData,
     GWAResult <- merge(GWAResult, comDat)
   }
   ## Calculate the genomic inflation factor.
-  GC <- statgenGWAS:::genCtrlPVals(pVals = GWAResult[trait == traits[1]][["pValue"]],
+  GC <- statgenGWAS:::genCtrlPVals(pVals = GWAResult[GWAResult[["trait"]] == traits[1]][["pValue"]],
                                    nObs = nrow(GWAResult) / length(traits),
                                    nCov = length(covTr))
   inflationFactor <- GC$inflation

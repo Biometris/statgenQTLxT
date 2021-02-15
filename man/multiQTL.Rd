@@ -12,108 +12,23 @@ multiQTL(
 )
 }
 \arguments{
+\item{SIM}{An object of class \code{\link{SIM}}}
+
 \item{gData}{An object of class \code{gData} containing at least \code{map},
 \code{markers} and \code{pheno}. The latter should not contain missing
 values. Multi-trait or multi-environment GWAS is performed for all variables
 in \code{pheno}.}
 
-\item{trials}{A vector specifying the environment on which to run GWAS.
-Thise can be either a numeric index or a character name of a list item in
-\code{pheno}.}
+\item{minCofactorProximity}{A numerical value ...}
 
-\item{traits}{A vector of traits on which to run GWAS. These can be either
-numeric indices or character names of columns in \code{pheno}. If \code{NULL},
-GWAS is run on all traits.}
-
-\item{covar}{An optional vector of covariates taken into account when
-running GWAS. These can be either numeric indices or character names of
-columns in \code{covar} in \code{gData}. If \code{NULL}, no covariates are
-used. An intercept is included automatically (and should not be assigned as
-covariate). SNP-covariates should be assigned using the snpCov parameter.}
-
-\item{estCom}{Should the common SNP-effect model be fitted? If \code{TRUE}
-not only the SNP-effects but also the common SNP-effect and QTL x E effect
-are estimated.}
-
-\item{MAF}{The minor allele frequency (MAF) threshold used in GWAS. A
-numerical value between 0 and 1. SNPs with MAF below this value are not taken
-into account in the analysis, i.e. p-values and effect sizes are put to
-missing (\code{NA}).}
-
-\item{fitVarComp}{Should the variance components be fitted? If \code{FALSE},
-they should be supplied in \code{Vg} and \code{Ve}.}
-
-\item{covModel}{A character string indicating the covariance model for the
-genetic background (Vg) and residual effects (Ve); see details.
-Either \code{unst} for unstructured for both Vg and
-Ve (as in Zhou and Stephens (2014)), \code{pw} for unstructered for both Vg
-and Ve (pairwise, as in Furlotte and Eskin (2013)) or \code{fa} for
-factor-analytic for both Vg and Ve.\cr
-Ignored if \code{fitVarComp} = \code{FALSE}}
-
-\item{VeDiag}{Should there be environmental correlations if covModel = "unst"
-or "pw"? If traits are measured on the same individuals, put \code{TRUE}.}
-
-\item{maxIter}{An integer for the maximum number of iterations. Only used
-when \code{covModel = "fa"}.}
-
-\item{mG}{An integer. The order of the genetic part of the factor analytic
-model. Only used when \code{covModel = "fa"}.}
-
-\item{mE}{An integer. The order of the environmental part of the factor
-analytic model. Only used when \code{covModel = "fa"}.}
-
-\item{Vg}{An optional matrix with genotypic variance components. \code{Vg} should
-have row and column names corresponding to the column names of
-\code{gData$pheno}. It may contain additional rows and columns which will be
-ignored. Ignored if fitVarComp = \code{TRUE}.}
-
-\item{Ve}{An optional matrix with environmental variance components. \code{Ve}
-should have row names column names corresponding to the column names of
-\code{gData$pheno}. It may contain additional rows and columns which will be
-ignored. Ignored if fitVarComp = \code{TRUE}.}
-
-\item{thrType}{A character string indicating the type of threshold used for
-the selection of candidate loci. Either \code{bonf} for using the
-Bonferroni threshold, a LOD-threshold of \eqn{-log10(alpha/p)}, where p is
-the number of markers and alpha can be specified in \code{alpha},
-\code{fixed} for a self-chosen fixed LOD-threshold, specified in \code{LODThr}
-or \code{small}, the LOD-threshold is chosen such as the SNPs with the
-\code{nSnpLOD} smallest p-values are selected. \code{nSnpLOD} can be
-specified.}
-
-\item{alpha}{A numerical value used for calculating the LOD-threshold for
-\code{thrType} = "bonf".}
-
-\item{LODThr}{A numerical value used as a LOD-threshold when
-\code{thrType} = "fixed".}
-
-\item{nSnpLOD}{A numerical value indicating the number of SNPs with the
-smallest p-values that are selected when \code{thrType} = "small".}
-
-\item{rho}{A numerical value ...}
-
-\item{pThr}{A numerical value ...}
-
-\item{sizeInclRegion}{An integer. Should the results for SNPs close to
-significant SNPs be included? If so, the size of the region in centimorgan
-or base pairs. Otherwise 0.}
-
-\item{minR2}{A numerical value between 0 and 1. Restricts the SNPs included
-in the region close to significant SNPs to only those SNPs that are in
-sufficient Linkage Disequilibrium (LD) with the significant snp, where LD
-is measured in terms of \eqn{R^2}. If for example \code{sizeInclRegion} =
-200000 and \code{minR2} = 0.5, then for every significant SNP also those SNPs
-whose LD (\eqn{R^2}) with the significant SNP is at least 0.5 AND which are
-at most 200000 away from this significant snp are included. Ignored if
-\code{sizeInclRegion} = 0.}
-
-\item{parallel}{Should the computation of variance components be done in
-parallel? Only used if \code{covModel = "pw"}. A parallel computing
-environment has to be setup by the user.}
+\item{kinshipMethod}{An optional character indicating the method used for
+calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
+2009), "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
+kinship matrix is supplied either in \code{gData} or in parameter \code{kin},
+\code{kinshipMethod} is ignored.}
 }
 \value{
-An object of class \code{\link{GWAS}}.
+An object of class \code{\link{SIM}}.
 }
 \description{
 \code{runMultiTraitGwas} performs multi-trait or multi-environment Genome

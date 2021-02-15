@@ -19,7 +19,7 @@
 #' @return A list of two matrices \code{Vg} and \code{Ve} containing genotypic
 #' and environmental variance components respectively.
 #'
-#' @import utils
+#' @import utils stats
 #' @importFrom foreach %do%
 #' @importFrom foreach %dopar%
 #'
@@ -60,20 +60,20 @@ covUnstr <- function(Y,
   if (!is.null(X)) {
     ## Define formula for fixed part. ` needed to accommodate - in
     ## variable names.
-    fixed <- as.formula(paste0("cbind(",
-                               paste0(traits, collapse = ", "), ") ~ `",
-                               paste(colnames(X)[-1], collapse = '` + `'), "`"))
+    fixed <- formula(paste0("cbind(",
+                            paste0(traits, collapse = ", "), ") ~ `",
+                            paste(colnames(X)[-1], collapse = '` + `'), "`"))
   } else {
-    fixed <- as.formula(paste0("cbind(", paste0(traits, collapse = ", "),
-                               ") ~ 1"))
+    fixed <- formula(paste0("cbind(", paste0(traits, collapse = ", "),
+                            ") ~ 1"))
   }
   if (VeDiag) {
-    rcov <- as.formula(paste0("~sommer::vs(units, Gtc = diag(", nTrait, "))"))
+    rcov <- formula(paste0("~sommer::vs(units, Gtc = diag(", nTrait, "))"))
   } else {
-    rcov <- as.formula(paste0("~sommer::vs(units,
+    rcov <- formula(paste0("~sommer::vs(units,
                               Gtc = sommer::unsm(", nTrait, "))"))
   }
-  random <- as.formula(paste0("~sommer::vs(genotype, Gu = as.matrix(K),
+  random <- formula(paste0("~sommer::vs(genotype, Gu = as.matrix(K),
                               Gtc = sommer::unsm(", nTrait, "))"))
   ## Fit model.
   modFit <- sommer::mmer(fixed = fixed, random = random, rcov = rcov,
@@ -97,6 +97,8 @@ covUnstr <- function(Y,
 }
 
 #' @rdname covUnstr
+#'
+#' @importFrom stats formula
 #' @keywords internal
 covPW <- function(Y,
                   K,
@@ -135,11 +137,11 @@ covPW <- function(Y,
   for (i in 1:nTrait) {
     if (!is.null(X)) {
       ## Define formula for fixed part. ` needed to accommodate - in varnames.
-      fixed <- as.formula(paste0(traits[i], " ~ `",
-                                 paste(colnames(X)[-1], collapse = '` + `'),
-                                 "`"))
+      fixed <- formula(paste0(traits[i], " ~ `",
+                              paste(colnames(X)[-1], collapse = '` + `'),
+                              "`"))
     } else {
-      fixed <- as.formula(paste(traits[i], " ~ 1"))
+      fixed <- formula(paste(traits[i], " ~ 1"))
     }
     ## Fit model.
     modFit <- sommer::mmer(fixed = fixed,

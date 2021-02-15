@@ -83,6 +83,21 @@
 #' columns in \code{covar} in \code{gData}. If \code{NULL}, no covariates are
 #' used. An intercept is included automatically (and should not be assigned as
 #' covariate). SNP-covariates should be assigned using the snpCov parameter.
+#' @param kin An optional kinship matrix or list of kinship matrices. These
+#' matrices can be from the \code{matrix} class as defined in the base package
+#' or from the \code{dsyMatrix} class, the class of symmetric matrices in the
+#' Matrix package.\cr
+#' If \code{GLSMethod} = "single" then one matrix should be provided, if
+#' \code{GLSMethod} = "multi", a list of chromosome specific matrices of length
+#' equal to the number of chromosomes in \code{map} in \code{gData}.\cr
+#' If \code{NULL} then matrix \code{kinship} in \code{gData} is used. \cr
+#' If both \code{kin} is provided and \code{gData} contains a matrix
+#' \code{kinship} then \code{kin} is used.
+#' @param kinshipMethod An optional character indicating the method used for
+#' calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
+#' 2009), "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
+#' kinship matrix is supplied either in \code{gData} or in parameter \code{kin},
+#' \code{kinshipMethod} is ignored.
 #' @param estCom Should the common SNP-effect model be fitted? If \code{TRUE}
 #' not only the SNP-effects but also the common SNP-effect and QTL x E effect
 #' are estimated.
@@ -115,6 +130,8 @@
 #' should have row names column names corresponding to the column names of
 #' \code{gData$pheno}. It may contain additional rows and columns which will be
 #' ignored. Ignored if fitVarComp = \code{TRUE}.
+#' @param genomicControl Should genomic control correction as in Devlin and
+#' Roeder (1999) be applied?
 #' @param thrType A character string indicating the type of threshold used for
 #' the selection of candidate loci. Either \code{bonf} for using the
 #' Bonferroni threshold, a LOD-threshold of \eqn{-log10(alpha/p)}, where p is
@@ -124,13 +141,16 @@
 #' \code{nSnpLOD} smallest p-values are selected. \code{nSnpLOD} can be
 #' specified.
 #' @param alpha A numerical value used for calculating the LOD-threshold for
-#' \code{thrType} = "bonf".
+#' \code{thrType} = "bonf" and the significant p-Values for \code{thrType} =
+#' "fdr".
 #' @param LODThr A numerical value used as a LOD-threshold when
 #' \code{thrType} = "fixed".
 #' @param nSnpLOD A numerical value indicating the number of SNPs with the
 #' smallest p-values that are selected when \code{thrType} = "small".
-#' @param rho A numerical value ...
-#' @param pThr A numerical value ...
+#' @param rho A numerical value used a the minimum value for SNPs to be
+#' considered correlated when using \code{thrType} = "fdr".
+#' @param pThr A numerical value just as the cut off value for p-Values for
+#' \code{thrType} = "fdr".
 #' @param sizeInclRegion An integer. Should the results for SNPs close to
 #' significant SNPs be included? If so, the size of the region in centimorgan
 #' or base pairs. Otherwise 0.
@@ -145,6 +165,9 @@
 #' @param parallel Should the computation of variance components be done in
 #' parallel? Only used if \code{covModel = "pw"}. A parallel computing
 #' environment has to be setup by the user.
+#' @param nCores A numerical value indicating the number of cores to be used by
+#' the parallel part of the algorithm. If \code{NULL} the number of cores used
+#' will be equal to the number of cores available on the machine - 1.
 #'
 #' @return An object of class \code{\link{GWAS}}.
 #'
@@ -246,37 +269,14 @@ SIM <- function(gData,
   ## Replace Vg and Ve by recomputed values for model with peaks.
   res$GWASInfo$varComp$Vg <- estVarCompRes$VgRed
   res$GWASInfo$varComp$Ve <- estVarCompRes$VeRed
-  res$peaks <- resGWAS$signSnp[[1]][snp %in% peaks, ]
-  res$signSnp[[1]][!snp %in% peaks, "snpStatus"] <-
+  res$peaks <- resGWAS$signSnp[[1]][res$signSnp[[1]][["snp"]] %in% peaks, ]
+  res$signSnp[[1]][!res$signSnp[[1]][["snp"]] %in% peaks, "snpStatus"] <-
     "within LD of significant SNP"
   class(res) <- c("SIM", class(res))
   attr(res, which = "parents") <- attr(gData, which = "parents")
   return(res)
 }
 
-getPeaks <- function(GWAS,
-                     minPeakDist = 50) {
-  thrType <- GWAS$GWASInfo$thrType
-  if (thrType == "fdr") {
-    sigSnps <- GWAS$signSnp[[1]][["snpStatus"]] == "significant SNP"
-    peaks <- unique(GWAS$signSnp[[1]][sigSnps, snp])
-  } else {
-    sigSnps <- GWAS$signSnp[[1]][["snpStatus"]] == "significant SNP" &
-      GWAS$signSnp[[1]][["trait"]] == GWAS$signSnp[[1]][["trait"]][1]
-    peaks <- NULL
-    if (sum(sigSnps) > 0) {
-      cand <- GWAS$signSnp[[1]][sigSnps, ]
-      while (nrow(cand) > 0) {
-        peak <- which.min(cand[["pValue"]])
-        peakChr <- cand[[peak, "chr"]]
-        peakPos <- cand[[peak, "pos"]]
-        peaks <- c(peaks, cand[[peak, "snp"]])
-        cand <- cand[cand[["chr"]] != peakChr |
-                       abs(cand[["pos"]] - peakPos) > minPeakDist, ]
-      }
-    }
-  }
-  return(peaks)
-}
+
 
 

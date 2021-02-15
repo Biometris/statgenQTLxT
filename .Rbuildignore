@@ -10,3 +10,4 @@ ci
 .gitlab-ci.*
 docs
 testScripts
+pptx
