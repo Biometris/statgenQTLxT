@@ -13,9 +13,8 @@ before_script:
   - apt-get install -y --no-install-recommends qpdf pandoc pandoc-citeproc
   - export PATH="/usr/local/lib/R/site-library/littler/examples/:${PATH}"
   - echo "options(Ncpus = $(nproc --all))" >> /usr/local/lib/R/etc/Rprofile.site
-  - echo 'GITLAB_PAT='$GITLAB_PAT >> /usr/local/lib/R/etc/Rprofile.site
   - install2.r devtools remotes
-  - r -e 'remotes::install_gitlab(repo = "statistical-genetic-pipeline/statgenQTL", host = "git.wur.nl")'
+  - r -e 'remotes::install_gitlab(repo = "statistical-genetic-pipeline/statgenQTL", host = "git.wur.nl", auth_token = "Hx4TTMkmj8f1tpy2gCZd")'
   - r -e 'devtools::install_dev_deps()'
 
 r-release:
