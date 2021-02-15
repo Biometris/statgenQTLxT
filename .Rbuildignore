@@ -9,3 +9,4 @@ example_data_drops
 ci
 .gitlab-ci.*
 docs
+testScripts

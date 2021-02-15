@@ -112,6 +112,9 @@
 #' @param trait A character string indicating for which trait the results
 #' should be plotted. For \code{type} "qtl" all traits are plotted. If \code{x}
 #' only contains results for one trait, \code{trait} may be \code{NULL}.
+#' @param reference A named numerical vector used as reference value for
+#' plotting effect size. The default value for each trait is the mean raw trait
+#' value (available as attribute in the multiQTL object).
 #' @param output Should the plot be output to the current device? If
 #' \code{FALSE}, only a list of ggplot objects is invisibly returned.
 #'
@@ -129,6 +132,7 @@ plot.multiQTL <- function(x,
                           plotType = c("manhattan", "qtlEff", "trtEff", "matrix"),
                           trial = NULL,
                           trait = NULL,
+                          reference = NULL,
                           output = TRUE) {
   plotType <- match.arg(plotType)
   if (plotType %in% c("manhattan")) {
@@ -140,11 +144,14 @@ plot.multiQTL <- function(x,
     ## Get peaks.
     QTLS <- x$peaks
     ## Get mean effect per trait.
-    GWAResult <- x$GWAResult[[1]]
-    GWAResult[["trtMean"]] <- ave(abs(GWAResult[["effect"]]),
-                                  GWAResult[["trait"]])
-    QTLS <- merge(QTLS, GWAResult[, c("chr", "pos", "snp", "trait", "trtMean")],
-                  by = c("chr", "pos", "snp", "trait"))
+    trtMeans <- attr(x, "trtMeans")
+    ## Restrict reference to traits in trtMeans.
+    reference <- reference[names(reference)  %in% names(trtMeans)]
+    if (length(reference) > 0) {
+      ## Replace by reference if specified.
+      trtMeans[names(reference)] <- reference
+    }
+    QTLS[["trtMean"]] <- trtMeans[match(QTLS[["trait"]], names(trtMeans))]
     QTLS[["effect"]] <- QTLS[["effect"]] / QTLS[["trtMean"]]
     QTLS[["effectSe"]] <- QTLS[["effectSe"]] / QTLS[["trtMean"]]
     ## Convert snp to factor to assure order matches the order on genome.
@@ -158,7 +165,9 @@ plot.multiQTL <- function(x,
                           position = ggplot2::position_dodge()) +
         ggplot2::geom_errorbar(ggplot2::aes_string(ymin = "effect - effectSe",
                                                    ymax = "effect + effectSe"),
-                               position = ggplot2::position_dodge())
+                               position = ggplot2::position_dodge()) +
+        ggplot2::labs(y = "effect as % of reference")
+
     } else if (plotType == "trtEff") {
       ## Create plot.
       ggplot2::ggplot(data = QTLS,
@@ -168,7 +177,8 @@ plot.multiQTL <- function(x,
                           position = ggplot2::position_dodge()) +
         ggplot2::geom_errorbar(ggplot2::aes_string(ymin = "effect - effectSe",
                                                    ymax = "effect + effectSe"),
-                               position = ggplot2::position_dodge())
+                               position = ggplot2::position_dodge()) +
+        ggplot2::labs(y = "effect as % of reference")
     } else if (plotType == "matrix") {
       signSnp <- GWAResult
       signSnp[["qtl"]] <- signSnp[["snp"]] %in% QTLS[["snp"]]

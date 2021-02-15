@@ -224,11 +224,38 @@ multiQTL <- function(SIM,
   ## Get the peaks found.
   peaks <- getPeaks(resGWAS)
   res <- resGWAS
-  res$peaks <- resGWAS$signSnp[[1]][snp %in% peaks, ]
+  QTLDat <- resGWAS$signSnp[[1]][snp %in% peaks, ]
+  ## Fit model to compute explained variance.
+  X <- gData$markers[, colnames(gData$markers) %in% peaks, drop = FALSE]
+  modDat <- cbind(gData$pheno[[1]], X)
+  explVar <- lapply(X = traits, FUN = function(tr) {
+    ## Construct model formula.
+    ## All QTLS as random effects.
+    modFormTr <- formula(paste(tr, "~ 1 + ",
+                             paste("(1|", peaks, ")", collapse = "+")))
+    modTr <- lme4::lmer(modFormTr, data = modDat)
+    vcTr <- as.data.frame(lme4::VarCorr(modTr))
+    ## Compute explained variance.
+    vcTr[["pcts"]] <- vcTr[, "vcov"] / sum(vcTr[["vcov"]])
+    vcTr[["trait"]] <- tr
+    return(vcTr[, c("trait", "grp", "pcts")])
+  })
+  ## Bind all variances together.
+  explVar <- do.call(rbind, explVar)
+  ## Merge to QTLS.
+  QTLDat <- merge(QTLDat, explVar, by.x = c("trait", "snp"),
+                  by.y = c("trait", "grp"), sort = FALSE)
+  ## Rename columns to match other functions.
+  QTLDat[["propSnpVar"]] <- QTLDat[["pcts"]]
+  QTLDat[["pcts"]]<- NULL
+  res$peaks <- QTLDat
   res$signSnp[[1]][!snp %in% peaks, "snpStatus"] <-
     "within LD of significant SNP"
+  trtMeans <- sapply(X = gData$pheno[[1]][, -1, drop = FALSE],
+                     FUN = mean, na.rm = TRUE)
   class(res) <- c("multiQTL", class(res))
   attr(res, which = "parents") <- attr(gData, which = "parents")
+  attr(res, which = "trtMeans") <- trtMeans
   return(res)
 }
 
