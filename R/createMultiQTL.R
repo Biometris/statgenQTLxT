@@ -141,6 +141,8 @@ plot.multiQTL <- function(x,
                             output = output)
   } else {
     dotArgs <- list(...)
+    ## Get results.
+    GWAResult <- x$GWAResult[[1]]
     ## Get peaks.
     QTLS <- x$peaks
     ## Get mean effect per trait.
