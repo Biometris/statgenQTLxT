@@ -439,7 +439,7 @@ List EMFA(arma::mat y,
     double eLogLikCm = n * (log_det(cm).real() - trace(cm * omega2));
     double eLogLikDm = n * (log_det(dm).real() - trace(dm * omega1));
     eLogLik = eLogLikCm + eLogLikDm;
-    if (stopIfDecreasing && i > 49 && eLogLik < eLogLikOld - 0.1) {
+    if (stopIfDecreasing && i > 49 && eLogLik < eLogLikOld - tolerance) {
       break;
     }
     if (i > 0 && (fabs(eLogLik - eLogLikOld) < tolerance)) {

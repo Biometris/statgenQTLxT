@@ -99,7 +99,7 @@
 #'
 #' @importFrom data.table :=
 #'
-#' @keywords internal
+#' @export
 runMultiTraitGwas <- function(gData,
                               trials = NULL,
                               traits = NULL,
@@ -270,6 +270,7 @@ runMultiTraitGwas <- function(gData,
   if (anyNA(Y)) {
     stop("Phenotypic data cannot contain any missing values.\n")
   }
+  Y <- scale(Y)
   ## Compute kinship matrix (GSLMethod single)
   ## or kinship matrices per chromosome (GLSMethod multi).
   if (kinshipMethod == "identity") {

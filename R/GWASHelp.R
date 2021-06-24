@@ -76,7 +76,8 @@ estVarComp <- function(GLSMethod,
     if (GLSMethod == "single") {
       ## Including snpCovariates.
       varComp <- EMFA(y = Y, k = K, size_param_x = X, maxIter = maxIter,
-                      mG = mG, mE = mE, maxDiag = maxDiag, traits = colnames(Y))
+                      mG = mG, mE = mE, maxDiag = maxDiag, traits = colnames(Y),
+                      tolerance = 1e-2)
       if (!is.null(snpCov)) {
         ## Without snpCovariates.
         varCompRed <- EMFA(y = Y, k = K, size_param_x = XRed,

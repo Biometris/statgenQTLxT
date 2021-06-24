@@ -231,7 +231,6 @@ plot.multiQTL <- function(x,
                        dotArgs[!(names(dotArgs) %in% c("effectDat", "signSnp",
                                                        "map", "chrBoundaries",
                                                        "founders"))]))
-
     }
   }
 }

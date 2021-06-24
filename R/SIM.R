@@ -262,7 +262,8 @@ SIM <- function(gData,
                               X = resGWAS$GWASInfo$X, VeDiag = VeDiag,
                               snpCov = peaks,
                               XRed = cbind(resGWAS$GWASInfo$X,
-                                           gData$markers[, peaks]),
+                                           gData$markers[rownames(gData$markers) %in% rownames(resGWAS$GWASInfo$X),
+                                                         peaks, drop = FALSE]),
                               parallel = parallel, maxIter = maxIter, mG = mG,
                               mE = mE, chrs = NULL)
   res <- resGWAS

@@ -19,7 +19,8 @@ estEffTot <- function(markers,
                       estCom,
                       nCores = NULL) {
   minDist <- minCofactorProximity / 2
-  segMarkers <- which(abs(allFreq) >= 1 - MAF)
+  # segMarkers <- which(abs(allFreq) >= 1 - MAF)markersRed
+  segMarkers <- which(abs(allFreq) < MAF)
   excludedMarkers <- c(segMarkers, ncol(markers) + 1)
   map <- map[-excludedMarkers, ]
   markers <- markers[, -excludedMarkers]

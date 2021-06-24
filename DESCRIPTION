@@ -1,8 +1,8 @@
 Package: statgenQTLxT
 Type: Package
 Title: Genome Wide Association Studies in R
-Version: 0.0.1
-Date: 2020-01-01
+Version: 0.0.1.9002
+Date: 2020-03-05
 Authors@R: c(person(given = "Bart-Jan", 
                     family = "van Rossum", 
                     email = "bart-jan.vanrossum@wur.nl", 
