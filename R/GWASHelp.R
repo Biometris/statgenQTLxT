@@ -72,12 +72,12 @@ estVarComp <- function(GLSMethod,
     }
   } else if (covModel == "fa") {
     ## FA models.
-    maxDiag <- 1000 * max(abs(solve(var(Y))))
+    maxDiag <- 1e6 * max(abs(solve(var(Y))))
     if (GLSMethod == "single") {
       ## Including snpCovariates.
       varComp <- EMFA(y = Y, k = K, size_param_x = X, maxIter = maxIter,
                       mG = mG, mE = mE, maxDiag = maxDiag, traits = colnames(Y),
-                      tolerance = 1e-2)
+                      tolerance = 1e-4 * max(abs(solve(var(Y)))))
       if (!is.null(snpCov)) {
         ## Without snpCovariates.
         varCompRed <- EMFA(y = Y, k = K, size_param_x = XRed,

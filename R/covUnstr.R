@@ -81,13 +81,13 @@ covUnstr <- function(Y,
                          ## This is not really a good idea, but for now it
                          ## is better than nothing.
                          ## Has to be solved in sommer.
-                         tolparinv = 1e-3, method = "AI")
+                         tolparinv = 1e-1, method = "AI")
   ## Extract components from fitted model.
   VgMat <- modFit$sigma[[1]]
   VeMat <- modFit$sigma[[2]]
   ## Keep diagonal for Vg and Ve away from 0.
-  diag(VgMat)[diag(VgMat) <= 0] <- 1e-3 * smpVar[diag(VgMat) <= 0]
-  diag(VeMat)[diag(VeMat) <= 0] <- 1e-3 * smpVar[diag(VeMat) <= 0]
+  diag(VgMat)[diag(VgMat) <= 0] <- 1e-6 * smpVar[diag(VgMat) <= 0]
+  diag(VeMat)[diag(VeMat) <= 0] <- 1e-6 * smpVar[diag(VeMat) <= 0]
   ## Make Vg and Ve positive definite.
   VgMat <- statgenGWAS:::nearestPD(VgMat)
   VeMat <- statgenGWAS:::nearestPD(VeMat)
@@ -122,7 +122,7 @@ covPW <- function(Y,
                stringsAsFactors = FALSE)
   if (!is.null(X)) {
     ## sommer cannot handle column names with special characters.
-    ## Therefore Simplify column names in X.
+    ## Therefore simplify column names in X.
     colnames(X) <- make.names(colnames(X), unique = TRUE)
     X <- cbind(genotype = rownames(X), as.data.frame(as.matrix(X)),
                stringsAsFactors = FALSE)
@@ -152,8 +152,8 @@ covPW <- function(Y,
     VeVec[i] <- as.numeric(modFit$sigma[[2]])
   }
   ## Keep diagonal for Vg and Ve away from 0.
-  VgVec[VgVec <= 0] <- 1e-3 * smpVar[VgVec <= 0]
-  VeVec[VeVec <= 0] <- 1e-3 * smpVar[VeVec <= 0]
+  VgVec[VgVec <= 0] <- 1e-6 * smpVar[VgVec <= 0]
+  VeVec[VeVec <= 0] <- 1e-6 * smpVar[VeVec <= 0]
   if (corMat) {
     ## Ones on the diagonal of resulting matrix.
     VgMat <- VeMat <- diag(x = 1, nrow = nTrait)
@@ -176,16 +176,16 @@ covPW <- function(Y,
     modFit <- sommer::mmer(fixed = fixed,
                            random = ~ sommer::vs(genotype, Gu = as.matrix(K),
                                                  Gtc = sommer::unsm(2),
-                                                 Gt = VgMat[c(i, j), c(i, j)]),
+                                                 Gti = VgMat[c(i, j), c(i, j)]),
                            rcov = ~ sommer::vs(units, Gtc = sommer::unsm(2),
-                                               Gt = VeMat[c(i, j), c(i, j)]),
+                                               Gti = VeMat[c(i, j), c(i, j)]),
                            data = dat[, c("genotype", traits[i], traits[j],
                                           colnames(X)[-1])],
                            verbose = FALSE, date.warning = FALSE,
                            ## This is not really a good idea, but for now it
                            ## is better than nothing.
                            ## Has to be solved in sommer.
-                           tolparinv = 1e-3)
+                           tolparinv = 1e-1)
     return(c(modFit$sigma[[1]][1, 2],
              modFit$sigma[[2]][1, 2]))
   }
