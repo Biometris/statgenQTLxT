@@ -4,10 +4,12 @@
 \name{statgenQTLxT-package}
 \alias{statgenQTLxT}
 \alias{statgenQTLxT-package}
-\title{statgenQTLxT: Genome Wide Association Studies in R}
+\title{statgenQTLxT: Multi-trait and multi-trial Genome Wide Association Studies}
 \description{
-More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Fast multi trait Genome Wide Association Studies (GWAS) following 
+    the method described in Zhou and Stephens. (2014), <doi:10.1038/nmeth.2848>.        
+    One of a series of statistical genetic packages for streamlining the 
+    analysis of typical plant breeding experiments developed by Biometris.
 }
 \author{
 \strong{Maintainer}: Bart-Jan van Rossum \email{bart-jan.vanrossum@wur.nl}
