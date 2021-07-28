@@ -109,9 +109,9 @@ double LLQuadFormDiagCPP(const arma::mat &y,
 //' February 2014, Vol. 11, p. 407–409
 //' @keywords internal
 // [[Rcpp::export]]
-List estEffsCPP(arma::mat y,
-                arma::mat w,
-                arma::mat x,
+List estEffsCPP(arma::mat& y0,
+                arma::mat& w0,
+                arma::mat& x0,
                 arma::mat& vg,
                 arma::mat& ve,
                 arma::mat& k,
@@ -119,19 +119,19 @@ List estEffsCPP(arma::mat y,
                 bool estCom = false,
                 Rcpp::Nullable<Rcpp::IntegerVector> nCores = R_NilValue) {
   // Extract number of traits, individuals, covariates and SNPs.
-  unsigned int p = y.n_cols;
-  unsigned int n = y.n_rows;
-  unsigned int nc = w.n_cols;
-  unsigned int ns = x.n_cols;
+  unsigned int p = y0.n_cols;
+  unsigned int n = y0.n_rows;
+  unsigned int nc = w0.n_cols;
+  unsigned int ns = x0.n_cols;
   unsigned int nChunks = R::fmax2(R::fmin2(ns, ceil(p * nc * ns / 50000)), 1);
   k = nearestPD2(k, false, false, true, false, true, 1e-10, 1e-7, 1e-8, 100);
   arma::mat uk;
   arma::vec dk;
   arma::eig_sym(dk, uk, k);
   // Transform y, w and x.
-  y = y.t() * uk;
-  w = w.t() * uk;
-  x = x.t() * uk;
+  arma::mat y = y0.t() * uk;
+  arma::mat w = w0.t() * uk;
+  arma::mat x = x0.t() * uk;
   //Square each element of X.
   arma::mat x2 = square(x);
   arma::cube vInv = cube(p, p, n);

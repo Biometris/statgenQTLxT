@@ -34,9 +34,9 @@ estEffTot <- function(markers,
     effEstSnps <- lapply(X = colnames(markers), FUN = function(snp) {
       snpPos <- which(colnames(markers) == snp)
       snpCovSnp <- snpCov[snpRanges[snpPos, ]]
-      effEstSnp <- estEffsCPP(y = Y,
-                              w = X[, !colnames(X) %in% snpCovSnp, drop = FALSE],
-                              x = as.matrix(markers[, snp, drop = FALSE]),
+      effEstSnp <- estEffsCPP(y0 = Y,
+                              w0 = X[, !colnames(X) %in% snpCovSnp, drop = FALSE],
+                              x0 = as.matrix(markers[, snp, drop = FALSE]),
                               vg = Vg, ve = Ve, k = K, estCom = estCom,
                               nCores = nCores)
       effEstSnp$snp <- snp
@@ -52,13 +52,11 @@ estEffTot <- function(markers,
            pValsQtlE = unlist(sapply(X = effEstSnps, `[[`, "pValsQtlE")),
            snps = unlist(sapply(X = effEstSnps, `[[`, "snps")))
   } else {
-    ## Set to NULL so binding can be done in next step.
-    effEst <- estEffsCPP(y = Y, w = X,
-                         x = as.matrix(markers[, -excludedMarkers]),
-                         vg = Vg, ve = Ve, k = as.matrix(K), estCom = estCom,
-                         nCores = nCores)
+    ## Compute all effects in one go.
+    effEst <- estEffsCPP(y0 = Y, w0 = X,
+                         x0 = as.matrix(markers), vg = Vg, ve = Ve, k = K,
+                         estCom = estCom, nCores = nCores)
   }
-  effEstSnpCov <- NULL
   ## Extract names of SNPs and individuals.
   snpNames <- colnames(markers)[-excludedMarkers]
   trtNames <- colnames(Y)
@@ -71,8 +69,7 @@ estEffTot <- function(markers,
   effsComSe <- effEst$effsComSe
   pValQtlE <- effEst$pValsQtlE
   names(pValues) <- colnames(effs) <- colnames(effsSe) <- names(pValCom) <-
-    names(effsCom) <- names(effsComSe) <- names(pValQtlE) <-
-    c(snpNames, effEstSnpCov$snps)
+    names(effsCom) <- names(effsComSe) <- names(pValQtlE) <- snpNames
   rownames(effs) <- rownames(effsSe) <- trtNames
   return(list(pValues = pValues, effs = effs, effsSe = effsSe,
               pValCom = pValCom, effsCom = effsCom, effsComSe = effsComSe,

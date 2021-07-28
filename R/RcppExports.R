@@ -198,8 +198,8 @@ LLQuadFormDiagCPP <- function(y, vInv, size_param_x = NULL) {
 #' mixed model algorithms for genome-wide association studies. Nature Methods,
 #' February 2014, Vol. 11, p. 407–409
 #' @keywords internal
-estEffsCPP <- function(y, w, x, vg, ve, k, returnSe = TRUE, estCom = FALSE, nCores = NULL) {
-    .Call(`_statgenQTLxT_estEffsCPP`, y, w, x, vg, ve, k, returnSe, estCom, nCores)
+estEffsCPP <- function(y0, w0, x0, vg, ve, k, returnSe = TRUE, estCom = FALSE, nCores = NULL) {
+    .Call(`_statgenQTLxT_estEffsCPP`, y0, w0, x0, vg, ve, k, returnSe, estCom, nCores)
 }
 
 getThr <- function(nCores = NULL) {

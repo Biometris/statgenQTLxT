@@ -1,24 +1,23 @@
 stages:
   - test
-  - deploy
 
 variables:
   OMP_THREAD_LIMIT: "2"
-  APT_PKGS: "libcurl4-openssl-dev libssh2-1-dev libssl-dev libxml2-dev zlib1g-dev git build-essential gobjc++ libomp-dev"
+  APT_PKGS: "libcurl4-openssl-dev libssh2-1-dev libssl-dev libxml2-dev zlib1g-dev git build-essential gobjc++ libomp-dev devscripts"
 
 before_script:
-  ## Make sure configure and cleanup files are executable.
   - apt-get update
   - apt-get install -y --no-install-recommends ${APT_PKGS}
   - apt-get install -y --no-install-recommends qpdf pandoc pandoc-citeproc
   - export PATH="/usr/local/lib/R/site-library/littler/examples/:${PATH}"
   - echo "options(Ncpus = $(nproc --all))" >> /usr/local/lib/R/etc/Rprofile.site
-  - install2.r devtools remotes
-  - r -e 'remotes::install_gitlab(repo = "statistical-genetic-pipeline/statgenQTL", host = "git.wur.nl", auth_token = "Hx4TTMkmj8f1tpy2gCZd")'
-  - r -e 'devtools::install_dev_deps(upgrade = "never")'
+  - install2.r devtools
+  - r -e 'devtools::install_dev_deps()'
 
 r-release:
   stage: test
+  tags:
+    - Docker
   image: rocker/r-ver:latest
   script:
     - r -e 'devtools::check(check_dir = ".")'
@@ -30,6 +29,8 @@ r-release:
 
 r-devel:
   stage: test
+  tags:
+    - Docker
   image: rocker/r-ver:devel
   script:
     - r -e 'devtools::check(check_dir = ".")'
@@ -38,15 +39,3 @@ r-devel:
       - "*.Rcheck"
     name: logs
     when: always
-
-coverage:
-  stage: deploy
-  image: rocker/r-ver:latest
-  when: on_success
-  only:
-    - master
-  script:
-    - install2.r covr
-    - r -e 'devtools::install()'
-    - r -e 'covr::package_coverage()'
-  coverage: '/Coverage:\s*(\d+.\d+\%)/'

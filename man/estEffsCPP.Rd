@@ -4,19 +4,19 @@
 \alias{estEffsCPP}
 \title{Estimates for covariates}
 \usage{
-estEffsCPP(y, w, x, vg, ve, k, returnSe = TRUE, estCom = FALSE, nCores = NULL)
+estEffsCPP(
+  y0,
+  w0,
+  x0,
+  vg,
+  ve,
+  k,
+  returnSe = TRUE,
+  estCom = FALSE,
+  nCores = NULL
+)
 }
 \arguments{
-\item{y}{An n x p matrix of observed phenotypes, on p traits or environments
-for n genotypes. No missing values are allowed.}
-
-\item{w}{An n x c covariate matrix, c being the number of covariates and n
-being the number of genotypes. c has to be at least one (typically an
-intercept). No missing values are allowed.}
-
-\item{x}{An n x ns matrix of marker scores. Neither missing values nor
-non-segregating markers are allowed.}
-
 \item{vg}{A p x p matrix of genetic covariances.}
 
 \item{ve}{A p x p matrix of environmental covariances.}
@@ -26,6 +26,16 @@ non-segregating markers are allowed.}
 \item{returnSe}{Should standard errors and p-values be returned?}
 
 \item{estCom}{Should the common SNP-effect model be fitted?}
+
+\item{y}{An n x p matrix of observed phenotypes, on p traits or environments
+for n genotypes. No missing values are allowed.}
+
+\item{w}{An n x c covariate matrix, c being the number of covariates and n
+being the number of genotypes. c has to be at least one (typically an
+intercept). No missing values are allowed.}
+
+\item{x}{An n x ns matrix of marker scores. Neither missing values nor
+non-segregating markers are allowed.}
 
 \item{ncores}{An integer indicating the number of cores used for parallel
 computation.}

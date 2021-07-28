@@ -126,21 +126,21 @@ BEGIN_RCPP
 END_RCPP
 }
 // estEffsCPP
-List estEffsCPP(arma::mat y, arma::mat w, arma::mat x, arma::mat& vg, arma::mat& ve, arma::mat& k, bool returnSe, bool estCom, Rcpp::Nullable<Rcpp::IntegerVector> nCores);
-RcppExport SEXP _statgenQTLxT_estEffsCPP(SEXP ySEXP, SEXP wSEXP, SEXP xSEXP, SEXP vgSEXP, SEXP veSEXP, SEXP kSEXP, SEXP returnSeSEXP, SEXP estComSEXP, SEXP nCoresSEXP) {
+List estEffsCPP(arma::mat& y0, arma::mat& w0, arma::mat& x0, arma::mat& vg, arma::mat& ve, arma::mat& k, bool returnSe, bool estCom, Rcpp::Nullable<Rcpp::IntegerVector> nCores);
+RcppExport SEXP _statgenQTLxT_estEffsCPP(SEXP y0SEXP, SEXP w0SEXP, SEXP x0SEXP, SEXP vgSEXP, SEXP veSEXP, SEXP kSEXP, SEXP returnSeSEXP, SEXP estComSEXP, SEXP nCoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type w(wSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type y0(y0SEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type w0(w0SEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type x0(x0SEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type vg(vgSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type ve(veSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type k(kSEXP);
     Rcpp::traits::input_parameter< bool >::type returnSe(returnSeSEXP);
     Rcpp::traits::input_parameter< bool >::type estCom(estComSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type nCores(nCoresSEXP);
-    rcpp_result_gen = Rcpp::wrap(estEffsCPP(y, w, x, vg, ve, k, returnSe, estCom, nCores));
+    rcpp_result_gen = Rcpp::wrap(estEffsCPP(y0, w0, x0, vg, ve, k, returnSe, estCom, nCores));
     return rcpp_result_gen;
 END_RCPP
 }
