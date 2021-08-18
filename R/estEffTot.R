@@ -58,7 +58,7 @@ estEffTot <- function(markers,
                          estCom = estCom, nCores = nCores)
   }
   ## Extract names of SNPs and individuals.
-  snpNames <- colnames(markers)[-excludedMarkers]
+  snpNames <- colnames(markers)
   trtNames <- colnames(Y)
   ## Bind results together.
   pValues <- effEst$pVals
