@@ -6,10 +6,7 @@
 \alias{statgenQTLxT-package}
 \title{statgenQTLxT: Multi-trait and multi-trial Genome Wide Association Studies}
 \description{
-Fast multi trait Genome Wide Association Studies (GWAS) following 
-    the method described in Zhou and Stephens. (2014), <doi:10.1038/nmeth.2848>.        
-    One of a series of statistical genetic packages for streamlining the 
-    analysis of typical plant breeding experiments developed by Biometris.
+Fast multi trait Genome Wide Association Studies (GWAS) following the method described in Zhou and Stephens. (2014), <doi:10.1038/nmeth.2848>. One of a series of statistical genetic packages for streamlining the analysis of typical plant breeding experiments developed by Biometris.
 }
 \author{
 \strong{Maintainer}: Bart-Jan van Rossum \email{bart-jan.vanrossum@wur.nl}

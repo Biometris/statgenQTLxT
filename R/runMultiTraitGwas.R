@@ -130,7 +130,8 @@ runMultiTraitGwas <- function(gData,
                               sizeInclRegion = 0,
                               minR2 = 0.5,
                               parallel = FALSE,
-                              nCores = NULL) {
+                              nCores = NULL,
+                              scaleY = FALSE) {
   ## Checks.
   chkGData(gData)
   chkMarkers(gData$markers)
@@ -270,7 +271,9 @@ runMultiTraitGwas <- function(gData,
   if (anyNA(Y)) {
     stop("Phenotypic data cannot contain any missing values.\n")
   }
-  Y <- scale(Y)
+  if (scaleY) {
+    Y <- scale(Y)
+  }
   ## Compute kinship matrix (GSLMethod single)
   ## or kinship matrices per chromosome (GLSMethod multi).
   if (kinshipMethod == "identity") {
