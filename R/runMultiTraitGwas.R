@@ -130,8 +130,7 @@ runMultiTraitGwas <- function(gData,
                               sizeInclRegion = 0,
                               minR2 = 0.5,
                               parallel = FALSE,
-                              nCores = NULL,
-                              scaleY = FALSE) {
+                              nCores = NULL) {
   ## Checks.
   chkGData(gData)
   chkMarkers(gData$markers)
@@ -271,9 +270,6 @@ runMultiTraitGwas <- function(gData,
   if (anyNA(Y)) {
     stop("Phenotypic data cannot contain any missing values.\n")
   }
-  if (scaleY) {
-    Y <- scale(Y)
-  }
   ## Compute kinship matrix (GSLMethod single)
   ## or kinship matrices per chromosome (GLSMethod multi).
   if (kinshipMethod == "identity") {
@@ -304,6 +300,7 @@ runMultiTraitGwas <- function(gData,
     Y <- Y[rownames(Y) %in% rownames(K[[1]]), ]
     X <- X[rownames(X) %in% rownames(K[[1]]), , drop = FALSE]
   }
+  Y <- scale(Y)
   ## fit variance components.
   if (fitVarComp) {
     estVarCompRes <- estVarComp(GLSMethod = GLSMethod, covModel = covModel,
@@ -352,6 +349,9 @@ runMultiTraitGwas <- function(gData,
       pValQtlE <- c(pValQtlE, estEffRes$pValQtlE)
     }
   }
+  ## Rescale effects and standard errors.
+  effs <- effs * attr(Y, "scaled:scale")
+  effsSe <- effsSe * attr(Y, "scaled:scale")
   ## Convert effs and effsSe to long format and merge.
   effs <- data.table::as.data.table(effs, keep.rownames = "trait")
   effsSe <- data.table::as.data.table(effsSe, keep.rownames = "trait")
@@ -412,8 +412,8 @@ runMultiTraitGwas <- function(gData,
   if (thrType == "fdr") {
     signSnpTr <- lapply(X = traits, FUN = function(tr) {
       extrSignSnpsFDR(GWAResult = GWAResult[GWAResult[["trait"]] == tr],
-                      markers = markersRed + 1,
-                      maxScore = maxScore + 1, pheno = phTr[, tr, drop = FALSE],
+                      markers = markersRed,
+                      maxScore = maxScore, pheno = phTr[, tr, drop = FALSE],
                       trait = tr, rho = rho, pThr = pThr,
                       alpha = alpha)
     })

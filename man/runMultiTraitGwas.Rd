@@ -34,8 +34,7 @@ runMultiTraitGwas(
   sizeInclRegion = 0,
   minR2 = 0.5,
   parallel = FALSE,
-  nCores = NULL,
-  scaleY = FALSE
+  nCores = NULL
 )
 }
 \arguments{
