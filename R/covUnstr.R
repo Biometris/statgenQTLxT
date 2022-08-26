@@ -81,7 +81,7 @@ covUnstr <- function(Y,
                          ## This is not really a good idea, but for now it
                          ## is better than nothing.
                          ## Has to be solved in sommer.
-                         tolparinv = 1e-1, method = "AI")
+                         tolParInv = 1e-1, method = "AI")
   ## Extract components from fitted model.
   VgMat <- modFit$sigma[[1]]
   VeMat <- modFit$sigma[[2]]
@@ -185,7 +185,7 @@ covPW <- function(Y,
                            ## This is not really a good idea, but for now it
                            ## is better than nothing.
                            ## Has to be solved in sommer.
-                           tolparinv = 1e-1)
+                           tolParInv = 1e-1)
     return(c(modFit$sigma[[1]][1, 2],
              modFit$sigma[[2]][1, 2]))
   }
