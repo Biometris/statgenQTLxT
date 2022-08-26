@@ -68,12 +68,12 @@ covUnstr <- function(Y,
                             ") ~ 1"))
   }
   if (VeDiag) {
-    rcov <- formula(paste0("~sommer::vs(units, Gtc = diag(", nTrait, "))"))
+    rcov <- formula(paste0("~sommer::vsr(units, Gtc = diag(", nTrait, "))"))
   } else {
-    rcov <- formula(paste0("~sommer::vs(units,
+    rcov <- formula(paste0("~sommer::vsr(units,
                               Gtc = sommer::unsm(", nTrait, "))"))
   }
-  random <- formula(paste0("~sommer::vs(genotype, Gu = as.matrix(K),
+  random <- formula(paste0("~sommer::vsr(genotype, Gu = as.matrix(K),
                               Gtc = sommer::unsm(", nTrait, "))"))
   ## Fit model.
   modFit <- sommer::mmer(fixed = fixed, random = random, rcov = rcov,
@@ -145,7 +145,7 @@ covPW <- function(Y,
     }
     ## Fit model.
     modFit <- sommer::mmer(fixed = fixed,
-                           random = ~sommer::vs(genotype, Gu = as.matrix(K)),
+                           random = ~sommer::vsr(genotype, Gu = as.matrix(K)),
                            data = dat, verbose = FALSE, date.warning = FALSE)
     ## Extract components from fitted model.
     VgVec[i] <- as.numeric(modFit$sigma[[1]])
@@ -174,10 +174,10 @@ covPW <- function(Y,
       fixed <- formula(paste0("cbind(", traits[i], ", ", traits[j], ") ~ 1"))
     }
     modFit <- sommer::mmer(fixed = fixed,
-                           random = ~ sommer::vs(genotype, Gu = as.matrix(K),
+                           random = ~ sommer::vsr(genotype, Gu = as.matrix(K),
                                                  Gtc = sommer::unsm(2),
                                                  Gti = VgMat[c(i, j), c(i, j)]),
-                           rcov = ~ sommer::vs(units, Gtc = sommer::unsm(2),
+                           rcov = ~ sommer::vsr(units, Gtc = sommer::unsm(2),
                                                Gti = VeMat[c(i, j), c(i, j)]),
                            data = dat[, c("genotype", traits[i], traits[j],
                                           colnames(X)[-1])],
