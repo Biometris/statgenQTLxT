@@ -1,7 +1,4 @@
 #' @importFrom utils getFromNamespace
-#' @export
-createGData <- getFromNamespace(x = "createGData", ns = "statgenGWAS")
-
 #' @keywords internal
 createGWAS <- getFromNamespace(x = "createGWAS", ns = "statgenGWAS")
 
