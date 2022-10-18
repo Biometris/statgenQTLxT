@@ -1,4 +1,7 @@
 #' @importFrom utils getFromNamespace
+#' @export
+createGData <- getFromNamespace(x = "createGData", ns = "statgenGWAS")
+
 #' @keywords internal
 createGWAS <- getFromNamespace(x = "createGWAS", ns = "statgenGWAS")
 
@@ -14,5 +17,5 @@ extrSignSnps <- getFromNamespace(x = "extrSignSnps", ns = "statgenGWAS")
 #' @keywords internal
 extrSignSnpsFDR <- getFromNamespace(x = "extrSignSnpsFDR", ns = "statgenGWAS")
 
-#' @keywords internal
-getPeaks <- getFromNamespace(x = "getPeaks", ns = "statgenQTL")
+# #' @keywords internal
+# getPeaks <- getFromNamespace(x = "getPeaks", ns = "statgenQTL")

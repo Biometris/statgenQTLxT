@@ -155,19 +155,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// multiAllKin
-arma::mat multiAllKin(arma::cube x, arma::vec posCor, Rcpp::Nullable<Rcpp::NumericVector> denom);
-RcppExport SEXP _statgenQTLxT_multiAllKin(SEXP xSEXP, SEXP posCorSEXP, SEXP denomSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::cube >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type posCor(posCorSEXP);
-    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type denom(denomSEXP);
-    rcpp_result_gen = Rcpp::wrap(multiAllKin(x, posCor, denom));
-    return rcpp_result_gen;
-END_RCPP
-}
 // nearestPD2
 arma::mat nearestPD2(arma::mat x, const bool corr, const bool keepDiag, const bool do2eigen, const bool doSym, const bool doDykstra, const double eigTol, const double convTol, const double posdTol, const int maxIter);
 RcppExport SEXP _statgenQTLxT_nearestPD2(SEXP xSEXP, SEXP corrSEXP, SEXP keepDiagSEXP, SEXP do2eigenSEXP, SEXP doSymSEXP, SEXP doDykstraSEXP, SEXP eigTolSEXP, SEXP convTolSEXP, SEXP posdTolSEXP, SEXP maxIterSEXP) {
@@ -199,7 +186,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_statgenQTLxT_LLQuadFormDiagCPP", (DL_FUNC) &_statgenQTLxT_LLQuadFormDiagCPP, 3},
     {"_statgenQTLxT_estEffsCPP", (DL_FUNC) &_statgenQTLxT_estEffsCPP, 9},
     {"_statgenQTLxT_getThr", (DL_FUNC) &_statgenQTLxT_getThr, 1},
-    {"_statgenQTLxT_multiAllKin", (DL_FUNC) &_statgenQTLxT_multiAllKin, 3},
     {"_statgenQTLxT_nearestPD2", (DL_FUNC) &_statgenQTLxT_nearestPD2, 10},
     {NULL, NULL, 0}
 };
