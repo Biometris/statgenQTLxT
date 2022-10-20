@@ -166,6 +166,8 @@ covPW <- function(Y,
   rownames(VeMat) <- colnames(VeMat) <- traits
   ## For every combination of traits compute variance.
   modPW <- function(i, j) {
+    tolParInv <- 1e-6
+    cat(i, " ", j, "\n")
     if (!is.null(X)) {
       ## Define formula for fixed part. ` needed to accommodate - in varnames.
       fixed <- formula(paste0("cbind(", traits[i], ", ", traits[j], ") ~ `",
@@ -173,19 +175,30 @@ covPW <- function(Y,
     } else {
       fixed <- formula(paste0("cbind(", traits[i], ", ", traits[j], ") ~ 1"))
     }
-    modFit <- sommer::mmer(fixed = fixed,
-                           random = ~ sommer::vsr(genotype, Gu = as.matrix(K),
-                                                 Gtc = sommer::unsm(2),
-                                                 Gti = VgMat[c(i, j), c(i, j)]),
-                           rcov = ~ sommer::vsr(units, Gtc = sommer::unsm(2),
-                                               Gti = VeMat[c(i, j), c(i, j)]),
-                           data = dat[, c("genotype", traits[i], traits[j],
-                                          colnames(X)[-1])],
-                           verbose = FALSE, date.warning = FALSE,
-                           ## This is not really a good idea, but for now it
-                           ## is better than nothing.
-                           ## Has to be solved in sommer.
-                           tolParInv = 1e-1)
+    while (TRUE) {
+      ## Sometimes sommer models won't fit with the default value for
+      ## tolParInv. It is then suggested to increase the value of this
+      ## parameter to assure a fit. We don't want a fixed high value of
+      ## tolParInv, so we increase it in steps if needed by taking the sqrt.
+      msg <- capture.output(
+        modFit <-
+          sommer::mmer(fixed = fixed,
+                       random = ~ sommer::vsr(genotype, Gu = as.matrix(K),
+                                              Gtc = sommer::unsm(2),
+                                              Gti = VgMat[c(i, j), c(i, j)]),
+                       rcov = ~ sommer::vsr(units, Gtc = sommer::unsm(2),
+                                            Gti = VeMat[c(i, j), c(i, j)]),
+                       data = dat[, c("genotype", traits[i], traits[j],
+                                      colnames(X)[-1])],
+                       verbose = FALSE, dateWarning = FALSE,
+                       tolParInv = tolParInv)
+      )
+      if (length(modFit) == 0) {
+        tolParInv <- sqrt(tolParInv)
+      } else {
+        break
+      }
+    }
     return(c(modFit$sigma[[1]][1, 2],
              modFit$sigma[[2]][1, 2]))
   }

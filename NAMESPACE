@@ -2,8 +2,6 @@
 
 export(readIBDProbs)
 export(runMultiTraitGwas)
-import(grDevices)
-import(graphics)
 import(stats)
 import(utils)
 importFrom(Rcpp,sourceCpp)

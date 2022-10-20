@@ -374,14 +374,16 @@ runMultiTraitGwas <- function(gData,
     K <- diag(x = 1, nrow = nrow(Y), ncol = nrow(Y))
     rownames(K) <- colnames(K) <- rownames(Y)
   } else {
-    markersRest <- gData$markers[, !grepl(pattern = "EXT",
-                                          x = colnames(gData$markers))]
-    mapRest <- gData$map[!grepl(pattern = "EXT", rownames(gData$map)), ]
     gDataRest <- gData
-    gDataRest$markers <- markersRest
-    gDataRest$map <- mapRest
+    if (!all(grepl(pattern = "EXT", x = colnames(gData$markers)))) {
+      markersRest <- gData$markers[, !grepl(pattern = "EXT",
+                                            x = colnames(gData$markers))]
+      mapRest <- gData$map[!grepl(pattern = "EXT", rownames(gData$map)), ]
+      gDataRest$markers <- markersRest
+      gDataRest$map <- mapRest
+    }
     K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gDataRest,
-                    markers = markersRest, map = mapRest,
+                    markers = gDataRest$markers, map = gDataRest$map,
                     kinshipMethod = kinshipMethod)
   }
   if (GLSMethod == "single") {
