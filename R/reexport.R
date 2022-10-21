@@ -13,3 +13,6 @@ extrSignSnps <- getFromNamespace(x = "extrSignSnps", ns = "statgenGWAS")
 
 #' @keywords internal
 extrSignSnpsFDR <- getFromNamespace(x = "extrSignSnpsFDR", ns = "statgenGWAS")
+
+#' @keywords internal
+nearestPD <- getFromNamespace(x = "nearestPD", ns = "statgenGWAS")

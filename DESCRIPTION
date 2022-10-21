@@ -59,11 +59,9 @@ RoxygenNote: 7.2.1
 Depends: R (>= 3.5)
 Imports: data.table,
     foreach,
-    ggplot2 (>= 3.0.0),
     Rcpp,
-    sommer (>= 4.1.3),
-    scales,
-    statgenGWAS
+    sommer (>= 4.2.0),
+    statgenGWAS (>= 1.0.9)
 Suggests: covr,
     knitr,
     rmarkdown,

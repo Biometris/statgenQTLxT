@@ -57,40 +57,64 @@ covUnstr <- function(Y,
   traits <- colnames(Y)
   nTrait <- length(traits)
   smpVar <- apply(X = Y, MARGIN = 2, FUN = var)
-  if (!is.null(X)) {
-    ## Define formula for fixed part. ` needed to accommodate - in
-    ## variable names.
-    fixed <- formula(paste0("cbind(",
-                            paste0(traits, collapse = ", "), ") ~ `",
-                            paste(colnames(X)[-1], collapse = '` + `'), "`"))
-  } else {
-    fixed <- formula(paste0("cbind(", paste0(traits, collapse = ", "),
-                            ") ~ 1"))
+  ratio <- vector(mode = "numeric", length = nTrait)
+  for (i in 1:nTrait) {
+    if (!is.null(X)) {
+      ## Define formula for fixed part. ` needed to accommodate - in varnames.
+      fixed <- formula(paste0(traits[i], " ~ `",
+                              paste(colnames(X)[-1], collapse = '` + `'),
+                              "`"))
+    } else {
+      fixed <- formula(paste(traits[i], " ~ 1"))
+    }
+    ## Fit model.
+    modFit <- sommer::mmer(fixed = fixed,
+                           random = ~sommer::vsr(genotype, Gu = as.matrix(K)),
+                           data = dat, verbose = FALSE, date.warning = FALSE)
+    ## Extract components from fitted model.
+    Vg <- as.numeric(modFit$sigma[[1]])
+    Ve <- as.numeric(modFit$sigma[[2]])
+    ratio[i] <- Vg / (Vg + Ve)
   }
-  if (VeDiag) {
-    rcov <- formula(paste0("~sommer::vsr(units, Gtc = diag(", nTrait, "))"))
+  if (all(ratio < 0.05)) {
+    Vg <- matrix(data = 0, nrow = nTrait, ncol = nTrait)
+    Ve <- cov(Y)
   } else {
-    rcov <- formula(paste0("~sommer::vsr(units,
+    if (!is.null(X)) {
+      ## Define formula for fixed part. ` needed to accommodate - in
+      ## variable names.
+      fixed <- formula(paste0("cbind(",
+                              paste0(traits, collapse = ", "), ") ~ `",
+                              paste(colnames(X)[-1], collapse = '` + `'), "`"))
+    } else {
+      fixed <- formula(paste0("cbind(", paste0(traits, collapse = ", "),
+                              ") ~ 1"))
+    }
+    if (VeDiag) {
+      rcov <- formula(paste0("~sommer::vsr(units, Gtc = diag(", nTrait, "))"))
+    } else {
+      rcov <- formula(paste0("~sommer::vsr(units,
                               Gtc = sommer::unsm(", nTrait, "))"))
+    }
+    random <- formula(paste0("~sommer::vsr(genotype, Gu = as.matrix(K),
+                              Gtc = sommer::unsm(", nTrait, "))"))
+    ## Fit model.
+    modFit <- sommer::mmer(fixed = fixed, random = random, rcov = rcov,
+                           data = dat, verbose = FALSE, dateWarning = FALSE,
+                           ## This is not really a good idea, but for now it
+                           ## is better than nothing.
+                           ## Has to be solved in sommer.
+                           tolParInv = 1e-6, method = "AI")
+    ## Extract components from fitted model.
+    VgMat <- modFit$sigma[[1]]
+    VeMat <- modFit$sigma[[2]]
   }
-  random <- formula(paste0("~sommer::vsr(genotype, Gu = as.matrix(K),
-                              Gtc = sommer::unsm(", nTrait, "))"))
-  ## Fit model.
-  modFit <- sommer::mmer(fixed = fixed, random = random, rcov = rcov,
-                         data = dat, verbose = FALSE, date.warning = FALSE,
-                         ## This is not really a good idea, but for now it
-                         ## is better than nothing.
-                         ## Has to be solved in sommer.
-                         tolParInv = 1e-1, method = "AI")
-  ## Extract components from fitted model.
-  VgMat <- modFit$sigma[[1]]
-  VeMat <- modFit$sigma[[2]]
   ## Keep diagonal for Vg and Ve away from 0.
   diag(VgMat)[diag(VgMat) <= 0] <- 1e-6 * smpVar[diag(VgMat) <= 0]
   diag(VeMat)[diag(VeMat) <= 0] <- 1e-6 * smpVar[diag(VeMat) <= 0]
   ## Make Vg and Ve positive definite.
-  VgMat <- statgenGWAS:::nearestPD(VgMat)
-  VeMat <- statgenGWAS:::nearestPD(VeMat)
+  VgMat <- nearestPD(VgMat)
+  VeMat <- nearestPD(VeMat)
   colnames(VgMat) <- rownames(VgMat) <- traits
   colnames(VeMat) <- rownames(VeMat) <- traits
   return(list(Vg = VgMat, Ve = VeMat))
@@ -224,8 +248,8 @@ covPW <- function(Y,
     VeMat <- cor(VeMat)
   }
   ## Make positive definite.
-  VgMat <- statgenGWAS:::nearestPD(VgMat, corr = corMat)
-  VeMat <- statgenGWAS:::nearestPD(VeMat, corr = corMat)
+  VgMat <- nearestPD(VgMat, corr = corMat)
+  VeMat <- nearestPD(VeMat, corr = corMat)
   colnames(VgMat) <- rownames(VgMat) <- traits
   colnames(VeMat) <- rownames(VeMat) <- traits
   return(list(Vg = VgMat, Ve = VeMat))
