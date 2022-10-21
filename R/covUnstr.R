@@ -76,38 +76,43 @@ covUnstr <- function(Y,
     Ve <- as.numeric(modFit$sigma[[2]])
     ratio[i] <- Vg / (Vg + Ve)
   }
-  if (all(ratio < 0.05)) {
-    Vg <- matrix(data = 0, nrow = nTrait, ncol = nTrait)
-    Ve <- cov(Y)
-  } else {
+  traitsMod <- traits[ratio > 0.01]
+  nTraitMod <- length(traitsMod)
+  ## Create base Vg/Ve
+  VgMat <- matrix(0, nrow = nTrait, ncol = nTrait,
+                  dimnames = list(traits, traits))
+  VeMat <- cov(Y)
+  if (nTraitMod > 1) {
     if (!is.null(X)) {
       ## Define formula for fixed part. ` needed to accommodate - in
       ## variable names.
       fixed <- formula(paste0("cbind(",
-                              paste0(traits, collapse = ", "), ") ~ `",
+                              paste0(traitsMod, collapse = ", "), ") ~ `",
                               paste(colnames(X)[-1], collapse = '` + `'), "`"))
     } else {
-      fixed <- formula(paste0("cbind(", paste0(traits, collapse = ", "),
+      fixed <- formula(paste0("cbind(", paste0(traitsMod, collapse = ", "),
                               ") ~ 1"))
     }
     if (VeDiag) {
-      rcov <- formula(paste0("~sommer::vsr(units, Gtc = diag(", nTrait, "))"))
+      rcov <- formula(paste0("~sommer::vsr(units, Gtc = diag(", nTraitMod, "))"))
     } else {
       rcov <- formula(paste0("~sommer::vsr(units,
-                              Gtc = sommer::unsm(", nTrait, "))"))
+                              Gtc = sommer::unsm(", nTraitMod, "))"))
     }
     random <- formula(paste0("~sommer::vsr(genotype, Gu = as.matrix(K),
-                              Gtc = sommer::unsm(", nTrait, "))"))
+                              Gtc = sommer::unsm(", nTraitMod, "))"))
     ## Fit model.
     modFit <- sommer::mmer(fixed = fixed, random = random, rcov = rcov,
                            data = dat, verbose = FALSE, dateWarning = FALSE,
                            ## This is not really a good idea, but for now it
                            ## is better than nothing.
                            ## Has to be solved in sommer.
-                           tolParInv = 1e-6, method = "AI")
+                           tolParInv = 1e-3, method = "AI")
     ## Extract components from fitted model.
-    VgMat <- modFit$sigma[[1]]
-    VeMat <- modFit$sigma[[2]]
+    VgMatMod <- modFit$sigma[[1]]
+    VeMatMod <- modFit$sigma[[2]]
+    VgMat[traitsMod, traitsMod] <- VgMatMod
+    VeMat[traitsMod, traitsMod] <- VeMatMod
   }
   ## Keep diagonal for Vg and Ve away from 0.
   diag(VgMat)[diag(VgMat) <= 0] <- 1e-6 * smpVar[diag(VgMat) <= 0]
@@ -115,8 +120,8 @@ covUnstr <- function(Y,
   ## Make Vg and Ve positive definite.
   VgMat <- nearestPD(VgMat)
   VeMat <- nearestPD(VeMat)
-  colnames(VgMat) <- rownames(VgMat) <- traits
-  colnames(VeMat) <- rownames(VeMat) <- traits
+  rownames(VgMat) <- colnames(VgMat) <- traits
+  rownames(VeMat) <- colnames(VeMat) <- traits
   return(list(Vg = VgMat, Ve = VeMat))
 }
 
@@ -190,7 +195,7 @@ covPW <- function(Y,
   rownames(VeMat) <- colnames(VeMat) <- traits
   ## For every combination of traits compute variance.
   modPW <- function(i, j) {
-    tolParInv <- 1e-6
+    tolParInv <- 1e-3
     cat(i, " ", j, "\n")
     if (!is.null(X)) {
       ## Define formula for fixed part. ` needed to accommodate - in varnames.
