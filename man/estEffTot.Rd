@@ -6,8 +6,6 @@
 \usage{
 estEffTot(
   markers,
-  map,
-  minCofactorProximity = 50,
   X,
   Y,
   K,

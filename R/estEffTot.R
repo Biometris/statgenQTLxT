@@ -5,8 +5,6 @@
 #'
 #' @keywords internal
 estEffTot <- function(markers,
-                      map,
-                      minCofactorProximity = 50,
                       X,
                       Y,
                       K,
@@ -20,58 +18,37 @@ estEffTot <- function(markers,
                       MAF,
                       estCom,
                       nCores = NULL) {
-  minDist <- minCofactorProximity / 2
-  # segMarkers <- which(abs(allFreq) >= 1 - MAF)markersRed
-  segMarkers <- which(abs(allFreq) < MAF)
-  excludedMarkers <- c(segMarkers, ncol(markers) + 1)
-  map <- map[-excludedMarkers, ]
-  markers <- markers[, -excludedMarkers]
-  if (length(snpCov) > 0) {
-    ## Order snp cofactors by position on chromosome.
-    snpCov <- rownames(map[rownames(map) %in% snpCov, ])
-    snpCovPos <- map[snpCov, "pos"]
-    snpRanges <- sapply(snpCovPos, FUN = function(pos) {
-      map[["pos"]] > pos - minDist & map[["pos"]] < pos + minDist
-    })
-    effEstSnps <- lapply(X = colnames(markers), FUN = function(snp) {
-      snpPos <- which(colnames(markers) == snp)
-      snpCovSnp <- snpCov[snpRanges[snpPos, ]]
-      effEstSnp <- estEffsCPP(y0 = Y,
-                              w0 = X[, !colnames(X) %in% snpCovSnp, drop = FALSE],
-                              x0 = as.matrix(markers[, snp, drop = FALSE]),
-                              vg = Vg, ve = Ve, k = K, estCom = estCom,
-                              nCores = nCores)
-      effEstSnp$snp <- snp
-      return(effEstSnp)
-    })
-    effEst <-
-      list(effs = do.call(cbind, lapply(X = effEstSnps, `[[`, "effs")),
-           effsSe = do.call(cbind, lapply(X = effEstSnps, `[[`, "effsSe")),
-           pVals = unlist(sapply(X = effEstSnps, `[[`, "pVals")),
-           effsCom = unlist(sapply(X = effEstSnps, `[[`, "effsCom")),
-           effsComSe = unlist(sapply(X = effEstSnps, `[[`, "effsComSe")),
-           pValsCom = unlist(sapply(X = effEstSnps, `[[`, "pValsCom")),
-           pValsQtlE = unlist(sapply(X = effEstSnps, `[[`, "pValsQtlE")),
-           snps = unlist(sapply(X = effEstSnps, `[[`, "snps")))
+  segMarkers <- which(abs(allFreq) >= 1 - MAF)
+  ## Add snpCovariates to segregating markers.
+  excludedMarkers <- union(c(segMarkers, ncol(markers) + 1),
+                           exclMarkers(snpCov = snpCov, markers = markers,
+                                       allFreq = allFreq))
+  if (!is.null(snpCov)) {
+    effEstSnpCov <- estEffsCPP(y = Y, w = XRed,
+                               x = as.matrix(markers[, snpCov, drop = FALSE]),
+                               vg = VgRed, ve = VeRed, k = as.matrix(K),
+                               estCom = estCom, nCores = nCores)
   } else {
-    ## Compute all effects in one go.
-    effEst <- estEffsCPP(y0 = Y, w0 = X,
-                         x0 = as.matrix(markers), vg = Vg, ve = Ve, k = K,
-                         estCom = estCom, nCores = nCores)
+    ## Set to NULL so binding can be done in next step.
+    effEstSnpCov <- NULL
   }
   ## Extract names of SNPs and individuals.
-  snpNames <- colnames(markers)
+  snpNames <- colnames(markers)[-excludedMarkers]
   trtNames <- colnames(Y)
-  ## Bind results together.
-  pValues <- effEst$pVals
-  effs <- effEst$effs
-  effsSe <- effEst$effsSe
-  pValCom <- effEst$pValsCom
-  effsCom <- effEst$effsCom
-  effsComSe <- effEst$effsComSe
-  pValQtlE <- effEst$pValsQtlE
+  effEst <- estEffsCPP(y = Y, w = X,
+                       x = as.matrix(markers[, -excludedMarkers]),
+                       vg = Vg, ve = Ve, k = as.matrix(K), estCom = estCom,
+                       nCores = nCores)
+  pValues <- c(effEst$pVals, effEstSnpCov$pVals)
+  effs <- cbind(effEst$effs, effEstSnpCov$effs)
+  effsSe <- cbind(effEst$effsSe, effEstSnpCov$effsSe)
+  pValCom <- c(effEst$pValsCom, effEstSnpCov$pValsCom)
+  effsCom <- c(effEst$effsCom, effEstSnpCov$effsCom)
+  effsComSe <- c(effEst$effsComSe, effEstSnpCov$effsComSe)
+  pValQtlE <- c(effEst$pValsQtlE, effEstSnpCov$pValsQtlE)
   names(pValues) <- colnames(effs) <- colnames(effsSe) <- names(pValCom) <-
-    names(effsCom) <- names(effsComSe) <- names(pValQtlE) <- snpNames
+    names(effsCom) <- names(effsComSe) <- names(pValQtlE) <-
+    c(snpNames, snpCov)
   rownames(effs) <- rownames(effsSe) <- trtNames
   return(list(pValues = pValues, effs = effs, effsSe = effsSe,
               pValCom = pValCom, effsCom = effsCom, effsComSe = effsComSe,

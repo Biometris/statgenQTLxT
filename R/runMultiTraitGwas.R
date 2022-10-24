@@ -314,27 +314,27 @@ runMultiTraitGwas <- function(gData,
   kinshipMethod <- match.arg(kinshipMethod)
   ## Check Vg and Ve if variance components are not fitted.
   if (!fitVarComp) {
-    # if (is.null(Vg) || !is.matrix(Vg)) {
-    #   stop("Vg should be a matrix.\n")
-    # }
-    # if (is.null(Ve) || !is.matrix(Ve)) {
-    #   stop("Ve should be a matrix.\n")
-    # }
-    # if (is.null(colnames(Vg)) || is.null(rownames(Vg)) ||
-    #     any(colnames(Vg) != rownames(Vg)) ||
-    #     !all(colnames(Vg) %in% colnames(gData$pheno[[1]])[-1])) {
-    #   stop("Column names and rownames of Vg should be identical and ",
-    #        "included in column names of pheno.\n")
-    # }
-    # if (is.null(colnames(Ve)) || is.null(rownames(Ve)) ||
-    #     any(colnames(Ve) != rownames(Ve)) ||
-    #     !all(colnames(Ve) %in% colnames(gData$pheno[[1]])[-1])) {
-    #   stop("Column names and rownames of Ve should be identical and ",
-    #        "included in column names of pheno.\n")
-    # }
-    # Vg <- Vg[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
-    # Ve <- Ve[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
-    # colnames(Vg) <- rownames(Vg) <- colnames(Ve) <- rownames(Ve) <- NULL
+    if (is.null(Vg) || !is.matrix(Vg)) {
+      stop("Vg should be a matrix.\n")
+    }
+    if (is.null(Ve) || !is.matrix(Ve)) {
+      stop("Ve should be a matrix.\n")
+    }
+    if (is.null(colnames(Vg)) || is.null(rownames(Vg)) ||
+        any(colnames(Vg) != rownames(Vg)) ||
+        !all(colnames(Vg) %in% colnames(gData$pheno[[1]])[-1])) {
+      stop("Column names and rownames of Vg should be identical and ",
+           "included in column names of pheno.\n")
+    }
+    if (is.null(colnames(Ve)) || is.null(rownames(Ve)) ||
+        any(colnames(Ve) != rownames(Ve)) ||
+        !all(colnames(Ve) %in% colnames(gData$pheno[[1]])[-1])) {
+      stop("Column names and rownames of Ve should be identical and ",
+           "included in column names of pheno.\n")
+    }
+    Vg <- Vg[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
+    Ve <- Ve[colnames(gData$pheno[[1]])[-1], colnames(gData$pheno[[1]])[-1]]
+    colnames(Vg) <- rownames(Vg) <- colnames(Ve) <- rownames(Ve) <- NULL
     VgRed <- Vg
     VeRed <- Ve
   }
@@ -415,7 +415,7 @@ runMultiTraitGwas <- function(gData,
   markersRed <- markersRed[rownames(Y), ]
   ## Run GWAS.
   if (GLSMethod == "single") {
-    estEffRes <- estEffTot(markers = markersRed, map = mapRed,
+    estEffRes <- estEffTot(markers = markersRed, #map = mapRed,
                            X = X, Y = Y, K = K, XRed = XRed, Vg = Vg, Ve = Ve,
                            VgRed = VgRed, VeRed = VeRed, snpCov = snpCov,
                            allFreq = allFreq, MAF = MAF, estCom = estCom,
@@ -434,7 +434,7 @@ runMultiTraitGwas <- function(gData,
       snpCovChr <- snpCov[snpCov %in% colnames(markersRedChr)]
       chrNum <- which(chrs == chr)
       estEffRes <- estEffTot(markers = markersRedChr, map = mapRedChr,
-                             minCofactorProximity = minCofactorProximity,
+                             #minCofactorProximity = minCofactorProximity,
                              X = X, Y = Y, K = K[[chrNum]], XRed = XRed,
                              Vg = Vg[[chrNum]], Ve = Ve[[chrNum]],
                              VgRed = VgRed[[chrNum]], VeRed = VeRed[[chrNum]],
