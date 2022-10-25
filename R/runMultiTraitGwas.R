@@ -415,7 +415,7 @@ runMultiTraitGwas <- function(gData,
   markersRed <- markersRed[rownames(Y), ]
   ## Run GWAS.
   if (GLSMethod == "single") {
-    estEffRes <- estEffTot(markers = markersRed, #map = mapRed,
+    estEffRes <- estEffTot(markers = markersRed,
                            X = X, Y = Y, K = K, XRed = XRed, Vg = Vg, Ve = Ve,
                            VgRed = VgRed, VeRed = VeRed, snpCov = snpCov,
                            allFreq = allFreq, MAF = MAF, estCom = estCom,
@@ -433,8 +433,7 @@ runMultiTraitGwas <- function(gData,
       allFreqChr <- colMeans(markersRedChr) / max(markersRedChr)
       snpCovChr <- snpCov[snpCov %in% colnames(markersRedChr)]
       chrNum <- which(chrs == chr)
-      estEffRes <- estEffTot(markers = markersRedChr, map = mapRedChr,
-                             #minCofactorProximity = minCofactorProximity,
+      estEffRes <- estEffTot(markers = markersRedChr,
                              X = X, Y = Y, K = K[[chrNum]], XRed = XRed,
                              Vg = Vg[[chrNum]], Ve = Ve[[chrNum]],
                              VgRed = VgRed[[chrNum]], VeRed = VeRed[[chrNum]],

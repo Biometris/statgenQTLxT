@@ -1,7 +1,7 @@
 ## Create data for testing functions.
 set.seed(1234)
 
-trials <- c("Bol12R", "Bol12W", "Cam12R")
+trials <- c("Gai12W", "Kar12W", "Cam12R")
 genotypes <- c("11430", "A3", "A310", "A347", "A374", "A375", "A554", "AS5707",
                "B100", "B104", "B105", "B106", "B107", "B108", "B109", "B110",
                "B113", "B37", "B73", "B84", "B89", "B97", "B98", "C103", "CO109",
@@ -27,15 +27,21 @@ Y <- tapply(X = dropsPheno[["grain.yield"]],
 
 dropsMarkers <- statgenGWAS::dropsMarkers
 dropsMarkers <- as.matrix(dropsMarkers[dropsMarkers[["Ind"]] %in% genotypes, -1])
-K <- kinship(dropsMarkers)
+K <- statgenGWAS::kinship(dropsMarkers)
 
 X <- dropsMarkers[, 1:100]
-W <- matrix(sample(x = 2, size = 200, replace = TRUE), ncol = 2)
+W <- as.data.frame(matrix(sample(x = 2, size = 200, replace = TRUE), ncol = 2))
+
+map <- statgenGWAS::dropsMap
+map <- map[map[["SNP.names"]] %in% colnames(X), ]
+colnames(map)[c(2, 3)] <- c("chr", "pos")
+map[1:50, "chr"] <- 2
 
 rownames(Y) <- rownames(X) <- rownames(K) <- colnames(K) <- rownames(W) <-
   paste0("G", formatC(1:100, width = 3, flag = "0"))
+colnames(X) <- rownames(map) <-
+  paste0("M", formatC(1:100, width = 3, flag = "0"))
 colnames(Y) <- paste0("t", 1:3)
-colnames(X) <- paste0("M", formatC(1:100, width = 3, flag = "0"))
 colnames(W) <- c("V1", "V2")
 
 covUnst <- statgenQTLxT:::covUnstr(Y = Y, K = K)
@@ -43,6 +49,10 @@ covUnst <- statgenQTLxT:::covUnstr(Y = Y, K = K)
 Vg <- covUnst[["Vg"]]
 Ve <- covUnst[["Ve"]]
 
+Y <- as.data.frame(Y)
+Y[["genotype"]] <- rownames(Y)
+Y <- Y[c("genotype", "t1", "t2", "t3")]
+
 ## Export to package.
-save(Y, K, X, W, Vg, Ve,
+save(Y, K, X, W, Vg, Ve, map,
      file = "inst/tinytest/testdata.rda")
