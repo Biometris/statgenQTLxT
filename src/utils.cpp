@@ -7,16 +7,16 @@ using namespace Rcpp;
 using namespace arma;
 
 // [[Rcpp::export]]
-arma::mat nearestPD2(arma::mat x,
-                    const bool corr = false,
-                    const bool keepDiag = false,
-                    const bool do2eigen = true,
-                    const bool doSym = false,
-                    const bool doDykstra = true,
-                    const double eigTol = 1e-6,
-                    const double convTol = 1e-7,
-                    const double posdTol = 1e-8,
-                    const int maxIter = 100) {
+arma::mat nearestPDQTLxT(arma::mat x,
+                         const bool corr = false,
+                         const bool keepDiag = false,
+                         const bool do2eigen = true,
+                         const bool doSym = false,
+                         const bool doDykstra = true,
+                         const double eigTol = 1e-6,
+                         const double convTol = 1e-7,
+                         const double posdTol = 1e-8,
+                         const int maxIter = 100) {
   if (!x.is_symmetric()) {
     x = (x + x.t()) / 2;
   }

@@ -13,26 +13,6 @@ chkGData <- function(gData = NULL,
 
 #' @noRd
 #' @keywords internal
-chkMarkers <- function(markers,
-                       dim = 2) {
-  if (dim == 2) {
-    if (!inherits(markers, "matrix")) {
-      stop("markers in gData should be a numerical matrix. Use ",
-           "codeMarkers first for recoding.\n", call. = FALSE)
-    }
-  } else if (dim == 3) {
-    if (!inherits(markers, "array")) {
-      stop("markers should be a three-dimensional array.\n", call. = FALSE)
-    }
-  }
-  if (anyNA(markers)) {
-    stop("markers contains missing values. Impute or remove these first.\n",
-         call. = FALSE)
-  }
-}
-
-#' @noRd
-#' @keywords internal
 chkTrials <- function(trials,
                       gData) {
   if (!is.null(trials) && !is.numeric(trials) && !is.character(trials)) {
@@ -66,6 +46,47 @@ chkTraits <- function(traits,
       stop("For ", trial, " not all traits are columns in pheno.\n",
            call. = FALSE)
     }
+  }
+}
+
+#' @noRd
+#' @keywords internal
+chkNum <- function(x,
+                   min = NULL,
+                   max = NULL) {
+  if (missing(x) || length(x) > 1 || !is.numeric(x) || isTRUE(x < min) ||
+      isTRUE(x > max)) {
+    if (!is.null(min) && !is.null(max)) {
+      txt <- paste(" between", min, "and", max)
+    } else if (!is.null(min)) {
+      txt <- paste(" greater than", min)
+    } else if (!is.null(max)) {
+      txt <- paste(" smaller than", max)
+    } else {
+      txt <- ""
+    }
+    stop(match.call()$x, " should be a single numerical value", txt, ".\n",
+         call. = FALSE)
+  }
+}
+
+#' @noRd
+#' @keywords internal
+chkMarkers <- function(markers,
+                       dim = 2) {
+  if (dim == 2) {
+    if (!is.numeric(markers)) {
+      stop("markers in gData should be a numerical matrix. Use ",
+           "codeMarkers first for recoding.\n", call. = FALSE)
+    }
+  } else if (dim == 3) {
+    if (!inherits(markers, "array") || length(dim(markers)) != 3) {
+      stop("markers should be a three-dimensional array.\n", call. = FALSE)
+    }
+  }
+  if (anyNA(markers)) {
+    stop("markers contains missing values. Impute or remove these first.\n",
+         call. = FALSE)
   }
 }
 
@@ -109,23 +130,6 @@ chkKin <- function(kin,
   }
 }
 
-#' @noRd
-#' @keywords internal
-chkNum <- function(x,
-                   min = NULL,
-                   max = NULL) {
-  if (missing(x) || length(x) > 1 || !is.numeric(x) || isTRUE(x < min) ||
-      isTRUE(x > max)) {
-    if (!is.null(min) && !is.null(max)) {
-      txt <- paste(" between", min, "and", max)
-    } else if (!is.null(min)) {
-      txt <- paste(" greater than", min)
-    } else if (!is.null(max)) {
-      txt <- paste(" smaller than", max)
-    } else {
-      txt <- ""
-    }
-    stop(match.call()$x, " should be a single numerical value", txt, ".\n",
-         call. = FALSE)
-  }
-}
+
+
+

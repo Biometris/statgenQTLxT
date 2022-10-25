@@ -196,7 +196,6 @@ covPW <- function(Y,
   ## For every combination of traits compute variance.
   modPW <- function(i, j) {
     tolParInv <- 1e-3
-    cat(i, " ", j, "\n")
     if (!is.null(X)) {
       ## Define formula for fixed part. ` needed to accommodate - in varnames.
       fixed <- formula(paste0("cbind(", traits[i], ", ", traits[j], ") ~ `",

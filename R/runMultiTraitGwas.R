@@ -73,7 +73,7 @@
 #' values. Multi-trait or multi-environment GWAS is performed for all variables
 #' in \code{pheno}.
 #' @param trials A vector specifying the environment on which to run GWAS.
-#' Thise can be either a numeric index or a character name of a list item in
+#' This can be either a numeric index or a character name of a list item in
 #' \code{pheno}.
 #' @param traits A vector of traits on which to run GWAS. These can be either
 #' numeric indices or character names of columns in \code{pheno}. If \code{NULL},
@@ -85,7 +85,6 @@
 #' covariate). SNP-covariates should be assigned using the snpCov parameter.
 #' @param snpCov An optional character vector of SNP-names to be included as
 #' covariates. SNP-names should match those used in \code{gData}.
-#' @param minCofactorProximity A numerical value ...
 #' @param kin An optional kinship matrix or list of kinship matrices. These
 #' matrices can be from the \code{matrix} class as defined in the base package
 #' or from the \code{dsyMatrix} class, the class of symmetric matrices in the
@@ -203,7 +202,6 @@ runMultiTraitGwas <- function(gData,
                               traits = NULL,
                               covar = NULL,
                               snpCov = NULL,
-                              minCofactorProximity = 50,
                               kin = NULL,
                               kinshipMethod = c("astle", "IBS", "vanRaden",
                                                 "identity"),
@@ -232,14 +230,7 @@ runMultiTraitGwas <- function(gData,
   ## Checks.
   chkGData(gData)
   chkMarkers(gData$markers)
-  if (!is.null(trials) && ((!is.numeric(trials) && !is.character(trials)) ||
-                           length(trials) > 1)) {
-    stop("trials should be a single numeric or character value.\n")
-  }
-  if ((is.character(trials) && !all(trials %in% names(gData$pheno))) ||
-      (is.numeric(trials) && any(trials > length(gData$pheno)))) {
-    stop("trials should be list items in pheno.\n")
-  }
+  chkTrials(trials, gData)
   if (is.null(trials) && length(gData$pheno) > 1) {
     stop("pheno contains multiple trials. Trial cannot be NULL.\n")
   }
@@ -260,6 +251,7 @@ runMultiTraitGwas <- function(gData,
     ## If no traits supplied extract them from pheno data.
     traits <- colnames(gData$pheno[[trial]])[-1]
   }
+  nTraits <- length(traits)
   ## Restrict phenotypic data to selected traits.
   gData$pheno[[trial]] <- gData$pheno[[trial]][c("genotype", traits)]
   chkCovar(covar, gData)
@@ -280,11 +272,10 @@ runMultiTraitGwas <- function(gData,
   covModel <- match.arg(covModel)
   if (covModel == "fa") {
     chkNum(maxIter, min = 1)
-    chkNum(mG, min = 1)
-    chkNum(mE, min = 1)
+    chkNum(mG, min = 1, max = nTraits - 1)
+    chkNum(mE, min = 1, max = nTraits - 1)
   }
   if (fitVarComp && covModel == "unst") {
-    nTraits <- length(traits)
     if (nTraits > 5 && nTraits < 10) {
       warning("unstructured covariance models not recommended for 6 to 9 ",
               "traits. Consider using another covariance model instead.\n",
@@ -322,13 +313,13 @@ runMultiTraitGwas <- function(gData,
     }
     if (is.null(colnames(Vg)) || is.null(rownames(Vg)) ||
         any(colnames(Vg) != rownames(Vg)) ||
-        !all(colnames(Vg) %in% colnames(gData$pheno[[1]])[-1])) {
+        !all(colnames(gData$pheno[[1]])[-1] %in% colnames(Vg))) {
       stop("Column names and rownames of Vg should be identical and ",
            "included in column names of pheno.\n")
     }
     if (is.null(colnames(Ve)) || is.null(rownames(Ve)) ||
         any(colnames(Ve) != rownames(Ve)) ||
-        !all(colnames(Ve) %in% colnames(gData$pheno[[1]])[-1])) {
+        !all(colnames(gData$pheno[[1]])[-1] %in% colnames(Ve))) {
       stop("Column names and rownames of Ve should be identical and ",
            "included in column names of pheno.\n")
     }
@@ -370,22 +361,17 @@ runMultiTraitGwas <- function(gData,
   }
   ## Compute kinship matrix (GSLMethod single)
   ## or kinship matrices per chromosome (GLSMethod multi).
-  if (kinshipMethod == "identity") {
-    K <- diag(x = 1, nrow = nrow(Y), ncol = nrow(Y))
-    rownames(K) <- colnames(K) <- rownames(Y)
-  } else {
-    gDataRest <- gData
-    if (!all(grepl(pattern = "EXT", x = colnames(gData$markers)))) {
-      markersRest <- gData$markers[, !grepl(pattern = "EXT",
-                                            x = colnames(gData$markers))]
-      mapRest <- gData$map[!grepl(pattern = "EXT", rownames(gData$map)), ]
-      gDataRest$markers <- markersRest
-      gDataRest$map <- mapRest
-    }
-    K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gDataRest,
-                    markers = gDataRest$markers, map = gDataRest$map,
-                    kinshipMethod = kinshipMethod)
+  gDataRest <- gData
+  if (!all(grepl(pattern = "EXT", x = colnames(gData$markers)))) {
+    markersRest <- gData$markers[, !grepl(pattern = "EXT",
+                                          x = colnames(gData$markers))]
+    mapRest <- gData$map[!grepl(pattern = "EXT", rownames(gData$map)), ]
+    gDataRest$markers <- markersRest
+    gDataRest$map <- mapRest
   }
+  K <- computeKin(GLSMethod = GLSMethod, kin = kin, gData = gDataRest,
+                  markers = gDataRest$markers, map = gDataRest$map,
+                  kinshipMethod = kinshipMethod)
   if (GLSMethod == "single") {
     Y <- Y[rownames(Y) %in% rownames(K), ]
     K <- K[rownames(K) %in% rownames(Y), colnames(K) %in% rownames(Y)]
@@ -496,11 +482,12 @@ runMultiTraitGwas <- function(gData,
   ## When thrType is bonferroni or small, determine the LOD threshold.
   if (thrType == "bonf") {
     ## Compute LOD threshold using Bonferroni correction.
-    LODThr <- -log10(alpha / sum(!is.na(GWAResult[["pValue"]])))
+    LODThr <- -log10(alpha / (sum(!is.na(GWAResult[["pValue"]])) / nTraits))
   } else if (thrType == "small") {
     ## Compute LOD threshold by computing the 10log of the nSnpLOD item
     ## of ordered p values.
-    LODThr <- sort(na.omit(GWAResult[["LOD"]]), decreasing = TRUE)[nSnpLOD]
+    LODThr <- sort(na.omit(GWAResult[GWAResult[["trait"]] == traits[1], ][["LOD"]]),
+                   decreasing = TRUE)[nSnpLOD]
   } else if (thrType == "fdr") {
     LODThr <- NA_real_
   }

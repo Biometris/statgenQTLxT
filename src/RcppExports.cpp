@@ -155,9 +155,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// nearestPD2
-arma::mat nearestPD2(arma::mat x, const bool corr, const bool keepDiag, const bool do2eigen, const bool doSym, const bool doDykstra, const double eigTol, const double convTol, const double posdTol, const int maxIter);
-RcppExport SEXP _statgenQTLxT_nearestPD2(SEXP xSEXP, SEXP corrSEXP, SEXP keepDiagSEXP, SEXP do2eigenSEXP, SEXP doSymSEXP, SEXP doDykstraSEXP, SEXP eigTolSEXP, SEXP convTolSEXP, SEXP posdTolSEXP, SEXP maxIterSEXP) {
+// nearestPDQTLxT
+arma::mat nearestPDQTLxT(arma::mat x, const bool corr, const bool keepDiag, const bool do2eigen, const bool doSym, const bool doDykstra, const double eigTol, const double convTol, const double posdTol, const int maxIter);
+RcppExport SEXP _statgenQTLxT_nearestPDQTLxT(SEXP xSEXP, SEXP corrSEXP, SEXP keepDiagSEXP, SEXP do2eigenSEXP, SEXP doSymSEXP, SEXP doDykstraSEXP, SEXP eigTolSEXP, SEXP convTolSEXP, SEXP posdTolSEXP, SEXP maxIterSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -171,7 +171,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type convTol(convTolSEXP);
     Rcpp::traits::input_parameter< const double >::type posdTol(posdTolSEXP);
     Rcpp::traits::input_parameter< const int >::type maxIter(maxIterSEXP);
-    rcpp_result_gen = Rcpp::wrap(nearestPD2(x, corr, keepDiag, do2eigen, doSym, doDykstra, eigTol, convTol, posdTol, maxIter));
+    rcpp_result_gen = Rcpp::wrap(nearestPDQTLxT(x, corr, keepDiag, do2eigen, doSym, doDykstra, eigTol, convTol, posdTol, maxIter));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -186,7 +186,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_statgenQTLxT_LLQuadFormDiagCPP", (DL_FUNC) &_statgenQTLxT_LLQuadFormDiagCPP, 3},
     {"_statgenQTLxT_estEffsCPP", (DL_FUNC) &_statgenQTLxT_estEffsCPP, 9},
     {"_statgenQTLxT_getThr", (DL_FUNC) &_statgenQTLxT_getThr, 1},
-    {"_statgenQTLxT_nearestPD2", (DL_FUNC) &_statgenQTLxT_nearestPD2, 10},
+    {"_statgenQTLxT_nearestPDQTLxT", (DL_FUNC) &_statgenQTLxT_nearestPDQTLxT, 10},
     {NULL, NULL, 0}
 };
 

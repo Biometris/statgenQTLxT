@@ -124,7 +124,7 @@ List estEffsCPP(arma::mat& y0,
   unsigned int nc = w0.n_cols;
   unsigned int ns = x0.n_cols;
   unsigned int nChunks = R::fmax2(R::fmin2(ns, ceil(p * nc * ns / 50000)), 1);
-  k = nearestPD2(k, false, false, true, false, true, 1e-10, 1e-7, 1e-8, 100);
+  k = nearestPDQTLxT(k, false, false, true, false, true, 1e-10, 1e-7, 1e-8, 100);
   arma::mat uk;
   arma::vec dk;
   arma::eig_sym(dk, uk, k);

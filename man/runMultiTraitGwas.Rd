@@ -10,7 +10,6 @@ runMultiTraitGwas(
   traits = NULL,
   covar = NULL,
   snpCov = NULL,
-  minCofactorProximity = 50,
   kin = NULL,
   kinshipMethod = c("astle", "IBS", "vanRaden", "identity"),
   GLSMethod = c("single", "multi"),
@@ -44,7 +43,7 @@ values. Multi-trait or multi-environment GWAS is performed for all variables
 in \code{pheno}.}
 
 \item{trials}{A vector specifying the environment on which to run GWAS.
-Thise can be either a numeric index or a character name of a list item in
+This can be either a numeric index or a character name of a list item in
 \code{pheno}.}
 
 \item{traits}{A vector of traits on which to run GWAS. These can be either
@@ -59,8 +58,6 @@ covariate). SNP-covariates should be assigned using the snpCov parameter.}
 
 \item{snpCov}{An optional character vector of SNP-names to be included as
 covariates. SNP-names should match those used in \code{gData}.}
-
-\item{minCofactorProximity}{A numerical value ...}
 
 \item{kin}{An optional kinship matrix or list of kinship matrices. These
 matrices can be from the \code{matrix} class as defined in the base package
