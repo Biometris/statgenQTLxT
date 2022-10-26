@@ -24,8 +24,8 @@ estEffTot <- function(markers,
                            exclMarkers(snpCov = snpCov, markers = markers,
                                        allFreq = allFreq))
   if (length(snpCov) > 0) {
-    effEstSnpCov <- estEffsCPP(y = Y, w = XRed,
-                               x = as.matrix(markers[, snpCov, drop = FALSE]),
+    effEstSnpCov <- estEffsCPP(y0 = Y, w0 = XRed,
+                               x0 = as.matrix(markers[, snpCov, drop = FALSE]),
                                vg = VgRed, ve = VeRed, k = as.matrix(K),
                                estCom = estCom, nCores = nCores)
   } else {
@@ -35,8 +35,8 @@ estEffTot <- function(markers,
   ## Extract names of SNPs and individuals.
   snpNames <- colnames(markers)[-excludedMarkers]
   trtNames <- colnames(Y)
-  effEst <- estEffsCPP(y = Y, w = X,
-                       x = as.matrix(markers[, -excludedMarkers]),
+  effEst <- estEffsCPP(y0 = Y, w0 = X,
+                       x0 = as.matrix(markers[, -excludedMarkers]),
                        vg = Vg, ve = Ve, k = as.matrix(K), estCom = estCom,
                        nCores = nCores)
   pValues <- c(effEst$pVals, effEstSnpCov$pVals)

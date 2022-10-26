@@ -23,20 +23,20 @@ library(statgenQTLxT)
 options(width = 110, digits = 2)
 ```
 
-The statgenQTLxT package has been designed for performing multi-trait and multi-environment Genome Wide Association Studies (GWAS). It builds on the statgenGWAS package (for single trait GWAS) which is available from [CRAN](https://biometris.github.io/statgenGWAS/). The package uses data structures and plots defined in the statgenGWAS package. It is recommended to read the vignette of this package, accessible in R via `vignette(package = "statgenGWAS")` or online at <https://biometris.github.io/statgenGWAS/articles/GWAS.html> to get a general idea of those.
+The `statgenQTLxT` package has been designed for performing multi-trait and multi-environment Genome Wide Association Studies (GWAS). It builds on the `statgenGWAS` package (for single trait GWAS) which is available from [CRAN](https://biometris.github.io/statgenGWAS/). The package uses data structures and plots defined in the `statgenGWAS` package. It is recommended to read the vignette of this package, accessible in R via `vignette(package = "statgenGWAS")` or online at <https://biometris.github.io/statgenGWAS/articles/GWAS.html> to get a general idea of those.
 
 ------------------------------------------------------------------------
 
 # The class `gData`
 
-Data for analysis on genomic data comes from different sources and is stored in one data object of class **gData** (**g**enomic **Data**) for convenience. A `gData` object will contain all data needed for performing analyses, so the first thing to do when using the `statgenQTLxT` package is creating a `gData` object. A `gData` object consists of different types of data. All data is optional, however for certain analyses, certain data is required. Additional data can always be added to an existing object later on.\
-A `gData` object can be created using the function **`createGData`** from the `statgenGWAS` package. If an existing `gData` object is provided as an input to this function, data is added to the existing object and existing data will be overwritten with a warning. All data is checked for consistency and, if needed, default names are added with a warning message.\
+Data for analysis on genomic data comes from different sources and is stored in one data object of class **gData** (**g**enomic **Data**) for convenience. A `gData` object will contain all data needed for performing analyses, so the first thing to do when using the `statgenQTLxT` package is creating a `gData` object. A `gData` object consists of different types of data. All data is optional, however for certain analyses, certain data is required. Additional data can always be added to an existing object later on.    
+A `gData` object can be created using the function **`createGData`** from the `statgenGWAS` package. If an existing `gData` object is provided as an input to this function, data is added to the existing object and existing data will be overwritten with a warning. All data is checked for consistency and, if needed, default names are added with a warning message.    
 A `gData` object created this way will consist of the following components:
 
 -   Marker map, a data.frame describing the physical positions of the markers on the chromosomes,
 -   Marker matrix, a numerical matrix containing the genotyping,
 -   Phenotypic data, either a single data.frame or a list of data.frames containing the phenotypic data,
--   Kinship matrix, describing the genetic relatedness between the different genotypes,
+-   Kinship matrix, a matrix describing the genetic relatedness between the different genotypes,
 -   Further covariates that can be used in the analyses.
 
 For more details see the `statgenGWAS` package.
@@ -65,7 +65,7 @@ $V_g$ and $V_e$ can be provided by the user (`fitVarComp = FALSE`); otherwise on
 
 # Worked example: multiple traits in one trial
 
-As an example of the functionality of the package a worked example is provided using maize data from the European Union project DROPS. The data is available from <https://data.inra.fr/dataset.xhtml?persistentId=doi:10.15454/IASSTN> [@Millet2019] and the relevant data sets are included as data.frames in the `statgenGWAS` package.
+As an example of the functionality of the package a worked example is provided using maize data from the European Union project DROPS. The data is available from <https://entrepot.recherche.data.gouv.fr/dataset.xhtml?persistentId=doi:10.15454/IASSTN> [@Millet2019] and the relevant data sets are included as data.frames in the `statgenGWAS` package.
 
 ## **Load data**
 
@@ -352,7 +352,7 @@ plot(GWASDropsxE, plotType = "manhattan")
 
 #### QTL plots
 
-The trait is measured with the same scale across trials so the effect estimates can be compared directly (can set `normalize = FALSE`).
+The trait is measured with the same scale across trials so the effect estimates can be compared directly (one can set `normalize = FALSE`).
 
 ```{r qtlMtgNormxE}
 ## Set significance threshold to 6 and do not normalize effect estimates.
@@ -409,7 +409,7 @@ GWASDropsFA2 <- runMultiTraitGwas(gData = gDataDropsDedup,
 
 ## Covariates
 
-Covariates can be included as extra fixed effects in the GWAS model. The `runMultiTraitGwas` function distinguishes between 'usual' covariates and SNP-covariates. The former could be design factors such as block, or other traits one wants to condition on. In the latter case, the covariate(s) are one or more of the markers contained in the genotypic data. SNP-covariates can be set with the parameter `snpCov`, which should be a vector of marker-names. Similarly, other covariates should be specified using the parameter `covar`, containing a vector of covariate names. The `gData` object should contain these covariates in `gData$covar`.
+Covariates can be included as extra fixed effects in the GWAS model. The `runMultiTraitGwas` function distinguishes between 'usual' covariates and SNP-covariates. The former could be design factors such as block, or other traits one wants to condition on. In the latter case, the covariate(s) are one or more of the markers contained in the genotypic data. SNP-covariates can be set with the parameter `snpCov`, which should be a vector of marker names. Similarly, other covariates should be specified using the parameter `covar`, containing a vector of covariate names. The `gData` object should contain these covariates in `gData$covar`.
 
 In case SNP-covariates are used, GWAS for all the other SNPs is performed with the the SNP-covariates as extra fixed effect; also the null model used to estimate the variance components includes these effects. For each SNP in SNP-covariates, a p-value is obtained using the same F-test and null model to estimate the variance components, but with only all other SNPs (if any) in SNP-covariates as fixed effects.
 

@@ -1,2 +1,5 @@
-#!/bin/sh
-rm -f src/Makevars config.*
+#! /bin/sh
+
+rm -rf ./src/*.so
+rm -rf ./src/*.o
+rm -rf ./src/*.dl

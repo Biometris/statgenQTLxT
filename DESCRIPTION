@@ -19,10 +19,6 @@ Authors@R: c(person(given = "Bart-Jan",
                     family = "Boer",
                     role = "ctb",
                     comment = c(ORCID = "0000-0002-1879-4588")),
-             person(given = "Marcos",
-                    family = "Malosetti",
-                    role = "ctb",
-                    comment = c(ORCID = "0000-0002-8150-1397")),
              person(given = "Daniela", 
                     family = "Bustos-Korts",
                     role = "ctb",
@@ -54,7 +50,6 @@ Description: Fast multi trait Genome Wide Association Studies (GWAS) following
     analysis of typical plant breeding experiments developed by Biometris.
 License: GPL-3
 Encoding: UTF-8
-LazyData: true
 RoxygenNote: 7.2.1
 Depends: R (>= 3.5)
 Imports: data.table,
