@@ -9,7 +9,7 @@
 Fast multi trait Genome Wide Association Studies (GWAS) following the method described in Zhou and Stephens. (2014), \doi{10.1038/nmeth.2848}. One of a series of statistical genetic packages for streamlining the analysis of typical plant breeding experiments developed by Biometris.
 }
 \author{
-\strong{Maintainer}: Bart-Jan van Rossum \email{bart-jan.vanrossum@wur.nl}
+\strong{Maintainer}: Bart-Jan van Rossum \email{bart-jan.vanrossum@wur.nl} (\href{https://orcid.org/0000-0002-8673-2514}{ORCID})
 
 Authors:
 \itemize{

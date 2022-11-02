@@ -450,7 +450,8 @@ List EMFA(arma::mat y,
   Rcpp::NumericMatrix VeMat = wrap(inv_sympd(dm));
   VgMat.attr("dimnames") = List::create(traits, traits);
   VeMat.attr("dimnames") = List::create(traits, traits);
-  return List::create(_["Vg"] = VgMat, _["Ve"] = VeMat);
+  return List::create(_["Vg"] = VgMat,
+                      _["Ve"] = VeMat);
 }
 
 

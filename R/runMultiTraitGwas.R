@@ -436,6 +436,8 @@ runMultiTraitGwas <- function(gData,
                                 mE = mE, chrs = chrs)
     list2env(estVarCompRes, envir = environment())
   }
+  YScaledScale <- attr(Y, "scaled:scale")[traits]
+  Y <- Y[, traits]
   allFreq <- colMeans(markersRed[rownames(Y), rownames(mapRed)]) /
     max(markersRed)
   markersRed <- markersRed[rownames(Y), ]
@@ -475,8 +477,8 @@ runMultiTraitGwas <- function(gData,
     }
   }
   ## Rescale effects and standard errors.
-  effs <- effs * attr(Y, "scaled:scale")
-  effsSe <- effsSe * attr(Y, "scaled:scale")
+  effs <- effs * YScaledScale
+  effsSe <- effsSe * YScaledScale
   ## Convert effs and effsSe to long format and merge.
   effs <- data.table::as.data.table(effs, keep.rownames = "trait")
   effsSe <- data.table::as.data.table(effsSe, keep.rownames = "trait")

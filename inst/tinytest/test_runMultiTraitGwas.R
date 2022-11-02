@@ -54,10 +54,10 @@ expect_equal(result1, result1b)
 
 ### Test runMultiTraitGwas with chromosome specific kinship.
 
-mtgM0 <- runMultiTraitGwas(gData = gDataTest, traits = c("t1", "t2"),
+mtgM0 <- runMultiTraitGwas(gData = gDataTest, traits = c("t2", "t3"),
                            GLSMethod = "multi")
 
-resultM1 <- runMultiTraitGwas(gData = gDataTest, traits = c("t1", "t2"),
+resultM1 <- runMultiTraitGwas(gData = gDataTest, traits = c("t2", "t3"),
                               GLSMethod = "multi", covar = "V1")[["GWAResult"]]
 resultM2 <- runMultiTraitGwas(gData = gDataTest, traits = c("t1", "t2"),
                               covModel = "pw", GLSMethod = "multi",

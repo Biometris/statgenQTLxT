@@ -28,6 +28,8 @@ estVarComp <- function(GLSMethod,
     }
   }
   if (covModel == "unst") {
+    traitsMod <- restrictTraits(Y = Y, X = XSom, K = K)
+    Y <- Y[,  traitsMod]
     ## Unstructured models.
     if (GLSMethod == "single") {
       varComp <- covUnstr(Y = Y, K = K, X = XSom, fixDiag = FALSE,
@@ -102,16 +104,84 @@ estVarComp <- function(GLSMethod,
     }
   }
   if (GLSMethod == "single") {
-    res <- list(Vg = varComp$Vg, Ve = varComp$Ve, VgRed = varCompRed$Vg,
-                VeRed = varCompRed$Ve)
+    res <- list(Vg = varComp$Vg,
+                Ve = varComp$Ve,
+                VgRed = varCompRed$Vg,
+                VeRed = varCompRed$Ve,
+                traits = colnames(Y))
   } else if (GLSMethod == "multi") {
     res <- list(Vg = lapply(X = varComp, FUN = `[[`, "Vg"),
                 Ve = lapply(X = varComp, FUN = `[[`, "Ve"),
                 VgRed = lapply(X = varCompRed, FUN = `[[`, "Vg"),
-                VeRed = lapply(X = varCompRed, FUN = `[[`, "Ve"))
+                VeRed = lapply(X = varCompRed, FUN = `[[`, "Ve"),
+                traits = colnames(Y))
   }
   return(res)
 }
+
+#' Helper function for restricting traits based on heritability
+#'
+#' @noRd
+#' @keywords internal
+restrictTraits <- function(Y,
+                           X,
+                           K) {
+  ## For multiple kinship matrices, combine them.
+  if (!is.matrix(K)) {
+    K <- Reduce(f = `+`, x = K) / length(K)
+  }
+  ## Add genotype to data to be used in fitting model.
+  ## This silently converts Y to a data.frame.
+  dat <- cbind(genotype = rownames(Y), as.data.frame(as.matrix(Y)),
+               stringsAsFactors = FALSE)
+  if (!is.null(X)) {
+    ## sommer cannot handle column names with special characters.
+    ## Therefore Simplify column names in X.
+    colnames(X) <- make.names(colnames(X), unique = TRUE)
+    X <- cbind(genotype = rownames(X), as.data.frame(as.matrix(X)),
+               stringsAsFactors = FALSE)
+    dat <- merge(dat, X, by = "genotype")
+  }
+  ## Restrict K to genotypes in Y.
+  K <- K[unique(dat$genotype), unique(dat$genotype)]
+  traits <- colnames(Y)
+  nTrait <- ncol(Y)
+  ratio <- sapply(X = seq_len(nTrait), FUN = function(i) {
+    if (!is.null(X)) {
+      ## Define formula for fixed part. ` needed to accommodate - in varnames.
+      fixed <- formula(paste0(traits[i], " ~ `",
+                              paste(colnames(X)[-1], collapse = '` + `'),
+                              "`"))
+    } else {
+      fixed <- formula(paste(traits[i], " ~ 1"))
+    }
+    ## Fit model.
+    modFit <- sommer::mmer(fixed = fixed,
+                           random = ~sommer::vsr(genotype, Gu = as.matrix(K)),
+                           data = dat, verbose = FALSE, date.warning = FALSE)
+    ## Extract components from fitted model.
+    Vg <- as.numeric(modFit$sigma[[1]])
+    Ve <- as.numeric(modFit$sigma[[2]])
+    return(Vg / (Vg + Ve))
+  })
+  traitsMod <- traits[ratio > 0.01]
+  nTraitMod <- length(traitsMod)
+  if (nTraitMod < 2) {
+    stop("Only ", nTraitMod, " traits have a heritability larger than 0.01. ",
+         "An unstructured model cannot be fitted. Please try a factor ",
+         "analytic or pairwise model.\n",
+         call. = FALSE)
+  }
+  if (nTrait != nTraitMod) {
+    warning("The following traits have a heritability smaller than 0.01 ",
+            "and are removed from the model:\n",
+            paste(setdiff(traits, traitsMod), collapse = ", "), "\n",
+            call. = FALSE)
+  }
+  return(traitsMod)
+}
+
+
 
 #' Select markers to be excluded from GWAS scan.
 #'

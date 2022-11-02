@@ -57,65 +57,34 @@ covUnstr <- function(Y,
   traits <- colnames(Y)
   nTrait <- length(traits)
   smpVar <- apply(X = Y, MARGIN = 2, FUN = var)
-  ratio <- vector(mode = "numeric", length = nTrait)
-  for (i in 1:nTrait) {
-    if (!is.null(X)) {
-      ## Define formula for fixed part. ` needed to accommodate - in varnames.
-      fixed <- formula(paste0(traits[i], " ~ `",
-                              paste(colnames(X)[-1], collapse = '` + `'),
-                              "`"))
-    } else {
-      fixed <- formula(paste(traits[i], " ~ 1"))
-    }
-    ## Fit model.
-    modFit <- sommer::mmer(fixed = fixed,
-                           random = ~sommer::vsr(genotype, Gu = as.matrix(K)),
-                           data = dat, verbose = FALSE, date.warning = FALSE)
-    ## Extract components from fitted model.
-    Vg <- as.numeric(modFit$sigma[[1]])
-    Ve <- as.numeric(modFit$sigma[[2]])
-    ratio[i] <- Vg / (Vg + Ve)
+  if (!is.null(X)) {
+    ## Define formula for fixed part. ` needed to accommodate - in
+    ## variable names.
+    fixed <- formula(paste0("cbind(",
+                            paste0(traits, collapse = ", "), ") ~ `",
+                            paste(colnames(X)[-1], collapse = '` + `'), "`"))
+  } else {
+    fixed <- formula(paste0("cbind(", paste0(traits, collapse = ", "),
+                            ") ~ 1"))
   }
-  cat(ratio, "\n")
-
-  traitsMod <- traits[ratio > 0.01]
-  nTraitMod <- length(traitsMod)
-  ## Create base Vg/Ve
-  VgMat <- matrix(0, nrow = nTrait, ncol = nTrait,
-                  dimnames = list(traits, traits))
-  VeMat <- cov(Y)
-  if (nTraitMod > 1) {
-    if (!is.null(X)) {
-      ## Define formula for fixed part. ` needed to accommodate - in
-      ## variable names.
-      fixed <- formula(paste0("cbind(",
-                              paste0(traitsMod, collapse = ", "), ") ~ `",
-                              paste(colnames(X)[-1], collapse = '` + `'), "`"))
-    } else {
-      fixed <- formula(paste0("cbind(", paste0(traitsMod, collapse = ", "),
-                              ") ~ 1"))
-    }
-    if (VeDiag) {
-      rcov <- formula(paste0("~sommer::vsr(units, Gtc = diag(", nTraitMod, "))"))
-    } else {
-      rcov <- formula(paste0("~sommer::vsr(units,
-                              Gtc = sommer::unsm(", nTraitMod, "))"))
-    }
-    random <- formula(paste0("~sommer::vsr(genotype, Gu = as.matrix(K),
-                              Gtc = sommer::unsm(", nTraitMod, "))"))
-    ## Fit model.
-    modFit <- sommer::mmer(fixed = fixed, random = random, rcov = rcov,
-                           data = dat, verbose = FALSE, dateWarning = FALSE,
-                           ## This is not really a good idea, but for now it
-                           ## is better than nothing.
-                           ## Has to be solved in sommer.
-                           tolParInv = 1e-3, method = "AI")
-    ## Extract components from fitted model.
-    VgMatMod <- modFit$sigma[[1]]
-    VeMatMod <- modFit$sigma[[2]]
-    VgMat[traitsMod, traitsMod] <- VgMatMod
-    VeMat[traitsMod, traitsMod] <- VeMatMod
+  if (VeDiag) {
+    rcov <- formula(paste0("~sommer::vsr(units, Gtc = diag(", nTrait, "))"))
+  } else {
+    rcov <- formula(paste0("~sommer::vsr(units,
+                              Gtc = sommer::unsm(", nTrait, "))"))
   }
+  random <- formula(paste0("~sommer::vsr(genotype, Gu = as.matrix(K),
+                              Gtc = sommer::unsm(", nTrait, "))"))
+  ## Fit model.
+  modFit <- sommer::mmer(fixed = fixed, random = random, rcov = rcov,
+                         data = dat, verbose = FALSE, dateWarning = FALSE,
+                         ## This is not really a good idea, but for now it
+                         ## is better than nothing.
+                         ## Has to be solved in sommer.
+                         tolParInv = 1e-3, method = "AI")
+  ## Extract components from fitted model.
+  VgMat <- modFit$sigma[[1]]
+  VeMat <- modFit$sigma[[2]]
   ## Keep diagonal for Vg and Ve away from 0.
   diag(VgMat)[diag(VgMat) <= 0] <- 1e-6 * smpVar[diag(VgMat) <= 0]
   diag(VeMat)[diag(VeMat) <= 0] <- 1e-6 * smpVar[diag(VeMat) <= 0]
@@ -124,7 +93,8 @@ covUnstr <- function(Y,
   VeMat <- nearestPD(VeMat)
   rownames(VgMat) <- colnames(VgMat) <- traits
   rownames(VeMat) <- colnames(VeMat) <- traits
-  return(list(Vg = VgMat, Ve = VeMat))
+  return(list(Vg = VgMat,
+              Ve = VeMat))
 }
 
 #' @rdname covUnstr
@@ -258,6 +228,7 @@ covPW <- function(Y,
   VeMat <- nearestPD(VeMat, corr = corMat)
   colnames(VgMat) <- rownames(VgMat) <- traits
   colnames(VeMat) <- rownames(VeMat) <- traits
-  return(list(Vg = VgMat, Ve = VeMat))
+  return(list(Vg = VgMat,
+              Ve = VeMat))
 }
 
