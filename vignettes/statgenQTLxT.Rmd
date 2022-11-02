@@ -93,7 +93,7 @@ dropsMarkers <- dropsMarkers[colnames(dropsMarkers) != "Ind"]
 ```{r convertMap, echo=FALSE}
 ## Add genotypes as row names of dropsMap.
 rownames(dropsMap) <- dropsMap[["SNP.names"]]
-## Rename Chomosome and Position columns.
+## Rename Chromosome and Position columns.
 colnames(dropsMap)[match(c("Chromosome", "Position"), colnames(dropsMap))] <- c("chr", "pos")
 ```
 

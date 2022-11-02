@@ -249,6 +249,47 @@ In case \code{covModel = "unst"} or \code{"pw"} it is possible to assume that
 \eqn{V_e} is diagonal (\code{VeDiag = TRUE})
 }
 
+\examples{
+## First create a gData object.
+## See the vignette for a detailed description.
+## Here we use the gData object included in the package
+
+## Run multi-trait GWAS
+## Use a factor analytic model to estimate variance components.
+mtg0 <- runMultiTraitGwas(gDataDropsRestr,
+                         trial = "Mur13W",
+                         covModel = "fa")
+
+## Plot the results.
+## For details on the different plots see plot.GWAS
+plot(mtg0, plotType = "qq")
+plot(mtg0, plotType = "manhattan")
+plot(mtg0, plotType = "qtl", yThr = 3.5)
+
+## Run multi-trait GWAS
+## Use a pairwise model to estimate variance components.
+## Estimate common effects and set a fixed threshold for significant SNPs
+mtg1 <- runMultiTraitGwas(gDataDropsRestr,
+                         trial = "Mur13W",
+                         covModel = "pw",
+                         estCom = TRUE,
+                         thrType = "fixed",
+                         LODThr = 3)
+
+## Run multi-trait GWAS
+## Use an unstructured model to estimate variance components.
+## Identify the 5 SNPs with smallest p-values as significant SNPs.
+## Compute the kinship matrix using the vanRaden method.
+\dontrun{
+mtg2 <- runMultiTraitGwas(gDataDropsRestr,
+                         trial = "Mur13W",
+                         kinshipMethod = "vanRaden",
+                         covModel = "unst",
+                         thrType = "small",
+                         nSnpLOD = 5)
+}
+
+}
 \references{
 Dahl et al. (2013). Network inference in matrix-variate Gaussian
 models with non-independent noise. arXiv preprint arXiv:1312.1622.

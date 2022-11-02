@@ -76,6 +76,8 @@ covUnstr <- function(Y,
     Ve <- as.numeric(modFit$sigma[[2]])
     ratio[i] <- Vg / (Vg + Ve)
   }
+  cat(ratio, "\n")
+
   traitsMod <- traits[ratio > 0.01]
   nTraitMod <- length(traitsMod)
   ## Create base Vg/Ve
