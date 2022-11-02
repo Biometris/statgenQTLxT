@@ -47,8 +47,8 @@ This can be either a numeric index or a character name of a list item in
 \code{pheno}.}
 
 \item{traits}{A vector of traits on which to run GWAS. These can be either
-numeric indices or character names of columns in \code{pheno}. If \code{NULL},
-GWAS is run on all traits.}
+numeric indices or character names of columns in \code{pheno}. If
+\code{NULL}, GWAS is run on all traits.}
 
 \item{covar}{An optional vector of covariates taken into account when
 running GWAS. These can be either numeric indices or character names of
@@ -115,24 +115,24 @@ model. Only used when \code{covModel = "fa"}.}
 \item{mE}{An integer. The order of the environmental part of the factor
 analytic model. Only used when \code{covModel = "fa"}.}
 
-\item{Vg}{An optional matrix with genotypic variance components. \code{Vg} should
-have row and column names corresponding to the column names of
+\item{Vg}{An optional matrix with genotypic variance components. \code{Vg}
+should have row and column names corresponding to the column names of
 \code{gData$pheno}. It may contain additional rows and columns which will be
 ignored. Ignored if fitVarComp = \code{TRUE}.}
 
-\item{Ve}{An optional matrix with environmental variance components. \code{Ve}
-should have row names column names corresponding to the column names of
-\code{gData$pheno}. It may contain additional rows and columns which will be
-ignored. Ignored if fitVarComp = \code{TRUE}.}
+\item{Ve}{An optional matrix with environmental variance components.
+\code{Ve} should have row names column names corresponding to the column
+names of \code{gData$pheno}. It may contain additional rows and columns
+which will be ignored. Ignored if fitVarComp = \code{TRUE}.}
 
 \item{thrType}{A character string indicating the type of threshold used for
 the selection of candidate loci. Either \code{bonf} for using the
 Bonferroni threshold, a LOD-threshold of \eqn{-log10(alpha/p)}, where p is
 the number of markers and alpha can be specified in \code{alpha},
-\code{fixed} for a self-chosen fixed LOD-threshold, specified in \code{LODThr}
-or \code{small}, the LOD-threshold is chosen such as the SNPs with the
-\code{nSnpLOD} smallest p-values are selected. \code{nSnpLOD} can be
-specified.}
+\code{fixed} for a self-chosen fixed LOD-threshold, specified in
+\code{LODThr} or \code{small}, the LOD-threshold is chosen such as the SNPs
+with the \code{nSnpLOD} smallest p-values are selected. \code{nSnpLOD} can
+be specified.}
 
 \item{alpha}{A numerical value used for calculating the LOD-threshold for
 \code{thrType} = "bonf" and the significant p-Values for \code{thrType} =
@@ -192,31 +192,31 @@ following model is fit
 + \left(\begin{array}{c} G_1 \\ \vdots \\ G_p\end{array}\right) +
 \left(\begin{array}{c} E_1 \\ \vdots \\ E_p\end{array}\right)}
 
-where Y is a np x 1 vector of phenotypic values for n genotypes and p traits
-or trials. x is the n x 1 vector of scores for the marker under
-consideration, and X the n x q design matrix for the other covariates. By
-default only a trait (environment) specific intercept is included. The vector
-of genetic background effects
+where \eqn{Y} is a \eqn{np x 1} vector of phenotypic values for \eqn{n}
+genotypes and \eqn{p} traits or trials. \eqn{x} is the \eqn{n \times 1}
+vector of scores for the marker under consideration, and \eqn{X} the
+\eqn{n \times q} design matrix for the other covariates. By default only a
+trait (environment) specific intercept is included. The vector of genetic
+background effects
 (\eqn{\left(\begin{array}{c}G_1 \\ \vdots \\ G_p\end{array}\right)}) is
-Gaussian with
-zero mean and covariance \eqn{V_g \otimes K}, where \eqn{V_g} is a p x p
-matrix of genetic (co)variances, and K an n x n kinship matrix. Similarly,
-the residual errors
+Gaussian with zero mean and covariance \eqn{V_g \otimes K}, where \eqn{V_g}
+is a \eqn{p \times p} matrix of genetic (co)variances, and \eqn{K} an
+\eqn{n \times n} kinship matrix. Similarly, the residual errors
 (\eqn{\left(\begin{array}{c}E_1 \\ \vdots \\ E_p\end{array}\right)})
-have covariance
-\eqn{V_e \otimes I_n}, for a p x p matrix \eqn{V_e} of residual
-(co)variances.
+have covariance \eqn{V_e \otimes I_n}, for a \eqn{p \times p} matrix
+\eqn{V_e} of residual (co)variances.
 }
 
 \section{Hypotheses for the SNP-effects}{
 
 For each SNP, the null-hypothesis \eqn{\beta_1 = \dots = \beta_p = 0} is
 tested, using the likelihood ratio test (LRT) described in Zhou and
-Stephens (2014). If \code{estCom = TRUE}, additional tests for a common effect and
-for QTL x E are performed, using the parameterization \eqn{\beta_j = \alpha +
-\alpha_j (1 \leq j \leq p)}. As in Korte et al (2012), we use likelihood ratio
-tests, but not restricted to the bivariate case. For the common effect, we
-fit the reduced model \eqn{\beta_j = \alpha}, and test if \eqn{\alpha = 0}.
+Stephens (2014). If \code{estCom = TRUE}, additional tests for a common
+effect and for QTL x E are performed, using the parameterization
+\eqn{\beta_j = \alpha + \alpha_j (1 \leq j \leq p)}.
+As in Korte et al (2012), we use likelihood ratio tests, but not restricted
+to the bivariate case. For the common effect, we fit the reduced
+model \eqn{\beta_j = \alpha}, and test if \eqn{\alpha = 0}.
 For QTL-by-environment interaction, we test if \eqn{\alpha_1 = \dots =
 \alpha_p = 0}.
 }
@@ -228,15 +228,15 @@ For QTL-by-environment interaction, we test if \eqn{\alpha_1 = \dots =
 otherwise one of the following models is used, depending on covModel.
 If \code{covModel = "unst"}, an unstructured model is assumed, as in Zhou and
 Stephens (2014): \eqn{V_g} and \eqn{V_e} can be any positive-definite matrix,
-requiring a total of p(p+1)/2 parameters per matrix.
+requiring a total of \eqn{p(p + 1)/2} parameters per matrix.
 If \code{covModel = "fa"}, a factor-analytic model is fitted using an
 EM-algorithm, as in Millet et al (2016). \eqn{V_g} and \eqn{V_e} are assumed
-to be of the form \eqn{W W^t + D}, where W is a p x m matrix of factor
-loadings and D a diagonal matrix with trait or environment specific values.
-m is the order of the model, and the parameters \code{mG} and \code{mE}
-specify the order used for respectively \eqn{V_g} and \eqn{V_e}.
-\code{maxIter} sets the maximum number of iterations used in the
-EM-algorithm.
+to be of the form \eqn{W W^t + D}, where \eqn{W} is a \eqn{p \times m} matrix
+of factor loadings and \eqn{D} a diagonal matrix with trait or environment
+specific values. \eqn{m} is the order of the model, and the parameters
+\code{mG} and \code{mE} specify the order used for respectively \eqn{V_g}
+and \eqn{V_e}. \code{maxIter} sets the maximum number of iterations used
+in the EM-algorithm.
 Finally, if \code{covModel = "pw"}, \eqn{V_g} and \eqn{V_e} are estimated
 'pairwise', as in Furlotte and Eskin (2015). Looping over pairs of traits
 or trials \eqn{1 \leq j < k \leq p},
@@ -245,8 +245,8 @@ are estimated assuming a bivariate mixed model. The diagonals of
 \eqn{V_g} and \eqn{V_e} are fitted assuming univariate mixed models. If the
 resulting \eqn{V_g} or \eqn{V_e} is not positive-definite, they are
 replaced by the nearest positive-definite matrix.
-In case \code{covModel = "unst"} or \code{"pw"} it is possible to assume that
-\eqn{V_e} is diagonal (\code{VeDiag = TRUE})
+In case \code{covModel = "unst"} or \code{"pw"} it is possible to assume
+that \eqn{V_e} is diagonal (\code{VeDiag = TRUE})
 }
 
 \examples{
@@ -300,15 +300,15 @@ linear mixed model. Genetics, May 2015, Vol.200-1, p. 59-68.
 
 Korte et al. (2012). A mixed-model approach for genome-wide
 association studies of correlated traits in structured populations.
-Nature Genetics, 44(9), 1066–1071. https://doi.org/10.1038/ng.2376
+Nature Genetics, 44(9), 1066–1071. \doi{10.1038/ng.2376}
 
 Millet et al. (2016). Genome-wide analysis of yield in Europe:
 allelic effects as functions of drought and heat scenarios. Plant Physiology,
-pp.00621.2016. https://doi.org/10.1104/pp.16.00621
+pp.00621.2016. \doi{10.1104/pp.16.00621}
 
 Thoen et al. (2016). Genetic architecture of plant stress
 resistance: multi-trait genome-wide association mapping. New Phytologist,
-213(3), 1346–1362. https://doi.org/10.1111/nph.14220
+213(3), 1346–1362. \doi{10.1111/nph.14220}
 
 Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
 mixed model algorithms for genome-wide association studies. Nature Methods,
