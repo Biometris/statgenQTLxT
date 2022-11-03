@@ -67,7 +67,7 @@ $V_g$ and $V_e$ can be provided by the user (`fitVarComp = FALSE`); otherwise on
 
 # Worked example: multiple traits in one trial
 
-As an example of the functionality of the package a worked example is provided using maize data from the European Union project DROPS. The data is available from <https://entrepot.recherche.data.gouv.fr/dataset.xhtml?persistentId=doi:10.15454/IASSTN> [@Millet2019] and the relevant data sets are included as data.frames in the `statgenGWAS` package.
+As an example of the functionality of the package a worked example is provided using maize data from the European Union project DROPS. The data is available from <https://doi.org/10.15454/IASSTN> [@Millet2019] and the relevant data sets are included as data.frames in the `statgenGWAS` package.
 
 ## **Load data**
 
