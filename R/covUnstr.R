@@ -166,7 +166,7 @@ covPW <- function(Y,
   rownames(VgMat) <- colnames(VgMat) <- traits
   rownames(VeMat) <- colnames(VeMat) <- traits
   ## For every combination of traits compute variance.
-  modPW <- function(i, j) {
+  modPW <- function(i, j, K, VgMat, VeMat) {
     tolParInv <- 1e-3
     if (!is.null(X)) {
       ## Define formula for fixed part. ` needed to accommodate - in varnames.
@@ -205,7 +205,7 @@ covPW <- function(Y,
   comb <- combn(x = seq_along(traits), m = 2)
   pwVar <- foreach::foreach(i = comb[1, ], j = comb[2, ],
                             .combine = "cbind", .packages = "sommer") %op% {
-                              modPW(i, j)
+                              modPW(i, j, K, VgMat, VeMat)
                             }
   ## If there are only 2 traits pwVar is a vector, where it should be a matrix.
   if (nTrait == 2) {
