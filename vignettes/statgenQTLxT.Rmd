@@ -429,7 +429,7 @@ In case SNP-covariates are used, GWAS for all the other SNPs is performed with t
 
 ```{r mtgSNPCovar, eval=FALSE}
 ## Run multi-trait GWAS for Mur13W.
-## Use PZE-106021410, the most significant SNP, a SNP covariate.
+## Use PZE-106021410, the most significant SNP, as SNP covariate.
 GWASDropsSnpCov <- runMultiTraitGwas(gData = gDataDropsDedup,
                                      trials = "Mur13W",
                                      snpCov = "PZE-106021410",
@@ -452,7 +452,7 @@ GWASDropsMAF <- runMultiTraitGwas(gData = gDataDropsDedup,
 
 ## Estimation of common SNP effects and QTL×E effects.
 
-Besides a normal SNP-effect model, it is possible to fit a common SNP-effect model as well (see [*Hypotheses for the SNP-effects**](#common)). When doing so, in addition to the SNP-effect, also the common SNP-effect and the QTL×E effect and corresponding standard errors and P-values are returned. These are included as extra columns in the GWAResult `data.table` in the output of the function.
+Besides a normal SNP-effect model, it is possible to fit a common SNP-effect model as well (see [**Hypotheses for the SNP-effects**](#common)). When doing so, in addition to the SNP-effect, also the common SNP-effect and the QTL×E effect and corresponding standard errors and P-values are returned. These are included as extra columns in the GWAResult `data.table` in the output of the function.
 
 ```{r mtgCommon}
 ## Run multi-trait GWAS for Mur13W.
