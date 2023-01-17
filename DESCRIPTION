@@ -51,7 +51,7 @@ Description: Fast multi trait Genome Wide Association Studies (GWAS) following
     analysis of typical plant breeding experiments developed by Biometris.
 License: GPL-3
 Encoding: UTF-8
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Depends: R (>= 3.5)
 Imports: data.table,
     foreach,
