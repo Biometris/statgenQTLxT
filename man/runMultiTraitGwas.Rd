@@ -14,7 +14,9 @@ runMultiTraitGwas(
   kinshipMethod = c("astle", "IBS", "vanRaden", "identity"),
   GLSMethod = c("single", "multi"),
   estCom = FALSE,
+  useMAF = TRUE,
   MAF = 0.01,
+  MAC = 10,
   genomicControl = FALSE,
   fitVarComp = TRUE,
   covModel = c("unst", "pw", "fa"),
@@ -84,10 +86,17 @@ or \code{multi} for using chromosome specific kinship matrices.}
 not only the SNP-effects but also the common SNP-effect and QTL x E effect
 are estimated.}
 
+\item{useMAF}{Should the minor allele frequency be used for selecting SNPs
+for the analysis. If \code{FALSE}, the minor allele count is used instead.}
+
 \item{MAF}{The minor allele frequency (MAF) threshold used in GWAS. A
 numerical value between 0 and 1. SNPs with MAF below this value are not taken
 into account in the analysis, i.e. p-values and effect sizes are put to
-missing (\code{NA}).}
+missing (\code{NA}). Ignored if \code{useMAF} is \code{FALSE}.}
+
+\item{MAC}{A numerical value. SNPs with minor allele count below this value
+are not taken into account for the analysis, i.e. p-values and effect sizes
+are set to missing (\code{NA}). Ignored if \code{useMAF} is \code{TRUE}.}
 
 \item{genomicControl}{Should genomic control correction as in Devlin and
 Roeder (1999) be applied?}

@@ -106,10 +106,15 @@
 #' @param estCom Should the common SNP-effect model be fitted? If \code{TRUE}
 #' not only the SNP-effects but also the common SNP-effect and QTL x E effect
 #' are estimated.
+#' @param useMAF Should the minor allele frequency be used for selecting SNPs
+#' for the analysis. If \code{FALSE}, the minor allele count is used instead.
 #' @param MAF The minor allele frequency (MAF) threshold used in GWAS. A
 #' numerical value between 0 and 1. SNPs with MAF below this value are not taken
 #' into account in the analysis, i.e. p-values and effect sizes are put to
-#' missing (\code{NA}).
+#' missing (\code{NA}). Ignored if \code{useMAF} is \code{FALSE}.
+#' @param MAC A numerical value. SNPs with minor allele count below this value
+#' are not taken into account for the analysis, i.e. p-values and effect sizes
+#' are set to missing (\code{NA}). Ignored if \code{useMAF} is \code{TRUE}.
 #' @param fitVarComp Should the variance components be fitted? If \code{FALSE},
 #' they should be supplied in \code{Vg} and \code{Ve}.
 #' @param covModel A character string indicating the covariance model for the
@@ -247,7 +252,9 @@ runMultiTraitGwas <- function(gData,
                                                 "identity"),
                               GLSMethod = c("single", "multi"),
                               estCom = FALSE,
+                              useMAF = TRUE,
                               MAF = 0.01,
+                              MAC = 10,
                               genomicControl = FALSE,
                               fitVarComp = TRUE,
                               covModel = c("unst", "pw", "fa"),
@@ -302,8 +309,13 @@ runMultiTraitGwas <- function(gData,
   chkSnpCov(snpCov, gData)
   ## SNPs with MAF == 0 always have to be removed to prevent creation of
   ## singular matrices.
-  chkNum(MAF, min = 0, max = 1)
-  MAF <- max(MAF, 1e-6)
+  if (useMAF) {
+    chkNum(MAF, min = 0, max = 1)
+    MAF <- max(MAF, 1e-6)
+  } else {
+    chkNum(MAC, min = 0)
+    MAC <- max(MAC, 1)
+  }
   ## If trials is null set trials to only trial in pheno.
   if (is.null(trials)) {
     trials <- names(gData$pheno)
@@ -438,9 +450,13 @@ runMultiTraitGwas <- function(gData,
   }
   YScaledScale <- attr(Y, "scaled:scale")[traits]
   Y <- Y[, traits]
-  allFreq <- colMeans(markersRed[rownames(Y), rownames(mapRed)]) /
-    max(markersRed)
+  maxScore <- max(markersRed)
+  allFreq <- colMeans(markersRed[rownames(Y), rownames(mapRed)]) / maxScore
   markersRed <- markersRed[rownames(Y), ]
+  if (!useMAF) {
+    ## MAC used. Compute MAF from MAC.
+    MAF <- MAC / (maxScore * nrow(Y)) - 1e-5
+  }
   ## Run GWAS.
   if (GLSMethod == "single") {
     estEffRes <- estEffTot(markers = markersRed,
