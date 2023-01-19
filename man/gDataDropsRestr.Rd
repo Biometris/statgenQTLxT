@@ -14,9 +14,9 @@ An object of class \code{gData} of length 5.
 gDataDropsRestr
 }
 \description{
-A \code{\link[statgenGWAS]{gData}} object based on a subset of the DROPS data set
-used in the statgenGWAS package. The data is restricted to 3 traits and
-10% (just over 4000) of the available markers. For a full description of the
+A \code{\link[statgenGWAS]{gData}} object based on a subset of the DROPS data
+set used in the statgenGWAS package. The data is restricted to 3 traits and
+10\% (just over 4000) of the available markers. For a full description of the
 data set see \code{\link[statgenGWAS]{dropsData}}.
 }
 \references{

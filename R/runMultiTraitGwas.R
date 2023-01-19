@@ -16,7 +16,7 @@
 #' + \left(\begin{array}{c} G_1 \\ \vdots \\ G_p\end{array}\right) +
 #' \left(\begin{array}{c} E_1 \\ \vdots \\ E_p\end{array}\right)}
 #'
-#' where \eqn{Y} is a \eqn{np x 1} vector of phenotypic values for \eqn{n}
+#' where \eqn{Y} is a \eqn{np \times 1} vector of phenotypic values for \eqn{n}
 #' genotypes and \eqn{p} traits or trials. \eqn{x} is the \eqn{n \times 1}
 #' vector of scores for the marker under consideration, and \eqn{X} the
 #' \eqn{n \times q} design matrix for the other covariates. By default only a
@@ -97,9 +97,9 @@
 #' \code{kinship} then \code{kin} is used.
 #' @param kinshipMethod An optional character indicating the method used for
 #' calculating the kinship matrix(ces). Currently "astle" (Astle and Balding,
-#' 2009), "IBS" and "vanRaden" (VanRaden, 2008) are supported. If a
-#' kinship matrix is supplied either in \code{gData} or in parameter \code{kin},
-#' \code{kinshipMethod} is ignored.
+#' 2009), "IBS", "vanRaden" (VanRaden, 2008), and "identity" are supported.
+#' If a kinship matrix is supplied either in \code{gData} or in parameter
+#' \code{kin}, \code{kinshipMethod} is ignored.
 #' @param GLSMethod A character string indicating the method used to estimate
 #' the marker effects. Either \code{single} for using a single kinship matrix,
 #' or \code{multi} for using chromosome specific kinship matrices.
