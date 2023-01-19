@@ -25,15 +25,14 @@ op <- options(width = 110,
               digits = 2)
 ```
 
-The `statgenQTLxT` package has been designed for performing multi-trait and multi-environment Genome Wide Association Studies (GWAS). It builds on the `statgenGWAS` package (for single trait GWAS) which is available from [CRAN](https://biometris.github.io/statgenGWAS/). The package uses data structures and plots defined in the `statgenGWAS` package. It is recommended to read the vignette of this package, accessible in R via `vignette(package = "statgenGWAS")` or online at <https://biometris.github.io/statgenGWAS/articles/GWAS.html> to get a general idea of those.
+The `statgenQTLxT` package performs multi-trait and multi-environment Genome Wide Association Studies (GWAS), following the approach of [@Zhou2014]. It builds on the `statgenGWAS` package (for single trait GWAS) which is available from [CRAN](https://biometris.github.io/statgenGWAS/). The package uses data structures and plots defined in the `statgenGWAS` package. It is recommended to read the vignette of this package, accessible in R via `vignette(package = "statgenGWAS")` or online at <https://biometris.github.io/statgenGWAS/articles/GWAS.html> to get a general idea of those.
 
 ------------------------------------------------------------------------
 
 # The class `gData`
 
-Data for analysis on genomic data comes from different sources and is stored in one data object of class **gData** (**g**enomic **Data**) for convenience. A `gData` object will contain all data needed for performing analyses, so the first thing to do when using the `statgenQTLxT` package is creating a `gData` object. A `gData` object consists of different types of data. All data is optional, however for certain analyses, certain data is required. Additional data can always be added to an existing object later on.    
-A `gData` object can be created using the function **`createGData`** from the `statgenGWAS` package. If an existing `gData` object is provided as an input to this function, data is added to the existing object and existing data will be overwritten with a warning. All data is checked for consistency and, if needed, default names are added with a warning message.    
-A `gData` object created this way will consist of the following components:
+Data for analysis on genomic data comes from different sources and is stored in one data object of class **gData** (**g**enomic **Data**) for convenience. A `gData` object will contain all data needed for performing analyses, so the first thing to do when using the `statgenQTLxT` package is creating a `gData` object; see the `statgenGWAS` package for more details.
+A `gData` object contains the following components:
 
 -   Marker map, a data.frame describing the physical positions of the markers on the chromosomes,
 -   Marker matrix, a numerical matrix containing the genotyping,
@@ -41,7 +40,7 @@ A `gData` object created this way will consist of the following components:
 -   Kinship matrix, a matrix describing the genetic relatedness between the different genotypes,
 -   Further covariates that can be used in the analyses.
 
-For more details see the `statgenGWAS` package.
+In out examples below we will show how a `gData` object is created.
 
 ------------------------------------------------------------------------
 
@@ -49,7 +48,7 @@ For more details see the `statgenGWAS` package.
 
 ## Theoretical background
 
-Multi-trait GWAS in the `statgenQTLxT` package estimates the effect of a SNP in different trials or on different traits, one SNP at a time. Genetic and residual covariances are fitted only once, for a model without SNPs. Given balanced data on $n$ genotypes and $p$ traits (or trials) we fit a mixed model of the form 
+Multi-trait GWAS in the `statgenQTLxT` package estimates and tests the effect of a SNP in different trials or on different traits, one SNP at a time. Genetic and residual covariances are fitted only once, for a model without SNPs. Given balanced data on $n$ genotypes and $p$ traits (or trials) we fit a mixed model of the form 
 
 $Y = \left(\begin{array}{c} Y_1 \\ \vdots \\ Y_p\end{array}\right) = \left(\begin{array}{c} X\gamma_1 \\ \vdots \\ X\gamma_p\end{array}\right) + \left(\begin{array}{c} x\beta_1 \\ \vdots \\ x\beta_p\end{array}\right) + \left(\begin{array}{c} G_1 \\ \vdots \\ G_p\end{array}\right) + \left(\begin{array}{c} E_1 \\ \vdots \\ E_p\end{array}\right)$
 
@@ -67,7 +66,7 @@ $V_g$ and $V_e$ can be provided by the user (`fitVarComp = FALSE`); otherwise on
 
 # Worked example 1: multiple traits in one trial
 
-As an example of the functionality of the package a worked example is provided using maize data from the European Union project DROPS. The data is available from <https://doi.org/10.15454/IASSTN> [@Millet2019] and the relevant data sets are included as data.frames in the `statgenGWAS` package.
+As an example of the functionality of the package a worked example is provided using maize data from the European Union project DROPS. The data is available from <https://doi.org/10.15454/IASSTN> [@Millet2019] and the relevant data sets are included as data.frames in the `statgenGWAS` package. We will first show how to load the data and create a `gData` object. Users already familiar with the `statgenGwas` packages might want to skip this part and go straight to [**Running Multi-trait GWAS**](#mtg) section.
 
 ## **Load data**
 
@@ -80,7 +79,7 @@ data(dropsMap)
 data(dropsPheno)
 ```
 
-`dropsMarkers` contains the coded marker information for 41,722 SNPs and 246 genotypes. `dropsMap` contains information about the positions of those SNPs on the B73 reference genome V2. `dropsPheno` contains data for the genotypic means (Best Linear Unbiased Estimators, BLUEs) for ten experiments, with one value per experiment per genotype, for eight traits. For a more detailed description of the contents of the data see `help(dropsData, package = statgenGWAS)`.
+`dropsMarkers` contains the coded marker information for 41,722 SNPs and 246 genotypes. `dropsMap` contains information about the positions of those SNPs on the B73 reference genome V2. `dropsPheno` contains data for the genotypic means (Best Linear Unbiased Estimators, BLUEs) for a subset of ten experiments, with one value per experiment per genotype, for eight traits. For a more detailed description of the contents of the data see `help(dropsData, package = statgenGWAS)`.
 
 ## **Create gData object**
 
@@ -126,9 +125,9 @@ dropsPheno <- dropsPheno[c("Experiment", "genotype", "grain.yield", "grain.numbe
                            "anthesis", "silking", "plant.height", "ear.height")]
 ## Split data by experiment.
 dropsPhenoList <- split(x = dropsPheno, f = dropsPheno[["Experiment"]])
-## Remove Experiment column 
+## Remove Experiment column.
 ## phenotypic data should consist only of genotype and traits.
-dropsPhenoList <- lapply(dropsPhenoList, FUN = `[`, -1)
+dropsPhenoList <- lapply(X = dropsPhenoList, FUN = `[`, -1)
 ```
 
 Note that if the phenotypic data consists of only one trial/experiment, it can be added as a single `data.frame` without first converting it to a list. In that case `createGData` will convert the input to a list with one item.
@@ -162,9 +161,9 @@ Note that duplicate SNPs are removed at random. To get reproducible results make
 
 To demonstrate the options of the `codeMarkers` function, see `help(codeMarkers, package = statgenGWAS)` and the `statgenGWAS` vignette for more details.
 
-## **Multi-trait GWAS**
+## **Running Multi-trait GWAS** {#mtg}
 
-The cleaned `gData` object can be used for performing multi-trait GWAS analysis. In this example the trial *Mur13W* is used to demonstrate the options of the `runMultiTraitGwas` function.
+The cleaned `gData` object can be used for performing multi-trait GWAS analysis. In this example the trial *Mur13W* is used to demonstrate the options of the `runMultiTraitGwas` function, for a subset of five traits. As in [millet2016] we choose a factor analytic model for the genetic and residual covariance.
 
 ```{r mtg}
 ## Run multi-trait GWAS for 5 traits in trial Mur13W.
@@ -176,7 +175,8 @@ GWASDrops <- runMultiTraitGwas(gData = gDataDropsDedup,
 ```
 
 The output of the `runMultiTraitGwas` function is an object of class `GWAS`. This is a list consisting of five elements described below.\
-**GWAResult**: a list of `data.tables`, one for each trial for which the analysis was run. Each `data.table` has the following columns:
+
+1) **GWAResult**: a list of `data.tables`, one for each trial for which the analysis was run. Each `data.table` has the following columns:
 
 |          |                                                            |
 |:---------|:-----------------------------------------------------------|
@@ -194,7 +194,7 @@ The output of the `runMultiTraitGwas` function is an object of class `GWAS`. Thi
 head(GWASDrops$GWAResult$Mur13W)
 ```
 
-**signSnp**: a list of `data.tables`, one for each trial for which the analysis was run, containing the significant SNPs. Optionally also the SNPs close to the significant SNPs are included in the `data.table`. See [**Significance thresholds**](#sign) for more information on how to do this. The data.tables in signSnp consist of the same columns as those in GWAResult described above. Two extra columns are added:
+2) **signSnp**: a list of `data.tables`, one for each trial for which the analysis was run, containing the significant SNPs. Optionally also the SNPs close to the significant SNPs are included in the `data.table`. See [**Significance thresholds**](#sign) for more information on how to do this. The data.tables in signSnp consist of the same columns as those in GWAResult described above. Two extra columns are added:
 
 |            |                                                               |
 |:-----------|:--------------------------------------------------------------|
@@ -205,11 +205,11 @@ head(GWASDrops$GWAResult$Mur13W)
 GWASDrops$signSnp$Mur13W
 ```
 
-**kinship**: the kinship matrix (or matrices) used in the GWAS analysis. This can either be the user provided kinship matrix or the kinship matrix computed when running the `runMultiTraitGwas` function.
+3) **kinship**: the kinship matrix (or matrices) used in the GWAS analysis. This can either be the user provided kinship matrix or the kinship matrix computed when running the `runMultiTraitGwas` function.
 
-**thr**: a list of thresholds, one for each trial for which the analysis was run, used for determining significant SNPs.
+4) **thr**: a list of thresholds, one for each trial for which the analysis was run, used for determining significant SNPs.
 
-**GWASInfo**: additional information on the analysis, e.g. the call and the type of threshold used.
+5) **GWASInfo**: additional information on the analysis, e.g. the call and the type of threshold used.
 
 ### GWAS Summary
 
@@ -260,7 +260,7 @@ Other arguments can be used to plot a subset of the chromosomes (`chr`) and dire
 
 ## Kinship matrices
 
-The `runMultiTraitGwas` function has an argument `kinshipMethod`, which defines the kinship matrix used for association mapping. Kinship matrices can be computed directly using the `kinship` function or within the `runMultiTraitGwas function`. There are four options: (1) using the covariance between the scaled SNP-scores (`kinshipMethod = "astle"`, the default; see e.g. equation (2.2) in @Astle2009) (2) Identity by State (`kinshipMethod = "IBS"`; see e.g. equation (2.3) in @Astle2009) (3) using the formula by @VanRaden2008 (`kinshipMethod = "vanRaden"`) (4) using an identity matrix (`kinshipMethod = "identity"`), corresponding to no kinship correction (5) User-defined, in which case the argument `kin` needs to be specified.
+The `runMultiTraitGwas` function has an argument `kinshipMethod`, which defines the kinship matrix used for association mapping. Kinship matrices can be computed directly using the `kinship` function or within the `runMultiTraitGwas function`. There are five options: (1) using the covariance between the scaled SNP-scores (`kinshipMethod = "astle"`, the default; see e.g. equation (2.2) in @Astle2009) (2) Identity by State (`kinshipMethod = "IBS"`; see e.g. equation (2.3) in @Astle2009) (3) using the formula by @VanRaden2008 (`kinshipMethod = "vanRaden"`) (4) using an identity matrix (`kinshipMethod = "identity"`), corresponding to no kinship correction (5) User-defined, in which case the argument `kin` needs to be specified.
 
 By default, the same kinship matrix is used for testing all SNPs (`GLSMethod = "single"`). When `GLSMethod = "multi"`, the kinship matrix is chromosome-specific. In this case, the function fits variance components and computes effect-estimates and P-values for each chromosome in turn, using the kinship matrix for that chromosome. Each chromosome-specific kinship matrix is computed using the method specified by the argument `kinshipMethod`, using all SNPs that are **not** on this chromosome. As shown by @Rincent2014, this often gives a considerable improvement in power.
 
@@ -331,7 +331,7 @@ head(GWASDropsxE$signSnp$pheno, row.names = FALSE)
 For a quick overview of the results, e.g. the number of significant SNPs, use the summary function. Displaying the summary for all trails gets very large, so here it is restricted to 2 trails using the `traits` argument.
 
 ```{r sumMtgxE}
-summary(GWASDropsxE, traits = c("Cam12R", "Kar12W"))
+summary(GWASDropsxE, traits = c("Mur13W", "Kar12W"))
 ```
 
 ### GWAS Plots

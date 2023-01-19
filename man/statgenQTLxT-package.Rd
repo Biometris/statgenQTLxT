@@ -21,7 +21,7 @@ Other contributors:
   \item Fred van Eeuwijk (\href{https://orcid.org/0000-0003-3672-2921}{ORCID}) [contributor]
   \item Martin Boer (\href{https://orcid.org/0000-0002-1879-4588}{ORCID}) [contributor]
   \item Daniela Bustos-Korts (\href{https://orcid.org/0000-0003-3827-6726}{ORCID}) [contributor]
-  \item Emilie Millet (\href{https://orcid.org/0000-0002-2913-4892}{ORCID}) [contributor]
+  \item Emilie J Millet (\href{https://orcid.org/0000-0002-2913-4892}{ORCID}) [contributor]
   \item Joao Paulo (\href{https://orcid.org/0000-0002-4180-0763}{ORCID}) [contributor]
   \item Maikel Verouden (\href{https://orcid.org/0000-0002-4893-3323}{ORCID}) [contributor]
   \item Ron Wehrens (\href{https://orcid.org/0000-0002-8798-5599}{ORCID}) [contributor]
