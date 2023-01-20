@@ -390,6 +390,8 @@ runMultiTraitGwas <- function(gData,
   phExp <- expandPheno(gData = gData, trial = trial, covar = covar,
                        snpCov = snpCov)
   phTr <- phExp$phTr
+  ## Restrict phenotypic data to genotypes that are actually in markers.
+  phTr <- phTr[phTr[["genotype"]] %in% rownames(gData$markers), ]
   covTr <- phExp$covTr
   ## Convert pheno and covariates to format suitable for fitting var components.
   X <- cbind(rep(1, nrow(phTr)), as.matrix(phTr[covTr]))
