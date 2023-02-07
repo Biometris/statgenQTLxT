@@ -219,12 +219,14 @@
 #' ## Run multi-trait GWAS
 #' ## Use a pairwise model to estimate variance components.
 #' ## Estimate common effects and set a fixed threshold for significant SNPs
+#' \dontrun{
 #' mtg1 <- runMultiTraitGwas(gDataDropsRestr,
 #'                          trial = "Mur13W",
 #'                          covModel = "pw",
 #'                          estCom = TRUE,
 #'                          thrType = "fixed",
 #'                          LODThr = 3)
+#' }
 #'
 #' ## Run multi-trait GWAS
 #' ## Use an unstructured model to estimate variance components.
@@ -526,7 +528,8 @@ runMultiTraitGwas <- function(gData,
   GC <- statgenGWAS:::genCtrlPVals(pVals = GWAResult[GWAResult[["trait"]] == traits[1]][["pValue"]],
                                    nObs = nrow(GWAResult) / length(traits),
                                    nCov = length(covTr))
-  inflationFactor <- GC$inflation
+  inflationTraits <- setNames(rep(GC$inflation, times = nTraits), traits)
+  inflationFactor <- setNames(list(inflationTraits), trial)
   ## Rescale p-values.
   if (genomicControl) {
     GWAResult[, "pValue" := rep(x = GC$pValues, each = length(traits))]

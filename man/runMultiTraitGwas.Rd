@@ -278,12 +278,14 @@ plot(mtg0, plotType = "qtl", yThr = 3.5)
 ## Run multi-trait GWAS
 ## Use a pairwise model to estimate variance components.
 ## Estimate common effects and set a fixed threshold for significant SNPs
+\dontrun{
 mtg1 <- runMultiTraitGwas(gDataDropsRestr,
                          trial = "Mur13W",
                          covModel = "pw",
                          estCom = TRUE,
                          thrType = "fixed",
                          LODThr = 3)
+}
 
 ## Run multi-trait GWAS
 ## Use an unstructured model to estimate variance components.
