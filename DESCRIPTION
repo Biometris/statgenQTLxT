@@ -45,10 +45,11 @@ Authors@R: c(person(given = "Bart-Jan",
                     role = "ctb",
                     comment = c(ORCID = "0000-0001-6030-3933"))
                     )
-Description: Fast multi trait Genome Wide Association Studies (GWAS) following 
-    the method described in Zhou and Stephens. (2014), <doi:10.1038/nmeth.2848>.        
-    One of a series of statistical genetic packages for streamlining the 
-    analysis of typical plant breeding experiments developed by Biometris.
+Description: Fast multi-trait and multi-trail Genome Wide Association Studies 
+    (GWAS) following the method described in Zhou and Stephens. (2014), 
+    <doi:10.1038/nmeth.2848>. One of a series of statistical genetic packages 
+    for streamlining the analysis of typical plant breeding experiments 
+    developed by Biometris.
 License: GPL-3
 Encoding: UTF-8
 RoxygenNote: 7.2.3
