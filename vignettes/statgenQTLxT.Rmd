@@ -60,7 +60,7 @@ A `gData` object contains the following components:
 -   Kinship matrix, a matrix describing the genetic relatedness between the different genotypes,
 -   Further covariates that can be used in the analyses.
 
-In out examples below we will show how a `gData` object is created.
+In our examples below we will show how a `gData` object is created.
 
 ------------------------------------------------------------------------
 
@@ -92,7 +92,7 @@ Below are some examples of what these `data.frames` should look like.
 | G3       | 0.5           | 0.8           | 0.2           |
 | G4       | 0.7           | 0.5           | 0.4           |
 
-In our first example, we want to perform multi-trait GWAS for one of the DROPS environments. `dropsPheno` contains genotypic means for ten trials. To run a multi-trait GWAS analysis for each of the ten trials, the data has to be added as a `list` of ten `data.frames`. Recall that these `data.frames` should have "genotype" as their first column and may only contain traits after that. Other columns need to be dropped.
+In our first example, we want to perform multi-trait GWAS for one of the DROPS environments. `dropsPheno` contains genotypic means for six traits in ten trials. To run a multi-trait GWAS analysis for each of the ten trials, the data has to be added as a `list` of ten `data.frames`. Recall that these `data.frames` should have "genotype" as their first column and may only contain traits after that. Other columns need to be dropped.
 
 The code below creates this `list` of `data.frames` from `dropsPheno`.
 
@@ -143,7 +143,7 @@ summary(gDataDrops, trials = "Mur13W")
 
 ## **Recoding and cleaning of markers**
 
-Marker data has to be numerical and without missing values in order to do GWAS analysis. This can be achieved using the `codeMarkers` function. The marker data available for the DROPS project has already been converted from A/T/C/G to 0/1/2. We still use the `codeMarkers` function to further clean the markers, in this case by removing the duplicate SNPs.
+Marker data has to be numerical and without missing values in order to do GWAS analysis. This can be achieved using the `codeMarkers` function, which can also perform imputation of missing markers. The marker data available for the DROPS project has already been converted from A/T/C/G to 0/1/2. We still use the `codeMarkers` function to further clean the markers, in this case by removing the duplicate SNPs.
 
 ```{r removeDupMarkers}
 ## Set seed.
@@ -189,14 +189,20 @@ The output of the `runMultiTraitGwas` function is an object of class `GWAS`. Thi
 
 ```{r gwaRes}
 head(GWASDrops$GWAResult$Mur13W)
+
+head(GWASDrops$GWAResult$Mur13W[GWASDrops$GWAResult$Mur13W$trait == "grain.yield", ])
 ```
+
+The `data.tables` above contain the results for traits anthesis and grain.yield respectively. While the column effect is trait specific, the p-Value is for the global null-hypothesis ($\beta_1 = \dots = \beta_p = 0$) described above; these p-Values are repeated for each trait.
 
 2) **signSnp**: a list of `data.tables`, one for each trial for which the analysis was run, containing the significant SNPs. Optionally also the SNPs close to the significant SNPs are included in the `data.table`. See [**Significance thresholds**](#sign) for more information on how to do this. The data.tables in signSnp consist of the same columns as those in GWAResult described above. Two extra columns are added:
 
 |            |                                                               |
 |:-----------|:--------------------------------------------------------------|
 | snpStatus  | either "significant SNP" or "within ... of a significant SNP" |
-| propSnpVar | proportion of the variance explained by the SNP               |
+| propSnpVar | proportion of the variance explained by the SNP, computed as $\beta_{\textrm{SNP}}^2 * var(\textrm{SNP}) / var(\textrm{pheno})$           |
+
+In this case there are no significant SNPs:
 
 ```{r signSnp}
 GWASDrops$signSnp$Mur13W
@@ -223,7 +229,7 @@ The `plot` function can be used to visualize the results in GWASDrops, with a QQ
 
 #### QQ plots
 
-A QQ-plot of the observed against the expected $-\log_{10}(p)$ values can be made by setting `plotType = "qq"`. Most of the SNPs are expected to have no effect, resulting in P-values uniformly distributed on $[0,1]$, and leading to the identity function ($y=x$) on the $-\log_{10}(p)$ scale. As in the plot below, deviations from this line should only occur on the right side of the plot, for a small number of SNPs with an effect on the phenotype (and possibly SNPs in LD). There is **inflation** if the observed $-\log_{10}(p)$ values are always above the line $y=x$, and (less common) **deflation** if they are always below this line. A QQ-plot therefore gives a first impression of the quality of the GWAS model: if for example $-\log_{10}(p)$ values are consistently too large (inflation), the correction for genetic relatedness may not be adequate.
+A QQ-plot of the observed against the expected $-\log_{10}(p)$ values can be made by setting `plotType = "qq"`. Most of the SNPs are expected to have no effect, resulting in P-values uniformly distributed on $[0,1]$, and leading to the identity function ($y=x$) on the $-\log_{10}(p)$ scale. As in the plot below, deviations from this line should only occur on the right side of the plot, for a small number of SNPs with an effect on the phenotype (and possibly SNPs in LD). There is **inflation** if the observed $-\log_{10}(p)$ values are always above the line $y=x$, and (less common) **deflation** if they are always below this line. A QQ-plot therefore gives a first impression of the quality of the GWAS model: if for example $-\log_{10}(p)$ values are consistently too large (inflation), the correction for genetic relatedness may not be adequate. In this case it may be of interest to correct the P-values for inflaction, using the `genomicControl` argument in the `runMultiTraitGwas()`. 
 
 ```{r qqMtg}
 ## Plot a qq plot of GWAS Drops.
@@ -259,7 +265,7 @@ Other arguments can be used to plot a subset of the chromosomes (`chr`) and dire
 
 The `runMultiTraitGwas` function has an argument `kinshipMethod`, which defines the kinship matrix used for association mapping. Kinship matrices can be computed directly using the `kinship` function or within the `runMultiTraitGwas function`. There are five options: (1) using the covariance between the scaled SNP-scores (`kinshipMethod = "astle"`, the default; see e.g. equation (2.2) in @Astle2009) (2) Identity by State (`kinshipMethod = "IBS"`; see e.g. equation (2.3) in @Astle2009) (3) using the formula by @VanRaden2008 (`kinshipMethod = "vanRaden"`) (4) using an identity matrix (`kinshipMethod = "identity"`), corresponding to no kinship correction (5) User-defined, in which case the argument `kin` needs to be specified.
 
-By default, the same kinship matrix is used for testing all SNPs (`GLSMethod = "single"`). When `GLSMethod = "multi"`, the kinship matrix is chromosome-specific. In this case, the function fits variance components and computes effect-estimates and P-values for each chromosome in turn, using the kinship matrix for that chromosome. Each chromosome-specific kinship matrix is computed using the method specified by the argument `kinshipMethod`, using all SNPs that are **not** on this chromosome. As shown by @Rincent2014, this often gives a considerable improvement in power.
+By default, the same kinship matrix is used for testing all SNPs (`GLSMethod = "single"`). When `GLSMethod = "multi"`, the kinship matrix is chromosome-specific. In this case, the function fits variance components and computes effect-estimates and P-values for each chromosome in turn, using the kinship matrix for that chromosome (i.e. using all SNPs that are **not** on this chromosome). Each chromosome-specific kinship matrix is computed using the method specified by the argument `kinshipMethod`. As shown by @Rincent2014, this can give a considerable improvement in power.
 
 ```{r mtgChrSpec}
 ## Run multi-trait GWAS for trial 'Mur13W'.
@@ -308,17 +314,17 @@ gDataDropsDedupxE <- statgenGWAS::codeMarkers(gDataDropsxE, impute = FALSE,
                                               verbose = TRUE) 
 ```
 
-## **Multi-trait GWAS**
+## **Multi-trial GWAS**
+
+Similar to the first example we run a multi-trial GWAs using a factor analytic model.
 
 ```{r mtgxE}
-## Run multi-trait GWAS for one trait in all trials.
+## Run multi-trial GWAS for one trait in all trials.
 GWASDropsxE <- runMultiTraitGwas(gData = gDataDropsDedupxE, 
                                  covModel = "fa")
 ```
 
-```{r gwaResxE}
-head(GWASDropsxE$GWAResult$pheno)
-```
+Among the significant SNPs we find the large QTL on chromosome 6 reported in @Millet2016.
 
 ```{r signSnpxE}
 head(GWASDropsxE$signSnp$pheno, row.names = FALSE)
@@ -326,7 +332,7 @@ head(GWASDropsxE$signSnp$pheno, row.names = FALSE)
 
 ### GWAS Summary
 
-For a quick overview of the results, e.g. the number of significant SNPs, use the summary function. Displaying the summary for all trails gets very large, so here it is restricted to 2 trails using the `traits` argument.
+For a quick overview of the results, e.g. the number of significant SNPs, we again use the summary function. We restrict the output to two trials using the `traits` argument.
 
 ```{r sumMtgxE}
 summary(GWASDropsxE, traits = c("Mur13W", "Kar12W"))
@@ -334,7 +340,7 @@ summary(GWASDropsxE, traits = c("Mur13W", "Kar12W"))
 
 ### GWAS Plots
 
-The plot.GWAS function can be used to visualize the results in `GWASDropsxE`, with a QQ-plot, Manhattan plot or QTL-plot. More details for each `plotType` are available in the `statgenGWAS` vignette.
+As in the first example we use the `plot.GWAS()` function to visualize the results in `GWASDropsxE`, with a QQ-plot, Manhattan plot or QTL-plot. 
 
 #### QQ plots
 
@@ -361,7 +367,7 @@ plot(GWASDropsxE, plotType = "qtl", yThr = 6, normalize = FALSE)
 
 # Further options {#opts}
 
-The `runMultiTraitGwas` function has many more arguments that can be specified. In this section similar arguments are grouped and explained with examples on how to use them.
+The `runMultiTraitGwas()` function has many more arguments that can be specified. In this section similar arguments are grouped and explained with examples on how to use them.
 
 ## Significance thresholds {#sign}
 
@@ -381,7 +387,7 @@ GWASDropsFixThr <- runMultiTraitGwas(gData = gDataDropsDedup,
 
 A final option for selecting significant SNPs is by setting `thrType = "fdr"`. When doing so the significant SNPs won't be selected by computing a genome wide threshold, but by trying to control the rate of false discoveries as in @Brzyski2016.
 
-First, a list is defined containing all SNPs with a P-value below `pThr`. Then clusters of SNPs are created using a two step iterative process in which SNPs with the lowest P-values are selected as cluster representatives. This SNP and all SNPs that have a correlation with this SNP of $\rho$ or higher (specified by the function argument `rho`) will form a cluster. The selected SNPs are removed from the list and the procedure is repeated until no SNPs are left. At the end of this step, one has a list of clusters, with corresponding vector of P-values of the cluster representatives. Finally, to determine the number of significant clusters, the first cluster is determined for which the P-value of the cluster representative is larger than $cluster_{number} * \alpha / m$, where $m$ is the number of SNPs and $\alpha$ can be specified by the corresponding function argument. All previous clusters are selected as significant.
+First, a list is defined containing all SNPs with a P-value below `pThr`, default 0.05. Then clusters of SNPs are created using a two step iterative process in which SNPs with the lowest P-values are selected as cluster representatives. This SNP and all SNPs that have a correlation with this SNP of $\rho$ or higher (specified by the function argument `rho`, default 0.4) will form a cluster. The selected SNPs are removed from the list and the procedure is repeated until no SNPs are left. At the end of this step, one has a list of clusters, with corresponding vector of P-values of the cluster representatives. Finally, to determine the number of significant clusters, the first cluster is determined for which the P-value of the cluster representative is larger than $cluster_{number} * \alpha / m$, where $m$ is the number of SNPs and $\alpha$ can be specified by the corresponding function argument. All previous clusters are selected as significant.
 
 ## Variance components
 
@@ -407,7 +413,7 @@ GWASDropsFA2 <- runMultiTraitGwas(gData = gDataDropsDedup,
 
 **Parallel computing**
 
-To improve performance when using a pairwise variance component model, it is possible to use parallel computing. To do this, a parallel back-end has to be specified by the user, e.g. by using `registerDoParallel` from the `doParallel` package (see the example below). Besides, in the `runMultiTraitGwas` function the argument `parallel` has to be set to `TRUE`. With these settings the computations are done in parallel per pair of traits. Of course, this doesn't have an effect on the output. 
+To improve performance when using a pairwise variance component model, it is possible to use parallel computing. To do this, a parallel back-end has to be specified by the user, e.g. by using `registerDoParallel` from the `doParallel` package (see the example below). In addition, in the `runMultiTraitGwas()` function the argument `parallel` has to be set to `TRUE`. With these settings the computations are done in parallel per pair of traits.
 
 ```{r mtgPar, eval = FALSE}
 ## Register parallel back-end with 2 cores.
@@ -461,6 +467,8 @@ GWASDropsCommon <- runMultiTraitGwas(gData = gDataDropsDedup,
                                      estCom = TRUE)
 head(GWASDropsCommon$GWAResult$Mur13W)
 ```
+
+The SNPs with a significant QTLxE effect come from the same regions as the SNPs in supplementary table 6 in @Millet2016, who however used a different SNP set. Another difference is that here we explicitly test for QTLxE within the GWAS, whereas @Millet2016 regressed SNP effects on environmental covariates.
 
 ```{r winddown, include = FALSE}
 options(op)
