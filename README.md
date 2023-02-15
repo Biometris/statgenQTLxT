@@ -3,12 +3,8 @@
 
 # statgenQTLxT
 
-[![](https://www.r-pkg.org/badges/version/statgenQTLxT)](https://www.r-pkg.org/pkg/statgenQTLxT)
-[![CRAN RStudio mirror
-downloads](https://cranlogs.r-pkg.org/badges/statgenQTLxT)](https://www.r-pkg.org/pkg/statgenQTLxT)
-
-**statgenQTLxT** is an R package for fast multi trait Genome Wide
-Association Studies (GWAS).
+**statgenQTLxT** is an R package for fast multi-trait and multi-trial
+Genome Wide Association Studies (GWAS).
 
 statgenQTLxT has extensive options for summarizing and visualizing
 results. It builds on the `statgenGWAS` package (for single trait GWAS)
