@@ -150,7 +150,8 @@ Marker data has to be numerical and without missing values in order to do GWAS a
 set.seed(1234)
 
 ## Remove duplicate SNPs from gDataDrops.
-gDataDropsDedup <- statgenGWAS::codeMarkers(gDataDrops, impute = FALSE, 
+gDataDropsDedup <- statgenGWAS::codeMarkers(gDataDrops, 
+                                            impute = FALSE, 
                                             verbose = TRUE) 
 ```
 
@@ -160,7 +161,7 @@ To demonstrate the options of the `codeMarkers()` function, see `help(codeMarker
 
 ## **Running Multi-trait GWAS** {#mtg}
 
-The cleaned `gData` object can be used for performing multi-trait GWAS analysis. In this example the trial *Mur13W* is used to demonstrate the options of the `runMultiTraitGwas()` function, for a subset of five traits. As in [millet2016] we choose a factor analytic model for the genetic and residual covariance.
+The cleaned `gData` object can be used for performing multi-trait GWAS analysis. In this example the trial *Mur13W* is used to demonstrate the options of the `runMultiTraitGwas()` function, for a subset of five traits. As in @millet2016 we choose a factor analytic model for the genetic and residual covariance.
 
 ```{r mtg}
 ## Run multi-trait GWAS for 5 traits in trial Mur13W.
@@ -285,7 +286,7 @@ In this example, we will focus on one trait, grain yield, in all trials. `dropsP
 
 ```{r addPhenoxE}
 ## Reshape phenotypic data to data.frame in wide format containing only grain.yield.
-phenoDat <- reshape(dropsPheno[,c("Experiment","genotype","grain.yield")], 
+phenoDat <- reshape(dropsPheno[, c("Experiment", "genotype", "grain.yield")], 
                     timevar = "Experiment", 
                     idvar = "genotype", 
                     direction = "wide", 
@@ -310,7 +311,8 @@ summary(gDataDropsxE)
 
 ```{r removeDupMarkersxE}
 ## Remove duplicate SNPs from gDataDrops.
-gDataDropsDedupxE <- statgenGWAS::codeMarkers(gDataDropsxE, impute = FALSE,
+gDataDropsDedupxE <- statgenGWAS::codeMarkers(gDataDropsxE, 
+                                              impute = FALSE,
                                               verbose = TRUE) 
 ```
 
