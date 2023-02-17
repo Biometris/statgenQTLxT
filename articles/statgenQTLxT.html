@@ -103,7 +103,7 @@
                         <h4 data-toc-skip class="author">Bart-Jan van
 Rossum</h4>
             
-            <h4 data-toc-skip class="date">2023-02-15</h4>
+            <h4 data-toc-skip class="date">2023-02-17</h4>
       
       
       <div class="d-none name"><code>statgenQTLxT.Rmd</code></div>
@@ -438,7 +438,8 @@ this case by removing the duplicate SNPs.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">## Remove duplicate SNPs from gDataDrops.</span></span>
-<span><span class="va">gDataDropsDedup</span> <span class="op">&lt;-</span> <span class="fu">statgenGWAS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/statgenGWAS/man/codeMarkers.html" class="external-link">codeMarkers</a></span><span class="op">(</span><span class="va">gDataDrops</span>, impute <span class="op">=</span> <span class="cn">FALSE</span>, </span>
+<span><span class="va">gDataDropsDedup</span> <span class="op">&lt;-</span> <span class="fu">statgenGWAS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/statgenGWAS/man/codeMarkers.html" class="external-link">codeMarkers</a></span><span class="op">(</span><span class="va">gDataDrops</span>, </span>
+<span>                                            impute <span class="op">=</span> <span class="cn">FALSE</span>, </span>
 <span>                                            verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> </span>
 <span><span class="co">#&gt; Input contains 41722 SNPs for 246 genotypes.</span></span>
 <span><span class="co">#&gt; 0 genotypes removed because proportion of missing values larger than or equal to 1.</span></span>
@@ -458,8 +459,8 @@ the <code>statgenGWAS</code> vignette for more details.</p>
 <p>The cleaned <code>gData</code> object can be used for performing
 multi-trait GWAS analysis. In this example the trial <em>Mur13W</em> is
 used to demonstrate the options of the <code><a href="../reference/runMultiTraitGwas.html">runMultiTraitGwas()</a></code>
-function, for a subset of five traits. As in [millet2016] we choose a
-factor analytic model for the genetic and residual covariance.</p>
+function, for a subset of five traits. As in <span class="citation">(<a href="#ref-millet2016" role="doc-biblioref"><strong>millet2016?</strong></a>)</span> we choose
+a factor analytic model for the genetic and residual covariance.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## Run multi-trait GWAS for 5 traits in trial Mur13W.</span></span>
 <span><span class="va">GWASDrops</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/runMultiTraitGwas.html">runMultiTraitGwas</a></span><span class="op">(</span>gData <span class="op">=</span> <span class="va">gDataDropsDedup</span>, </span>
@@ -738,7 +739,7 @@ the data has to be reshaped and added as a single data.frame with
 “genotype” as first column and traits after that.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## Reshape phenotypic data to data.frame in wide format containing only grain.yield.</span></span>
-<span><span class="va">phenoDat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/reshape.html" class="external-link">reshape</a></span><span class="op">(</span><span class="va">dropsPheno</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Experiment"</span>,<span class="st">"genotype"</span>,<span class="st">"grain.yield"</span><span class="op">)</span><span class="op">]</span>, </span>
+<span><span class="va">phenoDat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/reshape.html" class="external-link">reshape</a></span><span class="op">(</span><span class="va">dropsPheno</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Experiment"</span>, <span class="st">"genotype"</span>, <span class="st">"grain.yield"</span><span class="op">)</span><span class="op">]</span>, </span>
 <span>                    timevar <span class="op">=</span> <span class="st">"Experiment"</span>, </span>
 <span>                    idvar <span class="op">=</span> <span class="st">"genotype"</span>, </span>
 <span>                    direction <span class="op">=</span> <span class="st">"wide"</span>, </span>
@@ -788,7 +789,8 @@ information and phenotypes.</p>
 </h3>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## Remove duplicate SNPs from gDataDrops.</span></span>
-<span><span class="va">gDataDropsDedupxE</span> <span class="op">&lt;-</span> <span class="fu">statgenGWAS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/statgenGWAS/man/codeMarkers.html" class="external-link">codeMarkers</a></span><span class="op">(</span><span class="va">gDataDropsxE</span>, impute <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span><span class="va">gDataDropsDedupxE</span> <span class="op">&lt;-</span> <span class="fu">statgenGWAS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/statgenGWAS/man/codeMarkers.html" class="external-link">codeMarkers</a></span><span class="op">(</span><span class="va">gDataDropsxE</span>, </span>
+<span>                                              impute <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                                              verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> </span>
 <span><span class="co">#&gt; Input contains 41722 SNPs for 246 genotypes.</span></span>
 <span><span class="co">#&gt; 0 genotypes removed because proportion of missing values larger than or equal to 1.</span></span>
