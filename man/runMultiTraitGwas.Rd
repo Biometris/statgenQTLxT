@@ -265,15 +265,19 @@ that \eqn{V_e} is diagonal (\code{VeDiag = TRUE})
 
 ## Run multi-trait GWAS
 ## Use a factor analytic model to estimate variance components.
+\dontrun{
 mtg0 <- runMultiTraitGwas(gDataDropsRestr,
                          trial = "Mur13W",
                          covModel = "fa")
+}
 
 ## Plot the results.
 ## For details on the different plots see plot.GWAS
+\dontrun{
 plot(mtg0, plotType = "qq")
 plot(mtg0, plotType = "manhattan")
 plot(mtg0, plotType = "qtl", yThr = 3.5)
+}
 
 ## Run multi-trait GWAS
 ## Use a pairwise model to estimate variance components.
