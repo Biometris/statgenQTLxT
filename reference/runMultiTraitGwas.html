@@ -436,18 +436,19 @@ February 2014, Vol. 11, p. 407–409.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## Run multi-trait GWAS</span></span></span>
 <span class="r-in"><span><span class="co">## Use a factor analytic model to estimate variance components.</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="va">mtg0</span> <span class="op">&lt;-</span> <span class="fu">runMultiTraitGwas</span><span class="op">(</span><span class="va">gDataDropsRestr</span>,</span></span>
 <span class="r-in"><span>                         trial <span class="op">=</span> <span class="st">"Mur13W"</span>,</span></span>
 <span class="r-in"><span>                         covModel <span class="op">=</span> <span class="st">"fa"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## Plot the results.</span></span></span>
 <span class="r-in"><span><span class="co">## For details on the different plots see plot.GWAS</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mtg0</span>, plotType <span class="op">=</span> <span class="st">"qq"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="runMultiTraitGwas-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mtg0</span>, plotType <span class="op">=</span> <span class="st">"manhattan"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="runMultiTraitGwas-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mtg0</span>, plotType <span class="op">=</span> <span class="st">"qtl"</span>, yThr <span class="op">=</span> <span class="fl">3.5</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="runMultiTraitGwas-3.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## Run multi-trait GWAS</span></span></span>
 <span class="r-in"><span><span class="co">## Use a pairwise model to estimate variance components.</span></span></span>
