@@ -206,7 +206,7 @@
 #'
 #' ## Run multi-trait GWAS
 #' ## Use a factor analytic model to estimate variance components.
-#' \dontrun{
+#' \donttest{
 #' mtg0 <- runMultiTraitGwas(gDataDropsRestr,
 #'                          trial = "Mur13W",
 #'                          covModel = "fa")
@@ -214,7 +214,7 @@
 #'
 #' ## Plot the results.
 #' ## For details on the different plots see plot.GWAS
-#' \dontrun{
+#' \donttest{
 #' plot(mtg0, plotType = "qq")
 #' plot(mtg0, plotType = "manhattan")
 #' plot(mtg0, plotType = "qtl", yThr = 3.5)
@@ -223,7 +223,7 @@
 #' ## Run multi-trait GWAS
 #' ## Use a pairwise model to estimate variance components.
 #' ## Estimate common effects and set a fixed threshold for significant SNPs
-#' \dontrun{
+#' \donttest{
 #' mtg1 <- runMultiTraitGwas(gDataDropsRestr,
 #'                          trial = "Mur13W",
 #'                          covModel = "pw",
@@ -236,7 +236,7 @@
 #' ## Use an unstructured model to estimate variance components.
 #' ## Identify the 5 SNPs with smallest p-values as significant SNPs.
 #' ## Compute the kinship matrix using the vanRaden method.
-#' \dontrun{
+#' \donttest{
 #' mtg2 <- runMultiTraitGwas(gDataDropsRestr,
 #'                          trial = "Mur13W",
 #'                          kinshipMethod = "vanRaden",
