@@ -1,4 +1,4 @@
-Initial release
+Initial release. Replaced dontrun by donttest after comments on first release attempt.
 
 ## Test environments
 * local Windows 10 install, R 4.2.2
