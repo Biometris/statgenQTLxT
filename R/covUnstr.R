@@ -147,7 +147,7 @@ covPW <- function(Y,
     ## Fit model.
     modFit <- sommer::mmer(fixed = fixed,
                            random = ~sommer::vsr(genotype, Gu = as.matrix(K)),
-                           data = dat, verbose = FALSE, date.warning = FALSE)
+                           data = dat, verbose = FALSE, dateWarning = FALSE)
     ## Extract components from fitted model.
     VgVec[i] <- as.numeric(modFit$sigma[[1]])
     VeVec[i] <- as.numeric(modFit$sigma[[2]])
