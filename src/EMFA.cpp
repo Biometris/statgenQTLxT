@@ -163,7 +163,11 @@ void updateFA(arma::mat y,
         pNew.diag().fill( 1 / mean(sNew.diag()) );
       }
     }
-    pNew.diag() = clamp(diagvec(pNew), min(diagvec(pNew)), maxDiag);
+    if (diagvec(pNew).min() <= maxDiag) {
+      pNew.diag() = clamp(diagvec(pNew), diagvec(pNew).min(), maxDiag);
+    } else {
+      pNew.diag().fill(maxDiag);
+    }
     double pDiff = accu(abs(pNew - p));
     double wDiff = accu(abs(wNew - w));
     totDiff = pDiff + wDiff;

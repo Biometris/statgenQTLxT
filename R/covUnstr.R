@@ -147,7 +147,7 @@ covPW <- function(Y,
     ## Fit model.
     modFit <- sommer::mmer(fixed = fixed,
                            random = ~sommer::vsr(genotype, Gu = as.matrix(K)),
-                           data = dat, verbose = FALSE, date.warning = FALSE)
+                           data = dat, verbose = FALSE, dateWarning = FALSE)
     ## Extract components from fitted model.
     VgVec[i] <- as.numeric(modFit$sigma[[1]])
     VeVec[i] <- as.numeric(modFit$sigma[[2]])
@@ -181,7 +181,7 @@ covPW <- function(Y,
       ## parameter to assure a fit. We don't want a fixed high value of
       ## tolParInv, so we increase it in steps if needed by taking the sqrt.
       msg <- capture.output(
-        modFit <-
+        modFit <- try(
           sommer::mmer(fixed = fixed,
                        random = ~ sommer::vsr(genotype, Gu = as.matrix(K),
                                               Gtc = sommer::unsm(2),
@@ -191,9 +191,9 @@ covPW <- function(Y,
                        data = dat[, c("genotype", traits[i], traits[j],
                                       colnames(X)[-1])],
                        verbose = FALSE, dateWarning = FALSE,
-                       tolParInv = tolParInv)
+                       tolParInv = tolParInv), silent = TRUE)
       )
-      if (length(modFit) == 0) {
+      if (inherits(modFit, "try-error") || length(msg) > 0) {
         tolParInv <- sqrt(tolParInv)
       } else {
         break
