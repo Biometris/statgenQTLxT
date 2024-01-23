@@ -19,6 +19,14 @@ updateFA(
 )
 }
 \arguments{
+\item{y}{An n x p matrix or data.frame.}
+
+\item{wStart}{A p x p matrix or data.frame containing starting values for W.}
+
+\item{pStart}{A p x p matrix or data.frame containing starting values for P.}
+
+\item{m0}{An integer. The order of the model.}
+
 \item{hetVar}{Should an extra diagonal part be added in the model for the
 precision matrix?}
 
@@ -30,14 +38,6 @@ of the difference for P and W between two steps gets lower than this value.}
 \item{maxIter}{A numerical value for the maximum number of iterations.}
 
 \item{printProgress}{Should progress be printed during iterations?}
-
-\item{Y}{An n x p matrix or data.frame.}
-
-\item{WStart}{A p x p matrix or data.frame containing starting values for W.}
-
-\item{m}{An integer. The order of the model.}
-
-\item{PStart}{A p x p matrix or data.frame containing starting values for P.}
 }
 \description{
 Update W and P used in the iteration process in the EMFA algorithm.

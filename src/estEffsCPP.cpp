@@ -84,19 +84,19 @@ double LLQuadFormDiagCPP(const arma::mat &y,
 //' Compute the estimates and standard errors for the covariates in the input
 //' matrix W.
 //'
-//' @param y An n x p matrix of observed phenotypes, on p traits or environments
+//' @param y0 An n x p matrix of observed phenotypes, on p traits or environments
 //' for n genotypes. No missing values are allowed.
-//' @param w An n x c covariate matrix, c being the number of covariates and n
+//' @param w0 An n x c covariate matrix, c being the number of covariates and n
 //' being the number of genotypes. c has to be at least one (typically an
 //' intercept). No missing values are allowed.
-//' @param x An n x ns matrix of marker scores. Neither missing values nor
+//' @param x0 An n x ns matrix of marker scores. Neither missing values nor
 //' non-segregating markers are allowed.
 //' @param vg A p x p matrix of genetic covariances.
 //' @param ve A p x p matrix of environmental covariances.
 //' @param k An n x n genetic relatedness matrix.
 //' @param returnSe Should standard errors and p-values be returned?
 //' @param estCom Should the common SNP-effect model be fitted?
-//' @param ncores An integer indicating the number of cores used for parallel
+//' @param nCores An integer indicating the number of cores used for parallel
 //' computation.
 //'
 //' @return A list containing the estimates, optionally the standard errors of

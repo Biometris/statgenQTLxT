@@ -7,9 +7,6 @@
 LLQuadFormDiagCPP(y, vInv, size_param_x = NULL)
 }
 \arguments{
-\item{y}{An n x p matrix of observed phenotypes, on p traits or environments
-for n genotypes. No missing values are allowed.}
-
 \item{vInv}{A n x p x p cube containing for each genotype l the
 p x p matrix \eqn{v_l ^ {-1}} (in the notation of Zhou and Stephens).}
 
