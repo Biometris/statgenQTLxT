@@ -1,7 +1,7 @@
-Minor release to allow for submission of new version of sommer.
+Addressed CRAN check notes.
 
 ## Test environments
-* local Windows 10 install, R 4.2.3
+* local Windows 10 install, R 4.3.2
 * winbuilder
 * macbuilder
 * R-hub (devel and release)
@@ -9,4 +9,3 @@ Minor release to allow for submission of new version of sommer.
 ## R CMD check results
 
 0 errors | 0 warnings | 0 notes
-

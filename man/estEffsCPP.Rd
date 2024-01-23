@@ -17,6 +17,16 @@ estEffsCPP(
 )
 }
 \arguments{
+\item{y0}{An n x p matrix of observed phenotypes, on p traits or environments
+for n genotypes. No missing values are allowed.}
+
+\item{w0}{An n x c covariate matrix, c being the number of covariates and n
+being the number of genotypes. c has to be at least one (typically an
+intercept). No missing values are allowed.}
+
+\item{x0}{An n x ns matrix of marker scores. Neither missing values nor
+non-segregating markers are allowed.}
+
 \item{vg}{A p x p matrix of genetic covariances.}
 
 \item{ve}{A p x p matrix of environmental covariances.}
@@ -27,17 +37,7 @@ estEffsCPP(
 
 \item{estCom}{Should the common SNP-effect model be fitted?}
 
-\item{y}{An n x p matrix of observed phenotypes, on p traits or environments
-for n genotypes. No missing values are allowed.}
-
-\item{w}{An n x c covariate matrix, c being the number of covariates and n
-being the number of genotypes. c has to be at least one (typically an
-intercept). No missing values are allowed.}
-
-\item{x}{An n x ns matrix of marker scores. Neither missing values nor
-non-segregating markers are allowed.}
-
-\item{ncores}{An integer indicating the number of cores used for parallel
+\item{nCores}{An integer indicating the number of cores used for parallel
 computation.}
 }
 \value{

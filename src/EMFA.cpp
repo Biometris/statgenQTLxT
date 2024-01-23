@@ -55,10 +55,10 @@ void updateFAHomVar(arma::mat s,
 //'
 //' Update W and P used in the iteration process in the EMFA algorithm.
 //'
-//' @param Y An n x p matrix or data.frame.
-//' @param WStart A p x p matrix or data.frame containing starting values for W.
-//' @param m An integer. The order of the model.
-//' @param PStart A p x p matrix or data.frame containing starting values for P.
+//' @param y An n x p matrix or data.frame.
+//' @param wStart A p x p matrix or data.frame containing starting values for W.
+//' @param m0 An integer. The order of the model.
+//' @param pStart A p x p matrix or data.frame containing starting values for P.
 //' @param hetVar Should an extra diagonal part be added in the model for the
 //' precision matrix?
 //' @param maxDiag A numerical value for the maximum value of the diagonal of P.
