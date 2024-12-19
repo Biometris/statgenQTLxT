@@ -77,7 +77,7 @@
 # #' in \code{pheno}.
 # #' @param minCofactorProximity A numerical value ...
 # #'
-# #' @return An object of class \code{\link{SIM}}.
+# #' @returns An object of class \code{\link{SIM}}.
 # #'
 # #' @references Dahl et al. (2013). Network inference in matrix-variate Gaussian
 # #' models with non-independent noise. arXiv preprint arXiv:1312.1622.

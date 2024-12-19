@@ -72,7 +72,7 @@ updatePrec <- function(m, nc, omega, w, p, wNew, pNew, cNew, het, maxDiag) {
 #' @param x A numeric vector
 #' @param y A numeric vector
 #'
-#' @return for \code{vecInvDiag} a matrix defined by
+#' @returns for \code{vecInvDiag} a matrix defined by
 #' \eqn{(I + x \otimes y)^{-1}}, for \code{tracePInvDiag} a vector containing
 #' the column sums of \eqn{(I + x \otimes y)^{-1}}.
 #'
@@ -119,7 +119,7 @@ tracePInvDiag <- function(x, y) {
 #' @param stopIfDecreasing Should the iterating process stop if after 50
 #' iterations the log-likelihood decreases between two consecutive iterations?
 #'
-#' @return A list containing the following components
+#' @returns A list containing the following components
 #' \itemize{
 #' \item{\code{Vg} The genetic variance components matrix.}
 #' \item{\code{Ve} The environmental variance components matrix.}
@@ -157,7 +157,7 @@ EMFA <- function(y, k, size_param_x = NULL, cmHet = TRUE, dmHet = TRUE, toleranc
 #' @param vInv A n x p x p cube containing for each genotype l the
 #' p x p matrix \eqn{v_l ^ {-1}} (in the notation of Zhou and Stephens).
 #'
-#' @return A numerical value for the \eqn{t(y) * P * y} part of the
+#' @returns A numerical value for the \eqn{t(y) * P * y} part of the
 #' log-likelihood function.
 #'
 #' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
@@ -189,7 +189,7 @@ LLQuadFormDiagCPP <- function(y, vInv, size_param_x = NULL) {
 #' @param nCores An integer indicating the number of cores used for parallel
 #' computation.
 #'
-#' @return A list containing the estimates, optionally the standard errors of
+#' @returns A list containing the estimates, optionally the standard errors of
 #' the estimates and corresponding p-values. If \code{estCom = TRUE} also
 #' common SNP-effects, their standard errors and corresponding p-values and
 #' the p-values for QtlxE are output.

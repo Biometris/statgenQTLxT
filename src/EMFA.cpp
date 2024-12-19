@@ -248,7 +248,7 @@ void updatePrec(unsigned int m,
 //' @param x A numeric vector
 //' @param y A numeric vector
 //'
-//' @return for \code{vecInvDiag} a matrix defined by
+//' @returns for \code{vecInvDiag} a matrix defined by
 //' \eqn{(I + x \otimes y)^{-1}}, for \code{tracePInvDiag} a vector containing
 //' the column sums of \eqn{(I + x \otimes y)^{-1}}.
 //'
@@ -307,7 +307,7 @@ arma::vec tracePInvDiag(arma::vec x,
 //' @param stopIfDecreasing Should the iterating process stop if after 50
 //' iterations the log-likelihood decreases between two consecutive iterations?
 //'
-//' @return A list containing the following components
+//' @returns A list containing the following components
 //' \itemize{
 //' \item{\code{Vg} The genetic variance components matrix.}
 //' \item{\code{Ve} The environmental variance components matrix.}

@@ -16,7 +16,7 @@
 #' @param parallel Should the computation of variance components be done in
 #' parallel?
 #'
-#' @return A list of two matrices \code{Vg} and \code{Ve} containing genotypic
+#' @returns A list of two matrices \code{Vg} and \code{Ve} containing genotypic
 #' and environmental variance components respectively.
 #'
 #' @import utils stats

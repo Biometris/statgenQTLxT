@@ -33,7 +33,7 @@
 #' is automatically set to "multiAllKin".
 #' @param denominator A numerical value. See details.
 #'
-#' @return An n x n kinship matrix.
+#' @returns An n x n kinship matrix.
 #'
 #' @references Astle W., Balding D. J. (2009) Population structure and cryptic
 #' relatedness in genetic association studies, Stat. Sci., November 2009,

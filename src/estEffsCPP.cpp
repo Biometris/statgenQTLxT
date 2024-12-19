@@ -36,7 +36,7 @@ using namespace arma;
 //' @param vInv A n x p x p cube containing for each genotype l the
 //' p x p matrix \eqn{v_l ^ {-1}} (in the notation of Zhou and Stephens).
 //'
-//' @return A numerical value for the \eqn{t(y) * P * y} part of the
+//' @returns A numerical value for the \eqn{t(y) * P * y} part of the
 //' log-likelihood function.
 //'
 //' @references Zhou, X. and Stephens, M. (2014). Efficient multivariate linear
@@ -99,7 +99,7 @@ double LLQuadFormDiagCPP(const arma::mat &y,
 //' @param nCores An integer indicating the number of cores used for parallel
 //' computation.
 //'
-//' @return A list containing the estimates, optionally the standard errors of
+//' @returns A list containing the estimates, optionally the standard errors of
 //' the estimates and corresponding p-values. If \code{estCom = TRUE} also
 //' common SNP-effects, their standard errors and corresponding p-values and
 //' the p-values for QtlxE are output.

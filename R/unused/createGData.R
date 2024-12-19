@@ -41,7 +41,7 @@
 #' @param covar A data.frame with extra covariates per genotype. Genotypes
 #' should be in the rows.
 #'
-#' @return An object of class \code{gData} with the following components:
+#' @returns An object of class \code{gData} with the following components:
 #' \item{\code{map}}{a data.frame containing map data. Map is sorted by
 #' chromosome and position.}
 #' \item{\code{markers}}{a sparse matrix from the Matrix package containing

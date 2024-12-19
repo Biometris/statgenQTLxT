@@ -196,7 +196,7 @@ restrictTraits <- function(Y,
 #' needed in the general algorithm so to not redo things unnecessarily it is
 #' not redone here.
 #'
-#' @return A numerical vector of markers to be exluded from the GWAS scan.
+#' @returns A numerical vector of markers to be exluded from the GWAS scan.
 #'
 #' @keywords internal
 exclMarkers <- function(snpCov,

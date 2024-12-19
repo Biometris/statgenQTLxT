@@ -169,7 +169,7 @@
 # #' the parallel part of the algorithm. If \code{NULL} the number of cores used
 # #' will be equal to the number of cores available on the machine - 1.
 # #'
-# #' @return An object of class \code{\link{GWAS}}.
+# #' @returns An object of class \code{\link{GWAS}}.
 # #'
 # #' @references Dahl et al. (2013). Network inference in matrix-variate Gaussian
 # #' models with non-independent noise. arXiv preprint arXiv:1312.1622.
