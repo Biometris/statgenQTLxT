@@ -1,63 +1,23 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>/404.html</loc>
-  </url>
-  <url>
-    <loc>/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>/articles/statgenQTLxT.html</loc>
-  </url>
-  <url>
-    <loc>/authors.html</loc>
-  </url>
-  <url>
-    <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/news/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/EMFA.html</loc>
-  </url>
-  <url>
-    <loc>/reference/LLQuadFormDiagCPP.html</loc>
-  </url>
-  <url>
-    <loc>/reference/covUnstr.html</loc>
-  </url>
-  <url>
-    <loc>/reference/estEffTot.html</loc>
-  </url>
-  <url>
-    <loc>/reference/estEffsCPP.html</loc>
-  </url>
-  <url>
-    <loc>/reference/exclMarkers.html</loc>
-  </url>
-  <url>
-    <loc>/reference/gDataDropsRestr.html</loc>
-  </url>
-  <url>
-    <loc>/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/runMultiTraitGwas.html</loc>
-  </url>
-  <url>
-    <loc>/reference/statgenQTLxT-package.html</loc>
-  </url>
-  <url>
-    <loc>/reference/updateFA.html</loc>
-  </url>
-  <url>
-    <loc>/reference/updateFAHomVar.html</loc>
-  </url>
-  <url>
-    <loc>/reference/updatePrec.html</loc>
-  </url>
-  <url>
-    <loc>/reference/vecInvDiag.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/articles/statgenQTLxT.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/news/index.html</loc></url>
+<url><loc>/reference/EMFA.html</loc></url>
+<url><loc>/reference/LLQuadFormDiagCPP.html</loc></url>
+<url><loc>/reference/covUnstr.html</loc></url>
+<url><loc>/reference/estEffTot.html</loc></url>
+<url><loc>/reference/estEffsCPP.html</loc></url>
+<url><loc>/reference/exclMarkers.html</loc></url>
+<url><loc>/reference/gDataDropsRestr.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/runMultiTraitGwas.html</loc></url>
+<url><loc>/reference/statgenQTLxT-package.html</loc></url>
+<url><loc>/reference/updateFA.html</loc></url>
+<url><loc>/reference/updateFAHomVar.html</loc></url>
+<url><loc>/reference/updatePrec.html</loc></url>
+<url><loc>/reference/vecInvDiag.html</loc></url>
 </urlset>
+

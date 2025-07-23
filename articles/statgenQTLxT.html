@@ -5,92 +5,53 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="statgenQTLxT">
 <title>Multi-trait GWAS with the statgenQTLxT package • statgenQTLxT</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Multi-trait GWAS with the statgenQTLxT package">
-<meta property="og:description" content="statgenQTLxT">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Multi-trait GWAS with the statgenQTLxT package">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="../index.html">statgenQTLxT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item">
-  <a class="nav-link" href="../index.html">
-    <span class="fa fa-home"></span>
-     
-  </a>
-</li>
-<li class="active nav-item">
-  <a class="nav-link" href="../articles/index.html">Vignettes</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../index.html"><span class="fa fa-home"></span></a></li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Vignettes</a></li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="nav-link" href="../news/index.html">
-    <span class="fa fa-newspaper-o"></span>
-     
-    news
-  </a>
-</li>
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">
-    <span class="fa fa-file-code-o"></span>
-     
-    functions
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><a class="nav-link" href="../news/index.html"><span class="fa fa-newspaper-o"></span> news</a></li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html"><span class="fa fa-file-code-o"></span> functions</a></li>
 <li class="nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown--other-packages">
-    <span class="fa fa-seedling"></span>
-     
-    other packages
-  </a>
-  <div class="dropdown-menu" aria-labelledby="dropdown--other-packages">
-    <a class="external-link dropdown-item" href="https://biometris.github.io/statgenSTA">statgenSTA</a>
-    <a class="external-link dropdown-item" href="https://biometris.github.io/statgenGxE">statgenGxE</a>
-    <a class="external-link dropdown-item" href="https://biometris.github.io/statgenGWAS">statgenGWAS</a>
-    <a class="external-link dropdown-item" href="https://biometris.github.io/statgenHTP">statgenHTP</a>
-    <a class="external-link dropdown-item" href="https://biometris.github.io/statgenIBD">statgenIBD</a>
-    <a class="external-link dropdown-item" href="https://biometris.github.io/statgenMPP">statgenIBD</a>
-    <a class="external-link dropdown-item" href="https://biometris.github.io/LMMsolver">LMMsolver</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-other-packages" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"><span class="fa fa-seedling"></span> other packages</button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-other-packages">
+<li><a class="external-link dropdown-item" href="https://biometris.github.io/statgenSTA">statgenSTA</a></li>
+    <li><a class="external-link dropdown-item" href="https://biometris.github.io/statgenGxE">statgenGxE</a></li>
+    <li><a class="external-link dropdown-item" href="https://biometris.github.io/statgenGWAS">statgenGWAS</a></li>
+    <li><a class="external-link dropdown-item" href="https://biometris.github.io/statgenHTP">statgenHTP</a></li>
+    <li><a class="external-link dropdown-item" href="https://biometris.github.io/statgenIBD">statgenIBD</a></li>
+    <li><a class="external-link dropdown-item" href="https://biometris.github.io/statgenMPP">statgenIBD</a></li>
+    <li><a class="external-link dropdown-item" href="https://biometris.github.io/LMMsolver">LMMsolver</a></li>
+  </ul>
 </li>
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/Biometris/statgenQTLxT">
-    <span class="fa fa-github fa-lg fab"></span>
-     
-    github
-  </a>
-</li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/Biometris/statgenQTLxT"><span class="fa fa-github fa-lg fab"></span> github</a></li>
       </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-article">
 
@@ -99,13 +60,14 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>Multi-trait GWAS with the statgenQTLxT package</h1>
+
+      <h1>Multi-trait GWAS with the statgenQTLxT package</h1>
                         <h4 data-toc-skip class="author">Bart-Jan van
 Rossum</h4>
             
-            <h4 data-toc-skip class="date">2024-01-23</h4>
+            <h4 data-toc-skip class="date">2025-07-23</h4>
       
-      
+
       <div class="d-none name"><code>statgenQTLxT.Rmd</code></div>
     </div>
 
@@ -113,9 +75,9 @@ Rossum</h4>
     
 <p>The <code>statgenQTLxT</code> package performs multi-trait and
 multi-environment Genome Wide Association Studies (GWAS), following the
-approach of <span class="citation">(<a href="#ref-Zhou2014" role="doc-biblioref">Zhou and Stephens 2014</a>)</span>. It builds on
-the <code>statgenGWAS</code> package (for single trait GWAS) which is
-available from <a href="https://biometris.github.io/statgenGWAS/" class="external-link">CRAN</a>. The package
+approach of <span class="citation">(<a href="#ref-Zhou2014">Zhou and
+Stephens 2014</a>)</span>. It builds on the <code>statgenGWAS</code>
+package (for single trait GWAS) which is available from <a href="https://biometris.github.io/statgenGWAS/" class="external-link">CRAN</a>. The package
 uses data structures and plots defined in the <code>statgenGWAS</code>
 package. It is recommended to read the vignette of this package,
 accessible in R via <code>vignette(package = "statgenGWAS")</code> or
@@ -131,76 +93,130 @@ to get a general idea of those.</p>
 <p>Multi-trait GWAS in the <code>statgenQTLxT</code> package estimates
 and tests the effect of a SNP in different trials or on different
 traits, one SNP at a time. Genetic and residual covariances are fitted
-only once, for a model without SNPs. Given balanced data on <span class="math inline">\(n\)</span> genotypes and <span class="math inline">\(p\)</span> traits (or trials) we fit a mixed model
-of the form</p>
-<p><span class="math inline">\(Y = \left(\begin{array}{c} Y_1 \\ \vdots
-\\ Y_p\end{array}\right) = \left(\begin{array}{c} X\gamma_1 \\ \vdots \\
-X\gamma_p\end{array}\right) + \left(\begin{array}{c} x\beta_1 \\ \vdots
-\\ x\beta_p\end{array}\right) + \left(\begin{array}{c} G_1 \\ \vdots \\
-G_p\end{array}\right) + \left(\begin{array}{c} E_1 \\ \vdots \\
-E_p\end{array}\right)\)</span></p>
-<p>where <span class="math inline">\(Y_1\)</span> to <span class="math inline">\(Y_p\)</span> are <span class="math inline">\(n ×
-1\)</span> vectors with the phenotypic values for traits or trials <span class="math inline">\(1, \ldots, p\)</span>. <span class="math inline">\(x\)</span> is the <span class="math inline">\(n ×
-1\)</span> vector of scores for the marker under consideration, and
-<span class="math inline">\(X\)</span> the <span class="math inline">\(n
-× q\)</span> design matrix for the other covariates. By default only a
-trait (environment) specific intercept is included. The vector
-containing the genetic background effects <span class="math inline">\(G_1, \ldots, G_p\)</span> is Gaussian with zero
-mean and covariance <span class="math inline">\(V_g \otimes K\)</span>,
-where <span class="math inline">\(V_g\)</span> is a <span class="math inline">\(p × p\)</span> matrix of genetic (co)variances,
-and <span class="math inline">\(K\)</span> an <span class="math inline">\(n × n\)</span> kinship matrix. Similarly, the
-residual errors (<span class="math inline">\(E_1, \ldots, E_p\)</span>)
-have covariance <span class="math inline">\(V_e \otimes I_n\)</span>,
-for a <span class="math inline">\(p × p\)</span> matrix <span class="math inline">\(V_e\)</span> of residual (co)variances.</p>
+only once, for a model without SNPs. Given balanced data on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+genotypes and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+traits (or trials) we fit a mixed model of the form</p>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>Y</mi><mn>1</mn></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>⋮</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>Y</mi><mi>p</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>X</mi><msub><mi>γ</mi><mn>1</mn></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>⋮</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>X</mi><msub><mi>γ</mi><mi>p</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>x</mi><msub><mi>β</mi><mn>1</mn></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>⋮</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>x</mi><msub><mi>β</mi><mi>p</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>G</mi><mn>1</mn></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>⋮</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>G</mi><mi>p</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>E</mi><mn>1</mn></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>⋮</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>E</mi><mi>p</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Y = \left(\begin{array}{c} Y_1 \\ \vdots \\ Y_p\end{array}\right) = \left(\begin{array}{c} X\gamma_1 \\ \vdots \\ X\gamma_p\end{array}\right) + \left(\begin{array}{c} x\beta_1 \\ \vdots \\ x\beta_p\end{array}\right) + \left(\begin{array}{c} G_1 \\ \vdots \\ G_p\end{array}\right) + \left(\begin{array}{c} E_1 \\ \vdots \\ E_p\end{array}\right)</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">Y_1</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mi>p</mi></msub><annotation encoding="application/x-tex">Y_p</annotation></semantics></math>
+are
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>×</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n × 1</annotation></semantics></math>
+vectors with the phenotypic values for traits or trials
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">1, \ldots, p</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+is the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>×</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n × 1</annotation></semantics></math>
+vector of scores for the marker under consideration, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
+the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>×</mo><mi>q</mi></mrow><annotation encoding="application/x-tex">n × q</annotation></semantics></math>
+design matrix for the other covariates. By default only a trait
+(environment) specific intercept is included. The vector containing the
+genetic background effects
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>G</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>G</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">G_1, \ldots, G_p</annotation></semantics></math>
+is Gaussian with zero mean and covariance
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>g</mi></msub><mo>⊗</mo><mi>K</mi></mrow><annotation encoding="application/x-tex">V_g \otimes K</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>g</mi></msub><annotation encoding="application/x-tex">V_g</annotation></semantics></math>
+is a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>×</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">p × p</annotation></semantics></math>
+matrix of genetic (co)variances, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>×</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">n × n</annotation></semantics></math>
+kinship matrix. Similarly, the residual errors
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>E</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>E</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">E_1, \ldots, E_p</annotation></semantics></math>)
+have covariance
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>e</mi></msub><mo>⊗</mo><msub><mi>I</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">V_e \otimes I_n</annotation></semantics></math>,
+for a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>×</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">p × p</annotation></semantics></math>
+matrix
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>e</mi></msub><annotation encoding="application/x-tex">V_e</annotation></semantics></math>
+of residual (co)variances.</p>
 <div class="section level4">
 <h4 id="common">Hypotheses for the SNP-effects<a class="anchor" aria-label="anchor" href="#common"></a>
 </h4>
-<p>For each SNP, the null-hypothesis <span class="math inline">\(\beta_1
-= \dots = \beta_p = 0\)</span> is tested, using the likelihood ratio
-test (LRT) described in <span class="citation">(<a href="#ref-Zhou2014" role="doc-biblioref">Zhou and Stephens 2014</a>)</span>. If
-<code>estCom = TRUE</code>, additional tests for a common effect and for
-QTL-by-trait (QTL × T) or QTL-by-environment (QTL × E) are performed,
-using the parameterization <span class="math inline">\(\beta_j = \alpha
-+ \alpha_j (1 \leq j \leq p)\)</span>. As in <span class="citation">(<a href="#ref-Korte2012" role="doc-biblioref">Korte et al.
+<p>For each SNP, the null-hypothesis
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mn>1</mn></msub><mo>=</mo><mi>…</mi><mo>=</mo><msub><mi>β</mi><mi>p</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\beta_1 = \dots = \beta_p = 0</annotation></semantics></math>
+is tested, using the likelihood ratio test (LRT) described in <span class="citation">(<a href="#ref-Zhou2014">Zhou and Stephens
+2014</a>)</span>. If <code>estCom = TRUE</code>, additional tests for a
+common effect and for QTL-by-trait (QTL × T) or QTL-by-environment (QTL
+× E) are performed, using the parameterization
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>j</mi></msub><mo>=</mo><mi>α</mi><mo>+</mo><msub><mi>α</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>≤</mo><mi>j</mi><mo>≤</mo><mi>p</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\beta_j = \alpha + \alpha_j (1 \leq j \leq p)</annotation></semantics></math>.
+As in <span class="citation">(<a href="#ref-Korte2012">Korte et al.
 2012</a>)</span>, we use likelihood ratio tests, but not restricted to
 the bivariate case. For the common effect, we fit the reduced model
-<span class="math inline">\(\beta_j = \alpha\)</span>, and test if <span class="math inline">\(\alpha = 0\)</span>. For the interactions, we test
-if <span class="math inline">\(\alpha_1 = \dots = \alpha_p =
-0\)</span>.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>j</mi></msub><mo>=</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">\beta_j = \alpha</annotation></semantics></math>,
+and test if
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\alpha = 0</annotation></semantics></math>.
+For the interactions, we test if
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mn>1</mn></msub><mo>=</mo><mi>…</mi><mo>=</mo><msub><mi>α</mi><mi>p</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\alpha_1 = \dots = \alpha_p = 0</annotation></semantics></math>.</p>
 </div>
 <div class="section level4">
 <h4 id="vc">Models for the genetic and residual covariance<a class="anchor" aria-label="anchor" href="#vc"></a>
 </h4>
-<p><span class="math inline">\(V_g\)</span> and <span class="math inline">\(V_e\)</span> can be provided by the user
-(<code>fitVarComp = FALSE</code>); otherwise one of the following models
-is used, depending on <code>covModel</code>. If
-<code>covModel = "unst"</code>, an unstructured model is assumed, as in
-<span class="citation">(<a href="#ref-Zhou2014" role="doc-biblioref">Zhou and Stephens 2014</a>)</span>: <span class="math inline">\(V_g\)</span> and <span class="math inline">\(V_e\)</span> can be any positive-definite matrix,
-requiring a total of <span class="math inline">\(p(p+1)/2\)</span>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>g</mi></msub><annotation encoding="application/x-tex">V_g</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>e</mi></msub><annotation encoding="application/x-tex">V_e</annotation></semantics></math>
+can be provided by the user (<code>fitVarComp = FALSE</code>); otherwise
+one of the following models is used, depending on <code>covModel</code>.
+If <code>covModel = "unst"</code>, an unstructured model is assumed, as
+in <span class="citation">(<a href="#ref-Zhou2014">Zhou and Stephens
+2014</a>)</span>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>g</mi></msub><annotation encoding="application/x-tex">V_g</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>e</mi></msub><annotation encoding="application/x-tex">V_e</annotation></semantics></math>
+can be any positive-definite matrix, requiring a total of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mo>+</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">p(p+1)/2</annotation></semantics></math>
 parameters per matrix. If <code>covModel = "fa"</code>, a
-factor-analytic model is fitted using an EM-algorithm, as in <span class="citation">(<a href="#ref-Millet2016" role="doc-biblioref">Millet
-et al. 2016</a>)</span>. <span class="math inline">\(V_g\)</span> and
-<span class="math inline">\(V_e\)</span> are assumed to be of the form
-<span class="math inline">\(W W^t + D\)</span>, where <span class="math inline">\(W\)</span> is a <span class="math inline">\(p ×
-m\)</span> matrix of factor loadings and <span class="math inline">\(D\)</span> a diagonal matrix with trait or
-environment specific values. <span class="math inline">\(m\)</span> is
-the order of the model, and the arguments <code>mG</code> and
-<code>mE</code> specify the order used for respectively <span class="math inline">\(V_g\)</span> and <span class="math inline">\(V_e\)</span>. <code>maxIter</code> sets the
-maximum number of iterations used in the EM-algorithm. Finally, if
-<code>covModel = "pw"</code>, <span class="math inline">\(V_g\)</span>
-and <span class="math inline">\(V_e\)</span> are estimated ‘pairwise’,
-as in <span class="citation">(<a href="#ref-Furlotte2015" role="doc-biblioref">Furlotte and Eskin 2015</a>)</span>. Looping over
-pairs of traits or trials <span class="math inline">\(1 \leq j &lt; k
-\leq p\)</span>, <span class="math inline">\(V_g[j,k] =
-V_g[k,j]\)</span> and <span class="math inline">\(V_e[j,k] =
-V_e[k,j]\)</span> are estimated assuming a bivariate mixed model. The
-diagonals of <span class="math inline">\(V_g\)</span> and <span class="math inline">\(V_e\)</span> are fitted assuming univariate mixed
-models. If the resulting <span class="math inline">\(V_g\)</span> or
-<span class="math inline">\(V_e\)</span> is not positive-definite, they
-are replaced by the nearest positive-definite matrix. In case
-<code>covModel = "unst"</code> or <code>"pw"</code> it is possible to
-assume that <span class="math inline">\(V_e\)</span> is diagonal
-(<code>VeDiag = TRUE</code>).</p>
+factor-analytic model is fitted using an EM-algorithm, as in <span class="citation">(<a href="#ref-Millet2016">Millet et al.
+2016</a>)</span>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>g</mi></msub><annotation encoding="application/x-tex">V_g</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>e</mi></msub><annotation encoding="application/x-tex">V_e</annotation></semantics></math>
+are assumed to be of the form
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><msup><mi>W</mi><mi>t</mi></msup><mo>+</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">W W^t + D</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
+is a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>×</mo><mi>m</mi></mrow><annotation encoding="application/x-tex">p × m</annotation></semantics></math>
+matrix of factor loadings and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
+a diagonal matrix with trait or environment specific values.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+is the order of the model, and the arguments <code>mG</code> and
+<code>mE</code> specify the order used for respectively
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>g</mi></msub><annotation encoding="application/x-tex">V_g</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>e</mi></msub><annotation encoding="application/x-tex">V_e</annotation></semantics></math>.
+<code>maxIter</code> sets the maximum number of iterations used in the
+EM-algorithm. Finally, if <code>covModel = "pw"</code>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>g</mi></msub><annotation encoding="application/x-tex">V_g</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>e</mi></msub><annotation encoding="application/x-tex">V_e</annotation></semantics></math>
+are estimated ‘pairwise’, as in <span class="citation">(<a href="#ref-Furlotte2015">Furlotte and Eskin 2015</a>)</span>. Looping
+over pairs of traits or trials
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>≤</mo><mi>j</mi><mo>&lt;</mo><mi>k</mi><mo>≤</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">1 \leq j &lt; k \leq p</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>g</mi></msub><mrow><mo stretchy="true" form="prefix">[</mo><mi>j</mi><mo>,</mo><mi>k</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><msub><mi>V</mi><mi>g</mi></msub><mrow><mo stretchy="true" form="prefix">[</mo><mi>k</mi><mo>,</mo><mi>j</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">V_g[j,k] = V_g[k,j]</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>e</mi></msub><mrow><mo stretchy="true" form="prefix">[</mo><mi>j</mi><mo>,</mo><mi>k</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><msub><mi>V</mi><mi>e</mi></msub><mrow><mo stretchy="true" form="prefix">[</mo><mi>k</mi><mo>,</mo><mi>j</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">V_e[j,k] = V_e[k,j]</annotation></semantics></math>
+are estimated assuming a bivariate mixed model. The diagonals of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>g</mi></msub><annotation encoding="application/x-tex">V_g</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>e</mi></msub><annotation encoding="application/x-tex">V_e</annotation></semantics></math>
+are fitted assuming univariate mixed models. If the resulting
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>g</mi></msub><annotation encoding="application/x-tex">V_g</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>e</mi></msub><annotation encoding="application/x-tex">V_e</annotation></semantics></math>
+is not positive-definite, they are replaced by the nearest
+positive-definite matrix. In case <code>covModel = "unst"</code> or
+<code>"pw"</code> it is possible to assume that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>e</mi></msub><annotation encoding="application/x-tex">V_e</annotation></semantics></math>
+is diagonal (<code>VeDiag = TRUE</code>).</p>
 <hr>
 </div>
 </div>
@@ -235,13 +251,13 @@ created.</p>
 </h2>
 <p>As examples of the functionality of the package two worked examples
 are provided using maize data from the European Union project DROPS. The
-data is available from <a href="https://doi.org/10.15454/IASSTN" class="external-link uri">https://doi.org/10.15454/IASSTN</a> <span class="citation">(<a href="#ref-Millet2019" role="doc-biblioref">Millet
-et al. 2019</a>)</span> and the relevant data sets are included as
-data.frames in the <code>statgenGWAS</code> package. We will first show
-how to load the data and create a <code>gData</code> object. Users
-already familiar with the <code>statgenGwas</code> packages might want
-to skip this part and go straight to <a href="#mtg"><strong>Running
-Multi-trait GWAS</strong></a> section.</p>
+data is available from <a href="https://doi.org/10.15454/IASSTN" class="external-link uri">https://doi.org/10.15454/IASSTN</a> <span class="citation">(<a href="#ref-Millet2019">Millet et al.
+2019</a>)</span> and the relevant data sets are included as data.frames
+in the <code>statgenGWAS</code> package. We will first show how to load
+the data and create a <code>gData</code> object. Users already familiar
+with the <code>statgenGwas</code> packages might want to skip this part
+and go straight to <a href="#mtg"><strong>Running Multi-trait
+GWAS</strong></a> section.</p>
 <p><code>dropsMarkers</code> contains the coded marker information for
 41,722 SNPs and 246 genotypes. <code>dropsMap</code> contains
 information about the positions of those SNPs on the B73 reference
@@ -403,8 +419,8 @@ trial. Since there are ten trials and six traits in
 <span><span class="co">#&gt;  Number of markers: 41722 </span></span>
 <span><span class="co">#&gt;  Number of genotypes: 246 </span></span>
 <span><span class="co">#&gt;  Content:</span></span>
-<span><span class="co">#&gt;   0 1 2 NA </span></span>
-<span><span class="co">#&gt;   0.28 0.01 0.71 0 </span></span>
+<span><span class="co">#&gt;      0    1    2 &lt;NA&gt;  </span></span>
+<span><span class="co">#&gt;   0.28 0.01 0.71 0.00  </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; pheno</span></span>
 <span><span class="co">#&gt;  Number of trials: 1 </span></span>
@@ -459,8 +475,9 @@ the <code>statgenGWAS</code> vignette for more details.</p>
 <p>The cleaned <code>gData</code> object can be used for performing
 multi-trait GWAS analysis. In this example the trial <em>Mur13W</em> is
 used to demonstrate the options of the <code><a href="../reference/runMultiTraitGwas.html">runMultiTraitGwas()</a></code>
-function, for a subset of five traits. As in <span class="citation">(<a href="#ref-millet2016" role="doc-biblioref"><strong>millet2016?</strong></a>)</span> we choose
-a factor analytic model for the genetic and residual covariance.</p>
+function, for a subset of five traits. As in <span class="citation">(<a href="#ref-millet2016"><strong>millet2016?</strong></a>)</span> we
+choose a factor analytic model for the genetic and residual
+covariance.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## Run multi-trait GWAS for 5 traits in trial Mur13W.</span></span>
 <span><span class="va">GWASDrops</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/runMultiTraitGwas.html">runMultiTraitGwas</a></span><span class="op">(</span>gData <span class="op">=</span> <span class="va">gDataDropsDedup</span>, </span>
@@ -505,7 +522,8 @@ for each trial for which the analysis was run. Each
 </tr>
 <tr class="even">
 <td align="left">LOD</td>
-<td align="left">LOD score for the SNP, defined as <span class="math inline">\(-\log_{10}(pValue)\)</span>
+<td align="left">LOD score for the SNP, defined as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><msub><mo>log</mo><mn>10</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mi>V</mi><mi>a</mi><mi>l</mi><mi>u</mi><mi>e</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">-\log_{10}(pValue)</annotation></semantics></math>
 </td>
 </tr>
 <tr class="odd">
@@ -525,26 +543,31 @@ value</td>
 </table>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">GWASDrops</span><span class="op">$</span><span class="va">GWAResult</span><span class="op">$</span><span class="va">Mur13W</span><span class="op">)</span></span>
-<span><span class="co">#&gt;              snp    trait chr    pos pValue   LOD effect effectSe allFreq</span></span>
-<span><span class="co">#&gt; 1:         SYN83 anthesis   1   3498  0.928 0.033  -0.14     0.19    0.60</span></span>
-<span><span class="co">#&gt; 2: PZE-101000060 anthesis   1 157104  0.185 0.732   0.50     0.21    0.72</span></span>
-<span><span class="co">#&gt; 3: PZE-101000088 anthesis   1 238347  0.078 1.110  -0.65     0.25    0.84</span></span>
-<span><span class="co">#&gt; 4: PZE-101000083 anthesis   1 239225  0.503 0.298  -0.16     0.18    0.58</span></span>
-<span><span class="co">#&gt; 5: PZE-101000108 anthesis   1 255850  0.654 0.185   0.17     0.34    0.90</span></span>
-<span><span class="co">#&gt; 6: PZE-101000111 anthesis   1 263938  0.467 0.331  -0.41     0.24    0.83</span></span>
+<span><span class="co">#&gt; Key: &lt;trait, chr, pos&gt;</span></span>
+<span><span class="co">#&gt;              snp    trait   chr    pos pValue   LOD effect effectSe allFreq</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;   &lt;char&gt; &lt;int&gt;  &lt;int&gt;  &lt;num&gt; &lt;num&gt;  &lt;num&gt;    &lt;num&gt;   &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:         SYN83 anthesis     1   3498  0.928 0.033  -0.14     0.19    0.60</span></span>
+<span><span class="co">#&gt; 2: PZE-101000060 anthesis     1 157104  0.185 0.732   0.50     0.21    0.72</span></span>
+<span><span class="co">#&gt; 3: PZE-101000088 anthesis     1 238347  0.078 1.109  -0.65     0.25    0.84</span></span>
+<span><span class="co">#&gt; 4: PZE-101000083 anthesis     1 239225  0.503 0.298  -0.16     0.18    0.58</span></span>
+<span><span class="co">#&gt; 5: PZE-101000108 anthesis     1 255850  0.654 0.185   0.17     0.34    0.90</span></span>
+<span><span class="co">#&gt; 6: PZE-101000111 anthesis     1 263938  0.467 0.331  -0.41     0.24    0.83</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">GWASDrops</span><span class="op">$</span><span class="va">GWAResult</span><span class="op">$</span><span class="va">Mur13W</span><span class="op">[</span><span class="va">GWASDrops</span><span class="op">$</span><span class="va">GWAResult</span><span class="op">$</span><span class="va">Mur13W</span><span class="op">$</span><span class="va">trait</span> <span class="op">==</span> <span class="st">"grain.yield"</span>, <span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt;              snp       trait chr    pos pValue   LOD effect effectSe allFreq</span></span>
-<span><span class="co">#&gt; 1:         SYN83 grain.yield   1   3498  0.928 0.033 -0.060    0.096    0.60</span></span>
-<span><span class="co">#&gt; 2: PZE-101000060 grain.yield   1 157104  0.185 0.732  0.038    0.102    0.72</span></span>
-<span><span class="co">#&gt; 3: PZE-101000088 grain.yield   1 238347  0.078 1.110  0.019    0.124    0.84</span></span>
-<span><span class="co">#&gt; 4: PZE-101000083 grain.yield   1 239225  0.503 0.298 -0.110    0.091    0.58</span></span>
-<span><span class="co">#&gt; 5: PZE-101000108 grain.yield   1 255850  0.654 0.185 -0.092    0.164    0.90</span></span>
-<span><span class="co">#&gt; 6: PZE-101000111 grain.yield   1 263938  0.467 0.331 -0.030    0.119    0.83</span></span></code></pre></div>
+<span><span class="co">#&gt; Key: &lt;trait, chr, pos&gt;</span></span>
+<span><span class="co">#&gt;              snp       trait   chr    pos pValue   LOD effect effectSe allFreq</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;      &lt;char&gt; &lt;int&gt;  &lt;int&gt;  &lt;num&gt; &lt;num&gt;  &lt;num&gt;    &lt;num&gt;   &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:         SYN83 grain.yield     1   3498  0.928 0.033 -0.060    0.096    0.60</span></span>
+<span><span class="co">#&gt; 2: PZE-101000060 grain.yield     1 157104  0.185 0.732  0.038    0.102    0.72</span></span>
+<span><span class="co">#&gt; 3: PZE-101000088 grain.yield     1 238347  0.078 1.109  0.019    0.124    0.84</span></span>
+<span><span class="co">#&gt; 4: PZE-101000083 grain.yield     1 239225  0.503 0.298 -0.110    0.091    0.58</span></span>
+<span><span class="co">#&gt; 5: PZE-101000108 grain.yield     1 255850  0.654 0.185 -0.092    0.163    0.90</span></span>
+<span><span class="co">#&gt; 6: PZE-101000111 grain.yield     1 263938  0.467 0.331 -0.031    0.119    0.83</span></span></code></pre></div>
 <p>The <code>data.tables</code> above contain the results for traits
 anthesis and grain.yield respectively. While the column effect is trait
-specific, the p-Value is for the global null-hypothesis (<span class="math inline">\(\beta_1 = \dots = \beta_p = 0\)</span>) described
-above; these P-values are repeated for each trait.</p>
+specific, the p-Value is for the global null-hypothesis
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mn>1</mn></msub><mo>=</mo><mi>…</mi><mo>=</mo><msub><mi>β</mi><mi>p</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\beta_1 = \dots = \beta_p = 0</annotation></semantics></math>)
+described above; these P-values are repeated for each trait.</p>
 <ol start="2" style="list-style-type: decimal">
 <li>
 <strong>signSnp</strong>: a list of <code>data.tables</code>, one
@@ -569,8 +592,8 @@ SNP”</td>
 <tr class="even">
 <td align="left">propSnpVar</td>
 <td align="left">proportion of the variance explained by the SNP,
-computed as <span class="math inline">\(\beta_{\textrm{SNP}}^2 *
-var(\textrm{SNP}) / var(\textrm{pheno})\)</span>
+computed as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>β</mi><mtext mathvariant="normal">SNP</mtext><mn>2</mn></msubsup><mo>*</mo><mi>v</mi><mi>a</mi><mi>r</mi><mrow><mo stretchy="true" form="prefix">(</mo><mtext mathvariant="normal">SNP</mtext><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>v</mi><mi>a</mi><mi>r</mi><mrow><mo stretchy="true" form="prefix">(</mo><mtext mathvariant="normal">pheno</mtext><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\beta_{\textrm{SNP}}^2 * var(\textrm{SNP}) / var(\textrm{pheno})</annotation></semantics></math>
 </td>
 </tr>
 </tbody>
@@ -624,21 +647,31 @@ for each <code>plotType</code> are available in the
 <div class="section level5">
 <h5 id="qq-plots">QQ plots<a class="anchor" aria-label="anchor" href="#qq-plots"></a>
 </h5>
-<p>A QQ-plot of the observed against the expected <span class="math inline">\(-\log_{10}(p)\)</span> values can be made by
-setting <code>plotType = "qq"</code>. Most of the SNPs are expected to
-have no effect, resulting in P-values uniformly distributed on <span class="math inline">\([0,1]\)</span>, and leading to the identity
-function (<span class="math inline">\(y=x\)</span>) on the <span class="math inline">\(-\log_{10}(p)\)</span> scale. As in the plot
-below, deviations from this line should only occur on the right side of
-the plot, for a small number of SNPs with an effect on the phenotype
-(and possibly SNPs in LD). There is <strong>inflation</strong> if the
-observed <span class="math inline">\(-\log_{10}(p)\)</span> values are
-always above the line <span class="math inline">\(y=x\)</span>, and
-(less common) <strong>deflation</strong> if they are always below this
-line. A QQ-plot therefore gives a first impression of the quality of the
-GWAS model: if for example <span class="math inline">\(-\log_{10}(p)\)</span> values are consistently too
-large (inflation), the correction for genetic relatedness may not be
-adequate. In this case it may be of interest to correct the P-values for
-inflation, using the <code>genomicControl</code> argument in the
+<p>A QQ-plot of the observed against the expected
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><msub><mo>log</mo><mn>10</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">-\log_{10}(p)</annotation></semantics></math>
+values can be made by setting <code>plotType = "qq"</code>. Most of the
+SNPs are expected to have no effect, resulting in P-values uniformly
+distributed on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0,1]</annotation></semantics></math>,
+and leading to the identity function
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mi>x</mi></mrow><annotation encoding="application/x-tex">y=x</annotation></semantics></math>)
+on the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><msub><mo>log</mo><mn>10</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">-\log_{10}(p)</annotation></semantics></math>
+scale. As in the plot below, deviations from this line should only occur
+on the right side of the plot, for a small number of SNPs with an effect
+on the phenotype (and possibly SNPs in LD). There is
+<strong>inflation</strong> if the observed
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><msub><mo>log</mo><mn>10</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">-\log_{10}(p)</annotation></semantics></math>
+values are always above the line
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mi>x</mi></mrow><annotation encoding="application/x-tex">y=x</annotation></semantics></math>,
+and (less common) <strong>deflation</strong> if they are always below
+this line. A QQ-plot therefore gives a first impression of the quality
+of the GWAS model: if for example
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><msub><mo>log</mo><mn>10</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">-\log_{10}(p)</annotation></semantics></math>
+values are consistently too large (inflation), the correction for
+genetic relatedness may not be adequate. In this case it may be of
+interest to correct the P-values for inflation, using the
+<code>genomicControl</code> argument in the
 <code><a href="../reference/runMultiTraitGwas.html">runMultiTraitGwas()</a></code>.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## Plot a qq plot of GWAS Drops.</span></span>
@@ -664,10 +697,10 @@ described in the <code>statgenGWAS</code> vignette.</p>
 <p>A qtl plot can be made by setting <code>plotType = "qtl"</code>. In
 this plot the significant SNPs are marked by circles at their genomic
 positions, with diameter proportional to the estimated effect size; for
-an example see <span class="citation">Millet et al. (<a href="#ref-Millet2016" role="doc-biblioref">2016</a>)</span>. Typically,
-this is done for multiple traits or environments, with the genomic
-position on the x-axis, which are displayed horizontally above each
-other and can thus be compared.</p>
+an example see <span class="citation">Millet et al. (<a href="#ref-Millet2016">2016</a>)</span>. Typically, this is done for
+multiple traits or environments, with the genomic position on the
+x-axis, which are displayed horizontally above each other and can thus
+be compared.</p>
 <p>Since the traits are measured on a different scale, the effect
 estimates cannot be compared directly. For better comparison, one can
 set <code>normalize = TRUE</code>, which divides the estimates by the
@@ -696,10 +729,8 @@ association mapping. Kinship matrices can be computed directly using the
 <code>runMultiTraitGwas function</code>. There are five options: (1)
 using the covariance between the scaled SNP-scores
 (<code>kinshipMethod = "astle"</code>, the default; see e.g. equation
-(2.2) in <span class="citation">Astle and Balding (<a href="#ref-Astle2009" role="doc-biblioref">2009</a>)</span>) (2)
-Identity by State (<code>kinshipMethod = "IBS"</code>; see e.g. equation
-(2.3) in <span class="citation">Astle and Balding (<a href="#ref-Astle2009" role="doc-biblioref">2009</a>)</span>) (3) using
-the formula by <span class="citation">VanRaden (<a href="#ref-VanRaden2008" role="doc-biblioref">2008</a>)</span>
+(2.2) in <span class="citation">Astle and Balding (<a href="#ref-Astle2009">2009</a>)</span>) (2) Identity by State
+(<code>kinshipMethod = "IBS"</code>; see e.g. equation (2.3) in <span class="citation">Astle and Balding (<a href="#ref-Astle2009">2009</a>)</span>) (3) using the formula by <span class="citation">VanRaden (<a href="#ref-VanRaden2008">2008</a>)</span>
 (<code>kinshipMethod = "vanRaden"</code>) (4) using an identity matrix
 (<code>kinshipMethod = "identity"</code>), corresponding to no kinship
 correction (5) User-defined, in which case the argument <code>kin</code>
@@ -713,8 +744,8 @@ using the kinship matrix for that chromosome (i.e. using all SNPs that
 are <strong>not</strong> on this chromosome). Each chromosome-specific
 kinship matrix is computed using the method specified by the argument
 <code>kinshipMethod</code>. As shown by <span class="citation">Rincent
-et al. (<a href="#ref-Rincent2014" role="doc-biblioref">2014</a>)</span>, this can give a considerable
-improvement in power.</p>
+et al. (<a href="#ref-Rincent2014">2014</a>)</span>, this can give a
+considerable improvement in power.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## Run multi-trait GWAS for trial 'Mur13W'.</span></span>
 <span><span class="co">## Use chromosome specific kinship matrices computed using method of van Raden.</span></span>
@@ -764,8 +795,8 @@ information and phenotypes.</p>
 <span><span class="co">#&gt;  Number of markers: 41722 </span></span>
 <span><span class="co">#&gt;  Number of genotypes: 246 </span></span>
 <span><span class="co">#&gt;  Content:</span></span>
-<span><span class="co">#&gt;   0 1 2 NA </span></span>
-<span><span class="co">#&gt;   0.28 0.01 0.71 0 </span></span>
+<span><span class="co">#&gt;      0    1    2 &lt;NA&gt;  </span></span>
+<span><span class="co">#&gt;   0.28 0.01 0.71 0.00  </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; pheno</span></span>
 <span><span class="co">#&gt;  Number of trials: 1 </span></span>
@@ -809,16 +840,17 @@ analytic model.</p>
 <span><span class="va">GWASDropsxE</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/runMultiTraitGwas.html">runMultiTraitGwas</a></span><span class="op">(</span>gData <span class="op">=</span> <span class="va">gDataDropsDedupxE</span>, </span>
 <span>                                 covModel <span class="op">=</span> <span class="st">"fa"</span><span class="op">)</span></span></code></pre></div>
 <p>Among the significant SNPs we find the large QTL on chromosome 6
-reported in <span class="citation">Millet et al. (<a href="#ref-Millet2016" role="doc-biblioref">2016</a>)</span>.</p>
+reported in <span class="citation">Millet et al. (<a href="#ref-Millet2016">2016</a>)</span>.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">GWASDropsxE</span><span class="op">$</span><span class="va">signSnp</span><span class="op">$</span><span class="va">pheno</span>, row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt;              snp  trait chr      pos  pValue  LOD effect effectSe allFreq       snpStatus propSnpVar</span></span>
-<span><span class="co">#&gt; 1:      SYN25281 Kar12W   6 18646369 1.6e-07  6.8   0.23    0.100    0.79 significant SNP      0.017</span></span>
-<span><span class="co">#&gt; 2: PZE-106021363 Kar12W   6 18846283 7.4e-11 10.1   0.28    0.091    0.70 significant SNP      0.034</span></span>
-<span><span class="co">#&gt; 3: PZE-106021410 Kar12W   6 18990291 2.5e-11 10.6   0.30    0.091    0.70 significant SNP      0.037</span></span>
-<span><span class="co">#&gt; 4: PZE-106021419 Kar12W   6 18991091 1.5e-12 11.8   0.26    0.092    0.74 significant SNP      0.026</span></span>
-<span><span class="co">#&gt; 5: PZE-106021420 Kar12W   6 18991117 2.2e-10  9.6   0.27    0.091    0.70 significant SNP      0.032</span></span>
-<span><span class="co">#&gt; 6: PZE-106021424 Kar12W   6 18991481 4.2e-12 11.4   0.24    0.092    0.74 significant SNP      0.022</span></span></code></pre></div>
+<span><span class="co">#&gt;              snp  trait   chr      pos  pValue   LOD effect effectSe allFreq       snpStatus propSnpVar</span></span>
+<span><span class="co">#&gt;           &lt;char&gt; &lt;char&gt; &lt;int&gt;    &lt;int&gt;   &lt;num&gt; &lt;num&gt;  &lt;num&gt;    &lt;num&gt;   &lt;num&gt;          &lt;fctr&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      SYN25281 Kar12W     6 18646369 1.6e-07   6.8   0.23    0.100    0.79 significant SNP      0.017</span></span>
+<span><span class="co">#&gt; 2: PZE-106021363 Kar12W     6 18846283 7.4e-11  10.1   0.28    0.091    0.70 significant SNP      0.034</span></span>
+<span><span class="co">#&gt; 3: PZE-106021410 Kar12W     6 18990291 2.5e-11  10.6   0.30    0.091    0.70 significant SNP      0.037</span></span>
+<span><span class="co">#&gt; 4: PZE-106021419 Kar12W     6 18991091 1.5e-12  11.8   0.26    0.092    0.74 significant SNP      0.026</span></span>
+<span><span class="co">#&gt; 5: PZE-106021420 Kar12W     6 18991117 2.2e-10   9.6   0.27    0.091    0.70 significant SNP      0.032</span></span>
+<span><span class="co">#&gt; 6: PZE-106021424 Kar12W     6 18991481 4.2e-12  11.4   0.24    0.092    0.74 significant SNP      0.022</span></span></code></pre></div>
 <div class="section level4">
 <h4 id="gwas-summary-1">GWAS Summary<a class="anchor" aria-label="anchor" href="#gwas-summary-1"></a>
 </h4>
@@ -903,13 +935,16 @@ explained with examples on how to use them.</p>
 computed by default using Bonferroni correction, with an alpha of 0.05.
 The alpha can be modified setting the option <em>alpha</em> when calling
 <code><a href="../reference/runMultiTraitGwas.html">runMultiTraitGwas()</a></code>. Two other threshold types can be used:
-a fixed threshold (<code>thrType = "fixed"</code>) specifying the <span class="math inline">\(-\log_{10}(p)\)</span> (<code>LODThr</code>) value
-of the threshold, or a threshold that defines the n SNPs with the
-highest <span class="math inline">\(-\log_{10}(p)\)</span> scores as
-significant SNPs. Set <code>thrType = "small"</code> together with
-<code>nSnpLOD = n</code> to do this. In the following example, we define
-all SNPs with <span class="math inline">\(p &lt; 10^{-4}\)</span> as
-significant SNPs.</p>
+a fixed threshold (<code>thrType = "fixed"</code>) specifying the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><msub><mo>log</mo><mn>10</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">-\log_{10}(p)</annotation></semantics></math>
+(<code>LODThr</code>) value of the threshold, or a threshold that
+defines the n SNPs with the highest
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><msub><mo>log</mo><mn>10</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">-\log_{10}(p)</annotation></semantics></math>
+scores as significant SNPs. Set <code>thrType = "small"</code> together
+with <code>nSnpLOD = n</code> to do this. In the following example, we
+define all SNPs with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>&lt;</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup></mrow><annotation encoding="application/x-tex">p &lt; 10^{-4}</annotation></semantics></math>
+as significant SNPs.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## Run multi-trait GWAS for Mur13W.</span></span>
 <span><span class="co">## Use a fixed significance threshold of 4.</span></span>
@@ -922,22 +957,27 @@ significant SNPs.</p>
 <p>A final option for selecting significant SNPs is by setting
 <code>thrType = "fdr"</code>. When doing so the significant SNPs won’t
 be selected by computing a genome wide threshold, but by trying to
-control the rate of false discoveries as in <span class="citation">Brzyski et al. (<a href="#ref-Brzyski2016" role="doc-biblioref">2016</a>)</span>.</p>
+control the rate of false discoveries as in <span class="citation">Brzyski et al. (<a href="#ref-Brzyski2016">2016</a>)</span>.</p>
 <p>First, a list is defined containing all SNPs with a P-value below
 <code>pThr</code>, default 0.05. Then clusters of SNPs are created using
 a two step iterative process in which SNPs with the lowest P-values are
 selected as cluster representatives. This SNP and all SNPs that have a
-correlation with this SNP of <span class="math inline">\(\rho\)</span>
+correlation with this SNP of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
 or higher (specified by the function argument <code>rho</code>, default
 0.4) will form a cluster. The selected SNPs are removed from the list
 and the procedure is repeated until no SNPs are left. At the end of this
 step, one has a list of clusters, with corresponding vector of P-values
 of the cluster representatives. Finally, to determine the number of
 significant clusters, the first cluster is determined for which the
-P-value of the cluster representative is larger than <span class="math inline">\(cluster_{number} * \alpha / m\)</span>, where
-<span class="math inline">\(m\)</span> is the number of SNPs and <span class="math inline">\(\alpha\)</span> can be specified by the
-corresponding function argument. All previous clusters are selected as
-significant.</p>
+P-value of the cluster representative is larger than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mi>l</mi><mi>u</mi><mi>s</mi><mi>t</mi><mi>e</mi><msub><mi>r</mi><mrow><mi>n</mi><mi>u</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow></msub><mo>*</mo><mi>α</mi><mi>/</mi><mi>m</mi></mrow><annotation encoding="application/x-tex">cluster_{number} * \alpha / m</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+is the number of SNPs and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+can be specified by the corresponding function argument. All previous
+clusters are selected as significant.</p>
 </div>
 <div class="section level3">
 <h3 id="variance-components">Variance components<a class="anchor" aria-label="anchor" href="#variance-components"></a>
@@ -1051,25 +1091,36 @@ the output of the function.</p>
 <span>                                     covModel <span class="op">=</span> <span class="st">"fa"</span>,</span>
 <span>                                     estCom <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">GWASDropsCommon</span><span class="op">$</span><span class="va">GWAResult</span><span class="op">$</span><span class="va">Mur13W</span><span class="op">)</span></span>
-<span><span class="co">#&gt;              snp    trait chr    pos pValue    LOD effect effectSe allFreq pValCom effsCom effsComSe pValQtlE</span></span>
-<span><span class="co">#&gt; 1:         SYN83 anthesis   1   3498   0.98 0.0087  -0.12     0.19    0.60   0.536  -0.028     0.045     0.98</span></span>
-<span><span class="co">#&gt; 2: PZE-101000060 anthesis   1 157104   0.20 0.6991   0.47     0.20    0.72   0.029   0.103     0.048     0.58</span></span>
-<span><span class="co">#&gt; 3: PZE-101000088 anthesis   1 238347   0.19 0.7142  -0.61     0.25    0.84   0.049  -0.115     0.059     0.44</span></span>
-<span><span class="co">#&gt; 4: PZE-101000083 anthesis   1 239225   0.76 0.1207  -0.16     0.18    0.58   0.203  -0.054     0.043     0.88</span></span>
-<span><span class="co">#&gt; 5: PZE-101000108 anthesis   1 255850   0.60 0.2253   0.15     0.34    0.90   0.774  -0.023     0.079     0.48</span></span>
-<span><span class="co">#&gt; 6: PZE-101000111 anthesis   1 263938   0.60 0.2217  -0.37     0.24    0.83   0.248  -0.064     0.055     0.66</span></span></code></pre></div>
+<span><span class="co">#&gt; Key: &lt;trait, chr, pos&gt;</span></span>
+<span><span class="co">#&gt;              snp    trait   chr    pos pValue    LOD effect effectSe allFreq pValCom effsCom effsComSe</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;   &lt;char&gt; &lt;int&gt;  &lt;int&gt;  &lt;num&gt;  &lt;num&gt;  &lt;num&gt;    &lt;num&gt;   &lt;num&gt;   &lt;num&gt;   &lt;num&gt;     &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:         SYN83 anthesis     1   3498   0.98 0.0087  -0.12     0.19    0.60   0.536  -0.028     0.045</span></span>
+<span><span class="co">#&gt; 2: PZE-101000060 anthesis     1 157104   0.20 0.6991   0.47     0.20    0.72   0.029   0.103     0.048</span></span>
+<span><span class="co">#&gt; 3: PZE-101000088 anthesis     1 238347   0.19 0.7142  -0.61     0.25    0.84   0.049  -0.115     0.059</span></span>
+<span><span class="co">#&gt; 4: PZE-101000083 anthesis     1 239225   0.76 0.1207  -0.16     0.18    0.58   0.203  -0.054     0.043</span></span>
+<span><span class="co">#&gt; 5: PZE-101000108 anthesis     1 255850   0.60 0.2253   0.15     0.34    0.90   0.774  -0.023     0.079</span></span>
+<span><span class="co">#&gt; 6: PZE-101000111 anthesis     1 263938   0.60 0.2217  -0.37     0.24    0.83   0.248  -0.064     0.055</span></span>
+<span><span class="co">#&gt;    pValQtlE</span></span>
+<span><span class="co">#&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:     0.98</span></span>
+<span><span class="co">#&gt; 2:     0.58</span></span>
+<span><span class="co">#&gt; 3:     0.44</span></span>
+<span><span class="co">#&gt; 4:     0.88</span></span>
+<span><span class="co">#&gt; 5:     0.48</span></span>
+<span><span class="co">#&gt; 6:     0.66</span></span></code></pre></div>
 <p>The SNPs with a significant QTLxE effect come from the same regions
 as the SNPs in supplementary table 6 in <span class="citation">Millet et
-al. (<a href="#ref-Millet2016" role="doc-biblioref">2016</a>)</span>,
-who however used a different SNP set. Another difference is that here we
-explicitly test for QTLxE within the GWAS, whereas <span class="citation">Millet et al. (<a href="#ref-Millet2016" role="doc-biblioref">2016</a>)</span> regressed SNP effects on
+al. (<a href="#ref-Millet2016">2016</a>)</span>, who however used a
+different SNP set. Another difference is that here we explicitly test
+for QTLxE within the GWAS, whereas <span class="citation">Millet et al.
+(<a href="#ref-Millet2016">2016</a>)</span> regressed SNP effects on
 environmental covariates.</p>
 <hr>
 </div>
 <div class="section level3">
 <h3 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h3>
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
 <div id="ref-Astle2009" class="csl-entry">
 Astle, William, and David J. Balding. 2009. <span>“Population Structure
 and Cryptic Relatedness in Genetic Association Studies.”</span>
@@ -1127,28 +1178,26 @@ Studies.”</span> <em>Nature Methods</em> 11 (4): 407–9. <a href="https://doi
 </div>
 </div>
 </div>
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p>
-<p>Developed by Bart-Jan van Rossum, Willem Kruijer.</p>
+  <p>Developed by Bart-Jan van Rossum, Willem Kruijer.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>
