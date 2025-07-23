@@ -181,7 +181,7 @@ the parallel part of the algorithm. If \code{NULL} the number of cores used
 will be equal to the number of cores available on the machine - 1.}
 }
 \value{
-An object of class \code{\link{GWAS}}.
+An object of class \code{GWAS}.
 }
 \description{
 \code{runMultiTraitGwas} performs multi-trait or multi-environment Genome
@@ -284,11 +284,11 @@ plot(mtg0, plotType = "qtl", yThr = 3.5)
 ## Estimate common effects and set a fixed threshold for significant SNPs
 \donttest{
 mtg1 <- runMultiTraitGwas(gDataDropsRestr,
-                         trial = "Mur13W",
-                         covModel = "pw",
-                         estCom = TRUE,
-                         thrType = "fixed",
-                         LODThr = 3)
+                          trial = "Mur13W",
+                          covModel = "pw",
+                          estCom = TRUE,
+                          thrType = "fixed",
+                          LODThr = 3)
 }
 
 ## Run multi-trait GWAS
@@ -297,11 +297,11 @@ mtg1 <- runMultiTraitGwas(gDataDropsRestr,
 ## Compute the kinship matrix using the vanRaden method.
 \donttest{
 mtg2 <- runMultiTraitGwas(gDataDropsRestr,
-                         trial = "Mur13W",
-                         kinshipMethod = "vanRaden",
-                         covModel = "unst",
-                         thrType = "small",
-                         nSnpLOD = 5)
+                          trial = "Mur13W",
+                          kinshipMethod = "vanRaden",
+                          covModel = "unst",
+                          thrType = "small",
+                          nSnpLOD = 5)
 }
 
 }

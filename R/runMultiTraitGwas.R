@@ -179,7 +179,7 @@
 #' the parallel part of the algorithm. If \code{NULL} the number of cores used
 #' will be equal to the number of cores available on the machine - 1.
 #'
-#' @returns An object of class \code{\link{GWAS}}.
+#' @returns An object of class \code{GWAS}.
 #'
 #' @references Dahl et al. (2013). Network inference in matrix-variate Gaussian
 #' models with non-independent noise. arXiv preprint arXiv:1312.1622.
@@ -225,11 +225,11 @@
 #' ## Estimate common effects and set a fixed threshold for significant SNPs
 #' \donttest{
 #' mtg1 <- runMultiTraitGwas(gDataDropsRestr,
-#'                          trial = "Mur13W",
-#'                          covModel = "pw",
-#'                          estCom = TRUE,
-#'                          thrType = "fixed",
-#'                          LODThr = 3)
+#'                           trial = "Mur13W",
+#'                           covModel = "pw",
+#'                           estCom = TRUE,
+#'                           thrType = "fixed",
+#'                           LODThr = 3)
 #' }
 #'
 #' ## Run multi-trait GWAS
@@ -238,11 +238,11 @@
 #' ## Compute the kinship matrix using the vanRaden method.
 #' \donttest{
 #' mtg2 <- runMultiTraitGwas(gDataDropsRestr,
-#'                          trial = "Mur13W",
-#'                          kinshipMethod = "vanRaden",
-#'                          covModel = "unst",
-#'                          thrType = "small",
-#'                          nSnpLOD = 5)
+#'                           trial = "Mur13W",
+#'                           kinshipMethod = "vanRaden",
+#'                           covModel = "unst",
+#'                           thrType = "small",
+#'                           nSnpLOD = 5)
 #' }
 #'
 #' @importFrom data.table :=
