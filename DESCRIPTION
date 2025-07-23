@@ -1,8 +1,8 @@
 Package: statgenQTLxT
 Type: Package
 Title: Multi-Trait and Multi-Trial Genome Wide Association Studies
-Version: 1.0.2.9000
-Date: 2024-01-24
+Version: 1.0.3
+Date: 2024-07-23
 Authors@R: c(person(given = "Bart-Jan", 
                     family = "van Rossum", 
                     email = "bart-jan.vanrossum@wur.nl", 
@@ -16,7 +16,7 @@ Authors@R: c(person(given = "Bart-Jan",
                     family = "van Eeuwijk",
                     role = "ctb",
                     comment = c(ORCID = "0000-0003-3672-2921")),
-             person(given = "Martin", 
+             person(given = "Martin P", 
                     family = "Boer",
                     role = "ctb",
                     comment = c(ORCID = "0000-0002-1879-4588")),
@@ -53,7 +53,7 @@ Description: Fast multi-trait and multi-trail Genome Wide Association Studies
 License: GPL-3
 Encoding: UTF-8
 RoxygenNote: 7.3.2
-Depends: R (>= 3.5)
+Depends: R (>= 4.0)
 Imports: data.table,
     foreach,
     Rcpp,

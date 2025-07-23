@@ -1,10 +1,10 @@
 Addressed CRAN check notes.
 
 ## Test environments
-* local Windows 10 install, R 4.3.2
+* local Windows 10 install, R 4.5.1
 * winbuilder
 * macbuilder
-* R-hub (devel and release)
+* ubuntu (github actions)
 
 ## R CMD check results
 
