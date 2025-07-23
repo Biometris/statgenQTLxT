@@ -2,7 +2,7 @@ Package: statgenQTLxT
 Type: Package
 Title: Multi-Trait and Multi-Trial Genome Wide Association Studies
 Version: 1.0.3
-Date: 2024-07-23
+Date: 2025-07-23
 Authors@R: c(person(given = "Bart-Jan", 
                     family = "van Rossum", 
                     email = "bart-jan.vanrossum@wur.nl", 
